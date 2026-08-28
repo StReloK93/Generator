@@ -5,7 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/generator',
+  base: '/Generator/',
   plugins: [
     vue(),
     tailwindcss(),
