@@ -396,34 +396,36 @@ export const useTowerStore = defineStore('towerStore', () => {
    * 2. When playing: updates cooldowns, acquires targets, moves projectiles.
    */
   function updateCombatTick(deltaSec: number) {
-    // Always update floaters and explosion rings so they fade out smoothly
-    const activeFloaters: DamageFloater[] = []
-    for (const df of damageFloaters.value) {
+    // Always update floaters and explosion rings in-place without per-frame array re-allocations
+    let activeFloatersCount = 0
+    for (let i = 0; i < damageFloaters.value.length; i++) {
+      const df = damageFloaters.value[i]
       df.lifeTimer += deltaSec
       df.y -= deltaSec * 35 // Float upwards
       df.alpha = Math.max(0, 1.0 - df.lifeTimer / 0.85)
       if (df.lifeTimer < 0.85) {
-        activeFloaters.push(df)
+        damageFloaters.value[activeFloatersCount++] = df
       }
     }
-    damageFloaters.value = activeFloaters
+    damageFloaters.value.length = activeFloatersCount
 
-    const activeRings: ExplosionRing[] = []
-    for (const ring of explosionRings.value) {
+    let activeRingsCount = 0
+    for (let i = 0; i < explosionRings.value.length; i++) {
+      const ring = explosionRings.value[i]
       ring.lifeTimer += deltaSec
       const prog = ring.lifeTimer / 0.45
       ring.radius = ring.maxRadius * prog
       ring.alpha = Math.max(0, 1.0 - prog)
       if (ring.lifeTimer < 0.45) {
-        activeRings.push(ring)
+        explosionRings.value[activeRingsCount++] = ring
       }
     }
-    explosionRings.value = activeRings
+    explosionRings.value.length = activeRingsCount
 
     if (!characterStore.isEnabled || !characterStore.isPlaying) {
       // Clear visual flying projectiles on pause/reset
       if (projectiles.value.length > 0) {
-        projectiles.value = []
+        projectiles.value.length = 0
       }
       return
     }
@@ -432,7 +434,8 @@ export const useTowerStore = defineStore('towerStore', () => {
     const activeUnits = characterStore.units.filter((u: any) => u.isSpawned && !u.hasReachedEnd && !u.isDead)
 
     // 1. Towers Target Acquisition & Shooting
-    for (const tower of placedTowers.value) {
+    for (let tIdx = 0; tIdx < placedTowers.value.length; tIdx++) {
+      const tower = placedTowers.value[tIdx]
       tower.cooldownTimer -= deltaSec
 
       if (tower.cooldownTimer <= 0) {
@@ -440,7 +443,8 @@ export const useTowerStore = defineStore('towerStore', () => {
         let bestTarget: any = null
         let maxPathDistance = -1
 
-        for (const unit of activeUnits) {
+        for (let uIdx = 0; uIdx < activeUnits.length; uIdx++) {
+          const unit = activeUnits[uIdx]
           const distInTiles = Math.hypot(unit.currentCol - tower.col, unit.currentRow - tower.row)
           if (distInTiles <= tower.range) {
             const pathProgress = unit.pathIndex + unit.pathInterpolation
@@ -488,10 +492,11 @@ export const useTowerStore = defineStore('towerStore', () => {
       }
     }
 
-    // 2. Advance Flying Projectiles & Handle Hits
-    const remainingProjectiles: Projectile[] = []
+    // 2. Advance Flying Projectiles & Handle Hits (In-place update)
+    let remainingProjectilesCount = 0
 
-    for (const proj of projectiles.value) {
+    for (let pIdx = 0; pIdx < projectiles.value.length; pIdx++) {
+      const proj = projectiles.value[pIdx]
       // Find target unit to update its current position in case it moved
       const targetUnit = activeUnits.find((u: any) => u.id === proj.targetUnitId)
       if (targetUnit) {
@@ -516,11 +521,11 @@ export const useTowerStore = defineStore('towerStore', () => {
         proj.currentY += dirY * moveStep
         proj.traveledDistance += moveStep
 
-        remainingProjectiles.push(proj)
+        projectiles.value[remainingProjectilesCount++] = proj
       }
     }
 
-    projectiles.value = remainingProjectiles
+    projectiles.value.length = remainingProjectilesCount
   }
 
   /**

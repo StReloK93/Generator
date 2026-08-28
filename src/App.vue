@@ -3,7 +3,7 @@
     <!-- Top Global App Header (Hidden in Game Mode) -->
     <Header 
       v-if="!characterStore.isGameMode"
-      @open-welcome="welcomeModalRef?.open()"
+      @open-welcome="(mode) => welcomeModalRef?.open(mode)"
       @open-export="isExportModalOpen = true"
     />
 

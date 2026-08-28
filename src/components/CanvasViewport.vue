@@ -199,7 +199,7 @@ import { IsoEngine } from '../engine/IsoEngine'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
-import { GridCoord, AssetItem } from '../types/map'
+import { GridCoord, AssetItem, Point2D } from '../types/map'
 import ElementInspector from './ElementInspector.vue'
 import CharacterControlBar from './CharacterControlBar.vue'
 import TowerDefenseBar from './TowerDefenseBar.vue'
@@ -233,10 +233,30 @@ let resizeObserver: ResizeObserver | null = null
 const showGuide = ref(true)
 const isDraggingOver = ref(false)
 
-// Pan state
+// Cached Viewport DOMRect (eliminates layout thrashing in input handlers)
+let cachedViewportRect: DOMRect | null = null
+function updateViewportRect() {
+  if (viewportContainerRef.value) {
+    cachedViewportRect = viewportContainerRef.value.getBoundingClientRect()
+  }
+}
+function getViewportRect(): DOMRect {
+  if (!cachedViewportRect && viewportContainerRef.value) {
+    cachedViewportRect = viewportContainerRef.value.getBoundingClientRect()
+  }
+  return cachedViewportRect || new DOMRect(0, 0, window.innerWidth, window.innerHeight)
+}
+
+// Local Non-Reactive Camera State (Direct Pixi transform with zero Vue/Pinia overhead during drag)
+let localPanX = 0
+let localPanY = 0
+let localZoom = 1.0
+let isLocalDragging = false
+
+// Pan state for cursor class
 const isPanning = ref(false)
-const panStart = ref({ x: 0, y: 0 })
-const panOrigin = ref({ x: 0, y: 0 })
+const panStart = { x: 0, y: 0 }
+const panOrigin = { x: 0, y: 0 }
 const isSpacePressed = ref(false)
 
 function getAssetMap(): Map<string, AssetItem> {
@@ -263,28 +283,35 @@ function getAssetMap(): Map<string, AssetItem> {
 
 function centerView() {
   if (!viewportContainerRef.value) return
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  updateViewportRect()
+  const rect = getViewportRect()
   const pan = engine.centerMap(mapStore.project, rect.width, rect.height)
-  toolStore.pan = pan
-  engine.setTransform(toolStore.zoom, pan)
+  localPanX = pan.x
+  localPanY = pan.y
+  localZoom = toolStore.zoom
+  toolStore.pan = { x: Math.round(pan.x), y: Math.round(pan.y) }
+  engine.setTransform(localZoom, { x: localPanX, y: localPanY })
 }
 
 function focusOnCell(col: number, row: number) {
   if (!viewportContainerRef.value) return
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  updateViewportRect()
+  const rect = getViewportRect()
   const pt = gridToScreen(col, row, mapStore.project.tileWidth, mapStore.project.tileHeight)
 
-  const panX = rect.width / 2 - pt.x * toolStore.zoom
-  const panY = rect.height / 2 - pt.y * toolStore.zoom
+  localPanX = rect.width / 2 - pt.x * toolStore.zoom
+  localPanY = rect.height / 2 - pt.y * toolStore.zoom
+  localZoom = toolStore.zoom
 
-  toolStore.pan = { x: Math.round(panX), y: Math.round(panY) }
-  engine.setTransform(toolStore.zoom, toolStore.pan)
+  toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
+  engine.setTransform(localZoom, { x: localPanX, y: localPanY })
 }
 
 onMounted(async () => {
   if (!viewportContainerRef.value) return
 
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  updateViewportRect()
+  const rect = getViewportRect()
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
 
   for (const asset of assetStore.assets) {
@@ -308,6 +335,10 @@ onMounted(async () => {
     characterStore.spawnAtDoor(0)
   }
 
+  localZoom = toolStore.zoom
+  localPanX = toolStore.pan.x
+  localPanY = toolStore.pan.y
+
   centerView()
   updateEngineState()
 
@@ -316,6 +347,7 @@ onMounted(async () => {
     resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+          updateViewportRect()
           engine.resize(entry.contentRect.width, entry.contentRect.height)
         }
       }
@@ -341,7 +373,8 @@ onUnmounted(() => {
 
 function handleResize() {
   if (!viewportContainerRef.value || !engine.isInitialized) return
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  updateViewportRect()
+  const rect = getViewportRect()
   if (rect.width > 0 && rect.height > 0) {
     engine.resize(rect.width, rect.height)
   }
@@ -406,11 +439,12 @@ function focusOnCenter() {
   focusOnCell(centerCol, centerRow)
 }
 
-// Watchers
+// Watchers: Optimized and decoupled so hover/selection does NOT trigger full layer and grid rebuilds
 watch(
   () => [mapStore.project.layers, mapStore.project.updatedAt],
   () => {
-    updateEngineState()
+    if (!engine.isInitialized) return
+    engine.syncLayers(mapStore.project, getAssetMap())
     if (!characterStore.isPlaying && !characterStore.isGameMode) {
       characterStore.detectDoors()
     }
@@ -461,7 +495,17 @@ watch(
     toolStore.showSymmetryAxes,
     toolStore.gridOpacity
   ],
-  () => updateEngineState()
+  () => {
+    if (!engine.isInitialized) return
+    engine.renderGrid(
+      mapStore.project,
+      toolStore.showGrid,
+      toolStore.gridOpacity,
+      toolStore.showCoordinates,
+      toolStore.showCenterMarker,
+      toolStore.showSymmetryAxes
+    )
+  }
 )
 
 watch(
@@ -475,21 +519,64 @@ watch(
   { deep: true }
 )
 
+// Lightweight hover and preview updates (zero layer or grid overhead)
 watch(
   () => [
     toolStore.hoveredCell, 
     toolStore.previewCells, 
     toolStore.activeTool, 
-    toolStore.selectedElement,
     assetStore.selectedAssetId
   ],
-  () => updateEngineState()
+  () => {
+    if (!engine.isInitialized) return
+    if (toolStore.previewCells.length > 0) {
+      engine.renderPreviewCells(
+        toolStore.previewCells,
+        mapStore.project,
+        assetStore.selectedAsset,
+        toolStore.activeTool
+      )
+    } else {
+      engine.renderHoverCell(
+        toolStore.hoveredCell,
+        mapStore.project,
+        assetStore.selectedAsset,
+        toolStore.activeTool
+      )
+    }
+  }
 )
 
+// Lightweight selection box update
+watch(
+  () => toolStore.selectedElement,
+  (newSel) => {
+    if (!engine.isInitialized) return
+    let spanX = 1
+    let spanY = 1
+    if (newSel) {
+      const items = mapStore.getCellItems(newSel.col, newSel.row, newSel.layerId)
+      const item = items.find(i => i.id === newSel?.itemId) || items[items.length - 1]
+      if (item) {
+        spanX = item.spanX || 1
+        spanY = item.spanY || 1
+      }
+    }
+    engine.renderSelection(newSel, mapStore.project, spanX, spanY)
+  }
+)
+
+// External Pan & Zoom sync watcher (guarded against self-trigger during local drag)
 watch(
   () => [toolStore.zoom, toolStore.pan],
-  () => {
-    engine.setTransform(toolStore.zoom, toolStore.pan)
+  ([newZoom, newPan]) => {
+    if (isLocalDragging) return
+    const z = newZoom as number
+    const p = newPan as Point2D
+    localZoom = z
+    localPanX = p.x
+    localPanY = p.y
+    engine.setTransform(localZoom, { x: localPanX, y: localPanY })
   },
   { deep: true }
 )
@@ -737,14 +824,17 @@ function handleMouseDown(e: MouseEvent) {
   // Middle Click or Space Key or Pan Tool activates panning
   if (e.button === 1 || isSpacePressed.value || toolStore.activeTool === 'pan') {
     isPanning.value = true
-    panStart.value = { x: e.clientX, y: e.clientY }
-    panOrigin.value = { ...toolStore.pan }
+    isLocalDragging = true
+    panStart.x = e.clientX
+    panStart.y = e.clientY
+    panOrigin.x = localPanX
+    panOrigin.y = localPanY
     return
   }
 
   if (mapStore.activeLayer?.locked) return
 
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  const rect = getViewportRect()
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
 
   executeCellClick(gridCoord, e.ctrlKey || e.metaKey)
@@ -757,10 +847,12 @@ interface TouchState {
   startX: number
   startY: number
   startTime: number
-  startPan: { x: number; y: number }
+  startPanX: number
+  startPanY: number
   startZoom: number
   initialDistance: number
-  initialMidpoint: { x: number; y: number }
+  initialMidX: number
+  initialMidY: number
   moved: boolean
   lastTapTime: number
   lastTapPos: { x: number; y: number }
@@ -772,10 +864,12 @@ const touchState = ref<TouchState>({
   startX: 0,
   startY: 0,
   startTime: 0,
-  startPan: { x: 0, y: 0 },
+  startPanX: 0,
+  startPanY: 0,
   startZoom: 1.0,
   initialDistance: 0,
-  initialMidpoint: { x: 0, y: 0 },
+  initialMidX: 0,
+  initialMidY: 0,
   moved: false,
   lastTapTime: 0,
   lastTapPos: { x: 0, y: 0 }
@@ -799,6 +893,8 @@ function handleTouchStart(e: TouchEvent) {
     return
   }
 
+  updateViewportRect()
+
   if (e.touches.length === 1) {
     const t = e.touches[0]
     touchState.value = {
@@ -806,21 +902,18 @@ function handleTouchStart(e: TouchEvent) {
       mode: 'tap_pending',
       startX: t.clientX,
       startY: t.clientY,
-      startTime: Date.now(),
-      startPan: { ...toolStore.pan },
-      startZoom: toolStore.zoom,
+      startTime: performance.now(),
+      startPanX: localPanX,
+      startPanY: localPanY,
+      startZoom: localZoom,
       initialDistance: 0,
-      initialMidpoint: { x: 0, y: 0 },
+      initialMidX: 0,
+      initialMidY: 0,
       moved: false,
       lastTapTime: touchState.value.lastTapTime,
       lastTapPos: touchState.value.lastTapPos
     }
-
-    const rect = viewportContainerRef.value.getBoundingClientRect()
-    const { gridCoord } = engine.screenPointToGrid(t.clientX, t.clientY, rect, mapStore.project)
-    if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-      toolStore.setHoveredCell(gridCoord)
-    }
+    isLocalDragging = false
   } else if (e.touches.length === 2) {
     const t1 = e.touches[0]
     const t2 = e.touches[1]
@@ -832,15 +925,18 @@ function handleTouchStart(e: TouchEvent) {
       mode: 'pinch',
       startX: mid.x,
       startY: mid.y,
-      startTime: Date.now(),
-      startPan: { ...toolStore.pan },
-      startZoom: toolStore.zoom,
+      startTime: performance.now(),
+      startPanX: localPanX,
+      startPanY: localPanY,
+      startZoom: localZoom,
       initialDistance: dist,
-      initialMidpoint: mid,
+      initialMidX: mid.x,
+      initialMidY: mid.y,
       moved: true,
       lastTapTime: touchState.value.lastTapTime,
       lastTapPos: touchState.value.lastTapPos
     }
+    isLocalDragging = true
   }
 }
 
@@ -851,7 +947,7 @@ function handleTouchMove(e: TouchEvent) {
     return
   }
 
-  // Multi-touch: Pinch to Zoom + 2-Finger Pan
+  // Multi-touch: Pinch to Zoom + 2-Finger Pan (Pure Pixi transform, zero Vue reactivity)
   if (e.touches.length === 2) {
     const t1 = e.touches[0]
     const t2 = e.touches[1]
@@ -862,53 +958,43 @@ function handleTouchMove(e: TouchEvent) {
       const scaleChange = curDist / touchState.value.initialDistance
       const targetZoom = Math.max(0.15, Math.min(4.0, touchState.value.startZoom * scaleChange))
 
-      const rect = viewportContainerRef.value.getBoundingClientRect()
-      const focalX = touchState.value.initialMidpoint.x - rect.left
-      const focalY = touchState.value.initialMidpoint.y - rect.top
+      const rect = getViewportRect()
+      const focalX = touchState.value.initialMidX - rect.left
+      const focalY = touchState.value.initialMidY - rect.top
 
-      const panX = focalX - (focalX - touchState.value.startPan.x) * (targetZoom / touchState.value.startZoom) + (curMid.x - touchState.value.initialMidpoint.x)
-      const panY = focalY - (focalY - touchState.value.startPan.y) * (targetZoom / touchState.value.startZoom) + (curMid.y - touchState.value.initialMidpoint.y)
+      localZoom = targetZoom
+      localPanX = focalX - (focalX - touchState.value.startPanX) * (targetZoom / touchState.value.startZoom) + (curMid.x - touchState.value.initialMidX)
+      localPanY = focalY - (focalY - touchState.value.startPanY) * (targetZoom / touchState.value.startZoom) + (curMid.y - touchState.value.initialMidY)
 
-      toolStore.zoom = Number(targetZoom.toFixed(2))
-      toolStore.pan = { x: Math.round(panX), y: Math.round(panY) }
-      engine.setTransform(toolStore.zoom, toolStore.pan)
+      engine.setTransform(localZoom, { x: localPanX, y: localPanY })
     }
     return
   }
 
-  // Single-touch: Pan or Route Drawing
+  // Single-touch: Fast Smooth Pan (Zero DOM queries, zero hover calculations, direct Pixi pan)
   if (e.touches.length === 1) {
     const t = e.touches[0]
     const dx = t.clientX - touchState.value.startX
     const dy = t.clientY - touchState.value.startY
-    const distMoved = Math.hypot(dx, dy)
 
-    if (distMoved > 8) {
+    if (!touchState.value.moved && Math.hypot(dx, dy) > 8) {
       touchState.value.moved = true
       touchState.value.mode = 'pan'
-    }
-
-    const rect = viewportContainerRef.value.getBoundingClientRect()
-    const { gridCoord } = engine.screenPointToGrid(t.clientX, t.clientY, rect, mapStore.project)
-
-    if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-      toolStore.setHoveredCell(gridCoord)
-    } else {
-      toolStore.setHoveredCell(null)
+      isLocalDragging = true
     }
 
     if (touchState.value.moved) {
       if (characterStore.isDrawingRoute) {
+        const rect = getViewportRect()
+        const { gridCoord } = engine.screenPointToGrid(t.clientX, t.clientY, rect, mapStore.project)
         if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
           characterStore.addPathTile(gridCoord)
           engine.renderCharacter(characterStore, mapStore.project)
         }
       } else {
-        toolStore.pan = {
-          x: Math.round(touchState.value.startPan.x + dx),
-          y: Math.round(touchState.value.startPan.y + dy)
-        }
-        engine.setTransform(toolStore.zoom, toolStore.pan)
+        localPanX = touchState.value.startPanX + dx
+        localPanY = touchState.value.startPanY + dy
+        engine.setPan(localPanX, localPanY)
       }
     }
   }
@@ -916,13 +1002,13 @@ function handleTouchMove(e: TouchEvent) {
 
 function handleTouchEnd(e: TouchEvent) {
   if (e.touches.length === 0) {
-    const now = Date.now()
+    const now = performance.now()
     const elapsed = now - touchState.value.startTime
 
     // Single Tap Detection (minimal drag, fast tap)
     if (!touchState.value.moved && touchState.value.mode === 'tap_pending' && elapsed < 450) {
       if (viewportContainerRef.value) {
-        const rect = viewportContainerRef.value.getBoundingClientRect()
+        const rect = getViewportRect()
         const { gridCoord } = engine.screenPointToGrid(touchState.value.startX, touchState.value.startY, rect, mapStore.project)
         executeCellClick(gridCoord, false)
 
@@ -941,20 +1027,34 @@ function handleTouchEnd(e: TouchEvent) {
       }
     }
 
+    // Synchronize local camera state to Pinia state once at end of drag/pinch
+    if (isLocalDragging) {
+      isLocalDragging = false
+      toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
+      toolStore.zoom = Number(localZoom.toFixed(2))
+    }
+
     touchState.value.mode = 'none'
     touchState.value.isTouch = false
     toolStore.setHoveredCell(null)
   } else if (e.touches.length === 1) {
+    // Transitioning from 2-finger pinch back to 1-finger drag
     const t = e.touches[0]
     touchState.value.startX = t.clientX
     touchState.value.startY = t.clientY
-    touchState.value.startPan = { ...toolStore.pan }
+    touchState.value.startPanX = localPanX
+    touchState.value.startPanY = localPanY
     touchState.value.moved = true
     touchState.value.mode = 'pan'
   }
 }
 
 function handleTouchCancel() {
+  if (isLocalDragging) {
+    isLocalDragging = false
+    toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
+    toolStore.zoom = Number(localZoom.toFixed(2))
+  }
   touchState.value.mode = 'none'
   touchState.value.isTouch = false
   toolStore.setHoveredCell(null)
@@ -969,17 +1069,17 @@ function handleMouseMove(e: MouseEvent) {
     return
   }
 
+  // Mouse pan: Direct Pixi position update without triggering Pinia watchers per mouse event
   if (isPanning.value) {
-    const dx = e.clientX - panStart.value.x
-    const dy = e.clientY - panStart.value.y
-    toolStore.pan = {
-      x: Math.round(panOrigin.value.x + dx),
-      y: Math.round(panOrigin.value.y + dy),
-    }
+    const dx = e.clientX - panStart.x
+    const dy = e.clientY - panStart.y
+    localPanX = panOrigin.x + dx
+    localPanY = panOrigin.y + dy
+    engine.setPan(localPanX, localPanY)
     return
   }
 
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  const rect = getViewportRect()
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
 
   if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
@@ -1030,6 +1130,8 @@ function handleMouseMove(e: MouseEvent) {
 function handleMouseUp() {
   if (isPanning.value) {
     isPanning.value = false
+    isLocalDragging = false
+    toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
     return
   }
 
@@ -1057,33 +1159,39 @@ function handleMouseLeave() {
     toolStore.isMouseDown = false
     toolStore.dragStartCell = null
   }
-  isPanning.value = false
+  if (isPanning.value) {
+    isPanning.value = false
+    isLocalDragging = false
+    toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
+  }
 }
 
 function handleWheel(e: WheelEvent) {
   if (!viewportContainerRef.value) return
 
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  const rect = getViewportRect()
   const mouseX = e.clientX - rect.left
   const mouseY = e.clientY - rect.top
 
   const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87
-  const oldZoom = toolStore.zoom
+  const oldZoom = localZoom
   const newZoom = Math.max(0.15, Math.min(4.0, oldZoom * zoomFactor))
 
   if (oldZoom === newZoom) return
 
-  const panX = mouseX - (mouseX - toolStore.pan.x) * (newZoom / oldZoom)
-  const panY = mouseY - (mouseY - toolStore.pan.y) * (newZoom / oldZoom)
+  localPanX = mouseX - (mouseX - localPanX) * (newZoom / oldZoom)
+  localPanY = mouseY - (mouseY - localPanY) * (newZoom / oldZoom)
+  localZoom = Number(newZoom.toFixed(2))
 
-  toolStore.zoom = Number(newZoom.toFixed(2))
-  toolStore.pan = { x: Math.round(panX), y: Math.round(panY) }
+  engine.setTransform(localZoom, { x: localPanX, y: localPanY })
+  toolStore.zoom = localZoom
+  toolStore.pan = { x: Math.round(localPanX), y: Math.round(localPanY) }
 }
 
 function handleDragOver(e: DragEvent) {
   isDraggingOver.value = true
   if (!viewportContainerRef.value) return
-  const rect = viewportContainerRef.value.getBoundingClientRect()
+  const rect = getViewportRect()
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
     toolStore.setHoveredCell(gridCoord)

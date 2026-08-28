@@ -68,14 +68,23 @@ export class IsoEngine {
     this.characterMarker = new Graphics()
   }
 
+  private lastTrailSignature = ''
+  private lastSelectedTowerId: string | null = null
+  private unitLastDepths: number[] = []
+
   async init(containerEl: HTMLElement, width: number, height: number): Promise<void> {
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    const dpr = isMobile
+      ? Math.min(window.devicePixelRatio || 1, 1.5)
+      : Math.min(window.devicePixelRatio || 1, 2)
+
     await this.app.init({
       width,
       height,
       backgroundColor: 0x090d16,
       backgroundAlpha: 1,
       antialias: true,
-      resolution: window.devicePixelRatio || 1,
+      resolution: dpr,
       autoDensity: true,
     })
 
@@ -131,6 +140,10 @@ export class IsoEngine {
   setTransform(zoom: number, pan: Point2D): void {
     this.worldContainer.scale.set(zoom)
     this.worldContainer.position.set(pan.x, pan.y)
+  }
+
+  setPan(panX: number, panY: number): void {
+    this.worldContainer.position.set(panX, panY)
   }
 
   centerMap(project: MapProject, viewWidth: number, viewHeight: number): Point2D {
@@ -663,6 +676,11 @@ export class IsoEngine {
 
         const shadow = new Graphics()
         shadow.zIndex = 0
+        const shadowRadiusX = tileWidth * 0.28
+        const shadowRadiusY = tileHeight * 0.28
+        shadow
+          .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
+          .fill({ color: 0x000000, alpha: 0.45 })
 
         const sprite = new Sprite()
         sprite.zIndex = 1
@@ -679,7 +697,6 @@ export class IsoEngine {
       }
 
       container.visible = true
-      const shadow = container.getChildAt(0) as Graphics
       const sprite = container.getChildAt(1) as Sprite
       const selection = container.getChildAt(2) as Graphics
 
@@ -755,21 +772,17 @@ export class IsoEngine {
         sprite.anchor.set(0.5, 0.88)
       }
 
-      // Shadow
-      shadow.clear()
-      const shadowRadiusX = tileWidth * 0.28
-      const shadowRadiusY = tileHeight * 0.28
-      shadow
-        .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-        .fill({ color: 0x000000, alpha: 0.45 })
-
-      // Selection Ring
-      selection.clear()
+      // Selection Ring (Only redraw when selection state changes)
       const isSelected = towerStore.selectedPlacedTowerId === tower.id
-      if (isSelected) {
-        selection
-          .ellipse(0, 0, tileWidth * 0.38, tileHeight * 0.38)
-          .stroke({ width: 2.5, color: 0x38bdf8, alpha: 0.95 })
+      const wasSelected = (container as any)._wasSelected
+      if (isSelected !== wasSelected) {
+        selection.clear()
+        if (isSelected) {
+          selection
+            .ellipse(0, 0, tileWidth * 0.38, tileHeight * 0.38)
+            .stroke({ width: 2.5, color: 0x38bdf8, alpha: 0.95 })
+        }
+        ;(container as any)._wasSelected = isSelected
       }
 
       container.position.set(tower.screenX, tower.screenY)
@@ -777,10 +790,22 @@ export class IsoEngine {
     }
 
     // 2. Combat Overlays in combatGraphics
+    const hasProjectiles = towerStore.projectiles && towerStore.projectiles.length > 0
+    const hasRings = towerStore.explosionRings && towerStore.explosionRings.length > 0
+    const hasFloaters = towerStore.damageFloaters && towerStore.damageFloaters.length > 0
+    const towerToHighlight = towerStore.placedTowers.find(t => t.id === towerStore.selectedPlacedTowerId)
+    const hasRangePreview = Boolean(towerToHighlight || (towerStore.activeBuildTowerId && hoveredGridCoord))
+    const units = characterStore.units || []
+    const hasUnits = units.length > 0
+
+    if (!hasProjectiles && !hasRings && !hasFloaters && !hasRangePreview && !hasUnits) {
+      this.combatGraphics.clear()
+      return
+    }
+
     this.combatGraphics.clear()
 
     // 2.1 Attack Range Indicator (When inspecting a tower or hovering while placing)
-    const towerToHighlight = towerStore.placedTowers.find(t => t.id === towerStore.selectedPlacedTowerId)
     if (towerToHighlight) {
       const r = towerToHighlight.range
       const rx = r * tileWidth * 0.5
@@ -804,175 +829,184 @@ export class IsoEngine {
     }
 
     // 2.2 Flying Animated Projectiles (Distinguished by projectileType)
-    for (const proj of towerStore.projectiles) {
-      const type = proj.projectileType || 'cannonball'
-      const angle = Math.atan2(proj.targetY - proj.startY, proj.targetX - proj.startX)
+    if (hasProjectiles) {
+      for (let i = 0; i < towerStore.projectiles.length; i++) {
+        const proj = towerStore.projectiles[i]
+        const type = proj.projectileType || 'cannonball'
+        const angle = Math.atan2(proj.targetY - proj.startY, proj.targetX - proj.startX)
 
-      if (type === 'cannonball') {
-        // --- 💣 CANNONBALL: Heavy dark iron sphere + trailing smoke puffs + spark ---
-        this.combatGraphics
-          .moveTo(proj.startX, proj.startY)
-          .lineTo(proj.currentX, proj.currentY)
-          .stroke({ width: 3.5, color: 0x64748b, alpha: 0.35 })
+        if (type === 'cannonball') {
+          // --- 💣 CANNONBALL: Heavy dark iron sphere + trailing smoke puffs + spark ---
+          this.combatGraphics
+            .moveTo(proj.startX, proj.startY)
+            .lineTo(proj.currentX, proj.currentY)
+            .stroke({ width: 3.5, color: 0x64748b, alpha: 0.35 })
 
-        // Dark iron ball
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 6.0)
-          .fill({ color: 0x1e293b, alpha: 1.0 })
-          .stroke({ width: 1.5, color: 0x475569, alpha: 1.0 })
+          // Dark iron ball
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 6.0)
+            .fill({ color: 0x1e293b, alpha: 1.0 })
+            .stroke({ width: 1.5, color: 0x475569, alpha: 1.0 })
 
-        // Metallic specular shine
-        this.combatGraphics
-          .circle(proj.currentX - 2, proj.currentY - 2, 1.8)
-          .fill({ color: 0x94a3b8, alpha: 0.9 })
+          // Metallic specular shine
+          this.combatGraphics
+            .circle(proj.currentX - 2, proj.currentY - 2, 1.8)
+            .fill({ color: 0x94a3b8, alpha: 0.9 })
 
-        // Fuse spark
-        this.combatGraphics
-          .circle(proj.currentX + Math.cos(angle + Math.PI) * 5, proj.currentY + Math.sin(angle + Math.PI) * 5, 2.0)
-          .fill({ color: 0xf59e0b, alpha: 1.0 })
+          // Fuse spark
+          this.combatGraphics
+            .circle(proj.currentX + Math.cos(angle + Math.PI) * 5, proj.currentY + Math.sin(angle + Math.PI) * 5, 2.0)
+            .fill({ color: 0xf59e0b, alpha: 1.0 })
 
-      } else if (type === 'fireball') {
-        // --- 🔥 FIREBALL: Blazing flaming meteor with fiery trailing embers ---
-        this.combatGraphics
-          .moveTo(proj.startX, proj.startY)
-          .lineTo(proj.currentX, proj.currentY)
-          .stroke({ width: 4.5, color: 0xea580c, alpha: 0.5 })
+        } else if (type === 'fireball') {
+          // --- 🔥 FIREBALL: Blazing flaming meteor with fiery trailing embers ---
+          this.combatGraphics
+            .moveTo(proj.startX, proj.startY)
+            .lineTo(proj.currentX, proj.currentY)
+            .stroke({ width: 4.5, color: 0xea580c, alpha: 0.5 })
 
-        // Outer red flame halo
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 8.5)
-          .fill({ color: 0xef4444, alpha: 0.65 })
+          // Outer red flame halo
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 8.5)
+            .fill({ color: 0xef4444, alpha: 0.65 })
 
-        // Mid orange flame
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 5.5)
-          .fill({ color: 0xf97316, alpha: 0.9 })
+          // Mid orange flame
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 5.5)
+            .fill({ color: 0xf97316, alpha: 0.9 })
 
-        // Molten yellow/white core
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 2.8)
-          .fill({ color: 0xfef08a, alpha: 1.0 })
+          // Molten yellow/white core
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 2.8)
+            .fill({ color: 0xfef08a, alpha: 1.0 })
 
-      } else if (type === 'arrow') {
-        // --- 🏹 ARROW: Oriented wood shaft + sharp steel tip + fletching feathers ---
-        const arrowLength = 16
-        const tailX = proj.currentX - Math.cos(angle) * arrowLength
-        const tailY = proj.currentY - Math.sin(angle) * arrowLength
+        } else if (type === 'arrow') {
+          // --- 🏹 ARROW: Oriented wood shaft + sharp steel tip + fletching feathers ---
+          const arrowLength = 16
+          const tailX = proj.currentX - Math.cos(angle) * arrowLength
+          const tailY = proj.currentY - Math.sin(angle) * arrowLength
 
-        // Speed trail
-        this.combatGraphics
-          .moveTo(tailX - Math.cos(angle) * 8, tailY - Math.sin(angle) * 8)
-          .lineTo(tailX, tailY)
-          .stroke({ width: 1.2, color: 0xfbbf24, alpha: 0.35 })
+          // Speed trail
+          this.combatGraphics
+            .moveTo(tailX - Math.cos(angle) * 8, tailY - Math.sin(angle) * 8)
+            .lineTo(tailX, tailY)
+            .stroke({ width: 1.2, color: 0xfbbf24, alpha: 0.35 })
 
-        // Wood shaft
-        this.combatGraphics
-          .moveTo(tailX, tailY)
-          .lineTo(proj.currentX, proj.currentY)
-          .stroke({ width: 2.2, color: 0x78350f, alpha: 1.0 })
+          // Wood shaft
+          this.combatGraphics
+            .moveTo(tailX, tailY)
+            .lineTo(proj.currentX, proj.currentY)
+            .stroke({ width: 2.2, color: 0x78350f, alpha: 1.0 })
 
-        // Steel arrowhead (triangle tip)
-        const tipX = proj.currentX + Math.cos(angle) * 3
-        const tipY = proj.currentY + Math.sin(angle) * 3
-        const leftWingX = proj.currentX + Math.cos(angle + 2.5) * 4.5
-        const leftWingY = proj.currentY + Math.sin(angle + 2.5) * 4.5
-        const rightWingX = proj.currentX + Math.cos(angle - 2.5) * 4.5
-        const rightWingY = proj.currentY + Math.sin(angle - 2.5) * 4.5
+          // Steel arrowhead (triangle tip)
+          const tipX = proj.currentX + Math.cos(angle) * 3
+          const tipY = proj.currentY + Math.sin(angle) * 3
+          const leftWingX = proj.currentX + Math.cos(angle + 2.5) * 4.5
+          const leftWingY = proj.currentY + Math.sin(angle + 2.5) * 4.5
+          const rightWingX = proj.currentX + Math.cos(angle - 2.5) * 4.5
+          const rightWingY = proj.currentY + Math.sin(angle - 2.5) * 4.5
 
-        this.combatGraphics
-          .poly([tipX, tipY, leftWingX, leftWingY, rightWingX, rightWingY])
-          .fill({ color: 0xe2e8f0, alpha: 1.0 })
-          .stroke({ width: 1, color: 0x475569, alpha: 1.0 })
+          this.combatGraphics
+            .poly([tipX, tipY, leftWingX, leftWingY, rightWingX, rightWingY])
+            .fill({ color: 0xe2e8f0, alpha: 1.0 })
+            .stroke({ width: 1, color: 0x475569, alpha: 1.0 })
 
-        // Feather fletchings at tail
-        const featherLeftX = tailX + Math.cos(angle + 2.4) * 3.5
-        const featherLeftY = tailY + Math.sin(angle + 2.4) * 3.5
-        const featherRightX = tailX + Math.cos(angle - 2.4) * 3.5
-        const featherRightY = tailY + Math.sin(angle - 2.4) * 3.5
+          // Feather fletchings at tail
+          const featherLeftX = tailX + Math.cos(angle + 2.4) * 3.5
+          const featherLeftY = tailY + Math.sin(angle + 2.4) * 3.5
+          const featherRightX = tailX + Math.cos(angle - 2.4) * 3.5
+          const featherRightY = tailY + Math.sin(angle - 2.4) * 3.5
 
-        this.combatGraphics
-          .moveTo(tailX, tailY).lineTo(featherLeftX, featherLeftY).stroke({ width: 1.5, color: 0xef4444, alpha: 0.9 })
-        this.combatGraphics
-          .moveTo(tailX, tailY).lineTo(featherRightX, featherRightY).stroke({ width: 1.5, color: 0xef4444, alpha: 0.9 })
+          this.combatGraphics
+            .moveTo(tailX, tailY).lineTo(featherLeftX, featherLeftY).stroke({ width: 1.5, color: 0xef4444, alpha: 0.9 })
+          this.combatGraphics
+            .moveTo(tailX, tailY).lineTo(featherRightX, featherRightY).stroke({ width: 1.5, color: 0xef4444, alpha: 0.9 })
 
-      } else {
-        // --- ⚡ MAGIC BOLT: Cyan/violet arcane plasma star with laser lightning beam ---
-        this.combatGraphics
-          .moveTo(proj.startX, proj.startY)
-          .lineTo(proj.currentX, proj.currentY)
-          .stroke({ width: 2.5, color: 0x38bdf8, alpha: 0.6 })
+        } else {
+          // --- ⚡ MAGIC BOLT: Cyan/violet arcane plasma star with laser lightning beam ---
+          this.combatGraphics
+            .moveTo(proj.startX, proj.startY)
+            .lineTo(proj.currentX, proj.currentY)
+            .stroke({ width: 2.5, color: 0x38bdf8, alpha: 0.6 })
 
-        // Outer cyan-purple plasma aura
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 7.5)
-          .fill({ color: 0x38bdf8, alpha: 0.55 })
+          // Outer cyan-purple plasma aura
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 7.5)
+            .fill({ color: 0x38bdf8, alpha: 0.55 })
 
-        // Inner glowing electric orb
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 4.0)
-          .fill({ color: 0x818cf8, alpha: 0.85 })
+          // Inner glowing electric orb
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 4.0)
+            .fill({ color: 0x818cf8, alpha: 0.85 })
 
-        // Bright white electric spark
-        this.combatGraphics
-          .circle(proj.currentX, proj.currentY, 2.2)
-          .fill({ color: 0xffffff, alpha: 1.0 })
+          // Bright white electric spark
+          this.combatGraphics
+            .circle(proj.currentX, proj.currentY, 2.2)
+            .fill({ color: 0xffffff, alpha: 1.0 })
 
-        // 4-pointed cross star sparkle
-        this.combatGraphics
-          .moveTo(proj.currentX - 5, proj.currentY).lineTo(proj.currentX + 5, proj.currentY).stroke({ width: 1.2, color: 0xffffff, alpha: 0.8 })
-        this.combatGraphics
-          .moveTo(proj.currentX, proj.currentY - 5).lineTo(proj.currentX, proj.currentY + 5).stroke({ width: 1.2, color: 0xffffff, alpha: 0.8 })
+          // 4-pointed cross star sparkle
+          this.combatGraphics
+            .moveTo(proj.currentX - 5, proj.currentY).lineTo(proj.currentX + 5, proj.currentY).stroke({ width: 1.2, color: 0xffffff, alpha: 0.8 })
+          this.combatGraphics
+            .moveTo(proj.currentX, proj.currentY - 5).lineTo(proj.currentX, proj.currentY + 5).stroke({ width: 1.2, color: 0xffffff, alpha: 0.8 })
+        }
       }
     }
 
     // 2.3 Explosion Shockwave Rings
-    for (const ring of towerStore.explosionRings) {
-      const rx = ring.radius
-      const ry = ring.radius * 0.5
-      this.combatGraphics
-        .ellipse(ring.x, ring.y, rx, ry)
-        .stroke({ width: 3, color: ring.color, alpha: ring.alpha })
-      this.combatGraphics
-        .ellipse(ring.x, ring.y, rx * 0.65, ry * 0.65)
-        .fill({ color: ring.color, alpha: ring.alpha * 0.25 })
+    if (hasRings) {
+      for (let i = 0; i < towerStore.explosionRings.length; i++) {
+        const ring = towerStore.explosionRings[i]
+        const rx = ring.radius
+        const ry = ring.radius * 0.5
+        this.combatGraphics
+          .ellipse(ring.x, ring.y, rx, ry)
+          .stroke({ width: 3, color: ring.color, alpha: ring.alpha })
+        this.combatGraphics
+          .ellipse(ring.x, ring.y, rx * 0.65, ry * 0.65)
+          .fill({ color: ring.color, alpha: ring.alpha * 0.25 })
+      }
     }
 
     // 2.4 Floating Unit HP Bars (Hit Points)
-    const units = characterStore.units || []
-    for (const unit of units) {
-      if (!unit.isSpawned || unit.isDead) continue
+    if (hasUnits) {
+      for (let i = 0; i < units.length; i++) {
+        const unit = units[i]
+        if (!unit.isSpawned || unit.isDead) continue
 
-      const maxHp = unit.maxHp || 100
-      const currentHp = Math.max(0, unit.currentHp ?? maxHp)
-      const ratio = Math.min(1, Math.max(0, currentHp / maxHp))
+        const maxHp = unit.maxHp || 100
+        const currentHp = Math.max(0, unit.currentHp ?? maxHp)
+        const ratio = Math.min(1, Math.max(0, currentHp / maxHp))
 
-      const barW = 32
-      const barH = 4
-      const barX = unit.screenX - barW / 2
-      const barY = unit.screenY - tileHeight * 1.25
+        const barW = 32
+        const barH = 4
+        const barX = unit.screenX - barW / 2
+        const barY = unit.screenY - tileHeight * 1.25
 
-      // Bar container
-      this.combatGraphics
-        .roundRect(barX - 1, barY - 1, barW + 2, barH + 2, 2)
-        .fill({ color: 0x090d16, alpha: 0.85 })
-        .stroke({ width: 1, color: 0x1e293b, alpha: 0.9 })
+        // Bar container
+        this.combatGraphics
+          .roundRect(barX - 1, barY - 1, barW + 2, barH + 2, 2)
+          .fill({ color: 0x090d16, alpha: 0.85 })
+          .stroke({ width: 1, color: 0x1e293b, alpha: 0.9 })
 
-      // Health fill
-      const hpColor = ratio > 0.5 ? 0x22c55e : (ratio > 0.25 ? 0xeab308 : 0xef4444)
-      this.combatGraphics
-        .roundRect(barX, barY, Math.max(2, barW * ratio), barH, 1.5)
-        .fill({ color: hpColor, alpha: 0.95 })
+        // Health fill
+        const hpColor = ratio > 0.5 ? 0x22c55e : (ratio > 0.25 ? 0xeab308 : 0xef4444)
+        this.combatGraphics
+          .roundRect(barX, barY, Math.max(2, barW * ratio), barH, 1.5)
+          .fill({ color: hpColor, alpha: 0.95 })
+      }
     }
 
     // 2.5 Damage Text Floater Chips
-    for (const df of towerStore.damageFloaters) {
-      this.combatGraphics
-        .roundRect(df.x - 14, df.y - 7, 28, 14, 4)
-        .fill({ color: 0x090d16, alpha: df.alpha * 0.85 })
-        .stroke({ width: 1.2, color: df.color, alpha: df.alpha })
+    if (hasFloaters) {
+      for (let i = 0; i < towerStore.damageFloaters.length; i++) {
+        const df = towerStore.damageFloaters[i]
+        this.combatGraphics
+          .roundRect(df.x - 14, df.y - 7, 28, 14, 4)
+          .fill({ color: 0x090d16, alpha: df.alpha * 0.85 })
+          .stroke({ width: 1.2, color: df.color, alpha: df.alpha })
+      }
     }
-
-    this.layersContainer.sortChildren()
   }
 
   private unitContainers: Container[] = []
@@ -986,98 +1020,109 @@ export class IsoEngine {
     if (!characterStore.isEnabled) {
       for (const c of this.unitContainers) c.visible = false
       this.pathTrailGraphics.clear()
+      this.lastTrailSignature = ''
       return
     }
 
     const { tileWidth, tileHeight } = project
-    const activeRoute = characterStore.isDrawingRoute 
-      ? characterStore.drawingPath 
-      : characterStore.currentActiveRoute
+    const isDrawing = Boolean(characterStore.isDrawingRoute)
+    const drawingPathLen = characterStore.drawingPath?.length || 0
+    const showTrail = Boolean(characterStore.showPathTrail)
+    const doorsCount = characterStore.detectedDoors?.length || 0
+    const selectedDoorIdx = characterStore.selectedDoorIndex || 0
+    const spawnMode = characterStore.spawnMode || 'all_doors'
+    const currentRouteLen = characterStore.currentActiveRoute?.length || 0
 
-    // 1. Draw Custom Route / Patrol Trail
-    this.pathTrailGraphics.clear()
-    if (characterStore.isDrawingRoute) {
-      const activeRoute = characterStore.drawingPath
-      if (activeRoute && activeRoute.length > 0) {
-        const pts = (activeRoute as GridCoord[]).map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+    const trailSignature = `${isDrawing}_${drawingPathLen}_${showTrail}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}`
 
-        if (pts.length > 1) {
+    // 1. Draw Custom Route / Patrol Trail (Cached unless signature changes or active drawing)
+    if (isDrawing || trailSignature !== this.lastTrailSignature) {
+      this.lastTrailSignature = trailSignature
+      this.pathTrailGraphics.clear()
+
+      if (isDrawing) {
+        const activeRoute = characterStore.drawingPath
+        if (activeRoute && activeRoute.length > 0) {
+          const pts = (activeRoute as GridCoord[]).map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+
+          if (pts.length > 1) {
+            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
+            for (let i = 1; i < pts.length; i++) {
+              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
+            }
+            this.pathTrailGraphics.stroke({ width: 5, color: 0x10b981, alpha: 0.5 })
+
+            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
+            for (let i = 1; i < pts.length; i++) {
+              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
+            }
+            this.pathTrailGraphics.stroke({ width: 2.5, color: 0x6ee7b7, alpha: 1.0 })
+          }
+
+          // Draw start door marker & waypoint dots
+          for (let i = 0; i < pts.length; i++) {
+            const isStart = i === 0
+            const isEnd = i === pts.length - 1
+            const radius = isStart || isEnd ? 6 : 3.5
+            const colr = isStart ? 0xf59e0b : (isEnd ? 0x38bdf8 : 0x10b981)
+
+            this.pathTrailGraphics
+              .circle(pts[i].x, pts[i].y, radius)
+              .fill({ color: colr, alpha: 1.0 })
+              .stroke({ width: 2, color: 0xffffff, alpha: 0.95 })
+          }
+        }
+      } else if (showTrail) {
+        // Draw trails for all active doors or single door
+        const routesToDraw: GridCoord[][] = (spawnMode === 'all_doors' && characterStore.detectedDoors && characterStore.detectedDoors.length > 1)
+          ? characterStore.detectedDoors.map((_: any, idx: number) => characterStore.getRouteForDoor ? characterStore.getRouteForDoor(idx) : characterStore.currentActiveRoute)
+          : [characterStore.currentActiveRoute]
+
+        const colors = [0x8b5cf6, 0x38bdf8, 0xf59e0b, 0x10b981]
+
+        routesToDraw.forEach((route, rIdx) => {
+          if (!route || route.length <= 1) return
+          const pts = route.map(p => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+          const c = colors[rIdx % colors.length]
+
           this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
           for (let i = 1; i < pts.length; i++) {
             this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
           }
-          this.pathTrailGraphics.stroke({ width: 5, color: 0x10b981, alpha: 0.5 })
+          this.pathTrailGraphics.stroke({ width: 3.5, color: c, alpha: 0.35 })
 
           this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
           for (let i = 1; i < pts.length; i++) {
             this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
           }
-          this.pathTrailGraphics.stroke({ width: 2.5, color: 0x6ee7b7, alpha: 1.0 })
-        }
+          this.pathTrailGraphics.stroke({ width: 1.5, color: c, alpha: 0.85 })
 
-        // Draw start door marker & waypoint dots
-        for (let i = 0; i < pts.length; i++) {
-          const isStart = i === 0
-          const isEnd = i === pts.length - 1
-          const radius = isStart || isEnd ? 6 : 3.5
-          const colr = isStart ? 0xf59e0b : (isEnd ? 0x38bdf8 : 0x10b981)
-
-          this.pathTrailGraphics
-            .circle(pts[i].x, pts[i].y, radius)
-            .fill({ color: colr, alpha: 1.0 })
-            .stroke({ width: 2, color: 0xffffff, alpha: 0.95 })
-        }
+          for (let i = 0; i < pts.length; i += 3) {
+            this.pathTrailGraphics.circle(pts[i].x, pts[i].y, 2.5).fill({ color: c, alpha: 0.85 })
+          }
+        })
       }
-    } else if (characterStore.showPathTrail) {
-      // Draw trails for all active doors or single door
-      const routesToDraw: GridCoord[][] = (characterStore.spawnMode === 'all_doors' && characterStore.detectedDoors && characterStore.detectedDoors.length > 1)
-        ? characterStore.detectedDoors.map((_: any, idx: number) => characterStore.getRouteForDoor ? characterStore.getRouteForDoor(idx) : characterStore.currentActiveRoute)
-        : [characterStore.currentActiveRoute]
 
-      const colors = [0x8b5cf6, 0x38bdf8, 0xf59e0b, 0x10b981]
+      // 1.5 Render Glowing Spawn Point Beacons / Portals on Map
+      if (characterStore.detectedDoors && characterStore.detectedDoors.length > 0) {
+        characterStore.detectedDoors.forEach((door: any, dIdx: number) => {
+          const pt = gridToScreen(door.spawnCol ?? door.col, door.spawnRow ?? door.row, tileWidth, tileHeight)
+          const isSelected = selectedDoorIdx === dIdx
+          const beaconColor = isSelected ? 0xf59e0b : 0xa855f7
 
-      routesToDraw.forEach((route, rIdx) => {
-        if (!route || route.length <= 1) return
-        const pts = route.map(p => gridToScreen(p.col, p.row, tileWidth, tileHeight))
-        const c = colors[rIdx % colors.length]
+          // Outer energy aura
+          this.pathTrailGraphics
+            .ellipse(pt.x, pt.y, tileWidth * 0.32, tileHeight * 0.32)
+            .fill({ color: beaconColor, alpha: isSelected ? 0.35 : 0.2 })
+            .stroke({ width: isSelected ? 2.5 : 1.5, color: beaconColor, alpha: 0.9 })
 
-        this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-        for (let i = 1; i < pts.length; i++) {
-          this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-        }
-        this.pathTrailGraphics.stroke({ width: 3.5, color: c, alpha: 0.35 })
-
-        this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-        for (let i = 1; i < pts.length; i++) {
-          this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-        }
-        this.pathTrailGraphics.stroke({ width: 1.5, color: c, alpha: 0.85 })
-
-        for (let i = 0; i < pts.length; i += 3) {
-          this.pathTrailGraphics.circle(pts[i].x, pts[i].y, 2.5).fill({ color: c, alpha: 0.85 })
-        }
-      })
-    }
-
-    // 1.5 Render Glowing Spawn Point Beacons / Portals on Map
-    if (characterStore.detectedDoors && characterStore.detectedDoors.length > 0) {
-      characterStore.detectedDoors.forEach((door: any, dIdx: number) => {
-        const pt = gridToScreen(door.spawnCol ?? door.col, door.spawnRow ?? door.row, tileWidth, tileHeight)
-        const isSelected = characterStore.selectedDoorIndex === dIdx
-        const beaconColor = isSelected ? 0xf59e0b : 0xa855f7
-
-        // Outer energy aura
-        this.pathTrailGraphics
-          .ellipse(pt.x, pt.y, tileWidth * 0.32, tileHeight * 0.32)
-          .fill({ color: beaconColor, alpha: isSelected ? 0.35 : 0.2 })
-          .stroke({ width: isSelected ? 2.5 : 1.5, color: beaconColor, alpha: 0.9 })
-
-        // Central beacon core
-        this.pathTrailGraphics
-          .circle(pt.x, pt.y, isSelected ? 5.5 : 4)
-          .fill({ color: 0xffffff, alpha: 1.0 })
-          .stroke({ width: 2, color: beaconColor, alpha: 1.0 })
-      })
+          // Central beacon core
+          this.pathTrailGraphics
+            .circle(pt.x, pt.y, isSelected ? 5.5 : 4)
+            .fill({ color: 0xffffff, alpha: 1.0 })
+            .stroke({ width: 2, color: beaconColor, alpha: 1.0 })
+        })
+      }
     }
 
     // 2. Render Multiple Character Units
@@ -1090,6 +1135,11 @@ export class IsoEngine {
 
       const shadow = new Graphics()
       shadow.zIndex = 0
+      const shadowRadiusX = tileWidth * 0.18
+      const shadowRadiusY = tileHeight * 0.18
+      shadow
+        .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
+        .fill({ color: 0x000000, alpha: 0.4 })
 
       const sprite = new Sprite()
       sprite.zIndex = 1
@@ -1110,13 +1160,22 @@ export class IsoEngine {
       this.unitContainers[i].visible = false
     }
 
+    let needsDepthSort = false
+    if (this.unitLastDepths.length !== units.length) {
+      needsDepthSort = true
+      this.unitLastDepths = new Array(units.length).fill(-1)
+    }
+
     // 3. Update each active unit
     for (let i = 0; i < units.length; i++) {
       const unit = units[i]
       const container = this.unitContainers[i]
 
       if (!unit.isSpawned || (unit.isDead && (unit.deathFade !== undefined && unit.deathFade <= 0))) {
-        container.visible = false
+        if (container.visible) {
+          container.visible = false
+          this.unitLastDepths[i] = -1
+        }
         continue
       }
 
@@ -1124,7 +1183,6 @@ export class IsoEngine {
 
       const shadow = container.getChildAt(0) as Graphics
       const sprite = container.getChildAt(1) as Sprite
-      const marker = container.getChildAt(2) as Graphics
 
       // Get Texture
       const actionPrefix = unit.action || 'Idle'
@@ -1153,28 +1211,26 @@ export class IsoEngine {
         sprite.anchor.set(0.5, 0.88)
       }
 
-      // Shadow
-      shadow.clear()
-      const shadowRadiusX = tileWidth * 0.18
-      const shadowRadiusY = tileHeight * 0.18
-      shadow
-        .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-        .fill({ color: 0x000000, alpha: 0.4 * fadeAlpha })
-
-      // Marker for unit: Cleared completely per user request (no triangle / arrow)
-      marker.clear()
+      // Shadow alpha adjustment (shape is static)
+      shadow.alpha = 0.4 * fadeAlpha
 
       // Position
       container.position.set(unit.screenX, unit.screenY)
 
-      // Depth sort
+      // Depth sort tracking
       const charFloorCol = Math.floor(unit.currentCol)
       const charFloorRow = Math.floor(unit.currentRow)
       const charDepth = 100000 + (charFloorCol + charFloorRow) * 1000 + 10 + (i % 10)
-      container.zIndex = charDepth
+      if (container.zIndex !== charDepth) {
+        container.zIndex = charDepth
+        needsDepthSort = true
+      }
+      this.unitLastDepths[i] = charDepth
     }
 
-    this.layersContainer.sortChildren()
+    if (needsDepthSort) {
+      this.layersContainer.sortChildren()
+    }
   }
 
   screenPointToGrid(

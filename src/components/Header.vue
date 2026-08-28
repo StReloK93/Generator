@@ -137,24 +137,34 @@
 
     <!-- Right Section: Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <!-- Maps / Play Catalog Button -->
+      <button 
+        @click="emit('open-welcome', 'maps')"
+        class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 text-xs font-semibold border border-emerald-500/40 transition-all hover:border-emerald-400 active:scale-95 shadow-sm cursor-pointer"
+        title="Tayyor xaritalar katalogi va o'yinga kirish"
+      >
+        <Gamepad2 class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        <span class="hidden sm:inline">Xaritalar</span>
+      </button>
+
       <!-- New Project / Launcher Button -->
       <button 
-        @click="emit('open-welcome')"
-        class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all hover:border-slate-600 active:scale-95"
+        @click="emit('open-welcome', 'new')"
+        class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all hover:border-slate-600 active:scale-95 cursor-pointer"
         title="Yangi xarita loyihasi yaratish"
       >
         <Plus class="w-3.5 h-3.5 text-brand-400 shrink-0" />
-        <span class="hidden sm:inline">Yangi Karta</span>
+        <span class="hidden md:inline">Yangi Karta</span>
       </button>
 
       <!-- Import JSON file -->
       <button 
-        @click="triggerImport"
-        class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all active:scale-95"
+        @click="emit('open-welcome', 'import')"
+        class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all active:scale-95 cursor-pointer"
         title="JSON loyihani yuklash"
       >
-        <Upload class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        <span class="hidden md:inline">Yuklash</span>
+        <Upload class="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <span class="hidden lg:inline">Yuklash</span>
       </button>
       <input 
         ref="fileInputRef" 
@@ -178,11 +188,11 @@
       <!-- Play Game Mode Button (Prominent on all screens) -->
       <button 
         @click="characterStore.startPlayMode()"
-        class="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer animate-pulse"
+        class="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer"
         title="O'yin rejimiga o'tish (Hozirgi xaritada o'ynab ko'rish)"
       >
         <Gamepad2 class="w-3.5 h-3.5 shrink-0" />
-        <span class="font-bold">🎮 O'ynash</span>
+        <span class="font-bold">O'ynash</span>
       </button>
 
       <!-- Export Button -->
@@ -221,7 +231,7 @@ import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson } from '../utils/exportHelpers'
 
 const emit = defineEmits<{
-  (e: 'open-welcome'): void
+  (e: 'open-welcome', mode?: 'maps' | 'new' | 'import' | 'resume'): void
   (e: 'open-export'): void
 }>()
 

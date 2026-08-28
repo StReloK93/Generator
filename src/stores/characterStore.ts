@@ -874,7 +874,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const spacingInTiles = pairDistance.value
 
     // Advance wave distance along path for each door
-    for (const dIdx of Object.keys(doorWaveProgress.value).map(Number)) {
+    for (const dIdxStr in doorWaveProgress.value) {
+      const dIdx = Number(dIdxStr)
       doorWaveProgress.value[dIdx] += stepDistance
     }
 
