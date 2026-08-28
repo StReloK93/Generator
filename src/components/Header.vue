@@ -1,0 +1,307 @@
+<template>
+  <header class="h-14 glass-panel border-b border-slate-800/80 px-4 flex items-center justify-between z-30 relative select-none">
+    <!-- Left Section: Logo & Project Info -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-glow-brand">
+          <Layers class="w-4.5 h-4.5 text-white" />
+        </div>
+        <div>
+          <h1 class="font-bold text-sm text-white tracking-wide flex items-center gap-1.5">
+            IsoCraft <span class="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">Editor</span>
+          </h1>
+        </div>
+      </div>
+
+      <div class="h-5 w-px bg-slate-800"></div>
+
+      <!-- Project Badge -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="font-medium text-slate-200 max-w-[150px] truncate" :title="mapStore.project.name">
+          {{ mapStore.project.name }}
+        </span>
+        <span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60 font-mono text-[11px]">
+          {{ mapStore.project.cols }}×{{ mapStore.project.rows }} katak
+        </span>
+      </div>
+    </div>
+
+    <!-- Center Section: History, Mode & Grid Controls -->
+    <div class="hidden lg:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <!-- Undo / Redo -->
+      <button 
+        @click="mapStore.undo()" 
+        :disabled="!mapStore.canUndo"
+        class="p-1.5 rounded hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Bekor qilish (Ctrl+Z)"
+      >
+        <Undo2 class="w-4 h-4" />
+      </button>
+      <button 
+        @click="mapStore.redo()" 
+        :disabled="!mapStore.canRedo"
+        class="p-1.5 rounded hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Qaytarish (Ctrl+Y)"
+      >
+        <Redo2 class="w-4 h-4" />
+      </button>
+
+      <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+      <!-- Placement Mode Selector -->
+      <div class="flex items-center gap-1 text-xs px-1" title="Katakda element bo'lganda joylashtirish tartibi">
+        <span class="text-slate-500 text-[11px]">Ustiga qo'yish:</span>
+        <select 
+          v-model="toolStore.placementMode"
+          class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-1.5 py-0.5 text-[11px] focus:outline-none focus:border-brand-500 cursor-pointer"
+        >
+          <option value="ask">Doim so'rash (Ask)</option>
+          <option value="stack">Ustiga qo'yish (Stack)</option>
+          <option value="replace">Almashtirish (Replace)</option>
+        </select>
+      </div>
+
+      <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+      <!-- Grid Toggle -->
+      <button 
+        @click="toolStore.showGrid = !toolStore.showGrid"
+        :class="toolStore.showGrid ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30' : 'text-slate-400 hover:bg-slate-800'"
+        class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors"
+        title="Izometrik setkani yoqish/o'chirish"
+      >
+        <Grid class="w-3.5 h-3.5" />
+        <span>Setka</span>
+      </button>
+
+      <!-- Center & Symmetry Toggle -->
+      <button 
+        @click="toolStore.showCenterMarker = !toolStore.showCenterMarker; toolStore.showSymmetryAxes = toolStore.showCenterMarker"
+        :class="toolStore.showCenterMarker ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:bg-slate-800'"
+        class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors"
+        title="Xarita markazi va simmetriya o'qlarini yoqish/o'chirish"
+      >
+        <span>🎯 Markaz</span>
+      </button>
+
+      <!-- Coordinates Toggle -->
+      <button 
+        @click="toolStore.showCoordinates = !toolStore.showCoordinates"
+        :class="toolStore.showCoordinates ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30' : 'text-slate-400 hover:bg-slate-800'"
+        class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors"
+        title="Koordinatalarni ko'rsatish"
+      >
+        <Hash class="w-3.5 h-3.5" />
+        <span>Koordinatalar</span>
+      </button>
+
+      <!-- Personaj / Character Tour Toggle -->
+      <button 
+        @click="characterStore.isEnabled = !characterStore.isEnabled"
+        :class="characterStore.isEnabled ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-glow-brand' : 'text-slate-400 hover:bg-slate-800'"
+        class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors font-medium"
+        title="Personaj sayri (Tour) boshqaruvi"
+      >
+        <User class="w-3.5 h-3.5 text-amber-400" />
+        <span>Personaj</span>
+      </button>
+
+      <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+      <!-- Zoom Controls -->
+      <button 
+        @click="toolStore.zoomOut()"
+        class="p-1.5 rounded hover:bg-slate-800 text-slate-300 transition-colors"
+        title="Kichiklashtirish (-)"
+      >
+        <ZoomOut class="w-4 h-4" />
+      </button>
+      <span class="text-xs font-mono text-slate-300 px-1 min-w-[45px] text-center">
+        {{ Math.round(toolStore.zoom * 100) }}%
+      </span>
+      <button 
+        @click="toolStore.zoomIn()"
+        class="p-1.5 rounded hover:bg-slate-800 text-slate-300 transition-colors"
+        title="Kattalashtirish (+)"
+      >
+        <ZoomIn class="w-4 h-4" />
+      </button>
+      <button 
+        @click="toolStore.resetZoom()"
+        class="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs transition-colors"
+        title="Asl masshtab (100%)"
+      >
+        <Maximize2 class="w-3.5 h-3.5" />
+      </button>
+    </div>
+
+    <!-- Right Section: New Project, Import, Export, Help -->
+    <div class="flex items-center gap-2">
+      <!-- New Project / Launcher Button -->
+      <button 
+        @click="emit('open-welcome')"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all hover:border-slate-600 active:scale-95"
+      >
+        <Plus class="w-3.5 h-3.5 text-brand-400" />
+        <span>Yangi Karta</span>
+      </button>
+
+      <!-- Import JSON file -->
+      <button 
+        @click="triggerImport"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all active:scale-95"
+        title="JSON loyihani yuklash"
+      >
+        <Upload class="w-3.5 h-3.5 text-emerald-400" />
+        <span class="hidden sm:inline">Yuklash</span>
+      </button>
+      <input 
+        ref="fileInputRef" 
+        type="file" 
+        accept=".json,.isomap.json" 
+        class="hidden" 
+        @change="handleFileImport" 
+      />
+
+      <!-- Toggle Character Control Bar Button -->
+      <button 
+        @click="characterStore.isEnabled = !characterStore.isEnabled"
+        :class="characterStore.isEnabled ? 'bg-amber-600/30 text-amber-300 border-amber-500/50 ring-1 ring-amber-400/40 font-bold' : 'text-slate-400 hover:text-slate-200 border-slate-700 bg-slate-850'"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all cursor-pointer"
+        title="Chiqish va Harakat Driverini ochish / yopish"
+      >
+        <Users class="w-3.5 h-3.5 text-amber-400" />
+        <span class="hidden sm:inline">Harakat Driveri</span>
+      </button>
+
+      <!-- Play Game Mode Button -->
+      <button 
+        @click="characterStore.startPlayMode()"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer animate-pulse"
+        title="O'yin rejimiga o'tish (Hozirgi xaritada o'ynab ko'rish)"
+      >
+        <Gamepad2 class="w-3.5 h-3.5" />
+        <span>🎮 O'ynab Ko'rish</span>
+      </button>
+
+      <!-- Export Button -->
+      <button 
+        @click="toolStore.isExportModalOpen = true"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-xs font-medium shadow-md shadow-brand-600/30 transition-all active:scale-95 cursor-pointer"
+      >
+        <Download class="w-3.5 h-3.5" />
+        <span>Eksport</span>
+      </button>
+
+      <!-- Hotkeys / Help Modal -->
+      <button 
+        @click="toolStore.isShortcutsModalOpen = true"
+        class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+        title="Klaviatura tugmalari (Yordam)"
+      >
+        <HelpCircle class="w-4 h-4" />
+      </button>
+    </div>
+  </header>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { 
+  Layers, Plus, Download, Upload, Undo2, Redo2, 
+  Grid, Hash, ZoomIn, ZoomOut, Maximize2, HelpCircle, User, Users, Gamepad2 
+} from 'lucide-vue-next'
+import { useMapStore } from '../stores/mapStore'
+import { useToolStore } from '../stores/toolStore'
+import { useAssetStore } from '../stores/assetStore'
+import { useCharacterStore } from '../stores/characterStore'
+import { useTowerStore } from '../stores/towerStore'
+import { importProjectFromJson } from '../utils/exportHelpers'
+
+const emit = defineEmits<{
+  (e: 'open-welcome'): void
+  (e: 'open-export'): void
+}>()
+
+const mapStore = useMapStore()
+const toolStore = useToolStore()
+const assetStore = useAssetStore()
+const characterStore = useCharacterStore()
+const towerStore = useTowerStore()
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerImport() {
+  fileInputRef.value?.click()
+}
+
+async function handleFileImport(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+
+  const file = target.files[0]
+  try {
+    const data = await importProjectFromJson(file)
+    mapStore.project = data.project
+    mapStore.activeLayerId = data.project.layers[0]?.id || 'layer-ground'
+    
+    if (data.assets && data.assets.length > 0) {
+      assetStore.reconcileImportedAssets(data.assets)
+    }
+
+    // Restore character custom routes, spawn points and settings
+    const charData = data.characterData || {
+      customRoutes: data.project.customRoutes || {},
+      spawnPoints: (data.project as any).spawnPoints || [],
+      characterConfig: (data.project as any).characterConfig || {},
+    }
+    if (charData.customRoutes) {
+      characterStore.customRoutes = { ...charData.customRoutes }
+    }
+    if (charData.spawnPoints) {
+      (mapStore.project as any).spawnPoints = [...charData.spawnPoints]
+    }
+    if (charData.characterConfig) {
+      const cfg = charData.characterConfig
+      if (cfg.formation) characterStore.formation = cfg.formation
+      if (cfg.pairDistance !== undefined) characterStore.pairDistance = cfg.pairDistance
+      if (cfg.followCamera !== undefined) characterStore.followCamera = cfg.followCamera
+      if (cfg.showPathTrail !== undefined) characterStore.showPathTrail = cfg.showPathTrail
+    }
+
+    // Restore towers & blueprints
+    const twrData = data.towerData || {
+      placedTowers: (data.project as any).placedTowers || [],
+      towerBlueprints: (data.project as any).towerBlueprints || [],
+    }
+    ;(mapStore.project as any).placedTowers = twrData.placedTowers || []
+    ;(mapStore.project as any).towerBlueprints = twrData.towerBlueprints || []
+    towerStore.restoreFromProject()
+
+    // Restore wave configs
+    const wvData = data.waveData || {
+      waveConfigs: (data.project as any).waveConfigs || [],
+      currentWaveIndex: (data.project as any).currentWaveIndex ?? 0,
+    }
+    if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
+      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({ ...w }))
+      characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
+      ;(mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
+    }
+
+    characterStore.detectDoors()
+    characterStore.spawnAtDoor(characterStore.selectedDoorIndex || 0)
+
+    // Reset selection so no asset is pre-selected upon map load
+    assetStore.selectedAssetId = null
+    toolStore.activeTool = 'select'
+    toolStore.selectedElement = null
+
+    mapStore.pushHistory('Loyiha fayldan yuklandi')
+  } catch (err: any) {
+    alert('Faylni yuklashda xatolik: ' + (err?.message || 'Noma\'lum xato'))
+  } finally {
+    target.value = ''
+  }
+}
+</script>

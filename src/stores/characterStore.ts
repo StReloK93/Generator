@@ -1,0 +1,1251 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { GridCoord } from '../types/map'
+import { useMapStore } from './mapStore'
+import { useToolStore } from './toolStore'
+import { useTowerStore } from './towerStore'
+import { cellKey, isInsideGrid, gridToScreen } from '../utils/isometric'
+
+export interface DoorInfo {
+  id: string
+  col: number
+  row: number
+  assetId: string
+  name: string
+  layerId: string
+  quadrant: number // 0: Top, 1: Right, 2: Bottom, 3: Left
+  isCorner: boolean
+  cornerName?: string
+  spawnCol: number
+  spawnRow: number
+}
+
+export type CharacterAction = 'Idle' | 'Run' | 'Pickup'
+
+export interface WaveConfig {
+  waveNumber: number
+  name: string
+  unitHp: number
+  unitSpeed: number
+  unitCount: number
+  isBoss: boolean
+  goldReward: number
+}
+
+export interface CharacterUnit {
+  id: string
+  doorIndex: number
+  doorId: string
+  unitIndex: number
+  pairIndex: number
+  sideOffset: number // -1 (Left side) or +1 (Right side) for 2 people running side-by-side!
+  currentCol: number
+  currentRow: number
+  screenX: number
+  screenY: number
+  direction: number // 0..7
+  action: CharacterAction
+  frameIndex: number
+  animTimer: number
+  pathIndex: number
+  pathInterpolation: number
+  isSpawned: boolean
+  hasReachedEnd: boolean
+  celebrationTimer: number
+  maxHp: number
+  currentHp: number
+  isDead: boolean
+  deathFade: number
+}
+
+export const useCharacterStore = defineStore('characterStore', () => {
+  const mapStore = useMapStore()
+  const toolStore = useToolStore()
+  const towerStore = useTowerStore()
+
+  const isEnabled = ref(true)
+  const isPlaying = ref(false)
+  const gameSpeed = ref(1.0) // Global Game Simulation Speed Multiplier (1x, 2x, 5x, 10x, 20x, 50x)
+  const unitSpeed = ref(2.5) // Unit Walking Speed (tiles per second, 0.8 to 6.0)
+  const speed = unitSpeed // Backward-compat alias pointing to unitSpeed
+  const spawnCount = ref(10) // Number of people per door (1 to 100)
+  const spawnMode = ref<'all_doors' | 'single_door'>('all_doors') // All doors at once or single door
+  const formation = ref<'pairs' | 'single'>('pairs') // 'pairs': 2 people side-by-side in each tile!
+  const pairDistance = ref(0.35) // Constant spatial distance in tiles between consecutive pairs (tight and dense!)
+  const followCamera = ref(false)
+  const showPathTrail = ref(true)
+  const autoLoop = ref(true)
+
+  // Game Mode & Economy State
+  const isGameMode = ref(false) // Toggle between Map Redaktor and Playable Game Mode
+  const playerLives = ref(20)
+  const maxLives = ref(20)
+  const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
+  const prepCountdown = ref(10) // 10-second building countdown before each wave
+  const gold = ref(500)
+  const score = ref(0)
+  const currentWaveIndex = ref(0)
+  // User-created Wave Configurations (Starts empty so user defines their own waves)
+  const waveConfigs = ref<WaveConfig[]>([])
+
+  const currentWaveConfig = computed<WaveConfig | null>(() => {
+    if (waveConfigs.value.length === 0) return null
+    const idx = Math.max(0, Math.min(waveConfigs.value.length - 1, currentWaveIndex.value))
+    return waveConfigs.value[idx] || waveConfigs.value[0] || null
+  })
+
+  // Custom Route Drawing State
+  const isDrawingRoute = ref(false)
+  const customRoutes = ref<Record<string, GridCoord[]>>({}) // key: door.id or doorIndex
+  const drawingPath = ref<GridCoord[]>([])
+
+  // Wave distance progress per door
+  const doorWaveProgress = ref<Record<number, number>>({})
+
+  // Multi-unit Crowd Array
+  const units = ref<CharacterUnit[]>([])
+  const lapCount = ref(0)
+  const statusMessage = ref("Eshik yonida kutmoqda")
+
+  // Doors
+  const detectedDoors = ref<DoorInfo[]>([])
+  const selectedDoorIndex = ref(0)
+  const doorRoutesCache = ref<Record<number, GridCoord[]>>({})
+
+  const selectedDoor = computed<DoorInfo | null>(() => {
+    if (detectedDoors.value.length === 0) return null
+    const idx = Math.max(0, Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value))
+    return detectedDoors.value[idx] || null
+  })
+
+  const currentActiveRoute = computed<GridCoord[]>(() => {
+    if (isDrawingRoute.value) {
+      return drawingPath.value
+    }
+    return getRouteForDoor(selectedDoorIndex.value)
+  })
+
+  const spawnedUnitsCount = computed(() => {
+    return units.value.filter(u => u.isSpawned && !u.hasReachedEnd).length
+  })
+
+  const completedUnitsCount = computed(() => {
+    return units.value.filter(u => u.hasReachedEnd).length
+  })
+
+  const progressPercent = computed(() => {
+    const active = units.value.filter(u => u.isSpawned)
+    if (active.length === 0) return 0
+    const totalProg = active.reduce((sum, u) => {
+      if (u.hasReachedEnd) return sum + 100
+      const route = getRouteForDoor(u.doorIndex)
+      const maxIdx = Math.max(1, route.length - 1)
+      const p = ((u.pathIndex + u.pathInterpolation) / maxIdx) * 100
+      return sum + Math.min(100, Math.max(0, p))
+    }, 0)
+    return Math.round(totalProg / active.length)
+  })
+
+  /**
+   * Scans all map layers to find tiles representing doors or gates
+   */
+  const isSettingSpawnPoint = ref(false)
+  const spawnPointPlacementMode = ref<'add' | 'relocate'>('add')
+
+  function detectDoors(): DoorInfo[] {
+    const p = mapStore.project as any
+
+    // 1. If project already has saved spawn points, restore them
+    if (p.spawnPoints && Array.isArray(p.spawnPoints) && p.spawnPoints.length > 0) {
+      detectedDoors.value = p.spawnPoints.map((s: any) => {
+        const c = s.col !== undefined ? s.col : (s.spawnCol ?? 2)
+        const r = s.row !== undefined ? s.row : (s.spawnRow ?? 2)
+        return {
+          ...s,
+          col: c,
+          row: r,
+          spawnCol: c,
+          spawnRow: r,
+        }
+      })
+      if (selectedDoorIndex.value >= detectedDoors.value.length || selectedDoorIndex.value < 0) {
+        selectedDoorIndex.value = 0
+      }
+      if (mapStore.project.customRoutes && Object.keys(mapStore.project.customRoutes).length > 0) {
+        customRoutes.value = { ...mapStore.project.customRoutes, ...customRoutes.value }
+      }
+      doorRoutesCache.value = {}
+      if (!isPlaying.value && !isGameMode.value) {
+        initializeUnits()
+      }
+      return detectedDoors.value
+    }
+
+    // 2. Otherwise: detect doors from sprite assets on map (backward-compatibility for existing maps)
+    const doors: DoorInfo[] = []
+    const cols = mapStore.project.cols
+    const rows = mapStore.project.rows
+    const midC = Math.floor(cols / 2)
+    const midR = Math.floor(rows / 2)
+
+    for (const layer of mapStore.project.layers) {
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [col, row] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item) continue
+          const assetId = (item.assetId || '').toLowerCase()
+          
+          const isDoorOrGate = assetId.includes('door') || 
+                               assetId.includes('gate') || 
+                               assetId.includes('archway')
+
+          if (isDoorOrGate) {
+            let quadrant = 0
+            let cornerName = '1-Krug (Yuqori/Shimol)'
+
+            if (col <= midC && row <= midR) {
+              quadrant = 0
+              cornerName = "1-Krug (Yuqori/Shimol)"
+            } else if (col >= midC && row <= midR) {
+              quadrant = 1
+              cornerName = "2-Krug (O'ng/Sharq)"
+            } else if (col >= midC && row >= midR) {
+              quadrant = 2
+              cornerName = "3-Krug (Quyi/Janub)"
+            } else {
+              quadrant = 3
+              cornerName = "4-Krug (Chap/G'arb)"
+            }
+
+            doors.push({
+              id: item.id,
+              col,
+              row,
+              assetId: item.assetId,
+              name: `Chiqish Nuqtasi (${col}, ${row}) — ${cornerName}`,
+              layerId: layer.id,
+              quadrant,
+              isCorner: true,
+              cornerName,
+              spawnCol: col,
+              spawnRow: row,
+            })
+          }
+        }
+      }
+    }
+
+    // If still no doors found, create a fallback starting spawn point
+    if (doors.length === 0) {
+      doors.push({
+        id: 'spawn-default-1',
+        col: 2,
+        row: 2,
+        spawnCol: 2,
+        spawnRow: 2,
+        name: "1-Boshlang'ich Chiqish Nuqtasi (2, 2)",
+        layerId: 'layer-ground',
+        quadrant: 0,
+        isCorner: true,
+        cornerName: "1-Krug (Yuqori)",
+        assetId: '',
+      })
+    }
+
+    doors.sort((a, b) => a.quadrant - b.quadrant)
+    detectedDoors.value = doors
+    if (selectedDoorIndex.value >= doors.length || selectedDoorIndex.value < 0) {
+      selectedDoorIndex.value = 0
+    }
+
+    if (mapStore.project.customRoutes && Object.keys(mapStore.project.customRoutes).length > 0) {
+      customRoutes.value = { ...mapStore.project.customRoutes, ...customRoutes.value }
+    }
+
+    doorRoutesCache.value = {}
+    if (!isPlaying.value && !isGameMode.value) {
+      initializeUnits()
+    }
+    return doors
+  }
+
+  function addSpawnPoint(col: number, row: number, customName?: string) {
+    const cols = mapStore.project.cols
+    const rows = mapStore.project.rows
+    const midC = Math.floor(cols / 2)
+    const midR = Math.floor(rows / 2)
+
+    let quadrant = 0
+    let cornerName = '1-Krug (Yuqori)'
+    if (col <= midC && row <= midR) {
+      quadrant = 0
+      cornerName = "1-Krug (Yuqori/Shimol)"
+    } else if (col >= midC && row <= midR) {
+      quadrant = 1
+      cornerName = "2-Krug (O'ng/Sharq)"
+    } else if (col >= midC && row >= midR) {
+      quadrant = 2
+      cornerName = "3-Krug (Quyi/Janub)"
+    } else {
+      quadrant = 3
+      cornerName = "4-Krug (Chap/G'arb)"
+    }
+
+    const num = detectedDoors.value.length + 1
+    const newPoint: DoorInfo = {
+      id: `spawn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      col,
+      row,
+      spawnCol: col,
+      spawnRow: row,
+      quadrant,
+      isCorner: true,
+      cornerName,
+      assetId: '',
+      layerId: 'layer-ground',
+      name: customName || `${num}-Chiqish Nuqtasi (${col}, ${row})`,
+    }
+
+    detectedDoors.value.push(newPoint)
+    selectedDoorIndex.value = detectedDoors.value.length - 1
+    syncSpawnPointsToProject()
+    doorRoutesCache.value = {}
+    spawnAtDoor(selectedDoorIndex.value)
+    mapStore.pushHistory(`Yangi chiqish nuqtasi (${col}, ${row}) qo'shildi`)
+    return newPoint
+  }
+
+  function relocateCurrentSpawnPoint(col: number, row: number) {
+    if (detectedDoors.value.length === 0) {
+      addSpawnPoint(col, row)
+      return
+    }
+    const idx = selectedDoorIndex.value
+    const pt = detectedDoors.value[idx]
+    if (pt) {
+      pt.col = col
+      pt.row = row
+      pt.spawnCol = col
+      pt.spawnRow = row
+      pt.name = `Chiqish Nuqtasi (${col}, ${row})`
+      syncSpawnPointsToProject()
+      doorRoutesCache.value = {}
+      spawnAtDoor(idx)
+      mapStore.pushHistory(`Chiqish nuqtasi (${col}, ${row}) ga ko'chirildi`)
+    }
+  }
+
+  function removeSpawnPoint(idx: number) {
+    if (detectedDoors.value.length <= 1) {
+      alert("Kamida 1 ta chiqish nuqtasi qolishi kerak!")
+      return
+    }
+    detectedDoors.value.splice(idx, 1)
+    if (selectedDoorIndex.value >= detectedDoors.value.length) {
+      selectedDoorIndex.value = Math.max(0, detectedDoors.value.length - 1)
+    }
+    syncSpawnPointsToProject()
+    doorRoutesCache.value = {}
+    spawnAtDoor(selectedDoorIndex.value)
+    mapStore.pushHistory(`Chiqish nuqtasi o'chirildi`)
+  }
+
+  function syncSpawnPointsToProject() {
+    (mapStore.project as any).spawnPoints = detectedDoors.value.map(d => ({
+      id: d.id,
+      col: d.col,
+      row: d.row,
+      spawnCol: d.spawnCol,
+      spawnRow: d.spawnRow,
+      name: d.name,
+      quadrant: d.quadrant,
+      isCorner: d.isCorner,
+      cornerName: d.cornerName,
+      assetId: d.assetId,
+    }))
+  }
+
+  function findAdjacentSpawnCell(doorCol: number, doorRow: number): GridCoord {
+    const candidates = [
+      { col: doorCol, row: doorRow },
+      { col: doorCol + 1, row: doorRow },
+      { col: doorCol, row: doorRow + 1 },
+      { col: doorCol - 1, row: doorRow },
+      { col: doorCol, row: doorRow - 1 },
+      { col: doorCol + 1, row: doorRow + 1 },
+      { col: doorCol - 1, row: doorRow - 1 },
+    ]
+
+    const walkableSet = getWalkableCellsSet()
+    for (const c of candidates) {
+      if (isInsideGrid(c.col, c.row, mapStore.project.cols, mapStore.project.rows)) {
+        if (walkableSet.has(cellKey(c.col, c.row))) {
+          return c
+        }
+      }
+    }
+
+    return { col: doorCol, row: doorRow }
+  }
+
+  function getWalkableCellsSet(): Set<string> {
+    const walkable = new Set<string>()
+    const solidObstacles = new Set<string>()
+
+    for (const layer of mapStore.project.layers) {
+      if (!layer.visible) continue
+
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [col, row] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item) continue
+          const assetId = (item.assetId || '').toLowerCase()
+
+          const isGround = layer.id.includes('ground') || 
+                           assetId.includes('tile') || 
+                           assetId.includes('dirt') || 
+                           assetId.includes('plank') || 
+                           (assetId.includes('stone') && !assetId.includes('wall') && !assetId.includes('column')) ||
+                           assetId.includes('bridge') || 
+                           assetId.includes('stairs') || 
+                           assetId.includes('road') || 
+                           assetId.includes('grass')
+
+          const isDoor = assetId.includes('door') || assetId.includes('gate') || assetId.includes('archway')
+          const isSolidWall = (assetId.includes('wall') || assetId.includes('column') || assetId.includes('crate') || assetId.includes('barrel')) && !isDoor
+
+          if (isGround || isDoor) {
+            walkable.add(cellKey(col, row))
+          }
+
+          if (isSolidWall) {
+            solidObstacles.add(cellKey(col, row))
+          }
+        }
+      }
+    }
+
+    for (const obs of solidObstacles) {
+      walkable.delete(obs)
+    }
+
+    return walkable
+  }
+
+  function aStar(start: GridCoord, goal: GridCoord, walkableSet: Set<string>): GridCoord[] {
+    const startKey = cellKey(start.col, start.row)
+    const goalKey = cellKey(goal.col, goal.row)
+    if (startKey === goalKey) return [start]
+
+    const openSet = new Set<string>([startKey])
+    const cameFrom = new Map<string, GridCoord>()
+    const gScore = new Map<string, number>([[startKey, 0]])
+    const fScore = new Map<string, number>([[startKey, Math.hypot(goal.col - start.col, goal.row - start.row)]])
+
+    const deltas = [
+      { dc: 1, dr: 0 },
+      { dc: 0, dr: 1 },
+      { dc: -1, dr: 0 },
+      { dc: 0, dr: -1 },
+    ]
+
+    const cols = mapStore.project.cols
+    const rows = mapStore.project.rows
+
+    while (openSet.size > 0) {
+      let currentKey = ''
+      let lowestF = Infinity
+      for (const key of openSet) {
+        const f = fScore.get(key) ?? Infinity
+        if (f < lowestF) {
+          lowestF = f
+          currentKey = key
+        }
+      }
+
+      if (currentKey === goalKey) {
+        const path: GridCoord[] = []
+        let curr: GridCoord | undefined = goal
+        while (curr) {
+          path.unshift(curr)
+          const k = cellKey(curr.col, curr.row)
+          curr = cameFrom.get(k)
+        }
+        return path
+      }
+
+      openSet.delete(currentKey)
+      const [c, r] = currentKey.split(',').map(Number)
+      const currentG = gScore.get(currentKey) ?? Infinity
+
+      for (const { dc, dr } of deltas) {
+        const nc = c + dc
+        const nr = r + dr
+        const nk = cellKey(nc, nr)
+
+        if (!isInsideGrid(nc, nr, cols, rows)) continue
+        if (!walkableSet.has(nk) && nk !== goalKey) continue
+
+        const tentativeG = currentG + 1
+        if (tentativeG < (gScore.get(nk) ?? Infinity)) {
+          cameFrom.set(nk, { col: c, row: r })
+          gScore.set(nk, tentativeG)
+          const h = Math.hypot(goal.col - nc, goal.row - nr)
+          fScore.set(nk, tentativeG + h)
+          openSet.add(nk)
+        }
+      }
+    }
+
+    return []
+  }
+
+  function getRouteForDoor(doorIdx: number): GridCoord[] {
+    const door = detectedDoors.value[doorIdx]
+    if (!door) return []
+    const doorKey = door.id || `door-${doorIdx}`
+
+    if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
+      return customRoutes.value[doorKey]
+    }
+
+    // Default route: only the spawn point cell until user draws their custom path
+    return [{ col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row }]
+  }
+
+  // --- CUSTOM ROUTE DRAWING ACTIONS ---
+
+  function startDrawingCustomRoute() {
+    pauseTour()
+    isDrawingRoute.value = true
+    toolStore.setTool('select')
+
+    const startPt = selectedDoor.value 
+      ? { col: selectedDoor.value.spawnCol ?? selectedDoor.value.col, row: selectedDoor.value.spawnRow ?? selectedDoor.value.row } 
+      : { col: 2, row: 2 }
+
+    const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
+    
+    // If a route already exists for this door, start from it, otherwise start with the spawn point
+    if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
+      drawingPath.value = [...customRoutes.value[doorKey]]
+    } else {
+      drawingPath.value = [startPt]
+    }
+    
+    statusMessage.value = "✏️ Xaritada ketma-ket kataklarni bosing. Yo'lni xohlagan joyingizda tugatishingiz mumkin!"
+  }
+
+  function addPathTile(coord: GridCoord) {
+    if (!isDrawingRoute.value) return
+    const len = drawingPath.value.length
+
+    if (len > 0) {
+      const last = drawingPath.value[len - 1]
+      if (last.col === coord.col && last.row === coord.row) return
+
+      // Connect straight line if adjacent or clicked ahead
+      const dc = Math.sign(coord.col - last.col)
+      const dr = Math.sign(coord.row - last.row)
+      
+      let currC = last.col
+      let currR = last.row
+      while (currC !== coord.col || currR !== coord.row) {
+        if (currC !== coord.col) currC += dc
+        if (currR !== coord.row) currR += dr
+        drawingPath.value.push({ col: currC, row: currR })
+      }
+    } else {
+      drawingPath.value.push(coord)
+    }
+  }
+
+  function undoLastPathTile() {
+    if (drawingPath.value.length > 1) {
+      drawingPath.value.pop()
+    }
+  }
+
+  function clearDrawnRoute() {
+    const startPt = selectedDoor.value 
+      ? { col: selectedDoor.value.spawnCol ?? selectedDoor.value.col, row: selectedDoor.value.spawnRow ?? selectedDoor.value.row } 
+      : { col: 2, row: 2 }
+    drawingPath.value = [startPt]
+  }
+
+  function finishDrawingRoute() {
+    if (drawingPath.value.length > 1) {
+      const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
+      customRoutes.value[doorKey] = [...drawingPath.value]
+      mapStore.project.customRoutes = { ...customRoutes.value }
+      mapStore.project.characterConfig = {
+        spawnCount: spawnCount.value,
+        speed: speed.value,
+        spawnMode: spawnMode.value,
+        formation: formation.value,
+        pairDistance: pairDistance.value,
+        selectedDoorIndex: selectedDoorIndex.value,
+        followCamera: followCamera.value,
+        showPathTrail: showPathTrail.value,
+        autoLoop: autoLoop.value,
+      }
+      isDrawingRoute.value = false
+      doorRoutesCache.value = {}
+      spawnAtDoor(selectedDoorIndex.value)
+      mapStore.pushHistory(`Yo'nalish (${drawingPath.value.length} katak) saqlandi`)
+      statusMessage.value = `✅ Yo'nalish saqlandi (${drawingPath.value.length} katak)! Harakatni boshlashingiz mumkin.`
+    } else {
+      isDrawingRoute.value = false
+      statusMessage.value = "Yo'nalish bekor qilindi (kamida 2 ta katak kerak)"
+    }
+  }
+
+  function cancelDrawingRoute() {
+    isDrawingRoute.value = false
+    statusMessage.value = "Yo'nalish chizish bekor qilindi"
+  }
+
+  function deleteCurrentRoute() {
+    const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
+    delete customRoutes.value[doorKey]
+    if (mapStore.project.customRoutes) {
+      delete mapStore.project.customRoutes[doorKey]
+    }
+    doorRoutesCache.value = {}
+    spawnAtDoor(selectedDoorIndex.value)
+    mapStore.pushHistory("Yo'nalish o'chirildi")
+    statusMessage.value = "Yo'nalish o'chirildi"
+  }
+
+  function setWaveUnitCount(count: number) {
+    spawnCount.value = count
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.unitCount = count
+    }
+    syncWavesToProject()
+    resetTour()
+  }
+
+  function setWaveUnitHp(hp: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.unitHp = hp
+    }
+    syncWavesToProject()
+    resetTour()
+  }
+
+  function setWaveSpeed(spd: number) {
+    unitSpeed.value = spd
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.unitSpeed = spd
+    }
+    syncWavesToProject()
+  }
+
+  function selectWave(idx: number) {
+    currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, idx))
+    const cfg = waveConfigs.value[currentWaveIndex.value]
+    if (cfg) {
+      spawnCount.value = cfg.unitCount
+      unitSpeed.value = cfg.unitSpeed
+    }
+    syncWavesToProject()
+    resetTour()
+  }
+
+  const isWaveSaveFeedback = ref(false)
+
+  function saveCurrentWave() {
+    if (!currentWaveConfig.value) return
+    syncWavesToProject()
+    mapStore.pushHistory(`To'lqin ${currentWaveConfig.value.waveNumber} sozlamalari saqlandi`)
+    isWaveSaveFeedback.value = true
+    setTimeout(() => {
+      isWaveSaveFeedback.value = false
+    }, 2500)
+  }
+
+  function syncWavesToProject() {
+    if (!mapStore.project) return
+    ;(mapStore.project as any).waveConfigs = waveConfigs.value.map(w => ({ ...w }))
+    ;(mapStore.project as any).currentWaveIndex = currentWaveIndex.value
+  }
+
+  function restoreWavesFromProject() {
+    const p = mapStore.project as any
+    if (p.waveConfigs && Array.isArray(p.waveConfigs) && p.waveConfigs.length > 0) {
+      waveConfigs.value = p.waveConfigs.map((w: any) => ({ ...w }))
+      currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? 0))
+    }
+  }
+
+  function addNewWave() {
+    const nextNum = waveConfigs.value.length + 1
+    const prevWave = waveConfigs.value[waveConfigs.value.length - 1]
+    const baseHp = prevWave ? Math.round(prevWave.unitHp * 1.5) : 200
+    const baseCount = prevWave ? Math.min(50, prevWave.unitCount + 2) : 10
+    const baseReward = prevWave ? Math.round(prevWave.goldReward * 1.4) : 80
+
+    waveConfigs.value.push({
+      waveNumber: nextNum,
+      name: `${nextNum}-To'lqin (Yangi To'lqin)`,
+      unitHp: baseHp,
+      unitSpeed: 3.5,
+      unitCount: baseCount,
+      isBoss: nextNum % 5 === 0,
+      goldReward: baseReward,
+    })
+
+    syncWavesToProject()
+    selectWave(waveConfigs.value.length - 1)
+  }
+
+  function deleteWave(idx: number) {
+    if (waveConfigs.value.length <= 1) return
+    waveConfigs.value.splice(idx, 1)
+    // Re-number remaining waves
+    waveConfigs.value.forEach((w, i) => {
+      w.waveNumber = i + 1
+    })
+    syncWavesToProject()
+    selectWave(Math.max(0, idx - 1))
+  }
+
+  // --- MULTI-UNIT CROWD INITIALIZATION & SPAWNING ---
+
+  /**
+   * Initializes units:
+   * Uses spatial distance spacing (distance in tiles) so units stay tightly packed at any speed!
+   */
+  function initializeUnits() {
+    const list: CharacterUnit[] = []
+    const waveCfg = currentWaveConfig.value
+    const count = Math.max(1, Math.min(100, waveCfg ? waveCfg.unitCount : spawnCount.value))
+    const isPairFormation = formation.value === 'pairs'
+
+    const activeDoorsToSpawn = (spawnMode.value === 'all_doors' && detectedDoors.value.length > 1)
+      ? detectedDoors.value.map((_, idx) => idx)
+      : [selectedDoorIndex.value]
+
+    const progressMap: Record<number, number> = {}
+    const baseHp = waveCfg ? waveCfg.unitHp : 100
+
+    for (const dIdx of activeDoorsToSpawn) {
+      progressMap[dIdx] = 0 // Leader starts at distance 0
+      const route = getRouteForDoor(dIdx)
+      const startPt = route[0] || { col: 2, row: 2 }
+      const startScreen = gridToScreen(startPt.col, startPt.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
+      const door = detectedDoors.value[dIdx]
+      const doorId = door ? door.id : `door-${dIdx}`
+
+      for (let i = 0; i < count; i++) {
+        const pairIndex = isPairFormation ? Math.floor(i / 2) : i
+        const sideOffset = isPairFormation ? (i % 2 === 0 ? -1 : 1) : 0
+
+        list.push({
+          id: `unit-d${dIdx}-${i}-${Date.now()}`,
+          doorIndex: dIdx,
+          doorId,
+          unitIndex: i,
+          pairIndex,
+          sideOffset,
+          currentCol: startPt.col,
+          currentRow: startPt.row,
+          screenX: startScreen.x,
+          screenY: startScreen.y,
+          direction: 2,
+          action: 'Idle',
+          frameIndex: (i * 2) % 10,
+          animTimer: 0,
+          pathIndex: 0,
+          pathInterpolation: 0,
+          isSpawned: pairIndex === 0, // First pair is visible immediately
+          hasReachedEnd: false,
+          celebrationTimer: 0,
+          maxHp: baseHp,
+          currentHp: baseHp,
+          isDead: false,
+          deathFade: 1.0,
+        })
+      }
+    }
+
+    doorWaveProgress.value = progressMap
+    units.value = list
+  }
+
+  function spawnAtDoor(doorIdx?: number) {
+    if (doorIdx !== undefined) {
+      selectedDoorIndex.value = doorIdx
+    }
+    initializeUnits()
+    isPlaying.value = false
+    const totalCount = units.value.length
+    const hpStr = currentWaveConfig.value ? `(HP: ${currentWaveConfig.value.unitHp})` : ''
+    statusMessage.value = spawnMode.value === 'all_doors' && detectedDoors.value.length > 1
+      ? `Barcha ${detectedDoors.value.length} ta eshikdan ${totalCount} ta personaj ${hpStr} chiqishga tayyor`
+      : `${selectedDoor.value?.name || 'Eshik'}dan ${totalCount} ta personaj ${hpStr} chiqishga tayyor`
+  }
+
+  function startTour() {
+    if (units.value.length === 0) {
+      initializeUnits()
+    }
+    isPlaying.value = true
+    for (const u of units.value) {
+      if (u.isSpawned && !u.hasReachedEnd && !u.isDead) {
+        u.action = 'Run'
+      }
+    }
+    const waveName = currentWaveConfig.value ? currentWaveConfig.value.name : 'Personajlar'
+    statusMessage.value = `${waveName} — ${units.value.length} ta personaj Markazga yugurmoqda...`
+  }
+
+  function pauseTour() {
+    isPlaying.value = false
+    for (const u of units.value) {
+      if (!u.hasReachedEnd && !u.isDead) {
+        u.action = 'Idle'
+      }
+    }
+    statusMessage.value = "Harakat to'xtatildi (Pauza)"
+  }
+
+  function togglePlay() {
+    if (isPlaying.value) {
+      pauseTour()
+    } else {
+      startTour()
+    }
+  }
+
+  function resetTour() {
+    pauseTour()
+    lapCount.value = 0
+    initializeUnits()
+    statusMessage.value = "Eshikka qaytarildi va qayta tayyorlandi"
+  }
+
+  function calculateDirection(fromCol: number, fromRow: number, toCol: number, toRow: number): number {
+    const fromScreen = gridToScreen(fromCol, fromRow, mapStore.project.tileWidth, mapStore.project.tileHeight)
+    const toScreen = gridToScreen(toCol, toRow, mapStore.project.tileWidth, mapStore.project.tileHeight)
+
+    const dx = toScreen.x - fromScreen.x
+    const dy = toScreen.y - fromScreen.y
+
+    if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return 2
+
+    let angle = Math.atan2(dy, dx)
+    if (angle < 0) angle += 2 * Math.PI
+
+    const sector = Math.floor(((angle + Math.PI / 8) % (2 * Math.PI)) / (Math.PI / 4))
+    const dirMap = [1, 2, 3, 4, 5, 6, 7, 0]
+    return dirMap[sector] !== undefined ? dirMap[sector] : 2
+  }
+
+  /**
+   * Main multi-unit animation & movement tick
+   * deltaSec is already scaled by gameSpeed (simulation multiplier) in engine.onTick!
+   */
+  function updateTick(deltaSec: number) {
+    if (!isEnabled.value) return
+
+    // 10-second building & prep phase in Play Mode
+    if (isGameMode.value && gameState.value === 'build_prep') {
+      prepCountdown.value -= deltaSec
+      if (prepCountdown.value <= 0) {
+        prepCountdown.value = 0
+        startNextWaveInGame()
+      }
+      return
+    }
+
+    if (!isPlaying.value || units.value.length === 0) return
+
+    const tileWidth = mapStore.project.tileWidth
+    const tileHeight = mapStore.project.tileHeight
+    const waveCfg = currentWaveConfig.value
+    const unitBaseSpeed = waveCfg ? waveCfg.unitSpeed : 2.5
+    const stepDistance = unitBaseSpeed * deltaSec
+    const spacingInTiles = pairDistance.value
+
+    // Advance wave distance along path for each door
+    for (const dIdx of Object.keys(doorWaveProgress.value).map(Number)) {
+      doorWaveProgress.value[dIdx] += stepDistance
+    }
+
+    let allCompletedOrDead = true
+    let leaderUnit: CharacterUnit | null = null
+
+    for (const unit of units.value) {
+      const route = getRouteForDoor(unit.doorIndex)
+      if (!route || route.length <= 1) continue
+
+      // Dead unit handling: play bending / collapsing animation and fade out opacity
+      if (unit.isDead) {
+        unit.action = 'Pickup'
+        unit.animTimer += deltaSec
+        if (unit.animTimer >= 0.08) {
+          unit.animTimer = 0
+          if (unit.frameIndex < 4) {
+            unit.frameIndex++
+          }
+        }
+        if (unit.deathFade > 0) {
+          unit.deathFade = Math.max(0, unit.deathFade - deltaSec * 1.2)
+        }
+        continue
+      }
+
+      const waveDist = doorWaveProgress.value[unit.doorIndex] ?? 0
+      const unitDist = waveDist - (unit.pairIndex * spacingInTiles)
+
+      // Unit has not emerged from door yet
+      if (unitDist < 0) {
+        unit.isSpawned = false
+        unit.action = 'Idle'
+        allCompletedOrDead = false
+        continue
+      }
+
+      unit.isSpawned = true
+
+      // Unit has reached the center/destination
+      if (unitDist >= route.length - 1) {
+        if (!unit.hasReachedEnd) {
+          unit.hasReachedEnd = true
+          // Deduct life in Game Mode
+          if (isGameMode.value && gameState.value === 'wave_running') {
+            playerLives.value = Math.max(0, playerLives.value - 1)
+            if (playerLives.value <= 0) {
+              gameState.value = 'game_over'
+              isPlaying.value = false
+              statusMessage.value = "Mag'lubiyat! Barcha jonlaringiz tugadi."
+            }
+          }
+        }
+
+        unit.pathIndex = route.length - 1
+        unit.pathInterpolation = 0
+        unit.action = 'Pickup'
+        unit.celebrationTimer += deltaSec
+        unit.animTimer += deltaSec
+        if (unit.animTimer >= 0.1) {
+          unit.animTimer = 0
+          unit.frameIndex = (unit.frameIndex + 1) % 10
+        }
+        unit.currentCol = route[route.length - 1].col
+        unit.currentRow = route[route.length - 1].row
+        const ptScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
+        unit.screenX = ptScreen.x
+        unit.screenY = ptScreen.y
+        continue
+      }
+
+      allCompletedOrDead = false
+      if (!leaderUnit && unit.doorIndex === selectedDoorIndex.value) {
+        leaderUnit = unit
+      }
+
+      unit.hasReachedEnd = false
+      unit.action = 'Run'
+      unit.pathIndex = Math.floor(unitDist)
+      unit.pathInterpolation = unitDist - unit.pathIndex
+
+      const idxA = unit.pathIndex
+      const idxB = Math.min(route.length - 1, idxA + 1)
+      const ptA = route[idxA]
+      const ptB = route[idxB]
+
+      const t = unit.pathInterpolation
+      unit.currentCol = ptA.col + (ptB.col - ptA.col) * t
+      unit.currentRow = ptA.row + (ptB.row - ptA.row) * t
+
+      const baseScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
+
+      // Side-by-side (yonma-yon 2 kishi) perpendicular offset calculation
+      if (formation.value === 'pairs' && unit.sideOffset !== 0) {
+        const ptAScreen = gridToScreen(ptA.col, ptA.row, tileWidth, tileHeight)
+        const ptBScreen = gridToScreen(ptB.col, ptB.row, tileWidth, tileHeight)
+        const dx = ptBScreen.x - ptAScreen.x
+        const dy = ptBScreen.y - ptAScreen.y
+        const len = Math.hypot(dx, dy) || 1
+        const perpX = -dy / len
+        const perpY = dx / len
+
+        const offsetDist = tileWidth * 0.15 * unit.sideOffset
+        unit.screenX = baseScreen.x + perpX * offsetDist
+        unit.screenY = baseScreen.y + perpY * offsetDist
+      } else {
+        unit.screenX = baseScreen.x
+        unit.screenY = baseScreen.y
+      }
+
+      if (idxA !== idxB) {
+        unit.direction = calculateDirection(ptA.col, ptA.row, ptB.col, ptB.row)
+      }
+
+      // Animation frame duration
+      unit.animTimer += deltaSec
+      const frameDuration = 0.07 / Math.min(5, unitBaseSpeed / 2.5)
+      if (unit.animTimer >= frameDuration) {
+        unit.animTimer = 0
+        unit.frameIndex = (unit.frameIndex + 1) % 10
+      }
+    }
+
+    // Camera follow leader
+    if (followCamera.value && leaderUnit && leaderUnit.isSpawned) {
+      const panX = window.innerWidth / 2 - leaderUnit.screenX * toolStore.zoom
+      const panY = window.innerHeight / 2 - leaderUnit.screenY * toolStore.zoom
+      toolStore.pan.x += (panX - toolStore.pan.x) * 0.08
+      toolStore.pan.y += (panY - toolStore.pan.y) * 0.08
+    }
+
+    // If all units completed or died
+    if (allCompletedOrDead && units.value.length > 0) {
+      lapCount.value++
+      const completedWave = currentWaveConfig.value
+      const reward = completedWave ? completedWave.goldReward : 50
+
+      if (isGameMode.value) {
+        if (playerLives.value > 0) {
+          gold.value += reward
+          score.value += reward * 10
+
+          if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
+            gameState.value = 'victory'
+            isPlaying.value = false
+            statusMessage.value = "🏆 G'alaba! Barcha to'lqinlar muvaffaqiyatli qaytarildi!"
+          } else {
+            // Next wave: Enter 10-second building & prep phase!
+            currentWaveIndex.value++
+            gameState.value = 'build_prep'
+            prepCountdown.value = 10
+            isPlaying.value = false
+            spawnAtDoor(0)
+            statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} qaytarildi! +${reward} oltin. 10s qurilish vaqti...`
+          }
+        }
+      } else {
+        // Redaktor mode: Stop after testing the wave
+        gold.value += reward
+        pauseTour()
+        statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} sinovi yakunlandi!`
+      }
+    }
+  }
+
+  // --- GAME MODE CONTROLS ---
+
+  function startPlayMode() {
+    towerStore.saveEditorTowersSnapshot()
+    towerStore.clearCombatEffects()
+    isGameMode.value = true
+    playerLives.value = maxLives.value
+    gold.value = 500
+    score.value = 0
+    currentWaveIndex.value = 0
+    gameState.value = 'build_prep'
+    prepCountdown.value = 10
+    gameSpeed.value = 1.0
+    spawnAtDoor(0)
+    isPlaying.value = false
+  }
+
+  function exitPlayMode() {
+    isGameMode.value = false
+    gameState.value = 'ready'
+    isPlaying.value = false
+    resetTour()
+    towerStore.restoreEditorTowersSnapshot()
+  }
+
+  function startNextWaveInGame() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'wave_running'
+    prepCountdown.value = 0
+    spawnAtDoor(0)
+    startTour()
+  }
+
+  function testWave(idx?: number) {
+    towerStore.clearCombatEffects()
+    if (idx !== undefined) {
+      selectWave(idx)
+    }
+    spawnAtDoor(0)
+    startTour()
+  }
+
+  function restartGame() {
+    towerStore.restoreEditorTowersSnapshot()
+    startPlayMode()
+  }
+
+  /**
+   * Authentic 4-player Warcraft Burbenog TD map generator
+   */
+  function createSamplePathWithDoors() {
+    const cols = mapStore.project.cols
+    const rows = mapStore.project.rows
+    const midC = Math.floor(cols / 2)
+    const midR = Math.floor(rows / 2)
+
+    const cornerDoors = [
+      { col: 2, row: 2, assetId: 'sprite-stoneWallDoor_S' },
+      { col: cols - 3, row: 2, assetId: 'sprite-stoneWallDoor_W' },
+      { col: cols - 3, row: rows - 3, assetId: 'sprite-stoneWallDoor_N' },
+      { col: 2, row: rows - 3, assetId: 'sprite-stoneWallDoor_E' },
+    ]
+
+    for (const d of cornerDoors) {
+      mapStore.setTile(d.col, d.row, d.assetId, 'replace', 'layer-objects', false)
+    }
+
+    const pathCells: GridCoord[] = []
+    const circleRadius = Math.min(5, Math.floor(cols / 10))
+    
+    // Top Krug (2, 2)
+    for (let c = 2; c <= 2 + circleRadius; c++) {
+      pathCells.push({ col: c, row: 2 }, { col: c, row: 2 + circleRadius })
+    }
+    for (let r = 2; r <= 2 + circleRadius; r++) {
+      pathCells.push({ col: 2, row: r }, { col: 2 + circleRadius, row: r })
+    }
+
+    // Right Krug (cols - 3, 2)
+    for (let c = cols - 3 - circleRadius; c <= cols - 3; c++) {
+      pathCells.push({ col: c, row: 2 }, { col: c, row: 2 + circleRadius })
+    }
+    for (let r = 2; r <= 2 + circleRadius; r++) {
+      pathCells.push({ col: cols - 3 - circleRadius, row: r }, { col: cols - 3, row: r })
+    }
+
+    // Bottom Krug (cols - 3, rows - 3)
+    for (let c = cols - 3 - circleRadius; c <= cols - 3; c++) {
+      pathCells.push({ col: c, row: rows - 3 - circleRadius }, { col: c, row: rows - 3 })
+    }
+    for (let r = rows - 3 - circleRadius; r <= rows - 3; r++) {
+      pathCells.push({ col: cols - 3 - circleRadius, row: r }, { col: cols - 3, row: r })
+    }
+
+    // Left Krug (2, rows - 3)
+    for (let c = 2; c <= 2 + circleRadius; c++) {
+      pathCells.push({ col: c, row: rows - 3 - circleRadius }, { col: c, row: rows - 3 })
+    }
+    for (let r = rows - 3 - circleRadius; r <= rows - 3; r++) {
+      pathCells.push({ col: 2, row: r }, { col: 2 + circleRadius, row: r })
+    }
+
+    // Connect Circles with Outer Lanes
+    for (let c = 2 + circleRadius; c <= cols - 3 - circleRadius; c++) {
+      pathCells.push({ col: c, row: 2 })
+    }
+    for (let r = 2 + circleRadius; r <= rows - 3 - circleRadius; r++) {
+      pathCells.push({ col: cols - 3, row: r })
+    }
+    for (let c = 2 + circleRadius; c <= cols - 3 - circleRadius; c++) {
+      pathCells.push({ col: c, row: rows - 3 })
+    }
+    for (let r = rows - 3 - circleRadius; r >= midR; r--) {
+      pathCells.push({ col: 2, row: r })
+    }
+
+    // Central Gateway leading into Center
+    for (let c = 2; c <= midC; c++) {
+      pathCells.push({ col: c, row: midR })
+    }
+
+    // Center Platform
+    for (let c = midC - 1; c <= midC + 1; c++) {
+      for (let r = midR - 1; r <= midR + 1; r++) {
+        pathCells.push({ col: c, row: r })
+      }
+    }
+
+    mapStore.fillTiles(pathCells, 'sprite-stoneTile_E', 'layer-ground')
+    mapStore.pushHistory("Warcraft Burbenog TD xaritasi (4 ta Krug va Markaz) yaratildi")
+
+    spawnAtDoor(0)
+  }
+
+  return {
+    isEnabled,
+    isPlaying,
+    speed,
+    unitSpeed,
+    gameSpeed,
+    spawnCount,
+    spawnMode,
+    formation,
+    pairDistance,
+    followCamera,
+    showPathTrail,
+    autoLoop,
+    isDrawingRoute,
+    drawingPath,
+    customRoutes,
+    units,
+    spawnedUnitsCount,
+    completedUnitsCount,
+    lapCount,
+    statusMessage,
+    detectedDoors,
+    selectedDoorIndex,
+    selectedDoor,
+    currentActiveRoute,
+    progressPercent,
+    detectDoors,
+    getRouteForDoor,
+    startDrawingCustomRoute,
+    addPathTile,
+    undoLastPathTile,
+    clearDrawnRoute,
+    finishDrawingRoute,
+    cancelDrawingRoute,
+    spawnAtDoor,
+    startTour,
+    pauseTour,
+    togglePlay,
+    resetTour,
+    updateTick,
+    gold,
+    score,
+    waveConfigs,
+    currentWaveIndex,
+    currentWaveConfig,
+    selectWave,
+    setWaveUnitCount,
+    setWaveUnitHp,
+    setWaveSpeed,
+    addNewWave,
+    deleteWave,
+    isGameMode,
+    playerLives,
+    maxLives,
+    gameState,
+    prepCountdown,
+    startPlayMode,
+    exitPlayMode,
+    startNextWaveInGame,
+    testWave,
+    restartGame,
+    deleteCurrentRoute,
+    isWaveSaveFeedback,
+    saveCurrentWave,
+    syncWavesToProject,
+    restoreWavesFromProject,
+    syncSpawnPointsToProject,
+    isSettingSpawnPoint,
+    spawnPointPlacementMode,
+    addSpawnPoint,
+    relocateCurrentSpawnPoint,
+    removeSpawnPoint,
+    createSamplePathWithDoors,
+  }
+})
