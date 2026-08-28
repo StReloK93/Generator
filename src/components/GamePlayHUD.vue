@@ -98,6 +98,18 @@
           <span class="hidden md:inline">Kamera</span>
         </button>
 
+        <!-- Fullscreen Toggle Button -->
+        <button 
+          @click="handleToggleFullscreen"
+          :class="isFullscreenMode ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-700'"
+          class="py-1 sm:py-1.5 px-2 rounded-xl border text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+          :title="isFullscreenMode ? 'To\'liq ekrandan chiqish' : 'To\'liq ekran rejimi'"
+        >
+          <Minimize2 v-if="isFullscreenMode" class="w-3.5 h-3.5" />
+          <Maximize2 v-else class="w-3.5 h-3.5" />
+          <span class="hidden md:inline">{{ isFullscreenMode ? 'Kichraytirish' : 'Fullscreen' }}</span>
+        </button>
+
         <!-- Exit to Editor Button -->
         <button 
           @click="characterStore.exitPlayMode()"
@@ -280,6 +292,8 @@
       @click.stop
       @touchstart.stop
       @touchend.stop
+      @touchmove.stop
+      @pointerdown.stop
     >
       <div class="glass-panel border border-rose-500/60 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
         <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-rose-600/20 border border-rose-500/50 flex items-center justify-center text-rose-500">
@@ -322,6 +336,8 @@
       @click.stop
       @touchstart.stop
       @touchend.stop
+      @touchmove.stop
+      @pointerdown.stop
     >
       <div class="glass-panel border border-yellow-500/60 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
         <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-yellow-600/20 border border-yellow-500/50 flex items-center justify-center text-yellow-400 animate-bounce">
@@ -358,15 +374,38 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { 
-  Heart, Coins, Swords, Trophy, Hammer, ShieldAlert, Zap, Play, Skull, X, Clock, Camera 
+  Heart, Coins, Swords, Trophy, Hammer, ShieldAlert, Zap, Play, Skull, X, Clock, Camera, Maximize2, Minimize2 
 } from 'lucide-vue-next'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
+import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
 
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+
+const isFullscreenMode = ref(false)
+
+function checkFullscreenState() {
+  isFullscreenMode.value = isAppFullscreen()
+}
+
+onMounted(() => {
+  checkFullscreenState()
+  document.addEventListener('fullscreenchange', checkFullscreenState)
+  document.addEventListener('webkitfullscreenchange', checkFullscreenState)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', checkFullscreenState)
+  document.removeEventListener('webkitfullscreenchange', checkFullscreenState)
+})
+
+async function handleToggleFullscreen() {
+  const active = await toggleAppFullscreen()
+  isFullscreenMode.value = active
+}
 
 function selectTowerToBuild(bp: any) {
   if (characterStore.gold < bp.cost) {

@@ -94,6 +94,35 @@ export const useCharacterStore = defineStore('characterStore', () => {
     return waveConfigs.value[idx] || waveConfigs.value[0] || null
   })
 
+  // Game Mode Loading Screen / Preloader state (Zagruzka)
+  const isLoadingGame = ref(false)
+  const loadingProgress = ref(0)
+  const loadingMapTitle = ref('')
+  const loadingMessage = ref('')
+  const loadingAssetsCount = ref(0)
+
+  function startLoadingScreen(mapTitle = "O'yin Xaritasi") {
+    isLoadingGame.value = true
+    loadingProgress.value = 5
+    loadingMapTitle.value = mapTitle
+    loadingMessage.value = "Grafik assetlar va teksturalar tayyorlanmoqda..."
+    loadingAssetsCount.value = 0
+  }
+
+  function setLoadingProgress(progress: number, message?: string, loadedCount?: number) {
+    loadingProgress.value = Math.max(0, Math.min(100, progress))
+    if (message) loadingMessage.value = message
+    if (loadedCount !== undefined) loadingAssetsCount.value = loadedCount
+  }
+
+  function finishLoadingScreen() {
+    loadingProgress.value = 100
+    loadingMessage.value = "Barcha teksturalar yuklandi! O'yin boshlanmoqda..."
+    setTimeout(() => {
+      isLoadingGame.value = false
+    }, 280)
+  }
+
   // Custom Route Drawing State
   const isDrawingRoute = ref(false)
   const customRoutes = ref<Record<string, GridCoord[]>>({}) // key: door.id or doorIndex
@@ -1247,6 +1276,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
     addSpawnPoint,
     relocateCurrentSpawnPoint,
     removeSpawnPoint,
+    isLoadingGame,
+    loadingProgress,
+    loadingMapTitle,
+    loadingMessage,
+    loadingAssetsCount,
+    startLoadingScreen,
+    setLoadingProgress,
+    finishLoadingScreen,
     createSamplePathWithDoors,
   }
 })

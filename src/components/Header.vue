@@ -187,7 +187,7 @@
 
       <!-- Play Game Mode Button (Prominent on all screens) -->
       <button 
-        @click="characterStore.startPlayMode()"
+        @click="handleStartPlayMode"
         class="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer"
         title="O'yin rejimiga o'tish (Hozirgi xaritada o'ynab ko'rish)"
       >
@@ -218,7 +218,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { 
   Layers, Plus, Download, Upload, Undo2, Redo2, 
   Grid, Hash, ZoomIn, ZoomOut, Maximize2, HelpCircle, User, Users, Gamepad2 
@@ -229,6 +229,8 @@ import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson } from '../utils/exportHelpers'
+import { requestAppFullscreen } from '../utils/fullscreen'
+import { IsoEngine } from '../engine/IsoEngine'
 
 const emit = defineEmits<{
   (e: 'open-welcome', mode?: 'maps' | 'new' | 'import' | 'resume'): void
@@ -240,6 +242,52 @@ const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+
+async function handleStartPlayMode() {
+  requestAppFullscreen()
+  characterStore.startLoadingScreen(mapStore.project.name || 'Xarita')
+
+  // Collect unique required assets used in this map
+  const usedAssetIds = new Set<string>()
+  for (const layer of mapStore.project.layers) {
+    if (layer.tiles) {
+      for (const tileList of Object.values(layer.tiles)) {
+        const items = Array.isArray(tileList) ? tileList : [tileList]
+        for (const item of items) {
+          if (item.assetId) usedAssetIds.add(item.assetId)
+        }
+      }
+    }
+  }
+
+  const assetsMap = new Map<string, any>()
+  for (const a of assetStore.assets) {
+    assetsMap.set(a.id, a)
+    const cleanId = a.id.replace(/^sprite-/, '')
+    assetsMap.set(cleanId, a)
+    assetsMap.set(`sprite-${cleanId}`, a)
+  }
+
+  const assetsToPreload: any[] = []
+  for (const id of usedAssetIds) {
+    const found = assetsMap.get(id)
+    if (found) {
+      assetsToPreload.push(found)
+    }
+  }
+
+  if (IsoEngine.instance) {
+    await IsoEngine.instance.preloadAssetsBatch(assetsToPreload, (loaded, total) => {
+      const pct = Math.round((loaded / total) * 90) + 5
+      characterStore.setLoadingProgress(pct, `${loaded} / ${total} ta tekstura GPU keshiga yuklanmoqda...`, loaded)
+    })
+  }
+
+  characterStore.finishLoadingScreen()
+  nextTick(() => {
+    characterStore.startPlayMode()
+  })
+}
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 

@@ -334,6 +334,8 @@ import { useToolStore } from '../stores/toolStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson } from '../utils/exportHelpers'
+import { requestAppFullscreen } from '../utils/fullscreen'
+import { IsoEngine } from '../engine/IsoEngine'
 
 const mapStore = useMapStore()
 const assetStore = useAssetStore()
@@ -468,11 +470,16 @@ function handleCreateNew() {
   isOpen.value = false
 }
 
-function applyMapProject(rawData: any, isPlayMode = true) {
+async function applyMapProject(rawData: any, isPlayMode = true) {
   try {
     const project = rawData.project || rawData
     if (!project || !project.cols || !project.rows) {
       throw new Error("Noto'g'ri xarita formati")
+    }
+
+    if (isPlayMode) {
+      requestAppFullscreen()
+      characterStore.startLoadingScreen(project.name || 'Burbenog TD')
     }
 
     mapStore.project = JSON.parse(JSON.stringify(project))
@@ -535,12 +542,51 @@ function applyMapProject(rawData: any, isPlayMode = true) {
     isOpen.value = false
 
     if (isPlayMode) {
+      // Collect unique required assets used in this map
+      const usedAssetIds = new Set<string>()
+      for (const layer of mapStore.project.layers) {
+        if (layer.tiles) {
+          for (const tileList of Object.values(layer.tiles)) {
+            const items = Array.isArray(tileList) ? tileList : [tileList]
+            for (const item of items) {
+              if (item.assetId) usedAssetIds.add(item.assetId)
+            }
+          }
+        }
+      }
+
+      // Collect assets to preload
+      const assetsMap = new Map<string, any>()
+      for (const a of assetStore.assets) {
+        assetsMap.set(a.id, a)
+        const cleanId = a.id.replace(/^sprite-/, '')
+        assetsMap.set(cleanId, a)
+        assetsMap.set(`sprite-${cleanId}`, a)
+      }
+
+      const assetsToPreload: any[] = []
+      for (const id of usedAssetIds) {
+        const found = assetsMap.get(id)
+        if (found) {
+          assetsToPreload.push(found)
+        }
+      }
+
+      if (IsoEngine.instance) {
+        await IsoEngine.instance.preloadAssetsBatch(assetsToPreload, (loaded, total) => {
+          const pct = Math.round((loaded / total) * 90) + 5
+          characterStore.setLoadingProgress(pct, `${loaded} / ${total} ta tekstura GPU keshiga yuklanmoqda...`, loaded)
+        })
+      }
+
+      characterStore.finishLoadingScreen()
       nextTick(() => {
         characterStore.startPlayMode()
       })
     }
   } catch (err: any) {
     console.error('Error applying map:', err)
+    characterStore.finishLoadingScreen()
     alert("Xaritani ochishda xatolik: " + (err?.message || 'Noma\'lum xatolik'))
   }
 }

@@ -47,19 +47,21 @@ export const useAssetStore = defineStore('assetStore', () => {
           .replace(/([a-z])([A-Z])/g, '$1 $2')
         formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
 
-        const analysis = await analyzeImage(url)
+        // Builtin sprite anchor heuristics: Ground tiles have anchorY=0.5, tall walls/columns have anchorY=0.88
+        const isGroundTile = lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column') && !lower.includes('stairs'))
+        const anchorY = isGroundTile ? 0.5 : 0.88
 
         loadedList.push({
           id: `sprite-${baseName}`,
           name: formattedName,
           src: url,
-          previewSrc: analysis.previewSrc,
+          previewSrc: url,
           category,
-          width: analysis.width,
-          height: analysis.height,
-          anchorX: analysis.anchorX,
-          anchorY: analysis.anchorY,
-          contentBounds: analysis.bounds,
+          width: 512,
+          height: 512,
+          anchorX: 0.5,
+          anchorY,
+          contentBounds: { minX: 0, minY: 0, maxX: 512, maxY: 512 },
           spanX: 1,
           spanY: 1,
           scale: 1.0,

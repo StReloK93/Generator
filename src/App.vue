@@ -27,7 +27,9 @@
       />
     </div>
 
-    <!-- Modals -->
+    <!-- Modals & Overlays -->
+    <GamePreloaderOverlay />
+
     <WelcomeProjectModal 
       ref="welcomeModalRef"
     />
@@ -46,6 +48,7 @@ import BottomAssetDrawer from './components/BottomAssetDrawer.vue'
 import PlacedElementsPanel from './components/PlacedElementsPanel.vue'
 import WelcomeProjectModal from './components/WelcomeProjectModal.vue'
 import ExportModal from './components/ExportModal.vue'
+import GamePreloaderOverlay from './components/GamePreloaderOverlay.vue'
 import { useMapStore } from './stores/mapStore'
 import { useAssetStore } from './stores/assetStore'
 import { useCharacterStore } from './stores/characterStore'

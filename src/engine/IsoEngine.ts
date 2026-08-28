@@ -44,8 +44,10 @@ export class IsoEngine {
   private layerSpriteMaps = new Map<string, Map<string, Sprite>>()
   private textureCache = new Map<string, Texture>()
   private loadingPromises = new Map<string, Promise<Texture | null>>()
+  public static instance: IsoEngine | null = null
 
   constructor() {
+    IsoEngine.instance = this
     this.app = new Application()
     this.stageContainer = new Container()
     this.worldContainer = new Container()
@@ -394,6 +396,46 @@ export class IsoEngine {
           this.previewContainer.addChild(ghost)
         }
       }
+    }
+  }
+
+  public async preloadAssetsBatch(
+    assets: AssetItem[], 
+    onProgress?: (loaded: number, total: number) => void
+  ): Promise<void> {
+    if (!assets || assets.length === 0) {
+      if (onProgress) onProgress(1, 1)
+      return
+    }
+
+    const uniqueAssets: AssetItem[] = []
+    const seen = new Set<string>()
+    for (const a of assets) {
+      if (a && a.id && a.src && !seen.has(a.id)) {
+        seen.add(a.id)
+        uniqueAssets.push(a)
+      }
+    }
+
+    const total = uniqueAssets.length
+    let loaded = 0
+
+    if (total === 0) {
+      if (onProgress) onProgress(1, 1)
+      return
+    }
+
+    // Parallel preload in batches of 16
+    const batchSize = 16
+    for (let i = 0; i < total; i += batchSize) {
+      const chunk = uniqueAssets.slice(i, i + batchSize)
+      await Promise.all(
+        chunk.map(async (asset) => {
+          await this.preloadAsset(asset)
+          loaded++
+          if (onProgress) onProgress(loaded, total)
+        })
+      )
     }
   }
 
