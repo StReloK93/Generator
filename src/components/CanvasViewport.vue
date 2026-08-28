@@ -1,7 +1,7 @@
 <template>
   <div 
     ref="viewportContainerRef"
-    class="relative flex-1 h-full w-full bg-dark-950 overflow-hidden cursor-crosshair select-none"
+    class="relative flex-1 h-full w-full bg-dark-950 overflow-hidden cursor-crosshair select-none canvas-touch-container"
     :class="{
       '!cursor-grab': toolStore.activeTool === 'pan' && !isPanning,
       '!cursor-grabbing': isPanning,
@@ -14,6 +14,10 @@
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseLeave"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
+    @touchcancel="handleTouchCancel"
     @wheel.prevent="handleWheel"
     @dragover.prevent="handleDragOver"
     @dragleave.prevent="handleDragLeave"
@@ -38,7 +42,7 @@
     <!-- Top Help / Quick Guide Notification Banner -->
     <div 
       v-if="showGuide && !characterStore.isGameMode" 
-      class="absolute top-4 left-1/2 -translate-x-1/2 z-20 glass-panel px-4 py-2 rounded-2xl border border-brand-500/40 shadow-2xl flex items-center gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl text-slate-200"
+      class="absolute top-4 left-1/2 -translate-x-1/2 z-20 glass-panel px-4 py-2 rounded-2xl border border-brand-500/40 shadow-2xl hidden md:flex items-center gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl text-slate-200"
     >
       <div class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center shrink-0">
         <Sparkles class="w-3.5 h-3.5" />
@@ -74,7 +78,65 @@
     <!-- Placement Conflict Decision Modal -->
     <PlacementPromptModal />
 
-    <!-- Floating Bottom HUD info -->
+    <!-- Floating Mobile Zoom & Map Navigation Widget (Available in both Editor & Game Mode) -->
+    <div 
+      class="absolute right-3.5 top-20 z-20 flex flex-col gap-2 pointer-events-none select-none"
+    >
+      <div 
+        class="glass-panel p-1.5 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/90 flex flex-col gap-1.5 pointer-events-auto items-center"
+        @mousedown.stop
+        @mouseup.stop
+        @click.stop
+        @touchstart.stop
+        @touchend.stop
+        @touchmove.stop
+      >
+        <!-- Zoom In -->
+        <button 
+          @click="toolStore.zoomIn()"
+          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:bg-brand-600 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
+          title="Kattalashtirish (+)"
+        >
+          <Plus class="w-4 h-4" />
+        </button>
+
+        <!-- Current Zoom Percentage -->
+        <div class="py-0.5 text-center font-mono text-[9px] text-slate-400 font-semibold select-none leading-none">
+          {{ Math.round(toolStore.zoom * 100) }}%
+        </div>
+
+        <!-- Zoom Out -->
+        <button 
+          @click="toolStore.zoomOut()"
+          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:bg-brand-600 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
+          title="Kichiklashtirish (-)"
+        >
+          <Minus class="w-4 h-4" />
+        </button>
+
+        <div class="h-px w-6 bg-slate-800 my-0.5"></div>
+
+        <!-- Center Map View -->
+        <button 
+          @click="centerView"
+          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-emerald-950/70 hover:border-emerald-500/50 active:bg-emerald-600 text-emerald-400 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
+          title="Xaritani umumiy ko'rinishga qaytarish"
+        >
+          <Crosshair class="w-4 h-4" />
+        </button>
+
+        <!-- Center Origin Focus (🎯) -->
+        <button 
+          @click="focusOnCenter"
+          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-amber-950/70 active:bg-amber-600 text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-sm text-xs font-bold active:scale-95"
+          title="Markaziy koordinata (Center Origin)ga borish"
+        >
+          <span>🎯</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Bottom HUD info (Desktop Editor) -->
     <div 
       v-if="!characterStore.isGameMode"
       class="absolute bottom-4 left-102 z-10 hidden md:flex items-center gap-2 pointer-events-none"
@@ -131,8 +193,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { Crosshair, Sparkles, X, PlusCircle } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { Crosshair, Sparkles, X, PlusCircle, Plus, Minus } from 'lucide-vue-next'
 import { IsoEngine } from '../engine/IsoEngine'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
@@ -150,9 +212,9 @@ import {
   getBresenhamLine, 
   getRectangleCells, 
   floodFill, 
-  isInsideGrid,
-  cellKey,
-  gridToScreen
+  isInsideGrid, 
+  cellKey, 
+  gridToScreen 
 } from '../utils/isometric'
 
 const viewportContainerRef = ref<HTMLDivElement | null>(null)
@@ -165,6 +227,7 @@ const towerStore = useTowerStore()
 
 // PixiJS Engine instance
 const engine = new IsoEngine()
+let resizeObserver: ResizeObserver | null = null
 
 // Help guide state
 const showGuide = ref(true)
@@ -248,12 +311,28 @@ onMounted(async () => {
   centerView()
   updateEngineState()
 
+  // Automatic ResizeObserver: instantly resizes canvas whenever parent size changes (e.g. game mode toggle)
+  if (typeof ResizeObserver !== 'undefined' && viewportContainerRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+          engine.resize(entry.contentRect.width, entry.contentRect.height)
+        }
+      }
+    })
+    resizeObserver.observe(viewportContainerRef.value)
+  }
+
   window.addEventListener('resize', handleResize)
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
 })
 
 onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
@@ -261,9 +340,11 @@ onUnmounted(() => {
 })
 
 function handleResize() {
-  if (!viewportContainerRef.value) return
+  if (!viewportContainerRef.value || !engine.isInitialized) return
   const rect = viewportContainerRef.value.getBoundingClientRect()
-  engine.resize(rect.width, rect.height)
+  if (rect.width > 0 && rect.height > 0) {
+    engine.resize(rect.width, rect.height)
+  }
 }
 
 function updateEngineState() {
@@ -413,6 +494,23 @@ watch(
   { deep: true }
 )
 
+// Auto-resize and adapt viewport when toggling Play / Game Mode
+watch(
+  () => characterStore.isGameMode,
+  () => {
+    nextTick(() => {
+      handleResize()
+      centerView()
+    })
+    setTimeout(() => {
+      handleResize()
+    }, 60)
+    setTimeout(() => {
+      handleResize()
+    }, 200)
+  }
+)
+
 // Mouse Right Click Handler (Releases active asset, cancels selection, cancels move)
 function handleContextMenu() {
   if (toolStore.isMovingElement) {
@@ -435,34 +533,9 @@ function handleContextMenu() {
   toolStore.isMouseDown = false
 }
 
-// Mouse Down Handler
-function handleMouseDown(e: MouseEvent) {
-  if (!viewportContainerRef.value) return
-
-  // Prevent clicks on floating UI components / modals from triggering the map!
-  const target = e.target as HTMLElement
-  if (target && target.tagName !== 'CANVAS') {
-    return
-  }
-
-  // Right Click handled in handleContextMenu
-  if (e.button === 2) {
-    handleContextMenu()
-    return
-  }
-
-  // Middle Click or Space Key or Pan Tool activates panning
-  if (e.button === 1 || isSpacePressed.value || toolStore.activeTool === 'pan') {
-    isPanning.value = true
-    panStart.value = { x: e.clientX, y: e.clientY }
-    panOrigin.value = { ...toolStore.pan }
-    return
-  }
-
+// Reusable Cell Click / Tap Action Execution
+function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
   if (mapStore.activeLayer?.locked) return
-
-  const rect = viewportContainerRef.value.getBoundingClientRect()
-  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
 
   if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
     if (!assetStore.selectedAssetId || toolStore.activeTool === 'select') {
@@ -487,7 +560,7 @@ function handleMouseDown(e: MouseEvent) {
   if (towerStore.activeBuildTowerId) {
     towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
     engine.renderTowersAndCombat(towerStore, mapStore.project, characterStore, toolStore.hoveredCell)
-    if (!e.ctrlKey && !e.metaKey) {
+    if (!isCtrl) {
       towerStore.selectBuildTower(null)
     }
     return
@@ -516,7 +589,7 @@ function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  // 2. If NO ASSET IS ACTIVE (or in Select Mode): SELECT TOWER OR MAP ELEMENT
+  // 2. If NO ASSET IS ACTIVE (or in Select Mode / Game Mode): SELECT TOWER OR MAP ELEMENT
   if (!assetStore.selectedAssetId || toolStore.activeTool === 'select') {
     // Check if clicked on a Placed Tower
     const clickedTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
@@ -551,7 +624,7 @@ function handleMouseDown(e: MouseEvent) {
     const existingDirect = mapStore.getCellItems(gridCoord.col, gridCoord.row)
 
     if (existingDirect.length > 0) {
-      if (toolStore.placementMode === 'ask' && !e.ctrlKey && !e.metaKey) {
+      if (toolStore.placementMode === 'ask' && !isCtrl) {
         toolStore.placementConflict = {
           col: gridCoord.col,
           row: gridCoord.row,
@@ -565,9 +638,7 @@ function handleMouseDown(e: MouseEvent) {
       mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack')
     }
 
-    // If Ctrl is NOT pressed: place once and RELEASE the asset immediately!
-    // If Ctrl IS pressed: keep the asset active for continuous placement!
-    if (!e.ctrlKey && !e.metaKey) {
+    if (!isCtrl) {
       assetStore.selectAsset(null)
     } else {
       toolStore.isMouseDown = true
@@ -634,7 +705,7 @@ function handleMouseDown(e: MouseEvent) {
       mapStore.fillTiles(targetCells, assetStore.selectedAssetId)
     }
 
-    if (!e.ctrlKey && !e.metaKey) {
+    if (!isCtrl) {
       assetStore.selectAsset(null)
     }
     return
@@ -645,6 +716,248 @@ function handleMouseDown(e: MouseEvent) {
     toolStore.isMouseDown = true
     toolStore.dragStartCell = gridCoord
   }
+}
+
+// Mouse Down Handler
+function handleMouseDown(e: MouseEvent) {
+  if (!viewportContainerRef.value) return
+
+  // Prevent clicks on floating UI components / modals from triggering the map!
+  const target = e.target as HTMLElement
+  if (target && target.tagName !== 'CANVAS') {
+    return
+  }
+
+  // Right Click handled in handleContextMenu
+  if (e.button === 2) {
+    handleContextMenu()
+    return
+  }
+
+  // Middle Click or Space Key or Pan Tool activates panning
+  if (e.button === 1 || isSpacePressed.value || toolStore.activeTool === 'pan') {
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+    panOrigin.value = { ...toolStore.pan }
+    return
+  }
+
+  if (mapStore.activeLayer?.locked) return
+
+  const rect = viewportContainerRef.value.getBoundingClientRect()
+  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
+
+  executeCellClick(gridCoord, e.ctrlKey || e.metaKey)
+}
+
+// Touch Interaction State & Multi-touch Gestures (Pinch-to-zoom, Pan, Tap)
+interface TouchState {
+  isTouch: boolean
+  mode: 'none' | 'pan' | 'pinch' | 'tap_pending'
+  startX: number
+  startY: number
+  startTime: number
+  startPan: { x: number; y: number }
+  startZoom: number
+  initialDistance: number
+  initialMidpoint: { x: number; y: number }
+  moved: boolean
+  lastTapTime: number
+  lastTapPos: { x: number; y: number }
+}
+
+const touchState = ref<TouchState>({
+  isTouch: false,
+  mode: 'none',
+  startX: 0,
+  startY: 0,
+  startTime: 0,
+  startPan: { x: 0, y: 0 },
+  startZoom: 1.0,
+  initialDistance: 0,
+  initialMidpoint: { x: 0, y: 0 },
+  moved: false,
+  lastTapTime: 0,
+  lastTapPos: { x: 0, y: 0 }
+})
+
+function getTouchDistance(t1: Touch, t2: Touch): number {
+  return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY)
+}
+
+function getTouchMidpoint(t1: Touch, t2: Touch): { x: number; y: number } {
+  return {
+    x: (t1.clientX + t2.clientX) / 2,
+    y: (t1.clientY + t2.clientY) / 2
+  }
+}
+
+function handleTouchStart(e: TouchEvent) {
+  if (!viewportContainerRef.value) return
+  const target = e.target as HTMLElement
+  if (target && target.tagName !== 'CANVAS') {
+    return
+  }
+
+  if (e.touches.length === 1) {
+    const t = e.touches[0]
+    touchState.value = {
+      isTouch: true,
+      mode: 'tap_pending',
+      startX: t.clientX,
+      startY: t.clientY,
+      startTime: Date.now(),
+      startPan: { ...toolStore.pan },
+      startZoom: toolStore.zoom,
+      initialDistance: 0,
+      initialMidpoint: { x: 0, y: 0 },
+      moved: false,
+      lastTapTime: touchState.value.lastTapTime,
+      lastTapPos: touchState.value.lastTapPos
+    }
+
+    const rect = viewportContainerRef.value.getBoundingClientRect()
+    const { gridCoord } = engine.screenPointToGrid(t.clientX, t.clientY, rect, mapStore.project)
+    if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+      toolStore.setHoveredCell(gridCoord)
+    }
+  } else if (e.touches.length === 2) {
+    const t1 = e.touches[0]
+    const t2 = e.touches[1]
+    const dist = getTouchDistance(t1, t2)
+    const mid = getTouchMidpoint(t1, t2)
+
+    touchState.value = {
+      isTouch: true,
+      mode: 'pinch',
+      startX: mid.x,
+      startY: mid.y,
+      startTime: Date.now(),
+      startPan: { ...toolStore.pan },
+      startZoom: toolStore.zoom,
+      initialDistance: dist,
+      initialMidpoint: mid,
+      moved: true,
+      lastTapTime: touchState.value.lastTapTime,
+      lastTapPos: touchState.value.lastTapPos
+    }
+  }
+}
+
+function handleTouchMove(e: TouchEvent) {
+  if (!viewportContainerRef.value) return
+  const target = e.target as HTMLElement
+  if (target && target.tagName !== 'CANVAS') {
+    return
+  }
+
+  // Multi-touch: Pinch to Zoom + 2-Finger Pan
+  if (e.touches.length === 2) {
+    const t1 = e.touches[0]
+    const t2 = e.touches[1]
+    const curDist = getTouchDistance(t1, t2)
+    const curMid = getTouchMidpoint(t1, t2)
+
+    if (touchState.value.initialDistance > 10) {
+      const scaleChange = curDist / touchState.value.initialDistance
+      const targetZoom = Math.max(0.15, Math.min(4.0, touchState.value.startZoom * scaleChange))
+
+      const rect = viewportContainerRef.value.getBoundingClientRect()
+      const focalX = touchState.value.initialMidpoint.x - rect.left
+      const focalY = touchState.value.initialMidpoint.y - rect.top
+
+      const panX = focalX - (focalX - touchState.value.startPan.x) * (targetZoom / touchState.value.startZoom) + (curMid.x - touchState.value.initialMidpoint.x)
+      const panY = focalY - (focalY - touchState.value.startPan.y) * (targetZoom / touchState.value.startZoom) + (curMid.y - touchState.value.initialMidpoint.y)
+
+      toolStore.zoom = Number(targetZoom.toFixed(2))
+      toolStore.pan = { x: Math.round(panX), y: Math.round(panY) }
+      engine.setTransform(toolStore.zoom, toolStore.pan)
+    }
+    return
+  }
+
+  // Single-touch: Pan or Route Drawing
+  if (e.touches.length === 1) {
+    const t = e.touches[0]
+    const dx = t.clientX - touchState.value.startX
+    const dy = t.clientY - touchState.value.startY
+    const distMoved = Math.hypot(dx, dy)
+
+    if (distMoved > 8) {
+      touchState.value.moved = true
+      touchState.value.mode = 'pan'
+    }
+
+    const rect = viewportContainerRef.value.getBoundingClientRect()
+    const { gridCoord } = engine.screenPointToGrid(t.clientX, t.clientY, rect, mapStore.project)
+
+    if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+      toolStore.setHoveredCell(gridCoord)
+    } else {
+      toolStore.setHoveredCell(null)
+    }
+
+    if (touchState.value.moved) {
+      if (characterStore.isDrawingRoute) {
+        if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+          characterStore.addPathTile(gridCoord)
+          engine.renderCharacter(characterStore, mapStore.project)
+        }
+      } else {
+        toolStore.pan = {
+          x: Math.round(touchState.value.startPan.x + dx),
+          y: Math.round(touchState.value.startPan.y + dy)
+        }
+        engine.setTransform(toolStore.zoom, toolStore.pan)
+      }
+    }
+  }
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  if (e.touches.length === 0) {
+    const now = Date.now()
+    const elapsed = now - touchState.value.startTime
+
+    // Single Tap Detection (minimal drag, fast tap)
+    if (!touchState.value.moved && touchState.value.mode === 'tap_pending' && elapsed < 450) {
+      if (viewportContainerRef.value) {
+        const rect = viewportContainerRef.value.getBoundingClientRect()
+        const { gridCoord } = engine.screenPointToGrid(touchState.value.startX, touchState.value.startY, rect, mapStore.project)
+        executeCellClick(gridCoord, false)
+
+        // Double Tap detection for quick zoom-in
+        const distFromLastTap = Math.hypot(
+          touchState.value.startX - touchState.value.lastTapPos.x,
+          touchState.value.startY - touchState.value.lastTapPos.y
+        )
+        if (now - touchState.value.lastTapTime < 350 && distFromLastTap < 30) {
+          toolStore.zoomIn()
+          touchState.value.lastTapTime = 0
+        } else {
+          touchState.value.lastTapTime = now
+          touchState.value.lastTapPos = { x: touchState.value.startX, y: touchState.value.startY }
+        }
+      }
+    }
+
+    touchState.value.mode = 'none'
+    touchState.value.isTouch = false
+    toolStore.setHoveredCell(null)
+  } else if (e.touches.length === 1) {
+    const t = e.touches[0]
+    touchState.value.startX = t.clientX
+    touchState.value.startY = t.clientY
+    touchState.value.startPan = { ...toolStore.pan }
+    touchState.value.moved = true
+    touchState.value.mode = 'pan'
+  }
+}
+
+function handleTouchCancel() {
+  touchState.value.mode = 'none'
+  touchState.value.isTouch = false
+  toolStore.setHoveredCell(null)
 }
 
 function handleMouseMove(e: MouseEvent) {

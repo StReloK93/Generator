@@ -1,112 +1,133 @@
 <template>
   <div 
     v-if="characterStore.isGameMode" 
-    class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-4 select-none"
+    class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between p-2 sm:p-4 select-none overflow-hidden"
   >
     <!-- 1. TOP GAME STATUS BAR -->
-    <div class="flex items-center justify-between gap-3 w-full max-w-5xl mx-auto">
+    <div class="flex items-center justify-between gap-2 w-full max-w-5xl mx-auto flex-wrap sm:flex-nowrap">
       
-      <!-- Left: Lives, Gold, Score -->
+      <!-- Left: Lives, Gold, Wave, Score Badges -->
       <div 
-        class="glass-panel px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center gap-4 text-xs"
+        class="glass-panel px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center gap-2 sm:gap-4 text-xs shrink-0 max-w-full overflow-x-auto no-scrollbar"
         @mousedown.stop
         @mouseup.stop
         @click.stop
+        @touchstart.stop
+        @touchend.stop
+        @touchmove.stop
         @pointerdown.stop
       >
-        <!-- Lives -->
-        <div class="flex items-center gap-1.5">
-          <Heart class="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
-          <div class="flex flex-col">
-            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Jonlar</span>
-            <span class="font-mono font-bold text-sm text-white">{{ characterStore.playerLives }} / {{ characterStore.maxLives }}</span>
+        <!-- Lives (Jonlar) -->
+        <div class="flex items-center gap-1.5 shrink-0" title="Qolgan jonlar">
+          <Heart class="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 fill-rose-500 animate-pulse shrink-0" />
+          <div class="flex flex-col leading-tight">
+            <span class="text-[8px] sm:text-[9px] uppercase tracking-wider text-slate-400 font-bold hidden xs:inline">Jonlar</span>
+            <span class="font-mono font-bold text-xs sm:text-sm text-white">{{ characterStore.playerLives }}<span class="text-slate-500 font-normal">/{{ characterStore.maxLives }}</span></span>
           </div>
         </div>
 
-        <div class="h-6 w-px bg-slate-800"></div>
+        <div class="h-5 sm:h-6 w-px bg-slate-800 shrink-0"></div>
 
-        <!-- Gold -->
-        <div class="flex items-center gap-1.5">
-          <Coins class="w-5 h-5 text-amber-400" />
-          <div class="flex flex-col">
-            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Oltin</span>
-            <span class="font-mono font-bold text-sm text-amber-300">💰 {{ characterStore.gold }}</span>
+        <!-- Gold (Oltin) -->
+        <div class="flex items-center gap-1.5 shrink-0" title="Mavjud oltin">
+          <Coins class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+          <div class="flex flex-col leading-tight">
+            <span class="text-[8px] sm:text-[9px] uppercase tracking-wider text-slate-400 font-bold hidden xs:inline">Oltin</span>
+            <span class="font-mono font-bold text-xs sm:text-sm text-amber-300">💰{{ characterStore.gold }}</span>
           </div>
         </div>
 
-        <div class="h-6 w-px bg-slate-800"></div>
+        <div class="h-5 sm:h-6 w-px bg-slate-800 shrink-0"></div>
 
-        <!-- Wave Indicator -->
-        <div class="flex items-center gap-1.5">
-          <Swords class="w-5 h-5 text-purple-400" />
-          <div class="flex flex-col">
-            <span class="text-[9px] uppercase tracking-wider text-purple-300 font-bold">To'lqin</span>
-            <span class="font-mono font-bold text-sm text-purple-200">
-              {{ characterStore.currentWaveIndex + 1 }} / {{ characterStore.waveConfigs.length }}
+        <!-- Wave Indicator (To'lqin) -->
+        <div class="flex items-center gap-1.5 shrink-0" title="Hozirgi to'lqin">
+          <Swords class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
+          <div class="flex flex-col leading-tight">
+            <span class="text-[8px] sm:text-[9px] uppercase tracking-wider text-purple-300 font-bold hidden xs:inline">To'lqin</span>
+            <span class="font-mono font-bold text-xs sm:text-sm text-purple-200">
+              {{ characterStore.currentWaveIndex + 1 }}<span class="text-slate-500 font-normal">/{{ characterStore.waveConfigs.length || 0 }}</span>
             </span>
           </div>
         </div>
 
-        <div class="h-6 w-px bg-slate-800"></div>
+        <div class="h-5 sm:h-6 w-px bg-slate-800 shrink-0 hidden sm:block"></div>
 
-        <!-- Score -->
-        <div class="flex items-center gap-1.5">
-          <Trophy class="w-4 h-4 text-yellow-400" />
-          <div class="flex flex-col">
+        <!-- Score (Hisob) -->
+        <div class="hidden sm:flex items-center gap-1.5 shrink-0" title="Jami to'plangan ochkolar">
+          <Trophy class="w-4 h-4 text-yellow-400 shrink-0" />
+          <div class="flex flex-col leading-tight">
             <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Hisob</span>
             <span class="font-mono font-bold text-xs text-yellow-300">{{ characterStore.score }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Right: Speed controls & Exit Game Mode -->
+      <!-- Right: Game Speed Multipliers & Exit Button -->
       <div 
-        class="glass-panel px-3 py-2 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center gap-2 text-xs"
+        class="glass-panel px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center gap-1.5 sm:gap-2 text-xs shrink-0 ml-auto"
         @mousedown.stop
         @mouseup.stop
         @click.stop
+        @touchstart.stop
+        @touchend.stop
+        @touchmove.stop
         @pointerdown.stop
       >
         <!-- Game Speed Multipliers -->
-        <div class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800">
           <button 
             v-for="spd in [1, 2, 5]" 
             :key="spd"
             @click="characterStore.gameSpeed = spd"
             :class="characterStore.gameSpeed === spd ? 'bg-amber-500 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'"
-            class="py-1 px-2 rounded-lg text-[11px] font-mono transition-all cursor-pointer"
+            class="py-1 px-1.5 sm:px-2 rounded-lg text-[10px] sm:text-[11px] font-mono transition-all cursor-pointer active:scale-95"
+            :title="`O'yin tezligi ${spd}x`"
           >
             {{ spd }}x
           </button>
         </div>
 
+        <!-- Follow Camera Toggle -->
+        <button 
+          @click="characterStore.followCamera = !characterStore.followCamera"
+          :class="characterStore.followCamera ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-700'"
+          class="py-1 sm:py-1.5 px-2 rounded-xl border text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+          title="Kamerani personajlarga qaratib kuzatish"
+        >
+          <Camera class="w-3.5 h-3.5" />
+          <span class="hidden md:inline">Kamera</span>
+        </button>
+
         <!-- Exit to Editor Button -->
         <button 
           @click="characterStore.exitPlayMode()"
-          class="py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          class="py-1 sm:py-1.5 px-2 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] sm:text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
           title="Xarita Redaktoriga qaytish"
         >
           <Hammer class="w-3.5 h-3.5 text-amber-400" />
-          <span>🛠️ Redaktor</span>
+          <span class="hidden xs:inline">Redaktor</span>
         </button>
       </div>
     </div>
 
     <!-- 2. BOTTOM TOWER SHOP & WAVE ACTION BAR -->
-    <div class="flex flex-col items-center gap-3 w-full max-w-4xl mx-auto">
+    <div class="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-4xl mx-auto">
       
-      <!-- Selected Placed Tower Actions Card (If a tower on map is clicked) -->
+      <!-- Selected Placed Tower Actions Card (If a tower on map is tapped) -->
       <div 
         v-if="towerStore.selectedPlacedTower"
-        class="glass-panel p-3 rounded-2xl border border-sky-500/50 shadow-2xl backdrop-blur-xl bg-slate-900/98 pointer-events-auto flex items-center justify-between gap-4 text-xs text-slate-200 w-full max-w-md animate-in slide-in-from-bottom-2 duration-150"
+        class="glass-panel p-2.5 sm:p-3 rounded-2xl border border-sky-500/60 shadow-2xl backdrop-blur-xl bg-slate-900/98 pointer-events-auto flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4 text-xs text-slate-200 w-full max-w-lg animate-in slide-in-from-bottom-2 duration-150"
         @mousedown.stop
         @mouseup.stop
         @click.stop
+        @touchstart.stop
+        @touchend.stop
+        @touchmove.stop
         @pointerdown.stop
       >
-        <div class="flex flex-col">
+        <div class="flex flex-col min-w-[140px]">
           <div class="flex items-center gap-1.5">
-            <span class="font-bold text-sky-300">{{ towerStore.selectedPlacedTower.name }}</span>
+            <span class="font-bold text-sky-300 truncate">{{ towerStore.selectedPlacedTower.name }}</span>
             <span class="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 font-mono text-[10px] font-bold">
               Lvl {{ towerStore.selectedPlacedTower.level }}
             </span>
@@ -116,121 +137,134 @@
           </span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2 ml-auto">
           <!-- Upgrade Button -->
           <button 
             @click="upgradeSelectedTower"
             :disabled="characterStore.gold < upgradeCost"
-            :class="characterStore.gold >= upgradeCost ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
-            class="py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-md"
+            :class="characterStore.gold >= upgradeCost ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
+            class="py-1.5 px-2 sm:px-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-md active:scale-95"
           >
-            <Zap class="w-3.5 h-3.5 text-amber-300" />
+            <Zap class="w-3.5 h-3.5 text-amber-300 shrink-0" />
             <span>Kuchaytirish (💰{{ upgradeCost }})</span>
           </button>
 
           <!-- Sell Button -->
           <button 
             @click="sellSelectedTower"
-            class="py-1.5 px-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+            class="py-1.5 px-2 sm:px-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
           >
-            <Coins class="w-3.5 h-3.5 text-amber-400" />
+            <Coins class="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>Sotish (+{{ sellRefund }})</span>
           </button>
 
           <button 
             @click="towerStore.selectedPlacedTowerId = null"
-            class="p-1 rounded-lg text-slate-400 hover:text-white"
+            class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
+            title="Yopish"
           >
-            <X class="w-3.5 h-3.5" />
+            <X class="w-4 h-4" />
           </button>
         </div>
       </div>
 
       <!-- Main Shop & Start Wave Row -->
       <div 
-        class="glass-panel p-3 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center justify-between gap-4 w-full"
+        class="glass-panel p-2 sm:p-3 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-4 w-full"
         @mousedown.stop
         @mouseup.stop
         @click.stop
+        @touchstart.stop
+        @touchend.stop
+        @touchmove.stop
         @pointerdown.stop
       >
         <!-- Tower Blueprints Shop (Minoralar do'koni) -->
-        <div class="flex items-center gap-2 overflow-x-auto">
-          <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider shrink-0 mr-1">
-            🏰 Minora Do'koni:
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar touch-pan-x py-0.5 flex-1">
+          <div class="flex items-center gap-1 shrink-0 mr-1">
+            <ShieldAlert class="w-4 h-4 text-amber-400 shrink-0" />
+            <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+              Do'kon:
+            </span>
+          </div>
+
+          <span v-if="towerStore.blueprints.length === 0" class="text-[11px] text-slate-400 italic shrink-0 py-1">
+            Hali minora yaratilmagan. "🛠️ Redaktor"ga o'ting!
           </span>
 
-          <span v-if="towerStore.blueprints.length === 0" class="text-[11px] text-slate-400 italic shrink-0">
-            Hali birorta minora yaratilmagan. "🛠️ Redaktor"ga o'tib minora yarating!
-          </span>
-
+          <!-- Tower Blueprint Cards -->
           <div 
             v-for="bp in towerStore.blueprints" 
             :key="bp.id"
             @click="selectTowerToBuild(bp)"
             :class="[
-              towerStore.activeBuildTowerId === bp.id ? 'ring-2 ring-amber-400 bg-amber-500/20 border-amber-500 shadow-lg' : 'bg-slate-950/80 border-slate-800 hover:border-slate-600',
-              characterStore.gold < bp.cost ? 'opacity-50' : 'cursor-pointer'
+              towerStore.activeBuildTowerId === bp.id 
+                ? 'ring-2 ring-amber-400 bg-amber-500/25 border-amber-400 shadow-lg shadow-amber-500/20' 
+                : 'bg-slate-950/80 border-slate-800 hover:border-slate-600',
+              characterStore.gold < bp.cost ? 'opacity-50' : 'cursor-pointer active:scale-95'
             ]"
-            class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all shrink-0 select-none group"
+            class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all shrink-0 select-none group min-w-[125px] sm:min-w-[140px]"
             :title="`Zarar: ${bp.damage} | Masofa: ${bp.range}k | Narxi: ${bp.cost} oltin`"
           >
-            <div class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
+            <div class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
               <ShieldAlert class="w-4 h-4 text-amber-400" />
             </div>
 
-            <div class="flex flex-col">
-              <span class="text-[11px] font-bold text-white group-hover:text-amber-300 transition-colors">
+            <div class="flex flex-col leading-tight">
+              <span class="text-[11px] font-bold text-white group-hover:text-amber-300 transition-colors truncate max-w-[90px]">
                 {{ bp.name }}
               </span>
               <div class="flex items-center gap-1.5 text-[9px] font-mono text-slate-400">
-                <span>💥 {{ bp.damage }}</span>
-                <span class="text-amber-400 font-bold">💰 {{ bp.cost }}</span>
+                <span>💥{{ bp.damage }}</span>
+                <span class="text-amber-400 font-bold">💰{{ bp.cost }}</span>
               </div>
             </div>
+
+            <!-- Active Selection Badge Indicator -->
+            <div v-if="towerStore.activeBuildTowerId === bp.id" class="w-2 h-2 rounded-full bg-amber-400 animate-ping ml-auto shrink-0"></div>
           </div>
         </div>
 
         <!-- Wave Starter Button / Build Prep Countdown -->
-        <div class="shrink-0 flex items-center gap-2">
-          <div v-if="characterStore.waveConfigs.length === 0" class="text-[11px] text-amber-300/80 font-mono">
+        <div class="shrink-0 flex items-center justify-end gap-2 pt-1 md:pt-0 border-t md:border-t-0 border-slate-800/80">
+          <div v-if="characterStore.waveConfigs.length === 0" class="text-[11px] text-amber-300/80 font-mono text-center">
             ⚠️ To'lqinlar mavjud emas
           </div>
 
           <!-- 10s Building & Prep Phase -->
           <div 
             v-else-if="characterStore.gameState === 'build_prep'"
-            class="flex items-center gap-2"
+            class="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto justify-between"
           >
-            <div class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-inner">
-              <Clock class="w-4 h-4 text-amber-400 animate-spin" />
-              <span>🏰 Qurilish vaqti: <strong class="font-mono text-sm text-white">{{ Math.ceil(characterStore.prepCountdown) }}s</strong></span>
+            <div class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shadow-inner">
+              <Clock class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-spin shrink-0" />
+              <span>Qurilish: <strong class="font-mono text-xs sm:text-sm text-white">{{ Math.ceil(characterStore.prepCountdown) }}s</strong></span>
             </div>
 
             <button 
               @click="characterStore.startNextWaveInGame()"
-              class="py-2 px-3.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              class="py-2 px-3 sm:px-3.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
               title="Kutmasdan darhol to'lqinni boshlash"
             >
-              <Play class="w-3.5 h-3.5 fill-white" />
-              <span>▶️ Hozir Boshlash</span>
+              <Play class="w-3.5 h-3.5 fill-white shrink-0" />
+              <span>▶️ Boshlash</span>
             </button>
           </div>
 
           <div 
             v-else-if="characterStore.gameState === 'wave_running'" 
-            class="py-2 px-4 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-200 text-xs font-bold flex items-center gap-2"
+            class="py-2 px-3 sm:px-4 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-200 text-xs font-bold flex items-center gap-2 w-full md:w-auto justify-center"
           >
-            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></div>
-            <span>To'lqin Hujumi Ketmoqda...</span>
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0"></div>
+            <span>⚔️ To'lqin Hujumi Ketmoqda...</span>
           </div>
 
           <button 
             v-else
             @click="characterStore.startNextWaveInGame()"
-            class="py-2.5 px-5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-2 cursor-pointer animate-pulse"
+            class="w-full md:w-auto py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer animate-pulse"
           >
-            <Play class="w-4 h-4 fill-white" />
+            <Play class="w-4 h-4 fill-white shrink-0" />
             <span>{{ characterStore.gameState === 'wave_completed' ? "Keyingi To'lqinni Boshlash ▶" : "1-To'lqinni Boshlash ▶" }}</span>
           </button>
         </div>
@@ -244,10 +278,12 @@
       @mousedown.stop
       @mouseup.stop
       @click.stop
+      @touchstart.stop
+      @touchend.stop
     >
-      <div class="glass-panel border border-rose-500/60 w-full max-w-sm rounded-3xl p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
-        <div class="w-16 h-16 rounded-full bg-rose-600/20 border border-rose-500/50 flex items-center justify-center text-rose-500">
-          <Skull class="w-8 h-8" />
+      <div class="glass-panel border border-rose-500/60 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-rose-600/20 border border-rose-500/50 flex items-center justify-center text-rose-500">
+          <Skull class="w-7 h-7 sm:w-8 sm:h-8" />
         </div>
 
         <div>
@@ -255,7 +291,7 @@
           <p class="text-xs text-slate-400 mt-1">Dushmanlar markazga kirib, barcha jonlaringizni tugatishdi.</p>
         </div>
 
-        <div class="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs">
+        <div class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs">
           <span>Qaytarilgan to'lqin: <strong class="text-purple-300">{{ characterStore.currentWaveIndex }}</strong></span>
           <span>Hisob: <strong class="text-yellow-300">{{ characterStore.score }}</strong></span>
         </div>
@@ -263,13 +299,13 @@
         <div class="grid grid-cols-2 gap-2 w-full pt-2">
           <button 
             @click="characterStore.restartGame()"
-            class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg"
+            class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
           >
             Qayta O'ynash
           </button>
           <button 
             @click="characterStore.exitPlayMode()"
-            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer"
+            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
           >
             Redaktorga Qaytish
           </button>
@@ -284,10 +320,12 @@
       @mousedown.stop
       @mouseup.stop
       @click.stop
+      @touchstart.stop
+      @touchend.stop
     >
-      <div class="glass-panel border border-yellow-500/60 w-full max-w-sm rounded-3xl p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
-        <div class="w-16 h-16 rounded-full bg-yellow-600/20 border border-yellow-500/50 flex items-center justify-center text-yellow-400 animate-bounce">
-          <Trophy class="w-8 h-8" />
+      <div class="glass-panel border border-yellow-500/60 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl bg-slate-950 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-200">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-yellow-600/20 border border-yellow-500/50 flex items-center justify-center text-yellow-400 animate-bounce">
+          <Trophy class="w-7 h-7 sm:w-8 sm:h-8" />
         </div>
 
         <div>
@@ -295,21 +333,21 @@
           <p class="text-xs text-slate-300 mt-1">Barcha to'lqinlar muvaffaqiyatli qaytarildi! Xaritani to'liq himoya qildingiz.</p>
         </div>
 
-        <div class="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs">
-          <span>Oltin: <strong class="text-amber-400">💰 {{ characterStore.gold }}</strong></span>
-          <span>Hisob: <strong class="text-yellow-300">⭐ {{ characterStore.score }}</strong></span>
+        <div class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs">
+          <span>Oltin: <strong class="text-amber-400">💰{{ characterStore.gold }}</strong></span>
+          <span>Hisob: <strong class="text-yellow-300">⭐{{ characterStore.score }}</strong></span>
         </div>
 
         <div class="grid grid-cols-2 gap-2 w-full pt-2">
           <button 
             @click="characterStore.restartGame()"
-            class="py-2.5 px-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg"
+            class="py-2.5 px-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
           >
             Yana O'ynash
           </button>
           <button 
             @click="characterStore.exitPlayMode()"
-            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer"
+            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
           >
             Redaktorga Qaytish
           </button>
@@ -322,7 +360,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { 
-  Heart, Coins, Swords, Trophy, Hammer, ShieldAlert, Zap, Play, Skull, X, Clock 
+  Heart, Coins, Swords, Trophy, Hammer, ShieldAlert, Zap, Play, Skull, X, Clock, Camera 
 } from 'lucide-vue-next'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
