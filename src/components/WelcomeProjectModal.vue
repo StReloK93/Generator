@@ -542,6 +542,11 @@ async function applyMapProject(rawData: any, isPlayMode = true) {
     isOpen.value = false
 
     if (isPlayMode) {
+      characterStore.setLoadingProgress(15, "Assetlar kutubxonasi tekshirilmoqda...")
+      if (!assetStore.isLoaded || assetStore.assets.length === 0) {
+        await assetStore.loadBuiltinSprites()
+      }
+
       // Collect unique required assets used in this map
       const usedAssetIds = new Set<string>()
       for (const layer of mapStore.project.layers) {
@@ -572,9 +577,9 @@ async function applyMapProject(rawData: any, isPlayMode = true) {
         }
       }
 
-      if (IsoEngine.instance) {
+      if (IsoEngine.instance && assetsToPreload.length > 0) {
         await IsoEngine.instance.preloadAssetsBatch(assetsToPreload, (loaded, total) => {
-          const pct = Math.round((loaded / total) * 90) + 5
+          const pct = Math.round((loaded / total) * 75) + 20
           characterStore.setLoadingProgress(pct, `${loaded} / ${total} ta tekstura GPU keshiga yuklanmoqda...`, loaded)
         })
       }

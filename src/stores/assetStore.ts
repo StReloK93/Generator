@@ -15,72 +15,79 @@ export const useAssetStore = defineStore('assetStore', () => {
     active: false,
   })
 
+  const isLoaded = ref(false)
+  let loadPromise: Promise<void> | null = null
+
   // Automatically load all sprites from src/assets/sprites/*.png through analyzeImage pipeline
   async function loadBuiltinSprites() {
-    try {
-      const spriteModules = import.meta.glob<string>('../assets/sprites/*.png', { eager: true, import: 'default' })
-      const entries = Object.entries(spriteModules)
-      const loadedList: AssetItem[] = []
+    if (loadPromise) return loadPromise
+    loadPromise = (async () => {
+      try {
+        const spriteModules = import.meta.glob<string>('../assets/sprites/*.png', { eager: true, import: 'default' })
+        const entries = Object.entries(spriteModules)
+        const loadedList: AssetItem[] = []
 
-      for (const [path, url] of entries) {
-        const filename = path.split('/').pop() || ''
-        const baseName = filename.replace(/\.[^/.]+$/, '')
-        
-        let category = 'Boshqa'
-        const lower = baseName.toLowerCase()
+        for (const [path, url] of entries) {
+          const filename = path.split('/').pop() || ''
+          const baseName = filename.replace(/\.[^/.]+$/, '')
+          
+          let category = 'Boshqa'
+          const lower = baseName.toLowerCase()
 
-        if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
-          category = 'Yer (Ground)'
-        } else if (lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway')) {
-          category = 'Devorlar (Walls)'
-        } else if (lower.includes('stairs') || lower.includes('bridge')) {
-          category = "Zinalar & Ko'priklar (Stairs)"
-        } else if (lower.includes('column') || lower.includes('support')) {
-          category = 'Ustunlar (Supports & Columns)'
-        } else if (lower.includes('barrel') || lower.includes('chest') || lower.includes('chair') || lower.includes('table') || lower.includes('crate') || lower.includes('pile')) {
-          category = 'Obyektlar & Mebel (Props)'
+          if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
+            category = 'Yer (Ground)'
+          } else if (lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway')) {
+            category = 'Devorlar (Walls)'
+          } else if (lower.includes('stairs') || lower.includes('bridge')) {
+            category = "Zinalar & Ko'priklar (Stairs)"
+          } else if (lower.includes('column') || lower.includes('support')) {
+            category = 'Ustunlar (Supports & Columns)'
+          } else if (lower.includes('barrel') || lower.includes('chest') || lower.includes('chair') || lower.includes('table') || lower.includes('crate') || lower.includes('pile')) {
+            category = 'Obyektlar & Mebel (Props)'
+          }
+
+          // Format name: stoneWallAgedLeft_E -> Stone Wall Aged Left (E)
+          let formattedName = baseName
+            .replace(/_([A-Z])$/, ' ($1)')
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+          formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
+
+          const analysis = await analyzeImage(url)
+
+          loadedList.push({
+            id: `sprite-${baseName}`,
+            name: formattedName,
+            src: url,
+            previewSrc: analysis.previewSrc,
+            category,
+            width: analysis.width,
+            height: analysis.height,
+            anchorX: analysis.anchorX,
+            anchorY: analysis.anchorY,
+            contentBounds: analysis.bounds,
+            spanX: 1,
+            spanY: 1,
+            scale: 1.0,
+            isSample: true,
+            fileRelativePath: filename,
+          })
         }
 
-        // Format name: stoneWallAgedLeft_E -> Stone Wall Aged Left (E)
-        let formattedName = baseName
-          .replace(/_([A-Z])$/, ' ($1)')
-          .replace(/([a-z])([A-Z])/g, '$1 $2')
-        formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
-
-        // Builtin sprite anchor heuristics: Ground tiles have anchorY=0.5, tall walls/columns have anchorY=0.88
-        const isGroundTile = lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column') && !lower.includes('stairs'))
-        const anchorY = isGroundTile ? 0.5 : 0.88
-
-        loadedList.push({
-          id: `sprite-${baseName}`,
-          name: formattedName,
-          src: url,
-          previewSrc: url,
-          category,
-          width: 512,
-          height: 512,
-          anchorX: 0.5,
-          anchorY,
-          contentBounds: { minX: 0, minY: 0, maxX: 512, maxY: 512 },
-          spanX: 1,
-          spanY: 1,
-          scale: 1.0,
-          isSample: true,
-          fileRelativePath: filename,
+        // Sort nicely by category then name
+        loadedList.sort((a, b) => {
+          if (a.category !== b.category) return a.category.localeCompare(b.category)
+          return a.name.localeCompare(b.name)
         })
+
+        assets.value = loadedList
+        isLoaded.value = true
+        // Leave selectedAssetId as null until user explicitly selects an asset
+      } catch (e) {
+        console.warn('Failed to load builtin sprites:', e)
+        isLoaded.value = true
       }
-
-      // Sort nicely by category then name
-      loadedList.sort((a, b) => {
-        if (a.category !== b.category) return a.category.localeCompare(b.category)
-        return a.name.localeCompare(b.name)
-      })
-
-      assets.value = loadedList
-      // Leave selectedAssetId as null until user explicitly selects an asset
-    } catch (e) {
-      console.warn('Failed to load builtin sprites:', e)
-    }
+    })()
+    return loadPromise
   }
 
   // Load automatically on store creation
@@ -290,6 +297,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     searchQuery,
     filteredAssets,
     isLoading,
+    isLoaded,
     uploadProgress,
     loadBuiltinSprites,
     uploadFiles,
