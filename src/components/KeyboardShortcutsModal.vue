@@ -64,6 +64,7 @@ const shortcuts = [
   { action: 'Xaritani siljitish', key: 'Space + Drag' },
   { action: 'Masshtab (Zoom)', key: 'Sichqoncha g‘ildiragi' },
   { action: 'Personaj sayri (Play/Pause)', key: 'P' },
+  { action: 'Ketma-ket chizish / qo‘yish', key: 'Shift + Click' },
   { action: 'Bekor qilish (Undo)', key: 'Ctrl + Z' },
   { action: 'Qaytarish (Redo)', key: 'Ctrl + Y' },
 ]

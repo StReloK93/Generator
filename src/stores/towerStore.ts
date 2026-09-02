@@ -4,6 +4,7 @@ import { GridCoord, Point2D } from '../types/map'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useCharacterStore } from './characterStore'
+import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 
 export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball'
@@ -49,6 +50,9 @@ export interface PlacedTower {
   cooldownTimer: number
   totalDamageDealt: number
   killsCount: number
+  builderId?: string
+  builderName?: string
+  builderColor?: string
 }
 
 export interface Projectile {
@@ -111,6 +115,7 @@ export const useTowerStore = defineStore('towerStore', () => {
   const mapStore = useMapStore()
   const toolStore = useToolStore()
   const characterStore = useCharacterStore()
+  const multiplayerStore = useMultiplayerStore()
 
   const selectedPlacedTower = computed<PlacedTower | null>(() => {
     if (!selectedPlacedTowerId.value) return null
@@ -215,12 +220,34 @@ export const useTowerStore = defineStore('towerStore', () => {
     const bp = blueprints.value.find(b => b.id === bpId)
     if (!bp) return null
 
+    // Prevent building on spawn points or walking path lines
+    if (characterStore.isCellBlockedForBuilding(col, row)) {
+      console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) is a spawn point or path route.`)
+      return null
+    }
+
     // In Game Mode: check gold balance
     if (characterStore.isGameMode) {
-      if (characterStore.gold < bp.cost) {
+      let currentGold = characterStore.gold
+      if (multiplayerStore.roomId) {
+        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+        if (myPl) currentGold = myPl.gold
+      }
+      if (currentGold < bp.cost) {
         return null
       }
-      characterStore.gold -= bp.cost
+      if (multiplayerStore.roomId) {
+        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+        if (myPl) {
+          myPl.gold -= bp.cost
+          myPl.towersBuilt = (myPl.towersBuilt || 0) + 1
+          characterStore.gold = myPl.gold
+        } else {
+          characterStore.gold -= bp.cost
+        }
+      } else {
+        characterStore.gold -= bp.cost
+      }
     }
 
     // Check if a tower already exists at this cell
@@ -254,6 +281,9 @@ export const useTowerStore = defineStore('towerStore', () => {
       cooldownTimer: Math.random() * 0.3, // slight initial offset
       totalDamageDealt: 0,
       killsCount: 0,
+      builderId: multiplayerStore.myPlayerId,
+      builderName: multiplayerStore.myPlayerName,
+      builderColor: multiplayerStore.myPlayerColor,
     }
 
     placedTowers.value.push(newTower)
@@ -263,23 +293,50 @@ export const useTowerStore = defineStore('towerStore', () => {
       mapStore.pushHistory(`${bp.name} (${col}, ${row}) katagiga qurildi`)
     }
 
+    // Broadcast to multiplayer peers
+    if (multiplayerStore.roomId) {
+      multiplayerStore.broadcastTowerBuild(newTower)
+    }
+
     return newTower
   }
 
   /**
    * Sells a placed tower with gold refund (70%)
+   * In multiplayer: only the owner/builder can sell their tower!
    */
   function sellPlacedTower(towerId: string) {
     const t = placedTowers.value.find(x => x.id === towerId)
     if (!t) return
 
+    // Ownership check: only builder can sell
+    if (multiplayerStore.roomId && t.builderId && t.builderId !== multiplayerStore.myPlayerId) {
+      console.warn('[Sell Tower]: Only the tower owner can sell this tower.')
+      return
+    }
+
     const bp = blueprints.value.find(b => b.id === t.blueprintId)
     const baseCost = bp ? bp.cost : 100
     const refund = Math.round(baseCost * 0.7 * (1 + (t.level - 1) * 0.5))
 
-    characterStore.gold += refund
+    if (multiplayerStore.roomId) {
+      const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+      if (myPl) {
+        myPl.gold += refund
+        characterStore.gold = myPl.gold
+      } else {
+        characterStore.gold += refund
+      }
+    } else {
+      characterStore.gold += refund
+    }
+
     removePlacedTower(towerId)
     mapStore.pushHistory(`${t.name} sotildi (+${refund} oltin)`)
+
+    if (multiplayerStore.roomId) {
+      multiplayerStore.broadcastTowerSell(towerId)
+    }
   }
 
   /**
@@ -300,17 +357,41 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   /**
    * Upgrades a tower (increases stats by +30%)
+   * In multiplayer: only the owner/builder can upgrade their tower!
    */
   function upgradePlacedTower(towerId: string) {
     const tower = placedTowers.value.find(t => t.id === towerId)
     if (!tower) return
 
+    // Ownership check: only builder can upgrade
+    if (multiplayerStore.roomId && tower.builderId && tower.builderId !== multiplayerStore.myPlayerId) {
+      console.warn('[Upgrade Tower]: Only the tower owner can upgrade this tower.')
+      return
+    }
+
     if (characterStore.isGameMode) {
       const bp = blueprints.value.find(b => b.id === tower.blueprintId)
       const baseCost = bp ? bp.cost : 100
       const cost = Math.round(baseCost * 0.6 * tower.level)
-      if (characterStore.gold < cost) return
-      characterStore.gold -= cost
+
+      let currentGold = characterStore.gold
+      if (multiplayerStore.roomId) {
+        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+        if (myPl) currentGold = myPl.gold
+      }
+      if (currentGold < cost) return
+
+      if (multiplayerStore.roomId) {
+        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+        if (myPl) {
+          myPl.gold -= cost
+          characterStore.gold = myPl.gold
+        } else {
+          characterStore.gold -= cost
+        }
+      } else {
+        characterStore.gold -= cost
+      }
     }
 
     tower.level++
@@ -323,6 +404,10 @@ export const useTowerStore = defineStore('towerStore', () => {
     syncToProject()
     if (!characterStore.isGameMode) {
       mapStore.pushHistory(`${tower.name} ${tower.level}-darajaga kuchaytirildi`)
+    }
+
+    if (multiplayerStore.roomId) {
+      multiplayerStore.broadcastTowerUpgrade(towerId)
     }
   }
 
@@ -614,17 +699,22 @@ export const useTowerStore = defineStore('towerStore', () => {
       unit.frameIndex = 0
       unit.animTimer = 0
       unit.deathFade = 1.0
+      characterStore.totalKills++
+
+      const waveCfg = characterStore.currentWaveConfig
+      const totalWaveReward = waveCfg ? waveCfg.goldReward : 80
+      const totalUnits = Math.max(1, waveCfg ? waveCfg.unitCount : 10)
+      const killGold = Math.max(5, Math.round(totalWaveReward / totalUnits))
+
       if (sourceTower) {
         sourceTower.killsCount++
+        if (sourceTower.builderId) {
+          multiplayerStore.recordPlayerKill(sourceTower.builderId, killGold)
+        }
       }
 
       // In Game Mode: Reward Gold & Score for each unit killed!
       if (characterStore.isGameMode) {
-        const waveCfg = characterStore.currentWaveConfig
-        const totalWaveReward = waveCfg ? waveCfg.goldReward : 80
-        const totalUnits = Math.max(1, waveCfg ? waveCfg.unitCount : 10)
-        const killGold = Math.max(5, Math.round(totalWaveReward / totalUnits))
-
         characterStore.gold += killGold
         characterStore.score += killGold * 10
 
@@ -638,6 +728,44 @@ export const useTowerStore = defineStore('towerStore', () => {
           alpha: 1.0,
           lifeTimer: 0,
         })
+      }
+    }
+  }
+
+  /**
+   * Client-side visual combat effects & floaters animation between network ticks
+   */
+  function updateClientCombatInterpolation(deltaSec: number) {
+    // 1. Advance projectiles smoothly towards target
+    for (let i = projectiles.value.length - 1; i >= 0; i--) {
+      const p = projectiles.value[i]
+      p.traveledDistance += p.speed * deltaSec
+      const t = Math.min(1.0, p.traveledDistance / p.totalDistance)
+      p.currentX = p.startX + (p.targetX - p.startX) * t
+      p.currentY = p.startY + (p.targetY - p.startY) * t
+      if (t >= 1.0) {
+        projectiles.value.splice(i, 1)
+      }
+    }
+
+    // 2. Animate explosion shockwaves
+    for (let i = explosionRings.value.length - 1; i >= 0; i--) {
+      const ring = explosionRings.value[i]
+      ring.radius += ring.maxRadius * (deltaSec / 0.35)
+      ring.alpha = Math.max(0, 1.0 - ring.radius / ring.maxRadius)
+      if (ring.radius >= ring.maxRadius || ring.alpha <= 0) {
+        explosionRings.value.splice(i, 1)
+      }
+    }
+
+    // 3. Animate damage floaters
+    for (let i = damageFloaters.value.length - 1; i >= 0; i--) {
+      const df = damageFloaters.value[i]
+      df.lifeTimer += deltaSec
+      df.y -= 28 * deltaSec
+      df.alpha = Math.max(0, 1.0 - df.lifeTimer / 0.9)
+      if (df.lifeTimer >= 0.9) {
+        damageFloaters.value.splice(i, 1)
       }
     }
   }
@@ -672,5 +800,6 @@ export const useTowerStore = defineStore('towerStore', () => {
     syncToProject,
     restoreFromProject,
     updateCombatTick,
+    updateClientCombatInterpolation,
   }
 })

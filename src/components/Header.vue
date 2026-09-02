@@ -1,7 +1,18 @@
 <template>
   <header class="h-14 glass-panel border-b border-slate-800/80 px-2 sm:px-4 flex items-center justify-between z-30 relative select-none">
-    <!-- Left Section: Logo & Project Info -->
-    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+    <!-- Left Section: Home Button, Logo & Project Info -->
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <button 
+        @click="router.push('/')"
+        class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-700/80 cursor-pointer shadow-sm active:scale-95 shrink-0"
+        title="Bosh Sahifaga Qaytish (Main Menu)"
+      >
+        <Home class="w-3.5 h-3.5 text-brand-400" />
+        <span class="hidden md:inline">Bosh Sahifa</span>
+      </button>
+
+      <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-glow-brand shrink-0">
           <Layers class="w-4.5 h-4.5 text-white" />
@@ -81,7 +92,7 @@
         class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors"
         title="Xarita markazi va simmetriya o'qlarini yoqish/o'chirish"
       >
-        <span>🎯 Markaz</span>
+        <span>🎯 O'qlar</span>
       </button>
 
       <!-- Coordinates Toggle -->
@@ -93,17 +104,6 @@
       >
         <Hash class="w-3.5 h-3.5" />
         <span>Koordinatalar</span>
-      </button>
-
-      <!-- Personaj / Character Tour Toggle -->
-      <button 
-        @click="characterStore.isEnabled = !characterStore.isEnabled"
-        :class="characterStore.isEnabled ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-glow-brand' : 'text-slate-400 hover:bg-slate-800'"
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors font-medium"
-        title="Personaj sayri (Tour) boshqaruvi"
-      >
-        <User class="w-3.5 h-3.5 text-amber-400" />
-        <span>Personaj</span>
       </button>
 
       <div class="h-4 w-px bg-slate-800 mx-1"></div>
@@ -174,15 +174,15 @@
         @change="handleFileImport" 
       />
 
-      <!-- Toggle Character Control Bar Button -->
+      <!-- Unified Tower Defense & Movement Settings Button -->
       <button 
-        @click="characterStore.isEnabled = !characterStore.isEnabled"
-        :class="characterStore.isEnabled ? 'bg-amber-600/30 text-amber-300 border-amber-500/50 ring-1 ring-amber-400/40 font-bold' : 'text-slate-400 hover:text-slate-200 border-slate-700 bg-slate-850'"
-        class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all cursor-pointer"
-        title="Chiqish va Harakat Driverini ochish / yopish"
+        @click="toolStore.openGameConfig()"
+        :class="toolStore.isGameConfigModalOpen ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 ring-1 ring-amber-400/40 font-bold shadow-glow-brand' : 'text-slate-300 hover:text-white border-slate-700 bg-slate-800/80 hover:bg-slate-750'"
+        class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-95"
+        title="Minoralar, To'lqinlar, Qurilganlar va Harakat sozlamalari (Bitta umumiy modal)"
       >
-        <Users class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        <span>Harakat</span>
+        <ShieldAlert class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <span class="hidden sm:inline">TD & Harakat</span>
       </button>
 
       <!-- Play Game Mode Button (Prominent on all screens) -->
@@ -219,9 +219,10 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
-  Layers, Plus, Download, Upload, Undo2, Redo2, 
-  Grid, Hash, ZoomIn, ZoomOut, Maximize2, HelpCircle, User, Users, Gamepad2 
+  Home, Layers, Plus, Download, Upload, Undo2, Redo2, 
+  Grid, Hash, ZoomIn, ZoomOut, Maximize2, HelpCircle, User, Users, Gamepad2, ShieldAlert 
 } from 'lucide-vue-next'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
@@ -231,6 +232,8 @@ import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson } from '../utils/exportHelpers'
 import { requestAppFullscreen } from '../utils/fullscreen'
 import { IsoEngine } from '../engine/IsoEngine'
+
+const router = useRouter()
 
 const emit = defineEmits<{
   (e: 'open-welcome', mode?: 'maps' | 'new' | 'import' | 'resume'): void
@@ -307,7 +310,11 @@ async function handleFileImport(event: Event) {
   const file = target.files[0]
   try {
     const data = await importProjectFromJson(file)
-    mapStore.project = data.project
+    const importedProject = data.project
+    if (!importedProject.id) {
+      importedProject.id = `proj-${Date.now()}`
+    }
+    mapStore.project = importedProject
     mapStore.activeLayerId = data.project.layers[0]?.id || 'layer-ground'
     
     if (data.assets && data.assets.length > 0) {

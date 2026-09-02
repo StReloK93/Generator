@@ -228,6 +228,10 @@ export const useAssetStore = defineStore('assetStore', () => {
   function reconcileImportedAssets(importedAssets: AssetItem[]): AssetItem[] {
     if (!importedAssets || importedAssets.length === 0) return assets.value
 
+    if (assets.value.length === 0) {
+      loadBuiltinSprites()
+    }
+
     const mapById = new Map<string, AssetItem>()
     const mapByName = new Map<string, AssetItem>()
     const mapByFile = new Map<string, AssetItem>()
@@ -251,10 +255,15 @@ export const useAssetStore = defineStore('assetStore', () => {
     for (const imp of importedAssets) {
       const impCleanId = imp.id.replace(/^sprite-/, '').toLowerCase()
       const impBaseFile = imp.fileRelativePath ? imp.fileRelativePath.replace(/\.[^/.]+$/, '').toLowerCase() : ''
+      const impSrcFileName = (imp.src && typeof imp.src === 'string') ? imp.src.split('/').pop()?.toLowerCase() || '' : ''
+      const impSrcBase = impSrcFileName ? impSrcFileName.replace(/\.[^/.]+$/, '').toLowerCase() : ''
+
       const match = mapById.get(imp.id) ||
                     mapById.get(impCleanId) ||
                     (imp.fileRelativePath ? mapByFile.get(imp.fileRelativePath.toLowerCase()) : null) ||
                     (impBaseFile ? mapByFile.get(impBaseFile) : null) ||
+                    (impSrcFileName ? mapByFile.get(impSrcFileName) : null) ||
+                    (impSrcBase ? mapByFile.get(impSrcBase) : null) ||
                     (imp.name ? mapByName.get(imp.name.toLowerCase()) : null)
 
       if (match && match.src) {

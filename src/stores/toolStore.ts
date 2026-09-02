@@ -27,6 +27,17 @@ export const useToolStore = defineStore('toolStore', () => {
   const isShortcutsModalOpen = ref<boolean>(false)
   const isLayerPanelOpen = ref<boolean>(true)
   const isAssetManagerOpen = ref<boolean>(true)
+  const isGameConfigModalOpen = ref<boolean>(false)
+  const gameConfigActiveTab = ref<'towers' | 'waves' | 'placed' | 'spawns'>('towers')
+
+  function openGameConfig(tab?: 'towers' | 'waves' | 'placed' | 'spawns') {
+    if (tab) gameConfigActiveTab.value = tab
+    isGameConfigModalOpen.value = true
+  }
+
+  function closeGameConfig() {
+    isGameConfigModalOpen.value = false
+  }
 
   // Editor Display Settings
   const showGrid = ref<boolean>(true)
@@ -86,6 +97,10 @@ export const useToolStore = defineStore('toolStore', () => {
     isShortcutsModalOpen,
     isLayerPanelOpen,
     isAssetManagerOpen,
+    isGameConfigModalOpen,
+    gameConfigActiveTab,
+    openGameConfig,
+    closeGameConfig,
     showGrid,
     showCoordinates,
     showCenterMarker,

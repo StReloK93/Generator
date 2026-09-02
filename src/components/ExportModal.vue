@@ -64,7 +64,7 @@
         <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-2">
           <div class="flex justify-between">
             <span class="text-slate-400">Loyiha nomi:</span>
-            <span class="font-mono text-brand-300 font-semibold truncate max-w-[200px]">{{ mapStore.project.name }}</span>
+            <span class="font-mono text-brand-300 font-semibold truncate max-w-50">{{ mapStore.project.name }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Xarita o'lchami:</span>
@@ -80,7 +80,7 @@
           </div>
         </div>
 
-        <div class="text-[11px] text-slate-400 leading-relaxed bg-brand-950/20 p-3 rounded-xl border border-brand-500/20 text-brand-200/90">
+        <div class="text-[11px] leading-relaxed bg-brand-950/20 p-3 rounded-xl border border-brand-500/20 text-brand-200/90">
           💡 <strong>To'liq Loyiha Saqlash:</strong> Bu fayl barcha qatlamlar, koordinatalar va siz yuklagan barcha rasmlarni o'zida to'liq saqlaydi. Istalgan vaqt "Yuklash" orqali ochib davom ettirishingiz mumkin!
         </div>
       </div>
@@ -123,7 +123,7 @@
         <button 
           @click="handleExport"
           :disabled="isExporting"
-          class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-brand-600/30 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
+          class="px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-brand-600/30 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
         >
           <Download class="w-4 h-4" />
           <span>{{ isExporting ? 'Yuklanmoqda...' : 'Yuklab Olish' }}</span>

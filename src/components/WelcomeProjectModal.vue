@@ -482,7 +482,11 @@ async function applyMapProject(rawData: any, isPlayMode = true) {
       characterStore.startLoadingScreen(project.name || 'Burbenog TD')
     }
 
-    mapStore.project = JSON.parse(JSON.stringify(project))
+    const clonedProject = JSON.parse(JSON.stringify(project))
+    if (!clonedProject.id) {
+      clonedProject.id = `proj-${Date.now()}`
+    }
+    mapStore.project = clonedProject
     mapStore.activeLayerId = project.layers[0]?.id || 'layer-ground'
 
     if (rawData.assets && rawData.assets.length > 0) {

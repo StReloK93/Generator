@@ -37,6 +37,7 @@ export class IsoEngine {
 
   // Tower Defense & Combat Visuals
   public combatGraphics: Graphics
+  public currentFps: number = 60
   private towerTextures = new Map<string, Texture>()
   private towerContainerMap = new Map<string, Container>()
 
@@ -124,8 +125,19 @@ export class IsoEngine {
     await this.loadCharacterTextures()
     await this.loadTowerTextures()
 
-    // Ticker animation loop
+    // Ticker animation loop with live FPS calculation
+    let frameCount = 0
+    let lastFpsSampleTime = performance.now()
+
     this.app.ticker.add((ticker) => {
+      frameCount++
+      const now = performance.now()
+      if (now - lastFpsSampleTime >= 500) {
+        this.currentFps = Math.max(1, Math.round((frameCount * 1000) / (now - lastFpsSampleTime)))
+        frameCount = 0
+        lastFpsSampleTime = now
+      }
+
       if (this.onTick) {
         this.onTick(ticker.deltaTime / 60)
       }
@@ -148,14 +160,14 @@ export class IsoEngine {
     this.worldContainer.position.set(panX, panY)
   }
 
-  centerMap(project: MapProject, viewWidth: number, viewHeight: number): Point2D {
-    const midCol = (project.cols - 1) / 2
-    const midRow = (project.rows - 1) / 2
+  centerMap(project: MapProject, viewWidth: number, viewHeight: number, zoom = 1.0): Point2D {
+    const centerCol = Math.floor(project.cols / 2)
+    const centerRow = Math.floor(project.rows / 2)
 
-    const centerScreen = gridToScreen(midCol, midRow, project.tileWidth, project.tileHeight)
+    const centerScreen = gridToScreen(centerCol, centerRow, project.tileWidth, project.tileHeight)
 
-    const panX = viewWidth / 2 - centerScreen.x
-    const panY = viewHeight / 2 - centerScreen.y
+    const panX = viewWidth / 2 - centerScreen.x * zoom
+    const panY = viewHeight / 2 - centerScreen.y * zoom
 
     return { x: Math.round(panX), y: Math.round(panY) }
   }
@@ -439,6 +451,8 @@ export class IsoEngine {
     }
   }
 
+  public onTextureLoaded?: (assetId: string, texture: Texture) => void
+
   public async preloadAsset(asset: AssetItem): Promise<Texture | null> {
     if (!asset || !asset.src) return null
     if (this.textureCache.has(asset.id)) {
@@ -457,6 +471,19 @@ export class IsoEngine {
           const source = new ImageSource({ resource: img })
           const texture = new Texture({ source })
           this.textureCache.set(asset.id, texture)
+          this.textureCache.set(asset.src, texture)
+          const cleanId = asset.id.replace(/^sprite-/, '')
+          this.textureCache.set(cleanId, texture)
+          this.textureCache.set(`sprite-${cleanId}`, texture)
+          if (asset.fileRelativePath) {
+            this.textureCache.set(asset.fileRelativePath, texture)
+            const baseNoExt = asset.fileRelativePath.replace(/\.[^/.]+$/, '')
+            this.textureCache.set(baseNoExt, texture)
+            this.textureCache.set(`sprite-${baseNoExt}`, texture)
+          }
+          if (this.onTextureLoaded) {
+            this.onTextureLoaded(asset.id, texture)
+          }
           resolve(texture)
         } catch (e) {
           console.error('Texture creation error:', asset.name, e)
@@ -480,18 +507,31 @@ export class IsoEngine {
     if (this.textureCache.has(asset.id)) {
       return this.textureCache.get(asset.id)!
     }
+    const cleanId = asset.id.replace(/^sprite-/, '')
+    if (this.textureCache.has(cleanId)) {
+      return this.textureCache.get(cleanId)!
+    }
+    if (this.textureCache.has(`sprite-${cleanId}`)) {
+      return this.textureCache.get(`sprite-${cleanId}`)!
+    }
+    if (this.textureCache.has(asset.src)) {
+      return this.textureCache.get(asset.src)!
+    }
+    if (asset.fileRelativePath) {
+      if (this.textureCache.has(asset.fileRelativePath)) {
+        return this.textureCache.get(asset.fileRelativePath)!
+      }
+      const baseNoExt = asset.fileRelativePath.replace(/\.[^/.]+$/, '')
+      if (this.textureCache.has(baseNoExt)) {
+        return this.textureCache.get(baseNoExt)!
+      }
+      if (this.textureCache.has(`sprite-${baseNoExt}`)) {
+        return this.textureCache.get(`sprite-${baseNoExt}`)!
+      }
+    }
 
     this.preloadAsset(asset)
-
-    try {
-      const texture = Texture.from(asset.src)
-      if (texture) {
-        this.textureCache.set(asset.id, texture)
-      }
-      return texture
-    } catch {
-      return null
-    }
+    return null
   }
 
   syncLayers(project: MapProject, assetMap: Map<string, AssetItem>): void {
@@ -690,9 +730,7 @@ export class IsoEngine {
       damageFloaters: any[]
     },
     project: MapProject,
-    characterStore: {
-      units: any[]
-    },
+    characterStore: any,
     hoveredGridCoord: GridCoord | null = null
   ): void {
     if (!this.isInitialized) return
@@ -814,17 +852,52 @@ export class IsoEngine {
         sprite.anchor.set(0.5, 0.88)
       }
 
-      // Selection Ring (Only redraw when selection state changes)
+      // Selection & Builder Color Base Ring + Overhead Gem Badge
       const isSelected = towerStore.selectedPlacedTowerId === tower.id
+      const builderColor = tower.builderColor || '#38bdf8'
       const wasSelected = (container as any)._wasSelected
-      if (isSelected !== wasSelected) {
+      const wasBuilderColor = (container as any)._wasBuilderColor
+      const wasLevel = (container as any)._wasLevel
+
+      if (isSelected !== wasSelected || wasBuilderColor !== builderColor || wasLevel !== tower.level) {
         selection.clear()
+        const colHex = parseInt(builderColor.replace('#', '0x')) || 0x38bdf8
+
+        // 1. Base Ring under tower
         if (isSelected) {
           selection
-            .ellipse(0, 0, tileWidth * 0.38, tileHeight * 0.38)
-            .stroke({ width: 2.5, color: 0x38bdf8, alpha: 0.95 })
+            .ellipse(0, 0, tileWidth * 0.40, tileHeight * 0.40)
+            .fill({ color: colHex, alpha: 0.20 })
+            .stroke({ width: 3, color: 0x38bdf8, alpha: 0.95 })
+        } else {
+          selection
+            .ellipse(0, 0, tileWidth * 0.34, tileHeight * 0.34)
+            .fill({ color: colHex, alpha: 0.12 })
+            .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
         }
+
+        // 2. Overhead Builder Gem Badge (Bino tepasidagi o'yinchi rangi)
+        const topY = -tileHeight * 1.32
+        
+        // Shadow / Outer Glow
+        selection
+          .poly([
+            { x: 0, y: topY - 10 },
+            { x: 8, y: topY },
+            { x: 0, y: topY + 10 },
+            { x: -8, y: topY },
+          ])
+          .fill({ color: colHex, alpha: 0.95 })
+          .stroke({ width: 1.8, color: 0xffffff, alpha: 0.95 })
+
+        // Inner Core Sparkle
+        selection
+          .circle(0, topY, 3)
+          .fill({ color: 0xffffff, alpha: 0.9 })
+
         ;(container as any)._wasSelected = isSelected
+        ;(container as any)._wasBuilderColor = builderColor
+        ;(container as any)._wasLevel = tower.level
       }
 
       container.position.set(tower.screenX, tower.screenY)
@@ -858,6 +931,9 @@ export class IsoEngine {
         .fill({ color: 0x38bdf8, alpha: 0.12 })
         .stroke({ width: 2, color: 0x38bdf8, alpha: 0.85 })
     } else if (towerStore.activeBuildTowerId && hoveredGridCoord) {
+      const isBlocked = (characterStore.isCellBlockedForBuilding && characterStore.isCellBlockedForBuilding(hoveredGridCoord.col, hoveredGridCoord.row)) ||
+                        towerStore.placedTowers.some(t => t.col === hoveredGridCoord.col && t.row === hoveredGridCoord.row)
+      const ringColor = isBlocked ? 0xef4444 : 0x10b981
       const bp = towerStore.activeBlueprint
       const r = bp ? bp.range : 3.5
       const rx = r * tileWidth * 0.5
@@ -866,8 +942,19 @@ export class IsoEngine {
 
       this.combatGraphics
         .ellipse(pt.x, pt.y, rx, ry)
-        .fill({ color: 0x10b981, alpha: 0.14 })
-        .stroke({ width: 2, color: 0x10b981, alpha: 0.85 })
+        .fill({ color: ringColor, alpha: isBlocked ? 0.20 : 0.14 })
+        .stroke({ width: 2.5, color: ringColor, alpha: 0.9 })
+
+      if (isBlocked) {
+        // Red ❌ Warning mark inside cell
+        this.combatGraphics
+          .moveTo(pt.x - 12, pt.y - 7)
+          .lineTo(pt.x + 12, pt.y + 7)
+          .stroke({ width: 3, color: 0xef4444, alpha: 0.95 })
+          .moveTo(pt.x + 12, pt.y - 7)
+          .lineTo(pt.x - 12, pt.y + 7)
+          .stroke({ width: 3, color: 0xef4444, alpha: 0.95 })
+      }
     }
 
     // 2.2 Flying Animated Projectiles (Distinguished by projectileType)
@@ -1048,6 +1135,35 @@ export class IsoEngine {
           .fill({ color: 0x090d16, alpha: df.alpha * 0.85 })
           .stroke({ width: 1.2, color: df.color, alpha: df.alpha })
       }
+    }
+  }
+
+  public renderTeammateHovers(teammateHovers: Map<string, any>, project: any): void {
+    if (!this.hoverGraphics) return
+    this.hoverGraphics.clear()
+
+    if (!teammateHovers || teammateHovers.size === 0) return
+
+    const { tileWidth, tileHeight } = project
+    const now = Date.now()
+
+    for (const [_, hover] of teammateHovers.entries()) {
+      if (now - hover.lastUpdated > 3000) continue
+      const pt = gridToScreen(hover.col, hover.row, tileWidth, tileHeight)
+      const colHex = hover.playerColor ? parseInt(hover.playerColor.replace('#', '0x')) : 0x38bdf8
+
+      const hw = tileWidth / 2
+      const hh = tileHeight / 2
+
+      this.hoverGraphics
+        .poly([
+          { x: pt.x, y: pt.y - hh },
+          { x: pt.x + hw, y: pt.y },
+          { x: pt.x, y: pt.y + hh },
+          { x: pt.x - hw, y: pt.y },
+        ])
+        .fill({ color: colHex, alpha: 0.18 })
+        .stroke({ width: 2.5, color: colHex, alpha: 0.9 })
     }
   }
 

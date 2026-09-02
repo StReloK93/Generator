@@ -4,6 +4,7 @@ import { GridCoord } from '../types/map'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
+import { useMultiplayerStore } from './multiplayerStore'
 import { cellKey, isInsideGrid, gridToScreen } from '../utils/isometric'
 
 export interface DoorInfo {
@@ -78,6 +79,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // Game Mode & Economy State
   const isGameMode = ref(false) // Toggle between Map Redaktor and Playable Game Mode
+  const fps = ref(60) // Live Engine FPS Counter
+  const totalKills = ref(0) // Total enemy units defeated
   const playerLives = ref(20)
   const maxLives = ref(20)
   const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
@@ -210,94 +213,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
       return detectedDoors.value
     }
 
-    // 2. Otherwise: detect doors from sprite assets on map (backward-compatibility for existing maps)
-    const doors: DoorInfo[] = []
-    const cols = mapStore.project.cols
-    const rows = mapStore.project.rows
-    const midC = Math.floor(cols / 2)
-    const midR = Math.floor(rows / 2)
-
-    for (const layer of mapStore.project.layers) {
-      for (const [key, items] of Object.entries(layer.tiles)) {
-        const [col, row] = key.split(',').map(Number)
-        const itemArr = Array.isArray(items) ? items : [items]
-
-        for (const item of itemArr) {
-          if (!item) continue
-          const assetId = (item.assetId || '').toLowerCase()
-          
-          const isDoorOrGate = assetId.includes('door') || 
-                               assetId.includes('gate') || 
-                               assetId.includes('archway')
-
-          if (isDoorOrGate) {
-            let quadrant = 0
-            let cornerName = '1-Krug (Yuqori/Shimol)'
-
-            if (col <= midC && row <= midR) {
-              quadrant = 0
-              cornerName = "1-Krug (Yuqori/Shimol)"
-            } else if (col >= midC && row <= midR) {
-              quadrant = 1
-              cornerName = "2-Krug (O'ng/Sharq)"
-            } else if (col >= midC && row >= midR) {
-              quadrant = 2
-              cornerName = "3-Krug (Quyi/Janub)"
-            } else {
-              quadrant = 3
-              cornerName = "4-Krug (Chap/G'arb)"
-            }
-
-            doors.push({
-              id: item.id,
-              col,
-              row,
-              assetId: item.assetId,
-              name: `Chiqish Nuqtasi (${col}, ${row}) — ${cornerName}`,
-              layerId: layer.id,
-              quadrant,
-              isCorner: true,
-              cornerName,
-              spawnCol: col,
-              spawnRow: row,
-            })
-          }
-        }
-      }
-    }
-
-    // If still no doors found, create a fallback starting spawn point
-    if (doors.length === 0) {
-      doors.push({
-        id: 'spawn-default-1',
-        col: 2,
-        row: 2,
-        spawnCol: 2,
-        spawnRow: 2,
-        name: "1-Boshlang'ich Chiqish Nuqtasi (2, 2)",
-        layerId: 'layer-ground',
-        quadrant: 0,
-        isCorner: true,
-        cornerName: "1-Krug (Yuqori)",
-        assetId: '',
-      })
-    }
-
-    doors.sort((a, b) => a.quadrant - b.quadrant)
-    detectedDoors.value = doors
-    if (selectedDoorIndex.value >= doors.length || selectedDoorIndex.value < 0) {
-      selectedDoorIndex.value = 0
-    }
-
-    if (mapStore.project.customRoutes && Object.keys(mapStore.project.customRoutes).length > 0) {
-      customRoutes.value = { ...mapStore.project.customRoutes, ...customRoutes.value }
-    }
-
+    // 2. Otherwise: start with empty spawn points on new maps (user adds them explicitly)
+    detectedDoors.value = []
+    selectedDoorIndex.value = 0
     doorRoutesCache.value = {}
-    if (!isPlaying.value && !isGameMode.value) {
-      initializeUnits()
-    }
-    return doors
+    units.value = []
+    return []
   }
 
   function addSpawnPoint(col: number, row: number, customName?: string) {
@@ -351,14 +272,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
       addSpawnPoint(col, row)
       return
     }
-    const idx = selectedDoorIndex.value
+    const idx = Math.max(0, Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value))
     const pt = detectedDoors.value[idx]
     if (pt) {
       pt.col = col
       pt.row = row
       pt.spawnCol = col
       pt.spawnRow = row
-      pt.name = `Chiqish Nuqtasi (${col}, ${row})`
+      pt.name = `${idx + 1}-Chiqish Nuqtasi (${col}, ${row})`
       syncSpawnPointsToProject()
       doorRoutesCache.value = {}
       spawnAtDoor(idx)
@@ -367,18 +288,22 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function removeSpawnPoint(idx: number) {
-    if (detectedDoors.value.length <= 1) {
-      alert("Kamida 1 ta chiqish nuqtasi qolishi kerak!")
-      return
-    }
+    if (idx < 0 || idx >= detectedDoors.value.length) return
+    const removed = detectedDoors.value[idx]
     detectedDoors.value.splice(idx, 1)
-    if (selectedDoorIndex.value >= detectedDoors.value.length) {
-      selectedDoorIndex.value = Math.max(0, detectedDoors.value.length - 1)
+    if (detectedDoors.value.length === 0) {
+      selectedDoorIndex.value = 0
+      units.value = []
+      statusMessage.value = "Chiqish nuqtasi belgilanmagan"
+    } else {
+      selectedDoorIndex.value = Math.max(0, Math.min(detectedDoors.value.length - 1, idx > 0 ? idx - 1 : 0))
     }
     syncSpawnPointsToProject()
     doorRoutesCache.value = {}
-    spawnAtDoor(selectedDoorIndex.value)
-    mapStore.pushHistory(`Chiqish nuqtasi o'chirildi`)
+    if (detectedDoors.value.length > 0) {
+      spawnAtDoor(selectedDoorIndex.value)
+    }
+    mapStore.pushHistory(`${removed ? removed.name : 'Chiqish nuqtasi'} o'chirildi`)
   }
 
   function syncSpawnPointsToProject() {
@@ -546,6 +471,46 @@ export const useCharacterStore = defineStore('characterStore', () => {
     return [{ col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row }]
   }
 
+  const blockedBuildingCellsSet = computed<Set<string>>(() => {
+    const set = new Set<string>()
+
+    // 1. All spawn points / doors
+    for (const d of detectedDoors.value) {
+      set.add(`${d.col},${d.row}`)
+      if (d.spawnCol !== undefined && d.spawnRow !== undefined) {
+        set.add(`${d.spawnCol},${d.spawnRow}`)
+      }
+    }
+
+    // 2. All custom routes for each door
+    if (customRoutes.value) {
+      for (const route of Object.values(customRoutes.value)) {
+        if (Array.isArray(route)) {
+          for (const pt of route) {
+            set.add(`${pt.col},${pt.row}`)
+          }
+        }
+      }
+    }
+
+    // 3. Project custom routes fallback
+    if (mapStore.project?.customRoutes) {
+      for (const route of Object.values(mapStore.project.customRoutes)) {
+        if (Array.isArray(route)) {
+          for (const pt of route) {
+            set.add(`${pt.col},${pt.row}`)
+          }
+        }
+      }
+    }
+
+    return set
+  })
+
+  function isCellBlockedForBuilding(col: number, row: number): boolean {
+    return blockedBuildingCellsSet.value.has(`${col},${row}`)
+  }
+
   // --- CUSTOM ROUTE DRAWING ACTIONS ---
 
   function startDrawingCustomRoute() {
@@ -675,6 +640,22 @@ export const useCharacterStore = defineStore('characterStore', () => {
     syncWavesToProject()
   }
 
+  function setWaveGoldReward(reward: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.goldReward = reward
+    }
+    syncWavesToProject()
+  }
+
+  function updateWaveConfig(idx: number, updates: Partial<WaveConfig>) {
+    const cfg = waveConfigs.value[idx]
+    if (!cfg) return
+    Object.assign(cfg, updates)
+    if (updates.unitCount !== undefined) spawnCount.value = updates.unitCount
+    if (updates.unitSpeed !== undefined) unitSpeed.value = updates.unitSpeed
+    syncWavesToProject()
+  }
+
   function selectWave(idx: number) {
     currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, idx))
     const cfg = waveConfigs.value[currentWaveIndex.value]
@@ -751,6 +732,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
    * Uses spatial distance spacing (distance in tiles) so units stay tightly packed at any speed!
    */
   function initializeUnits() {
+    if (detectedDoors.value.length === 0) {
+      units.value = []
+      return
+    }
+
     const list: CharacterUnit[] = []
     const waveCfg = currentWaveConfig.value
     const count = Math.max(1, Math.min(100, waveCfg ? waveCfg.unitCount : spawnCount.value))
@@ -893,8 +879,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
       return
     }
 
-    if (!isPlaying.value || units.value.length === 0) return
-
     const tileWidth = mapStore.project.tileWidth
     const tileHeight = mapStore.project.tileHeight
     const waveCfg = currentWaveConfig.value
@@ -1028,8 +1012,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
     }
 
-    // Camera follow leader
-    if (followCamera.value && leaderUnit && leaderUnit.isSpawned) {
+    // Camera follow leader (only when active and playing)
+    if (followCamera.value && isPlaying.value && leaderUnit && leaderUnit.isSpawned && !leaderUnit.isDead && !leaderUnit.hasReachedEnd) {
       const panX = window.innerWidth / 2 - leaderUnit.screenX * toolStore.zoom
       const panY = window.innerHeight / 2 - leaderUnit.screenY * toolStore.zoom
       toolStore.pan.x += (panX - toolStore.pan.x) * 0.08
@@ -1070,6 +1054,46 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
   }
 
+  /**
+   * Client-side visual animation frame cycle between authoritative network ticks
+   */
+  function updateClientInterpolation(deltaSec: number) {
+    if (units.value.length === 0) return
+
+    for (let i = 0; i < units.value.length; i++) {
+      const unit = units.value[i]
+      if (!unit.isSpawned) continue
+
+      if (unit.isDead) {
+        unit.action = 'Pickup'
+        unit.animTimer += deltaSec
+        if (unit.animTimer >= 0.08) {
+          unit.animTimer = 0
+          if (unit.frameIndex < 4) {
+            unit.frameIndex++
+          }
+        }
+        if (unit.deathFade > 0) {
+          unit.deathFade = Math.max(0, unit.deathFade - deltaSec * 1.2)
+        }
+      } else if (unit.hasReachedEnd) {
+        unit.action = 'Pickup'
+        unit.animTimer += deltaSec
+        if (unit.animTimer >= 0.1) {
+          unit.animTimer = 0
+          unit.frameIndex = (unit.frameIndex + 1) % 10
+        }
+      } else {
+        unit.action = 'Run'
+        unit.animTimer += deltaSec
+        if (unit.animTimer >= 0.07) {
+          unit.animTimer = 0
+          unit.frameIndex = (unit.frameIndex + 1) % 10
+        }
+      }
+    }
+  }
+
   // --- GAME MODE CONTROLS ---
 
   function startPlayMode() {
@@ -1083,6 +1107,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     gameState.value = 'build_prep'
     prepCountdown.value = 10
     gameSpeed.value = 1.0
+    followCamera.value = false
     spawnAtDoor(0)
     isPlaying.value = false
   }
@@ -1091,6 +1116,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     isGameMode.value = false
     gameState.value = 'ready'
     isPlaying.value = false
+    followCamera.value = false
     resetTour()
     towerStore.restoreEditorTowersSnapshot()
   }
@@ -1244,6 +1270,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     togglePlay,
     resetTour,
     updateTick,
+    updateClientInterpolation,
     gold,
     score,
     waveConfigs,
@@ -1253,6 +1280,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setWaveUnitCount,
     setWaveUnitHp,
     setWaveSpeed,
+    setWaveGoldReward,
+    updateWaveConfig,
     addNewWave,
     deleteWave,
     isGameMode,
@@ -1285,5 +1314,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setLoadingProgress,
     finishLoadingScreen,
     createSamplePathWithDoors,
+    blockedBuildingCellsSet,
+    isCellBlockedForBuilding,
+    fps,
+    totalKills,
   }
 })

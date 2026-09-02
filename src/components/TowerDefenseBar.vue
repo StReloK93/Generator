@@ -297,7 +297,7 @@
                   step="10" 
                   v-model.number="towerStore.selectedBlueprint.cost"
                   @input="onBlueprintInput"
-                  class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 font-mono focus:outline-none focus:border-amber-500"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 font-mono focus:outline-none"
                 />
               </div>
 
@@ -306,7 +306,7 @@
                 <select 
                   v-model="towerStore.selectedBlueprint.projectileType"
                   @change="onBlueprintInput"
-                  class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-500 cursor-pointer"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none cursor-pointer"
                 >
                   <option value="cannonball">💣 To'p Toshi (Cannon)</option>
                   <option value="magic_bolt">⚡ Sehrli Nur (Magic)</option>
@@ -396,7 +396,7 @@
               <input 
                 type="text" 
                 v-model="characterStore.currentWaveConfig.name"
-                class="w-full bg-slate-900 border border-purple-500/40 rounded px-2.5 py-1 text-xs text-purple-200 font-medium focus:outline-none focus:border-purple-400"
+                class="w-full bg-slate-900 border border-purple-500/40 rounded px-2.5 py-1 text-xs text-purple-200 font-medium focus:outline-none"
               />
             </div>
 

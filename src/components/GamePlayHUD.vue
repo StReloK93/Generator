@@ -60,9 +60,20 @@
             <span class="font-mono font-bold text-xs text-yellow-300">{{ characterStore.score }}</span>
           </div>
         </div>
+
+        <div class="h-5 sm:h-6 w-px bg-slate-800 shrink-0"></div>
+
+        <!-- Defeated Units Count (O'ldirilgan dushmanlar) -->
+        <div class="flex items-center gap-1.5 shrink-0" title="Jami o'ldirilgan dushmanlar soni">
+          <Skull class="w-4 h-4 text-rose-400 shrink-0" />
+          <div class="flex flex-col leading-tight">
+            <span class="text-[8px] sm:text-[9px] uppercase tracking-wider text-slate-400 font-bold hidden xs:inline">O'ldirilgan</span>
+            <span class="font-mono font-bold text-xs sm:text-sm text-rose-300">☠️ {{ characterStore.totalKills }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Right: Game Speed Multipliers & Exit Button -->
+      <!-- Right: Game Speed Multipliers, FPS & Exit Button -->
       <div 
         class="glass-panel px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/95 pointer-events-auto flex items-center gap-1.5 sm:gap-2 text-xs shrink-0 ml-auto"
         @mousedown.stop
@@ -73,6 +84,15 @@
         @touchmove.stop
         @pointerdown.stop
       >
+        <!-- Live FPS Counter -->
+        <div 
+          class="px-2 py-1 rounded-xl text-[10px] sm:text-[11px] font-mono font-bold border flex items-center gap-1 shrink-0 select-none"
+          :class="characterStore.fps >= 50 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : characterStore.fps >= 30 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'"
+          title="Jonli kadrlar chastotasi (FPS)"
+        >
+          <span>⚡ {{ characterStore.fps }} FPS</span>
+        </div>
+
         <!-- Game Speed Multipliers -->
         <div class="flex items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800">
           <button 
@@ -147,28 +167,45 @@
           <span class="text-[10px] text-slate-400 font-mono">
             💥 {{ towerStore.selectedPlacedTower.damage }} DMG | 🎯 {{ towerStore.selectedPlacedTower.range }}k | ☠️ {{ towerStore.selectedPlacedTower.killsCount }} kills
           </span>
+
+          <!-- Builder Info Badge -->
+          <div v-if="towerStore.selectedPlacedTower.builderName" class="flex items-center gap-1.5 mt-1">
+            <div class="w-2.5 h-2.5 rounded-full border border-white/60 shrink-0" :style="{ backgroundColor: towerStore.selectedPlacedTower.builderColor || '#38bdf8' }"></div>
+            <span class="text-[10px] text-slate-300 font-semibold truncate">
+              Quruvchi: {{ towerStore.selectedPlacedTower.builderName }}
+              <span v-if="isOwnerOfSelectedTower" class="text-emerald-400 font-bold ml-0.5">(Siz)</span>
+            </span>
+          </div>
         </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2 ml-auto">
-          <!-- Upgrade Button -->
-          <button 
-            @click="upgradeSelectedTower"
-            :disabled="characterStore.gold < upgradeCost"
-            :class="characterStore.gold >= upgradeCost ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
-            class="py-1.5 px-2 sm:px-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-md active:scale-95"
-          >
-            <Zap class="w-3.5 h-3.5 text-amber-300 shrink-0" />
-            <span>Kuchaytirish (💰{{ upgradeCost }})</span>
-          </button>
+          <!-- If Owner: Show Upgrade and Sell -->
+          <template v-if="isOwnerOfSelectedTower">
+            <!-- Upgrade Button -->
+            <button 
+              @click="upgradeSelectedTower"
+              :disabled="characterStore.gold < upgradeCost"
+              :class="characterStore.gold >= upgradeCost ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
+              class="py-1.5 px-2 sm:px-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-md active:scale-95"
+            >
+              <Zap class="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span>Kuchaytirish (💰{{ upgradeCost }})</span>
+            </button>
 
-          <!-- Sell Button -->
-          <button 
-            @click="sellSelectedTower"
-            class="py-1.5 px-2 sm:px-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-          >
-            <Coins class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>Sotish (+{{ sellRefund }})</span>
-          </button>
+            <!-- Sell Button -->
+            <button 
+              @click="sellSelectedTower"
+              class="py-1.5 px-2 sm:px-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+            >
+              <Coins class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Sotish (+{{ sellRefund }})</span>
+            </button>
+          </template>
+
+          <!-- If NOT Owner in multiplayer: Show locked message -->
+          <div v-else class="px-2.5 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+            <span>🔒 Faqat minora egasi boshqara oladi</span>
+          </div>
 
           <button 
             @click="towerStore.selectedPlacedTowerId = null"
@@ -255,7 +292,7 @@
 
             <button 
               @click="characterStore.startNextWaveInGame()"
-              class="py-2 px-3 sm:px-3.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              class="py-2 px-3 sm:px-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
               title="Kutmasdan darhol to'lqinni boshlash"
             >
               <Play class="w-3.5 h-3.5 fill-white shrink-0" />
@@ -274,7 +311,7 @@
           <button 
             v-else
             @click="characterStore.startNextWaveInGame()"
-            class="w-full md:w-auto py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+            class="w-full md:w-auto py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer animate-pulse"
           >
             <Play class="w-4 h-4 fill-white shrink-0" />
             <span>{{ characterStore.gameState === 'wave_completed' ? "Keyingi To'lqinni Boshlash ▶" : "1-To'lqinni Boshlash ▶" }}</span>
@@ -310,19 +347,39 @@
           <span>Hisob: <strong class="text-yellow-300">{{ characterStore.score }}</strong></span>
         </div>
 
+        <!-- Defeat Actions -->
         <div class="grid grid-cols-2 gap-2 w-full pt-2">
-          <button 
-            @click="characterStore.restartGame()"
-            class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
-          >
-            Qayta O'ynash
-          </button>
-          <button 
-            @click="characterStore.exitPlayMode()"
-            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
-          >
-            Redaktorga Qaytish
-          </button>
+          <!-- In Multiplayer: Return to Lobby or Leave -->
+          <template v-if="multiplayerStore.roomId">
+            <button 
+              @click="multiplayerStore.returnToLobby(router)"
+              class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-1"
+            >
+              <span>🏠 Lobbyga Qaytish</span>
+            </button>
+            <button 
+              @click="multiplayerStore.leaveRoom(router)"
+              class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all cursor-pointer active:scale-95"
+            >
+              <span>🚪 Chiqish</span>
+            </button>
+          </template>
+
+          <!-- In Editor Mode: Restart or Return to Editor -->
+          <template v-else>
+            <button 
+              @click="characterStore.restartGame()"
+              class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
+            >
+              Qayta O'ynash
+            </button>
+            <button 
+              @click="characterStore.exitPlayMode()"
+              class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
+            >
+              Redaktorga Qaytish
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -354,19 +411,39 @@
           <span>Hisob: <strong class="text-yellow-300">⭐{{ characterStore.score }}</strong></span>
         </div>
 
+        <!-- Victory Actions -->
         <div class="grid grid-cols-2 gap-2 w-full pt-2">
-          <button 
-            @click="characterStore.restartGame()"
-            class="py-2.5 px-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
-          >
-            Yana O'ynash
-          </button>
-          <button 
-            @click="characterStore.exitPlayMode()"
-            class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
-          >
-            Redaktorga Qaytish
-          </button>
+          <!-- In Multiplayer: Return to Lobby or Leave -->
+          <template v-if="multiplayerStore.roomId">
+            <button 
+              @click="multiplayerStore.returnToLobby(router)"
+              class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-1"
+            >
+              <span>🏠 Lobbyga Qaytish</span>
+            </button>
+            <button 
+              @click="multiplayerStore.leaveRoom(router)"
+              class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all cursor-pointer active:scale-95"
+            >
+              <span>🚪 Chiqish</span>
+            </button>
+          </template>
+
+          <!-- In Editor Mode: Restart or Return to Editor -->
+          <template v-else>
+            <button 
+              @click="characterStore.restartGame()"
+              class="py-2.5 px-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg active:scale-95"
+            >
+              Yana O'ynash
+            </button>
+            <button 
+              @click="characterStore.exitPlayMode()"
+              class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer active:scale-95"
+            >
+              Redaktorga Qaytish
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -375,15 +452,19 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   Heart, Coins, Swords, Trophy, Hammer, ShieldAlert, Zap, Play, Skull, X, Clock, Camera, Maximize2, Minimize2 
 } from 'lucide-vue-next'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
+import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
 
+const router = useRouter()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+const multiplayerStore = useMultiplayerStore()
 
 const isFullscreenMode = ref(false)
 
@@ -418,6 +499,13 @@ function selectTowerToBuild(bp: any) {
     towerStore.selectBuildTower(bp.id)
   }
 }
+
+const isOwnerOfSelectedTower = computed(() => {
+  if (!multiplayerStore.roomId) return true
+  const t = towerStore.selectedPlacedTower
+  if (!t || !t.builderId) return true
+  return t.builderId === multiplayerStore.myPlayerId
+})
 
 const upgradeCost = computed(() => {
   const t = towerStore.selectedPlacedTower

@@ -3,12 +3,12 @@
     ref="viewportContainerRef"
     class="relative flex-1 h-full w-full bg-dark-950 overflow-hidden cursor-crosshair select-none canvas-touch-container"
     :class="{
-      '!cursor-grab': toolStore.activeTool === 'pan' && !isPanning,
-      '!cursor-grabbing': isPanning,
-      '!cursor-cell': toolStore.activeTool === 'picker',
-      '!cursor-pointer': !assetStore.selectedAssetId || toolStore.activeTool === 'select',
-      '!cursor-move': toolStore.isMovingElement,
-      '!cursor-not-allowed': mapStore.activeLayer?.locked
+      'cursor-grab!': toolStore.activeTool === 'pan' && !isPanning,
+      'cursor-grabbing!': isPanning,
+      'cursor-cell!': toolStore.activeTool === 'picker',
+      'cursor-pointer!': !assetStore.selectedAssetId || toolStore.activeTool === 'select',
+      'cursor-move!': toolStore.isMovingElement,
+      'cursor-not-allowed!': mapStore.activeLayer?.locked
     }"
     @mousedown="handleMouseDown"
     @mousemove="handleMouseMove"
@@ -27,17 +27,55 @@
     <!-- Element Inspector (When an element is selected in Select mode) -->
     <ElementInspector v-if="!characterStore.isGameMode" />
 
-    <!-- Character Control Bar (Patrol / Tour Route Planner HUD) -->
-    <CharacterControlBar v-if="!characterStore.isGameMode" />
-
-    <!-- Tower Defense Bar (Towers & Waves Configurator) -->
-    <TowerDefenseBar v-if="!characterStore.isGameMode" />
+    <!-- Unified Tower Defense & Movement Hub Modal -->
+    <GameConfigModal />
 
     <!-- Playable Game Mode HUD (Lives, Gold, Shop, Waves) -->
     <GamePlayHUD />
 
     <!-- Custom Tower Blueprint Creator Modal -->
     <TowerCreateModal />
+
+    <!-- Floating HUD when Setting Spawn Point -->
+    <div 
+      v-if="characterStore.isSettingSpawnPoint && !characterStore.isGameMode" 
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2"
+    >
+      <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+      <span>
+        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? '➕ Yangi Chiqish Nuqtasi' : '📍 Chiqish Nuqtasini Ko\'chirish' }}:</strong> 
+        Xaritadagi istalgan katakni bosing
+      </span>
+      <button 
+        @click="characterStore.isSettingSpawnPoint = false" 
+        class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer"
+      >
+        Bekor qilish
+      </button>
+    </div>
+
+    <!-- Floating HUD when Drawing Custom Route -->
+    <div 
+      v-if="characterStore.isDrawingRoute && !characterStore.isGameMode" 
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2"
+    >
+      <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
+      <span>
+        <strong>🖌️ Marshrut chizilmoqda:</strong> Kataklarni ketma-ket bosing (Nuqtalar: {{ characterStore.drawingPath.length }})
+      </span>
+      <button 
+        @click="characterStore.finishDrawingRoute()" 
+        class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm cursor-pointer"
+      >
+        Tugatish
+      </button>
+      <button 
+        @click="characterStore.cancelDrawingRoute()" 
+        class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer"
+      >
+        Bekor qilish
+      </button>
+    </div>
 
     <!-- Top Help / Quick Guide Notification Banner -->
     <div 
@@ -50,7 +88,7 @@
       <div class="flex-1 leading-snug">
         <strong>Hotkeys:</strong> 
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Delete</kbd> — O'chirish | 
-        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Ctrl+Click</kbd> — Ketma-ket qo'yish | 
+        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Shift+Click</kbd> — Ketma-ket qo'yish | 
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">R</kbd> — Aylantirish | 
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">F</kbd> — Flip | 
         <span class="text-amber-300 font-semibold">O'ng tugma</span> — Bo'shatish
@@ -78,7 +116,42 @@
     <!-- Placement Conflict Decision Modal -->
     <PlacementPromptModal />
 
-    <!-- Floating Mobile Zoom & Map Navigation Widget (Available in both Editor & Game Mode) -->
+    <!-- Bottom-Left Map & Hover Cell Helper Badge -->
+    <div 
+      v-if="!characterStore.isGameMode"
+      class="absolute bottom-4 left-4 z-20 pointer-events-none flex items-center gap-2 select-none animate-in fade-in duration-150"
+    >
+      <div class="glass-panel px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2.5 border border-slate-800/90 shadow-xl text-slate-300 backdrop-blur-xl bg-slate-900/90">
+        <!-- Hover Grid Coordinates -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-500 font-sans text-[11px]">Katak:</span>
+          <span v-if="toolStore.hoveredCell" class="text-brand-300 font-bold bg-brand-500/20 px-1.5 py-0.5 rounded border border-brand-500/30">
+            ({{ toolStore.hoveredCell.col }}, {{ toolStore.hoveredCell.row }})
+          </span>
+          <span v-else class="text-slate-600">---</span>
+        </div>
+
+        <div class="h-3 w-px bg-slate-800"></div>
+
+        <!-- Active Layer Name -->
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500 font-sans text-[11px]">Qatlam:</span>
+          <span class="text-emerald-400 font-sans font-medium truncate max-w-[110px]">
+            {{ mapStore.activeLayer?.name || 'Qatlam' }}
+          </span>
+        </div>
+
+        <template v-if="toolStore.hoveredCell && hoveredCellItemsCount > 0">
+          <div class="h-3 w-px bg-slate-800 hidden sm:block"></div>
+          <!-- Items count on hovered cell -->
+          <div class="hidden sm:flex items-center gap-1 text-[11px] text-amber-300 font-sans">
+            <span>📦 {{ hoveredCellItemsCount }} ta element</span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Floating Mobile Zoom & Map Navigation Widget (Right side) -->
     <div 
       class="absolute right-3.5 top-20 z-20 flex flex-col gap-2 pointer-events-none select-none"
     >
@@ -94,7 +167,7 @@
         <!-- Zoom In -->
         <button 
           @click="toolStore.zoomIn()"
-          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:bg-brand-600 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
+          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
           title="Kattalashtirish (+)"
         >
           <Plus class="w-4 h-4" />
@@ -108,7 +181,7 @@
         <!-- Zoom Out -->
         <button 
           @click="toolStore.zoomOut()"
-          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:bg-brand-600 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
+          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
           title="Kichiklashtirish (-)"
         >
           <Minus class="w-4 h-4" />
@@ -119,7 +192,7 @@
         <!-- Center Map View -->
         <button 
           @click="centerView"
-          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-emerald-950/70 hover:border-emerald-500/50 active:bg-emerald-600 text-emerald-400 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
+          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
           title="Xaritani umumiy ko'rinishga qaytarish"
         >
           <Crosshair class="w-4 h-4" />
@@ -128,86 +201,32 @@
         <!-- Center Origin Focus (🎯) -->
         <button 
           @click="focusOnCenter"
-          class="w-8.5 h-8.5 rounded-xl bg-slate-800/90 hover:bg-amber-950/70 active:bg-amber-600 text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-sm text-xs font-bold active:scale-95"
+          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 flex items-center justify-center transition-all cursor-pointer shadow-sm text-xs font-bold active:scale-95"
           title="Markaziy koordinata (Center Origin)ga borish"
         >
           <span>🎯</span>
         </button>
       </div>
     </div>
-
-    <!-- Floating Bottom HUD info (Desktop Editor) -->
-    <div 
-      v-if="!characterStore.isGameMode"
-      class="absolute bottom-4 left-102 z-10 hidden md:flex items-center gap-2 pointer-events-none"
-      @mousedown.stop
-      @mouseup.stop
-      @click.stop
-      @pointerdown.stop
-    >
-      <!-- Grid Coordinates Badge -->
-      <div class="glass-panel px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2 border border-slate-800/80 shadow-lg text-slate-300">
-        <span class="text-slate-500">Kursor:</span>
-        <span v-if="toolStore.hoveredCell" class="text-brand-400 font-semibold">
-          X: {{ toolStore.hoveredCell.col }}, Y: {{ toolStore.hoveredCell.row }}
-        </span>
-        <span v-else class="text-slate-600">---</span>
-      </div>
-
-      <!-- Active Layer Badge -->
-      <div class="glass-panel px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 border border-slate-800/80 shadow-lg text-slate-300 pointer-events-auto">
-        <span class="text-slate-500">Qatlam:</span>
-        <span class="font-medium text-emerald-400 truncate max-w-[120px]">
-          {{ mapStore.activeLayer?.name || 'Qatlam' }}
-        </span>
-        <span v-if="mapStore.activeLayer?.locked" class="text-amber-400 text-[10px] font-bold uppercase">(Qulflangan)</span>
-      </div>
-
-      <!-- Center Origin / Symmetry Focus Button -->
-      <button 
-        @click="focusOnCenter"
-        @mousedown.stop
-        @mouseup.stop
-        @click.stop
-        @pointerdown.stop
-        class="glass-panel hover:bg-emerald-950/50 hover:border-emerald-500/50 px-2.5 py-1.5 rounded-xl text-emerald-400 border border-slate-800/80 shadow-lg pointer-events-auto transition-all flex items-center gap-1.5 text-xs font-semibold"
-        title="Xarita markaziga (Center Origin) borish"
-      >
-        <span>🎯 Markaz</span>
-      </button>
-
-      <!-- Center Map / Reset Camera Button -->
-      <button 
-        @click="centerView"
-        @mousedown.stop
-        @mouseup.stop
-        @click.stop
-        @pointerdown.stop
-        class="glass-panel hover:bg-slate-800 p-2 rounded-xl text-slate-400 hover:text-slate-200 border border-slate-800/80 shadow-lg pointer-events-auto transition-colors"
-        title="Xaritani umumiy ko'rinishga qaytarish"
-      >
-        <Crosshair class="w-4 h-4" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { Crosshair, Sparkles, X, PlusCircle, Plus, Minus } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { Crosshair, Sparkles, X, PlusCircle, Plus, Minus, MapPin, PenTool } from 'lucide-vue-next'
 import { IsoEngine } from '../engine/IsoEngine'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { GridCoord, AssetItem, Point2D } from '../types/map'
 import ElementInspector from './ElementInspector.vue'
-import CharacterControlBar from './CharacterControlBar.vue'
-import TowerDefenseBar from './TowerDefenseBar.vue'
+import GameConfigModal from './GameConfigModal.vue'
 import PlacementPromptModal from './PlacementPromptModal.vue'
 import GamePlayHUD from './GamePlayHUD.vue'
 import TowerCreateModal from './TowerCreateModal.vue'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
+import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { 
   getBresenhamLine, 
   getRectangleCells, 
@@ -224,6 +243,7 @@ const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+const multiplayerStore = useMultiplayerStore()
 
 // PixiJS Engine instance
 const engine = new IsoEngine()
@@ -232,6 +252,11 @@ let resizeObserver: ResizeObserver | null = null
 // Help guide state
 const showGuide = ref(true)
 const isDraggingOver = ref(false)
+
+const hoveredCellItemsCount = computed(() => {
+  if (!toolStore.hoveredCell) return 0
+  return mapStore.getCellItems(toolStore.hoveredCell.col, toolStore.hoveredCell.row).length
+})
 
 // Cached Viewport DOMRect (eliminates layout thrashing in input handlers)
 let cachedViewportRect: DOMRect | null = null
@@ -283,9 +308,10 @@ function getAssetMap(): Map<string, AssetItem> {
 
 function centerView() {
   if (!viewportContainerRef.value) return
+  cachedViewportRect = null
   updateViewportRect()
   const rect = getViewportRect()
-  const pan = engine.centerMap(mapStore.project, rect.width, rect.height)
+  const pan = engine.centerMap(mapStore.project, rect.width, rect.height, toolStore.zoom)
   localPanX = pan.x
   localPanY = pan.y
   localZoom = toolStore.zoom
@@ -293,8 +319,15 @@ function centerView() {
   engine.setTransform(localZoom, { x: localPanX, y: localPanY })
 }
 
+function focusOnCenter() {
+  const centerCol = Math.floor(mapStore.project.cols / 2)
+  const centerRow = Math.floor(mapStore.project.rows / 2)
+  focusOnCell(centerCol, centerRow)
+}
+
 function focusOnCell(col: number, row: number) {
   if (!viewportContainerRef.value) return
+  cachedViewportRect = null
   updateViewportRect()
   const rect = getViewportRect()
   const pt = gridToScreen(col, row, mapStore.project.tileWidth, mapStore.project.tileHeight)
@@ -310,22 +343,50 @@ function focusOnCell(col: number, row: number) {
 onMounted(async () => {
   if (!viewportContainerRef.value) return
 
+  cachedViewportRect = null
   updateViewportRect()
   const rect = getViewportRect()
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
 
-  for (const asset of assetStore.assets) {
-    engine.preloadAsset(asset)
+  // Auto re-sync visible sprites whenever any texture finishes loading
+  let syncLayersTimer: any = null
+  engine.onTextureLoaded = () => {
+    if (syncLayersTimer) return
+    syncLayersTimer = requestAnimationFrame(() => {
+      syncLayersTimer = null
+      if (engine.isInitialized) {
+        engine.syncLayers(mapStore.project, getAssetMap())
+      }
+    })
   }
+
+  // Ensure builtin sprites are loaded and preloaded
+  await assetStore.loadBuiltinSprites()
+  await engine.preloadAssetsBatch(assetStore.assets)
 
   // Hook up character and tower defense combat update ticker loop
   engine.onTick = (rawDeltaSec: number) => {
+    characterStore.fps = engine.currentFps
     const simSpeed = Math.max(0.1, Math.min(50.0, characterStore.gameSpeed || 1.0))
     const effectiveDelta = rawDeltaSec * simSpeed
-    characterStore.updateTick(effectiveDelta)
-    towerStore.updateCombatTick(effectiveDelta)
+
+    // In Multiplayer: Only Host runs authoritative wave & combat simulation
+    // Client runs visual smoothing and receives authoritative frames from Host
+    if (!multiplayerStore.roomId || multiplayerStore.isHost) {
+      characterStore.updateTick(effectiveDelta)
+      towerStore.updateCombatTick(effectiveDelta)
+
+      if (multiplayerStore.roomId && multiplayerStore.isHost) {
+        multiplayerStore.broadcastGameTick()
+      }
+    } else {
+      characterStore.updateClientInterpolation(effectiveDelta)
+      towerStore.updateClientCombatInterpolation(effectiveDelta)
+    }
+
     engine.renderCharacter(characterStore, mapStore.project)
     engine.renderTowersAndCombat(towerStore, mapStore.project, characterStore, toolStore.hoveredCell)
+    engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
   }
 
   // Restore towers from project and detect doors
@@ -339,7 +400,7 @@ onMounted(async () => {
   localPanX = toolStore.pan.x
   localPanY = toolStore.pan.y
 
-  centerView()
+  focusOnCenter()
   updateEngineState()
 
   // Automatic ResizeObserver: instantly resizes canvas whenever parent size changes (e.g. game mode toggle)
@@ -431,12 +492,6 @@ function updateEngineState() {
 
   // Render character and path trail
   engine.renderCharacter(characterStore, mapStore.project)
-}
-
-function focusOnCenter() {
-  const centerCol = Math.floor(mapStore.project.cols / 2)
-  const centerRow = Math.floor(mapStore.project.rows / 2)
-  focusOnCell(centerCol, centerRow)
 }
 
 // Watchers: Optimized and decoupled so hover/selection does NOT trigger full layer and grid rebuilds
@@ -585,16 +640,47 @@ watch(
 watch(
   () => characterStore.isGameMode,
   () => {
-    nextTick(() => {
+    const refreshView = () => {
+      cachedViewportRect = null
+      updateViewportRect()
       handleResize()
-      centerView()
+      focusOnCenter()
+      updateEngineState()
+    }
+
+    nextTick(() => {
+      refreshView()
     })
     setTimeout(() => {
-      handleResize()
+      refreshView()
     }, 60)
     setTimeout(() => {
+      refreshView()
+    }, 180)
+    setTimeout(() => {
+      refreshView()
+    }, 350)
+  }
+)
+
+// Re-center and synchronize when a new map project is loaded or dimensions change
+watch(
+  () => [mapStore.project.id, mapStore.project.cols, mapStore.project.rows],
+  () => {
+    const refreshView = () => {
+      cachedViewportRect = null
+      updateViewportRect()
       handleResize()
-    }, 200)
+      focusOnCenter()
+      updateEngineState()
+    }
+
+    nextTick(() => {
+      refreshView()
+    })
+    setTimeout(() => {
+      refreshView()
+    }, 100)
   }
 )
 
@@ -621,7 +707,7 @@ function handleContextMenu() {
 }
 
 // Reusable Cell Click / Tap Action Execution
-function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
+function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
   if (mapStore.activeLayer?.locked) return
 
   if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
@@ -647,7 +733,7 @@ function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
   if (towerStore.activeBuildTowerId) {
     towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
     engine.renderTowersAndCombat(towerStore, mapStore.project, characterStore, toolStore.hoveredCell)
-    if (!isCtrl) {
+    if (!isContinuous) {
       towerStore.selectBuildTower(null)
     }
     return
@@ -711,7 +797,7 @@ function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
     const existingDirect = mapStore.getCellItems(gridCoord.col, gridCoord.row)
 
     if (existingDirect.length > 0) {
-      if (toolStore.placementMode === 'ask' && !isCtrl) {
+      if (toolStore.placementMode === 'ask' && !isContinuous) {
         toolStore.placementConflict = {
           col: gridCoord.col,
           row: gridCoord.row,
@@ -725,7 +811,7 @@ function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
       mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack')
     }
 
-    if (!isCtrl) {
+    if (!isContinuous) {
       assetStore.selectAsset(null)
     } else {
       toolStore.isMouseDown = true
@@ -792,7 +878,7 @@ function executeCellClick(gridCoord: GridCoord, isCtrl = false) {
       mapStore.fillTiles(targetCells, assetStore.selectedAssetId)
     }
 
-    if (!isCtrl) {
+    if (!isContinuous) {
       assetStore.selectAsset(null)
     }
     return
@@ -837,7 +923,7 @@ function handleMouseDown(e: MouseEvent) {
   const rect = getViewportRect()
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
 
-  executeCellClick(gridCoord, e.ctrlKey || e.metaKey)
+  executeCellClick(gridCoord, e.shiftKey || e.ctrlKey || e.metaKey)
 }
 
 // Touch Interaction State & Multi-touch Gestures (Pinch-to-zoom, Pan, Tap)
@@ -1084,6 +1170,9 @@ function handleMouseMove(e: MouseEvent) {
 
   if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
     toolStore.setHoveredCell(gridCoord)
+    if (multiplayerStore.roomId) {
+      multiplayerStore.broadcastTeammateHover(gridCoord.col, gridCoord.row)
+    }
   } else {
     toolStore.setHoveredCell(null)
   }
@@ -1098,7 +1187,7 @@ function handleMouseMove(e: MouseEvent) {
   }
 
   if (toolStore.isMouseDown && !mapStore.activeLayer?.locked) {
-    if (assetStore.selectedAssetId && (e.ctrlKey || e.metaKey)) {
+    if (assetStore.selectedAssetId && (e.shiftKey || e.ctrlKey || e.metaKey)) {
       if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
         const existing = mapStore.getCellItems(gridCoord.col, gridCoord.row)
         if (existing.length === 0 || toolStore.placementMode === 'stack') {
@@ -1369,7 +1458,12 @@ function handleKeyUp(e: KeyboardEvent) {
 }
 
 defineExpose({
+  centerView,
+  focusOnCenter,
   focusOnCell,
+  updateEngineState,
+  handleResize,
+  engine,
   exportPng: async (options: { includeGrid: boolean; transparentBg: boolean }) => {
     return engine.exportImage({
       includeGrid: options.includeGrid,
