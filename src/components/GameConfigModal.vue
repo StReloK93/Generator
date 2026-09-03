@@ -6,10 +6,10 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 select-none animate-in fade-in duration-200"
+    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-6 select-none animate-in fade-in duration-200 pt-safe pb-safe"
   >
     <div 
-      class="glass-panel border border-slate-700/80 w-full max-w-4xl rounded-3xl p-5 shadow-2xl bg-slate-900/98 flex flex-col gap-4 text-xs text-slate-200 max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200"
+      class="glass-panel border border-slate-700/80 w-full max-w-4xl rounded-3xl p-4 sm:p-5 shadow-2xl bg-slate-900/98 flex flex-col gap-3.5 sm:gap-4 text-xs text-slate-200 max-h-[88dvh] overflow-hidden animate-in zoom-in-95 duration-200"
     >
       <!-- MODAL HEADER -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">

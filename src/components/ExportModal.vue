@@ -6,14 +6,14 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-150"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-150 pt-safe pb-safe"
   >
     <div 
       @mousedown.stop
       @mouseup.stop
       @click.stop
       @pointerdown.stop
-      class="glass-panel border border-brand-500/40 w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col gap-5 animate-in zoom-in-95 duration-200 bg-dark-900/95"
+      class="glass-panel border border-brand-500/40 w-full max-w-md max-h-[88dvh] overflow-y-auto rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4 sm:gap-5 animate-in zoom-in-95 duration-200 bg-dark-900/95 custom-scrollbar"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-3.5">

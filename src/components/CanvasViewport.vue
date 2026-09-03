@@ -191,20 +191,11 @@
 
         <!-- Center Map View -->
         <button 
-          @click="centerView"
+          @click="focusOnCenter"
           class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
           title="Xaritani umumiy ko'rinishga qaytarish"
         >
           <Crosshair class="w-4 h-4" />
-        </button>
-
-        <!-- Center Origin Focus (🎯) -->
-        <button 
-          @click="focusOnCenter"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 flex items-center justify-center transition-all cursor-pointer shadow-sm text-xs font-bold active:scale-95"
-          title="Markaziy koordinata (Center Origin)ga borish"
-        >
-          <span>🎯</span>
         </button>
       </div>
     </div>

@@ -6,14 +6,14 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 select-none animate-in fade-in duration-200"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 select-none animate-in fade-in duration-200 pt-safe pb-safe"
   >
-    <div class="glass-panel border border-brand-500/40 w-full max-w-3xl max-h-[92vh] rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl flex flex-col gap-4 sm:gap-5 animate-in zoom-in-95 duration-200 bg-dark-900/95 overflow-hidden">
+    <div class="glass-panel border border-brand-500/40 w-full max-w-3xl max-h-[88dvh] rounded-3xl p-3.5 sm:p-6 md:p-7 shadow-2xl flex flex-col gap-3.5 sm:gap-5 animate-in zoom-in-95 duration-200 bg-dark-900/95 overflow-hidden">
       <!-- Welcome Header -->
-      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3.5 shrink-0">
-        <div class="flex items-center gap-2.5 sm:gap-3.5">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-teal-400 flex items-center justify-center text-white shadow-glow-brand shrink-0">
-            <Layers class="w-5 h-5" />
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 sm:pb-3.5 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3.5">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-teal-400 flex items-center justify-center text-white shadow-glow-brand shrink-0">
+            <Layers class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
           <div>
             <h2 class="font-bold text-sm sm:text-base md:text-lg text-slate-100 flex items-center gap-2">
@@ -354,7 +354,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const savedSessionData = ref<{ project: any; assets: any[] } | null>(null)
 
 const hasSavedSession = computed(() => !!savedSessionData.value)
-const canClose = computed(() => mapStore.project.layers.length > 0 && mapStore.totalTilesCount > 0)
+const canClose = computed(() => !!mapStore.project?.layers?.length)
 
 interface Preset {
   name: string
@@ -401,6 +401,8 @@ const availableMaps = computed(() => {
     let displayName = proj.name || baseName
     if (baseName.toLowerCase() === 'burbenog') {
       displayName = 'Burbenog TD'
+    } else if (baseName.toLowerCase() === 'burbenog2') {
+      displayName = 'Burbenog TD 2'
     }
 
     result.push({
@@ -416,8 +418,8 @@ const availableMaps = computed(() => {
       tilesCount: totalTiles,
       rawData: raw,
       tag: waves.length > 0 ? 'Tower Defense' : 'Izometrik Xarita',
-      description: baseName.toLowerCase() === 'burbenog' 
-        ? "4 ta burchak darvozalari, simmetrik himoya yo'llari va to'lqinli personajlar bilan jihozlangan rasmiy TD xaritasi" 
+      description: baseName.toLowerCase().includes('burbenog')
+        ? `${doorsCount} ta darvoza, simmetrik himoya yo'llari va to'lqinli personajlar bilan jihozlangan TD xaritasi` 
         : `${proj.cols}×${proj.rows} o'lchamli tayyor izometrik xarita`
     })
   }
@@ -457,6 +459,11 @@ function applyPreset(preset: Preset) {
 }
 
 function handleCreateNew() {
+  characterStore.exitPlayMode()
+  characterStore.isPlaying = false
+  characterStore.isGameMode = false
+  characterStore.gameState = 'ready'
+  towerStore.clearCombatEffects()
   mapStore.createNewProject({
     name: newProjectName.value || 'Yangi Izometrik Karta',
     cols: cols.value,
@@ -480,6 +487,12 @@ async function applyMapProject(rawData: any, isPlayMode = true) {
     if (isPlayMode) {
       requestAppFullscreen()
       characterStore.startLoadingScreen(project.name || 'Burbenog TD')
+    } else {
+      characterStore.exitPlayMode()
+      characterStore.isPlaying = false
+      characterStore.isGameMode = false
+      characterStore.gameState = 'ready'
+      towerStore.clearCombatEffects()
     }
 
     const clonedProject = JSON.parse(JSON.stringify(project))
@@ -537,6 +550,15 @@ async function applyMapProject(rawData: any, isPlayMode = true) {
 
     characterStore.detectDoors()
     characterStore.spawnAtDoor(characterStore.selectedDoorIndex || 0)
+    characterStore.isPlaying = false
+
+    if (!isPlayMode) {
+      characterStore.exitPlayMode()
+      characterStore.isPlaying = false
+      characterStore.isGameMode = false
+      characterStore.gameState = 'ready'
+      towerStore.clearCombatEffects()
+    }
 
     assetStore.selectedAssetId = null
     toolStore.activeTool = 'select'

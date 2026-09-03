@@ -879,6 +879,21 @@ export const useCharacterStore = defineStore('characterStore', () => {
       return
     }
 
+    // If not actively playing (e.g. paused in editor or waiting), do not advance movement
+    if (!isPlaying.value) {
+      for (const unit of units.value) {
+        if (!unit.isDead && !unit.hasReachedEnd) {
+          unit.action = 'Idle'
+          unit.animTimer += deltaSec
+          if (unit.animTimer >= 0.15) {
+            unit.animTimer = 0
+            unit.frameIndex = (unit.frameIndex + 1) % 4
+          }
+        }
+      }
+      return
+    }
+
     const tileWidth = mapStore.project.tileWidth
     const tileHeight = mapStore.project.tileHeight
     const waveCfg = currentWaveConfig.value

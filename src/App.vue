@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
+  <div class="h-dvh w-screen min-h-dvh max-h-dvh bg-slate-950 text-slate-100 overflow-hidden font-sans select-none flex flex-col">
     <router-view />
   </div>
 </template>

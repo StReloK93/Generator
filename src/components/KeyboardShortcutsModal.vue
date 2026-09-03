@@ -1,9 +1,9 @@
 <template>
   <div 
     v-if="toolStore.isShortcutsModalOpen"
-    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 select-none"
+    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none pt-safe pb-safe"
   >
-    <div class="glass-panel border border-slate-700/80 w-full max-w-lg rounded-3xl p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+    <div class="glass-panel border border-slate-700/80 w-full max-w-lg max-h-[88dvh] overflow-y-auto rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 custom-scrollbar">
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2.5">

@@ -5,8 +5,8 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="glass-panel border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden"
-    :class="{ 'w-12 !min-w-[48px]': isCollapsed }"
+    class="glass-panel border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 right-0"
+    :class="{ 'w-10 sm:w-12 !min-w-[40px] sm:!min-w-[48px] !relative': isCollapsed }"
   >
     <!-- Collapsed Toggle Strip -->
     <div v-if="isCollapsed" class="h-full flex flex-col items-center py-4 justify-between">
@@ -489,7 +489,7 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 
-const isCollapsed = ref(false)
+const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 const activeTopTab = ref<'elements' | 'layers'>('elements')
 const elementSearchQuery = ref('')
 

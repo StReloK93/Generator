@@ -2,9 +2,9 @@
   <div 
     @mousedown.stop
     @click.stop
-    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 select-none"
+    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none pt-safe pb-safe"
   >
-    <div class="glass-panel border border-slate-700 w-full max-w-lg rounded-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+    <div class="glass-panel border border-slate-700 w-full max-w-lg max-h-[88dvh] overflow-y-auto rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col gap-3.5 sm:gap-4 animate-in fade-in zoom-in-95 duration-200 custom-scrollbar">
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
