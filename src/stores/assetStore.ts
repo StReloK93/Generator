@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AssetItem } from '../types/map'
 import { useToolStore } from './toolStore'
+import { assetManager } from '../services/assetManager'
 
 export const useAssetStore = defineStore('assetStore', () => {
   const assets = ref<AssetItem[]>([])
@@ -16,78 +17,31 @@ export const useAssetStore = defineStore('assetStore', () => {
   })
 
   const isLoaded = ref(false)
-  let loadPromise: Promise<void> | null = null
 
-  // Automatically load all sprites from src/assets/sprites/*.png through analyzeImage pipeline
-  async function loadBuiltinSprites() {
-    if (loadPromise) return loadPromise
-    loadPromise = (async () => {
-      try {
-        const spriteModules = import.meta.glob<string>('../assets/sprites/*.png', { eager: true, import: 'default' })
-        const entries = Object.entries(spriteModules)
-        const loadedList: AssetItem[] = []
+  // Map of static sprite URLs for HTML <img> preview rendering
+  const spriteUrls = import.meta.glob<string>('../assets/sprites/*.png', { eager: true, import: 'default' })
+  const urlMap = new Map<string, string>()
+  for (const [path, url] of Object.entries(spriteUrls)) {
+    const filename = path.split('/').pop() || ''
+    urlMap.set(filename, url)
+  }
 
-        for (const [path, url] of entries) {
-          const filename = path.split('/').pop() || ''
-          const baseName = filename.replace(/\.[^/.]+$/, '')
-          
-          let category = 'Boshqa'
-          const lower = baseName.toLowerCase()
+  // Instantly load precomputed sprite manifest (0 runtime canvas scanning!)
+  function loadBuiltinSprites(): Promise<void> {
+    if (isLoaded.value && assets.value.length > 0) return Promise.resolve()
 
-          if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
-            category = 'Yer (Ground)'
-          } else if (lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway')) {
-            category = 'Devorlar (Walls)'
-          } else if (lower.includes('stairs') || lower.includes('bridge')) {
-            category = "Zinalar & Ko'priklar (Stairs)"
-          } else if (lower.includes('column') || lower.includes('support')) {
-            category = 'Ustunlar (Supports & Columns)'
-          } else if (lower.includes('barrel') || lower.includes('chest') || lower.includes('chair') || lower.includes('table') || lower.includes('crate') || lower.includes('pile')) {
-            category = 'Obyektlar & Mebel (Props)'
-          }
-
-          // Format name: stoneWallAgedLeft_E -> Stone Wall Aged Left (E)
-          let formattedName = baseName
-            .replace(/_([A-Z])$/, ' ($1)')
-            .replace(/([a-z])([A-Z])/g, '$1 $2')
-          formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
-
-          const analysis = await analyzeImage(url)
-
-          loadedList.push({
-            id: `sprite-${baseName}`,
-            name: formattedName,
-            src: url,
-            previewSrc: analysis.previewSrc,
-            category,
-            width: analysis.width,
-            height: analysis.height,
-            anchorX: analysis.anchorX,
-            anchorY: analysis.anchorY,
-            contentBounds: analysis.bounds,
-            spanX: 1,
-            spanY: 1,
-            scale: 1.0,
-            isSample: true,
-            fileRelativePath: filename,
-          })
-        }
-
-        // Sort nicely by category then name
-        loadedList.sort((a, b) => {
-          if (a.category !== b.category) return a.category.localeCompare(b.category)
-          return a.name.localeCompare(b.name)
-        })
-
-        assets.value = loadedList
-        isLoaded.value = true
-        // Leave selectedAssetId as null until user explicitly selects an asset
-      } catch (e) {
-        console.warn('Failed to load builtin sprites:', e)
-        isLoaded.value = true
+    const list: AssetItem[] = assetManager.manifest.map((item) => {
+      const srcUrl = item.fileRelativePath ? urlMap.get(item.fileRelativePath) || '' : ''
+      return {
+        ...item,
+        src: srcUrl,
+        previewSrc: srcUrl,
       }
-    })()
-    return loadPromise
+    })
+
+    assets.value = list
+    isLoaded.value = true
+    return Promise.resolve()
   }
 
   // Load automatically on store creation
@@ -115,7 +69,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     })
   })
 
-  // Upload user files / folder: automatically analyzes content bounding box & centers preview in gallery
+  // Upload user files / folder: analyzes bounding box for custom uploaded files
   async function uploadFiles(files: FileList | File[]): Promise<number> {
     const fileArray = Array.from(files).filter(file => {
       const type = file.type.toLowerCase()
@@ -330,7 +284,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
   })
 }
 
-// Alpha Bounding Box Analyzer & Centered Preview Generator
+// Alpha Bounding Box Analyzer for custom uploaded images
 function analyzeImage(src: string): Promise<{
   width: number
   height: number
@@ -374,7 +328,6 @@ function analyzeImage(src: string): Promise<{
         let maxY = 0
         let hasVisiblePixels = false
 
-        // Scan non-transparent pixel boundaries
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
             const alpha = data[(y * width + x) * 4 + 3]
@@ -398,7 +351,6 @@ function analyzeImage(src: string): Promise<{
         const contentWidth = Math.max(1, maxX - minX + 1)
         const contentHeight = Math.max(1, maxY - minY + 1)
 
-        // Generate a crisp, centered square thumbnail of the visible content for the gallery
         const previewCanvas = document.createElement('canvas')
         const previewSize = 256
         previewCanvas.width = previewSize
@@ -422,9 +374,6 @@ function analyzeImage(src: string): Promise<{
         )
 
         const previewSrc = previewCanvas.toDataURL('image/png')
-
-        // Smart placement anchor: if image has empty space at bottom (maxY < height * 0.4), use maxY / height
-        // Otherwise standard 0.88 for tall props, 0.5 for square tiles
         const standardAnchorY = maxY < height * 0.4 
           ? Number((maxY / height).toFixed(4)) 
           : (height > width * 0.8 ? 0.88 : 0.5)
@@ -438,7 +387,6 @@ function analyzeImage(src: string): Promise<{
           bounds: { minX, minY, maxX, maxY }
         })
       } catch (e) {
-        console.warn('Canvas pixel analysis fallback:', e)
         resolve({
           width,
           height,
@@ -449,18 +397,16 @@ function analyzeImage(src: string): Promise<{
         })
       }
     }
-
     img.onerror = () => {
       resolve({
-        width: 128,
-        height: 128,
+        width: 256,
+        height: 512,
         anchorX: 0.5,
-        anchorY: 0.5,
+        anchorY: 0.88,
         previewSrc: src,
-        bounds: { minX: 0, minY: 0, maxX: 128, maxY: 128 }
+        bounds: { minX: 0, minY: 0, maxX: 256, maxY: 512 }
       })
     }
-
     img.src = src
   })
 }

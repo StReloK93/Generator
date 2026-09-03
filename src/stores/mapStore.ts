@@ -55,6 +55,7 @@ export const useMapStore = defineStore('mapStore', () => {
   })
 
   const activeLayerId = ref<string>('layer-ground')
+  const isGameMap = ref<boolean>(false)
 
   // History for Undo / Redo
   const history = ref<ProjectHistoryItem[]>([])
@@ -362,6 +363,18 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const key = cellKey(col, row)
     const existing = getCellItems(col, row, layerId)
+
+    // Check if the exact same asset already exists on this cell
+    const alreadyHasSame = existing.some(item => item.assetId === assetId)
+    if (alreadyHasSame) {
+      if (mode === 'replace' && existing.length === 1 && existing[0].assetId === assetId) {
+        return existing[0]
+      }
+      if (mode === 'stack') {
+        // Do not place duplicate identical asset in the same cell on the same layer
+        return existing.find(item => item.assetId === assetId) || existing[0]
+      }
+    }
 
     const assetStore = useAssetStore()
     const asset = assetStore.assets.find(a => a.id === assetId)
@@ -846,6 +859,7 @@ export const useMapStore = defineStore('mapStore', () => {
     project,
     activeLayerId,
     activeLayer,
+    isGameMap,
     canUndo,
     canRedo,
     totalTilesCount,

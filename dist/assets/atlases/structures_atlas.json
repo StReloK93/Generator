@@ -1,0 +1,2733 @@
+{
+  "frames": {
+    "stoneWallCorner_E": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 161,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallCorner_W": {
+      "frame": {
+        "x": 165,
+        "y": 2,
+        "w": 161,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundBroken_N": {
+      "frame": {
+        "x": 328,
+        "y": 2,
+        "w": 88,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 227,
+        "w": 88,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundBroken_S": {
+      "frame": {
+        "x": 418,
+        "y": 2,
+        "w": 88,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 227,
+        "w": 88,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRound_N": {
+      "frame": {
+        "x": 508,
+        "y": 2,
+        "w": 87,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 227,
+        "w": 87,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRound_S": {
+      "frame": {
+        "x": 597,
+        "y": 2,
+        "w": 87,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 87,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallStructure_E": {
+      "frame": {
+        "x": 686,
+        "y": 2,
+        "w": 256,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 256,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallStructure_S": {
+      "frame": {
+        "x": 944,
+        "y": 2,
+        "w": 256,
+        "h": 285
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 256,
+        "h": 285
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallStructure_N": {
+      "frame": {
+        "x": 1202,
+        "y": 2,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallStructure_W": {
+      "frame": {
+        "x": 1460,
+        "y": 2,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBlock_E": {
+      "frame": {
+        "x": 1718,
+        "y": 2,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBlock_N": {
+      "frame": {
+        "x": 2,
+        "y": 289,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBlock_S": {
+      "frame": {
+        "x": 260,
+        "y": 289,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBlock_W": {
+      "frame": {
+        "x": 518,
+        "y": 289,
+        "w": 256,
+        "h": 282
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 256,
+        "h": 282
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorOpen_E": {
+      "frame": {
+        "x": 776,
+        "y": 289,
+        "w": 161,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 244
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBroken_S": {
+      "frame": {
+        "x": 939,
+        "y": 289,
+        "w": 166,
+        "h": 242
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 227,
+        "w": 166,
+        "h": 242
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBroken_E": {
+      "frame": {
+        "x": 1107,
+        "y": 289,
+        "w": 169,
+        "h": 240
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 169,
+        "h": 240
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallCorner_S": {
+      "frame": {
+        "x": 1278,
+        "y": 289,
+        "w": 256,
+        "h": 240
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 224,
+        "w": 256,
+        "h": 240
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedLeft_E": {
+      "frame": {
+        "x": 1536,
+        "y": 289,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedRight_S": {
+      "frame": {
+        "x": 1699,
+        "y": 289,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAged_E": {
+      "frame": {
+        "x": 1862,
+        "y": 289,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAged_S": {
+      "frame": {
+        "x": 2,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallArchway_E": {
+      "frame": {
+        "x": 165,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallArchway_S": {
+      "frame": {
+        "x": 328,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenLeft_E": {
+      "frame": {
+        "x": 491,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenRight_S": {
+      "frame": {
+        "x": 654,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumnIn_E": {
+      "frame": {
+        "x": 817,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumnIn_S": {
+      "frame": {
+        "x": 980,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorBars_E": {
+      "frame": {
+        "x": 1143,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorBars_S": {
+      "frame": {
+        "x": 1306,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorClosed_E": {
+      "frame": {
+        "x": 1469,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorClosed_S": {
+      "frame": {
+        "x": 1632,
+        "y": 573,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorOpen_S": {
+      "frame": {
+        "x": 1795,
+        "y": 573,
+        "w": 174,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 227,
+        "w": 174,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoor_E": {
+      "frame": {
+        "x": 2,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoor_S": {
+      "frame": {
+        "x": 165,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateBars_E": {
+      "frame": {
+        "x": 328,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateBars_S": {
+      "frame": {
+        "x": 491,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateClosed_E": {
+      "frame": {
+        "x": 654,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateClosed_S": {
+      "frame": {
+        "x": 817,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateOpen_E": {
+      "frame": {
+        "x": 980,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateOpen_S": {
+      "frame": {
+        "x": 1143,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGate_E": {
+      "frame": {
+        "x": 1306,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGate_S": {
+      "frame": {
+        "x": 1469,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHole_E": {
+      "frame": {
+        "x": 1632,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHole_S": {
+      "frame": {
+        "x": 1795,
+        "y": 812,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundWindow_E": {
+      "frame": {
+        "x": 2,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundWindow_S": {
+      "frame": {
+        "x": 165,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindowBars_E": {
+      "frame": {
+        "x": 328,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindowBars_S": {
+      "frame": {
+        "x": 491,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindow_E": {
+      "frame": {
+        "x": 654,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindow_S": {
+      "frame": {
+        "x": 817,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWall_E": {
+      "frame": {
+        "x": 980,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWall_S": {
+      "frame": {
+        "x": 1143,
+        "y": 1051,
+        "w": 161,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 227,
+        "w": 161,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedLeft_N": {
+      "frame": {
+        "x": 1306,
+        "y": 1051,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedRight_W": {
+      "frame": {
+        "x": 1469,
+        "y": 1051,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAged_N": {
+      "frame": {
+        "x": 1632,
+        "y": 1051,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAged_W": {
+      "frame": {
+        "x": 1795,
+        "y": 1051,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallArchway_N": {
+      "frame": {
+        "x": 2,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallArchway_W": {
+      "frame": {
+        "x": 165,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenLeft_N": {
+      "frame": {
+        "x": 328,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenRight_W": {
+      "frame": {
+        "x": 491,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBroken_N": {
+      "frame": {
+        "x": 654,
+        "y": 1290,
+        "w": 166,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 166,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBroken_W": {
+      "frame": {
+        "x": 822,
+        "y": 1290,
+        "w": 169,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 276,
+        "w": 169,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumnIn_N": {
+      "frame": {
+        "x": 993,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumnIn_W": {
+      "frame": {
+        "x": 1156,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallCorner_N": {
+      "frame": {
+        "x": 1319,
+        "y": 1290,
+        "w": 256,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 256,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorBars_N": {
+      "frame": {
+        "x": 1577,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorBars_W": {
+      "frame": {
+        "x": 1740,
+        "y": 1290,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorClosed_N": {
+      "frame": {
+        "x": 2,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorClosed_W": {
+      "frame": {
+        "x": 165,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorOpen_N": {
+      "frame": {
+        "x": 328,
+        "y": 1528,
+        "w": 174,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 174,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoorOpen_W": {
+      "frame": {
+        "x": 504,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoor_N": {
+      "frame": {
+        "x": 667,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallDoor_W": {
+      "frame": {
+        "x": 830,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateBars_N": {
+      "frame": {
+        "x": 993,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateBars_W": {
+      "frame": {
+        "x": 1156,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateClosed_N": {
+      "frame": {
+        "x": 1319,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateClosed_W": {
+      "frame": {
+        "x": 1482,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateOpen_N": {
+      "frame": {
+        "x": 1645,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGateOpen_W": {
+      "frame": {
+        "x": 1808,
+        "y": 1528,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGate_N": {
+      "frame": {
+        "x": 2,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallGate_W": {
+      "frame": {
+        "x": 165,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHole_N": {
+      "frame": {
+        "x": 328,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHole_W": {
+      "frame": {
+        "x": 491,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundWindow_N": {
+      "frame": {
+        "x": 654,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundWindow_W": {
+      "frame": {
+        "x": 817,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindowBars_N": {
+      "frame": {
+        "x": 980,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindowBars_W": {
+      "frame": {
+        "x": 1143,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindow_N": {
+      "frame": {
+        "x": 1306,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallWindow_W": {
+      "frame": {
+        "x": 1469,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWall_N": {
+      "frame": {
+        "x": 1632,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWall_W": {
+      "frame": {
+        "x": 1795,
+        "y": 1766,
+        "w": 161,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 276,
+        "w": 161,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportBeams_E": {
+      "frame": {
+        "x": 2,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportBeams_S": {
+      "frame": {
+        "x": 145,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBeam_E": {
+      "frame": {
+        "x": 288,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBeam_S": {
+      "frame": {
+        "x": 431,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupports_E": {
+      "frame": {
+        "x": 574,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupports_S": {
+      "frame": {
+        "x": 717,
+        "y": 2004,
+        "w": 141,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 230,
+        "w": 141,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportBeams_N": {
+      "frame": {
+        "x": 860,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportBeams_W": {
+      "frame": {
+        "x": 1003,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBeam_N": {
+      "frame": {
+        "x": 1146,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupportsBeam_W": {
+      "frame": {
+        "x": 1289,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupports_N": {
+      "frame": {
+        "x": 1432,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodenSupports_W": {
+      "frame": {
+        "x": 1575,
+        "y": 2004,
+        "w": 141,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 288,
+        "w": 141,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedRight_E": {
+      "frame": {
+        "x": 1718,
+        "y": 2004,
+        "w": 161,
+        "h": 215
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 249,
+        "w": 161,
+        "h": 215
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedRight_N": {
+      "frame": {
+        "x": 1881,
+        "y": 2004,
+        "w": 161,
+        "h": 211
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 301,
+        "w": 161,
+        "h": 211
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedLeft_S": {
+      "frame": {
+        "x": 2,
+        "y": 2231,
+        "w": 161,
+        "h": 200
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 264,
+        "w": 161,
+        "h": 200
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundBroken_E": {
+      "frame": {
+        "x": 165,
+        "y": 2231,
+        "w": 256,
+        "h": 200
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 265,
+        "w": 256,
+        "h": 200
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRoundBroken_W": {
+      "frame": {
+        "x": 423,
+        "y": 2231,
+        "w": 256,
+        "h": 199
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 256,
+        "h": 199
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRound_E": {
+      "frame": {
+        "x": 681,
+        "y": 2231,
+        "w": 256,
+        "h": 199
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 265,
+        "w": 256,
+        "h": 199
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallRound_W": {
+      "frame": {
+        "x": 939,
+        "y": 2231,
+        "w": 256,
+        "h": 199
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 276,
+        "w": 256,
+        "h": 199
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallAgedLeft_W": {
+      "frame": {
+        "x": 1197,
+        "y": 2231,
+        "w": 161,
+        "h": 195
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 317,
+        "w": 161,
+        "h": 195
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumnWood_E": {
+      "frame": {
+        "x": 1360,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumnWood_N": {
+      "frame": {
+        "x": 1426,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumnWood_S": {
+      "frame": {
+        "x": 1492,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumnWood_W": {
+      "frame": {
+        "x": 1558,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumn_E": {
+      "frame": {
+        "x": 1624,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumn_N": {
+      "frame": {
+        "x": 1690,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumn_S": {
+      "frame": {
+        "x": 1756,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneColumn_W": {
+      "frame": {
+        "x": 1822,
+        "y": 2231,
+        "w": 64,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 276,
+        "w": 64,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenLeft_S": {
+      "frame": {
+        "x": 2,
+        "y": 2433,
+        "w": 161,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 277,
+        "w": 161,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenRight_E": {
+      "frame": {
+        "x": 165,
+        "y": 2433,
+        "w": 161,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 277,
+        "w": 161,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumn_E": {
+      "frame": {
+        "x": 328,
+        "y": 2433,
+        "w": 64,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 277,
+        "w": 64,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumn_N": {
+      "frame": {
+        "x": 394,
+        "y": 2433,
+        "w": 66,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 325,
+        "w": 66,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumn_S": {
+      "frame": {
+        "x": 462,
+        "y": 2433,
+        "w": 66,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 229,
+        "w": 66,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallColumn_W": {
+      "frame": {
+        "x": 530,
+        "y": 2433,
+        "w": 64,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 192,
+        "y": 277,
+        "w": 64,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenRight_N": {
+      "frame": {
+        "x": 596,
+        "y": 2433,
+        "w": 161,
+        "h": 186
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 326,
+        "w": 161,
+        "h": 186
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallBrokenLeft_W": {
+      "frame": {
+        "x": 759,
+        "y": 2433,
+        "w": 161,
+        "h": 183
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 329,
+        "w": 161,
+        "h": 183
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHalf_E": {
+      "frame": {
+        "x": 922,
+        "y": 2433,
+        "w": 161,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 306,
+        "w": 161,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHalf_N": {
+      "frame": {
+        "x": 1085,
+        "y": 2433,
+        "w": 161,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 354,
+        "w": 161,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHalf_S": {
+      "frame": {
+        "x": 1248,
+        "y": 2433,
+        "w": 161,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 306,
+        "w": 161,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallHalf_W": {
+      "frame": {
+        "x": 1411,
+        "y": 2433,
+        "w": 161,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 354,
+        "w": 161,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_W": {
+      "frame": {
+        "x": 1574,
+        "y": 2433,
+        "w": 161,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 358,
+        "w": 161,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_S": {
+      "frame": {
+        "x": 1737,
+        "y": 2433,
+        "w": 161,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 312,
+        "w": 161,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_N": {
+      "frame": {
+        "x": 2,
+        "y": 2622,
+        "w": 161,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 374,
+        "w": 161,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_E": {
+      "frame": {
+        "x": 165,
+        "y": 2622,
+        "w": 161,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 328,
+        "w": 161,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    }
+  },
+  "meta": {
+    "image": "structures_atlas.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 4096
+    },
+    "scale": "1"
+  }
+}

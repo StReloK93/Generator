@@ -117,6 +117,19 @@ export const useTowerStore = defineStore('towerStore', () => {
   const characterStore = useCharacterStore()
   const multiplayerStore = useMultiplayerStore()
 
+  const blueprintMap = computed<Map<string, TowerBlueprint>>(() => {
+    const map = new Map<string, TowerBlueprint>()
+    for (let i = 0; i < blueprints.value.length; i++) {
+      const bp = blueprints.value[i]
+      map.set(bp.id, bp)
+    }
+    return map
+  })
+
+  function getBlueprint(id: string): TowerBlueprint | undefined {
+    return blueprintMap.value.get(id)
+  }
+
   const selectedPlacedTower = computed<PlacedTower | null>(() => {
     if (!selectedPlacedTowerId.value) return null
     return placedTowers.value.find(t => t.id === selectedPlacedTowerId.value) || null
@@ -124,12 +137,12 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   const selectedBlueprint = computed<TowerBlueprint | null>(() => {
     if (blueprints.value.length === 0) return null
-    return blueprints.value.find(b => b.id === selectedBlueprintId.value) || blueprints.value[0] || null
+    return blueprintMap.value.get(selectedBlueprintId.value) || blueprints.value[0] || null
   })
 
   const activeBlueprint = computed<TowerBlueprint | null>(() => {
     if (!activeBuildTowerId.value) return null
-    return blueprints.value.find(b => b.id === activeBuildTowerId.value) || null
+    return blueprintMap.value.get(activeBuildTowerId.value) || null
   })
 
   function syncBlueprintChanges(bpId: string) {
@@ -191,6 +204,10 @@ export const useTowerStore = defineStore('towerStore', () => {
       selectedPlacedTowerId.value = null
       toolStore.setTool('select')
     }
+  }
+
+  function selectPlacedTower(id: string | null) {
+    selectedPlacedTowerId.value = id
   }
 
   const isCreateTowerModalOpen = ref(false)
@@ -530,6 +547,10 @@ export const useTowerStore = defineStore('towerStore', () => {
 
         for (let uIdx = 0; uIdx < activeUnits.length; uIdx++) {
           const unit = activeUnits[uIdx]
+          // Fast box pre-filter to eliminate sqrt/hypot for out-of-range units
+          if (Math.abs(unit.currentCol - tower.col) > tower.range || Math.abs(unit.currentRow - tower.row) > tower.range) {
+            continue
+          }
           const distInTiles = Math.hypot(unit.currentCol - tower.col, unit.currentRow - tower.row)
           if (distInTiles <= tower.range) {
             const pathProgress = unit.pathIndex + unit.pathInterpolation
@@ -552,9 +573,10 @@ export const useTowerStore = defineStore('towerStore', () => {
 
           const totalDist = Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1
           const projSpeedPx = tower.projectileSpeed * tileWidth // e.g. 10 tiles/sec * 128px
+          const projId = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 
           projectiles.value.push({
-            id: `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            id: projId,
             towerId: tower.id,
             startX: muzzleX,
             startY: muzzleY,
@@ -573,6 +595,24 @@ export const useTowerStore = defineStore('towerStore', () => {
             totalDistance: totalDist,
             traveledDistance: 0,
           })
+
+          if (multiplayerStore.roomId && multiplayerStore.isHost) {
+            multiplayerStore.queueCombatEvent({
+              id: projId,
+              type: 'TOWER_FIRE',
+              towerId: tower.id,
+              unitId: bestTarget.id,
+              projType: tower.projectileType,
+              startX: muzzleX,
+              startY: muzzleY,
+              targetX,
+              targetY,
+              color: tower.projectileColor,
+              speed: tower.projectileSpeed,
+              isSplash: tower.isSplash,
+              splashRadius: tower.splashRadius,
+            })
+          }
         }
       }
     }
@@ -636,6 +676,18 @@ export const useTowerStore = defineStore('towerStore', () => {
         lifeTimer: 0,
       })
 
+      if (multiplayerStore.roomId && multiplayerStore.isHost) {
+        multiplayerStore.queueCombatEvent({
+          id: `hit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          type: 'COMBAT_HIT',
+          targetX: proj.targetX,
+          targetY: proj.targetY,
+          isSplash: true,
+          splashRadius: proj.splashRadius,
+          projType: proj.projectileType,
+        })
+      }
+
       // Damage all units within splash radius
       for (const u of unitsPool) {
         if (u.isDead) continue
@@ -688,6 +740,19 @@ export const useTowerStore = defineStore('towerStore', () => {
       lifeTimer: 0,
     })
 
+    if (multiplayerStore.roomId && multiplayerStore.isHost) {
+      multiplayerStore.queueCombatEvent({
+        id: `hit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        type: 'COMBAT_HIT',
+        unitId: unit.id,
+        targetX: unit.screenX,
+        targetY: unit.screenY,
+        damage,
+        currentHp: unit.currentHp,
+        isCrit: damage >= 70,
+      })
+    }
+
     if (sourceTower) {
       sourceTower.totalDamageDealt += damage
     }
@@ -708,25 +773,40 @@ export const useTowerStore = defineStore('towerStore', () => {
 
       if (sourceTower) {
         sourceTower.killsCount++
-        if (sourceTower.builderId) {
-          multiplayerStore.recordPlayerKill(sourceTower.builderId, killGold)
+      }
+
+      // In Multiplayer Mode: Reward ONLY the specific player who built this attacking tower!
+      if (multiplayerStore.roomId) {
+        const killerPlayerId = sourceTower?.builderId || multiplayerStore.myPlayerId
+        multiplayerStore.recordPlayerKill(killerPlayerId, killGold)
+      } else {
+        // Single Player Game Mode:
+        if (characterStore.isGameMode) {
+          characterStore.gold += killGold
+          characterStore.score += killGold * 10
         }
       }
 
-      // In Game Mode: Reward Gold & Score for each unit killed!
-      if (characterStore.isGameMode) {
-        characterStore.gold += killGold
-        characterStore.score += killGold * 10
+      // Floating Gold VFX Floater (+15 💰)
+      damageFloaters.value.push({
+        id: `gold-${Date.now()}-${Math.random()}`,
+        text: `+${killGold} 💰`,
+        x: unit.screenX,
+        y: unit.screenY - mapStore.project.tileHeight * 1.3,
+        color: 0xfacc15,
+        alpha: 1.0,
+        lifeTimer: 0,
+      })
 
-        // Floating Gold VFX Floater (+15 💰)
-        damageFloaters.value.push({
-          id: `gold-${Date.now()}-${Math.random()}`,
-          text: `+${killGold} 💰`,
-          x: unit.screenX,
-          y: unit.screenY - mapStore.project.tileHeight * 1.3,
-          color: 0xfacc15,
-          alpha: 1.0,
-          lifeTimer: 0,
+      if (multiplayerStore.roomId && multiplayerStore.isHost) {
+        multiplayerStore.queueCombatEvent({
+          id: `die-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          type: 'UNIT_DIED',
+          unitId: unit.id,
+          targetX: unit.screenX,
+          targetY: unit.screenY,
+          killerId: sourceTower?.builderId,
+          goldReward: killGold,
         })
       }
     }
@@ -789,6 +869,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     addNewBlueprint,
     removeBlueprint,
     selectBuildTower,
+    selectPlacedTower,
     sellPlacedTower,
     placeTowerAt,
     removePlacedTower,

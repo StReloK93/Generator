@@ -74,6 +74,9 @@ export type NetMessageType =
   | 'BUILD_TOWER'
   | 'UPGRADE_TOWER'
   | 'SELL_TOWER'
+  | 'WORLD_SNAPSHOT'
+  | 'GAME_STATE_SYNC'
+  | 'COMBAT_EVENT'
   | 'WAVE_TICK'
   | 'WAVE_START'
   | 'GAME_EVENT'
@@ -87,6 +90,7 @@ export interface NetMessage {
   payload: any
   senderId: string
   timestamp: number
+  seq?: number
 }
 
 export interface RoomState {
@@ -101,6 +105,70 @@ export interface RoomState {
   gameState: 'lobby' | 'countdown' | 'in_game' | 'ended'
   countdownTimer: number
   createdAt: number
+}
+
+/**
+ * Compact unit snapshot for high-frequency low-overhead 20-30Hz P2P transmission
+ */
+export interface CompactUnitSnapshot {
+  id: string
+  x: number
+  y: number
+  col: number
+  row: number
+  d: number // direction (0-7)
+  a: string // action ('Run' | 'Idle' | 'Pickup')
+  f: number // frameIndex
+  hp: number
+  mhp?: number
+  fl: number // bitflags: 1: isSpawned, 2: hasReachedEnd, 4: isDead
+  df?: number // deathFade (0..1)
+}
+
+export interface WorldSnapshotPayload {
+  seq: number
+  time: number
+  units: CompactUnitSnapshot[]
+}
+
+export interface GameStateSyncPayload {
+  gameState: 'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'
+  prepCountdown: number
+  currentWaveIndex: number
+  playerLives: number
+  score: number
+  playerStats?: Array<{
+    id: string
+    killsCount: number
+    score: number
+    gold: number
+  }>
+}
+
+export type CombatEventType = 'TOWER_FIRE' | 'COMBAT_HIT' | 'UNIT_DIED'
+
+export interface CompactCombatEvent {
+  id: string
+  type: CombatEventType
+  towerId?: string
+  unitId?: string
+  projType?: string
+  startX?: number
+  startY?: number
+  targetX?: number
+  targetY?: number
+  currentX?: number
+  currentY?: number
+  color?: number
+  speed?: number
+  damage?: number
+  isCrit?: boolean
+  currentHp?: number
+  isSplash?: boolean
+  splashRadius?: number
+  splashType?: string
+  killerId?: string
+  goldReward?: number
 }
 
 export const PLAYER_COLORS = [

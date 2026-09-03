@@ -5,6 +5,7 @@ import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
 import { useMultiplayerStore } from './multiplayerStore'
+import { networkSyncBuffer } from '../services/networkSync'
 import { cellKey, isInsideGrid, gridToScreen } from '../utils/isometric'
 
 export interface DoorInfo {
@@ -63,6 +64,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const mapStore = useMapStore()
   const toolStore = useToolStore()
   const towerStore = useTowerStore()
+  const multiplayerStore = useMultiplayerStore()
 
   const isEnabled = ref(true)
   const isPlaying = ref(false)
@@ -77,17 +79,56 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const showPathTrail = ref(true)
   const autoLoop = ref(true)
 
-  // Game Mode & Economy State
+  // Game Mode & Economy State (Configured per map in mapStore.project.gameSettings)
   const isGameMode = ref(false) // Toggle between Map Redaktor and Playable Game Mode
   const fps = ref(60) // Live Engine FPS Counter
   const totalKills = ref(0) // Total enemy units defeated
   const playerLives = ref(20)
   const maxLives = ref(20)
   const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
-  const prepCountdown = ref(10) // 10-second building countdown before each wave
-  const gold = ref(500)
+  const prepCountdown = ref(10) // building countdown before each wave
+  const gold = ref(150)
   const score = ref(0)
   const currentWaveIndex = ref(0)
+
+  // Per-Map TD Settings Computeds
+  const startingGold = computed({
+    get: () => mapStore.project.gameSettings?.startingGold ?? 150,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: v, startingLives: 20, wavePrepTime: 10 }
+      } else {
+        mapStore.project.gameSettings.startingGold = v
+      }
+      gold.value = v
+    }
+  })
+
+  const startingLives = computed({
+    get: () => mapStore.project.gameSettings?.startingLives ?? 20,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: v, wavePrepTime: 10 }
+      } else {
+        mapStore.project.gameSettings.startingLives = v
+      }
+      maxLives.value = v
+      playerLives.value = v
+    }
+  })
+
+  const wavePrepDuration = computed({
+    get: () => mapStore.project.gameSettings?.wavePrepTime ?? 10,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: v }
+      } else {
+        mapStore.project.gameSettings.wavePrepTime = v
+      }
+      prepCountdown.value = v
+    }
+  })
+
   // User-created Wave Configurations (Starts empty so user defines their own waves)
   const waveConfigs = ref<WaveConfig[]>([])
 
@@ -679,10 +720,34 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }, 2500)
   }
 
+  function syncGameSettingsToProject() {
+    if (!mapStore.project) return
+    mapStore.project.gameSettings = {
+      startingGold: Number(startingGold.value) || 150,
+      startingLives: Number(startingLives.value) || 20,
+      wavePrepTime: Number(wavePrepDuration.value) || 10,
+    }
+  }
+
+  function restoreGameSettingsFromProject() {
+    const p = mapStore.project as any
+    if (p && p.gameSettings) {
+      const gs = p.gameSettings
+      startingGold.value = gs.startingGold ?? 150
+      startingLives.value = gs.startingLives ?? 20
+      wavePrepDuration.value = gs.wavePrepTime ?? 10
+      gold.value = startingGold.value
+      maxLives.value = startingLives.value
+      playerLives.value = startingLives.value
+      prepCountdown.value = wavePrepDuration.value
+    }
+  }
+
   function syncWavesToProject() {
     if (!mapStore.project) return
     ;(mapStore.project as any).waveConfigs = waveConfigs.value.map(w => ({ ...w }))
     ;(mapStore.project as any).currentWaveIndex = currentWaveIndex.value
+    syncGameSettingsToProject()
   }
 
   function restoreWavesFromProject() {
@@ -691,6 +756,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       waveConfigs.value = p.waveConfigs.map((w: any) => ({ ...w }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? 0))
     }
+    restoreGameSettingsFromProject()
   }
 
   function addNewWave() {
@@ -1043,21 +1109,32 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       if (isGameMode.value) {
         if (playerLives.value > 0) {
-          gold.value += reward
-          score.value += reward * 10
+          if (multiplayerStore.roomId) {
+            for (const p of multiplayerStore.players) {
+              p.gold = (p.gold || 0) + reward
+              p.score = (p.score || 0) + reward * 10
+              if (p.id === multiplayerStore.myPlayerId) {
+                gold.value = p.gold
+                score.value = p.score
+              }
+            }
+          } else {
+            gold.value += reward
+            score.value += reward * 10
+          }
 
           if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
             gameState.value = 'victory'
             isPlaying.value = false
             statusMessage.value = "🏆 G'alaba! Barcha to'lqinlar muvaffaqiyatli qaytarildi!"
           } else {
-            // Next wave: Enter 10-second building & prep phase!
+            // Next wave: Enter building & prep phase!
             currentWaveIndex.value++
             gameState.value = 'build_prep'
-            prepCountdown.value = 10
+            prepCountdown.value = wavePrepDuration.value
             isPlaying.value = false
             spawnAtDoor(0)
-            statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} qaytarildi! +${reward} oltin. 10s qurilish vaqti...`
+            statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} qaytarildi! +${reward} oltin. ${wavePrepDuration.value}s qurilish vaqti...`
           }
         }
       } else {
@@ -1073,40 +1150,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
    * Client-side visual animation frame cycle between authoritative network ticks
    */
   function updateClientInterpolation(deltaSec: number) {
-    if (units.value.length === 0) return
-
-    for (let i = 0; i < units.value.length; i++) {
-      const unit = units.value[i]
-      if (!unit.isSpawned) continue
-
-      if (unit.isDead) {
-        unit.action = 'Pickup'
-        unit.animTimer += deltaSec
-        if (unit.animTimer >= 0.08) {
-          unit.animTimer = 0
-          if (unit.frameIndex < 4) {
-            unit.frameIndex++
-          }
-        }
-        if (unit.deathFade > 0) {
-          unit.deathFade = Math.max(0, unit.deathFade - deltaSec * 1.2)
-        }
-      } else if (unit.hasReachedEnd) {
-        unit.action = 'Pickup'
-        unit.animTimer += deltaSec
-        if (unit.animTimer >= 0.1) {
-          unit.animTimer = 0
-          unit.frameIndex = (unit.frameIndex + 1) % 10
-        }
-      } else {
-        unit.action = 'Run'
-        unit.animTimer += deltaSec
-        if (unit.animTimer >= 0.07) {
-          unit.animTimer = 0
-          unit.frameIndex = (unit.frameIndex + 1) % 10
-        }
-      }
-    }
+    networkSyncBuffer.interpolate(deltaSec)
   }
 
   // --- GAME MODE CONTROLS ---
@@ -1115,16 +1159,22 @@ export const useCharacterStore = defineStore('characterStore', () => {
     towerStore.saveEditorTowersSnapshot()
     towerStore.clearCombatEffects()
     isGameMode.value = true
-    playerLives.value = maxLives.value
-    gold.value = 500
+    const initLives = startingLives.value
+    maxLives.value = initLives
+    playerLives.value = initLives
+    gold.value = startingGold.value
     score.value = 0
     currentWaveIndex.value = 0
     gameState.value = 'build_prep'
-    prepCountdown.value = 10
+    prepCountdown.value = wavePrepDuration.value
     gameSpeed.value = 1.0
     followCamera.value = false
     spawnAtDoor(0)
     isPlaying.value = false
+  }
+
+  function setGameSpeed(speed: number) {
+    gameSpeed.value = speed
   }
 
   function exitPlayMode() {
@@ -1251,6 +1301,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     speed,
     unitSpeed,
     gameSpeed,
+    setGameSpeed,
     spawnCount,
     spawnMode,
     formation,
@@ -1304,6 +1355,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     maxLives,
     gameState,
     prepCountdown,
+    startingGold,
+    startingLives,
+    wavePrepDuration,
     startPlayMode,
     exitPlayMode,
     startNextWaveInGame,
@@ -1314,6 +1368,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     saveCurrentWave,
     syncWavesToProject,
     restoreWavesFromProject,
+    syncGameSettingsToProject,
+    restoreGameSettingsFromProject,
     syncSpawnPointsToProject,
     isSettingSpawnPoint,
     spawnPointPlacementMode,

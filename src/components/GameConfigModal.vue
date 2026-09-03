@@ -28,7 +28,8 @@
         <div class="flex items-center gap-2.5">
           <!-- Gold Badge -->
           <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono font-bold text-xs">
-            <span>💰 {{ characterStore.gold }} oltin</span>
+            <Coins class="w-3.5 h-3.5 text-amber-400" />
+            <span>{{ characterStore.gold }} oltin</span>
           </div>
 
           <!-- Close Modal Button -->
@@ -43,12 +44,12 @@
       </div>
 
       <!-- NAVIGATION TABS -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 shrink-0">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 shrink-0">
         <!-- Tab 1: Tower Blueprints -->
         <button 
           @click="toolStore.gameConfigActiveTab = 'towers'"
           :class="toolStore.gameConfigActiveTab === 'towers' ? 'bg-amber-600 text-white font-bold shadow-md ring-1 ring-amber-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
+          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
         >
           <ShieldAlert class="w-4 h-4 text-amber-300" />
           <span>Minoralar ({{ towerStore.blueprints.length }})</span>
@@ -58,27 +59,37 @@
         <button 
           @click="toolStore.gameConfigActiveTab = 'waves'"
           :class="toolStore.gameConfigActiveTab === 'waves' ? 'bg-purple-600 text-white font-bold shadow-md ring-1 ring-purple-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
+          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
         >
           <Swords class="w-4 h-4 text-purple-300" />
           <span>To'lqinlar ({{ characterStore.waveConfigs.length }})</span>
         </button>
 
-        <!-- Tab 3: Placed Towers -->
+        <!-- Tab 3: Map Balance (Economy & Lives & Timer) -->
+        <button 
+          @click="toolStore.gameConfigActiveTab = 'balance'"
+          :class="toolStore.gameConfigActiveTab === 'balance' ? 'bg-amber-600 text-white font-bold shadow-md ring-1 ring-amber-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
+          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+        >
+          <Coins class="w-4 h-4 text-amber-300" />
+          <span>Karta Balansi</span>
+        </button>
+
+        <!-- Tab 4: Placed Towers -->
         <button 
           @click="toolStore.gameConfigActiveTab = 'placed'"
           :class="toolStore.gameConfigActiveTab === 'placed' ? 'bg-sky-600 text-white font-bold shadow-md ring-1 ring-sky-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
+          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
         >
           <TowerControl class="w-4 h-4 text-sky-300" />
           <span>Qurilganlar ({{ towerStore.placedTowers.length }})</span>
         </button>
 
-        <!-- Tab 4: Spawn Points & Movement -->
+        <!-- Tab 5: Spawn Points & Movement -->
         <button 
           @click="toolStore.gameConfigActiveTab = 'spawns'"
           :class="toolStore.gameConfigActiveTab === 'spawns' ? 'bg-emerald-600 text-white font-bold shadow-md ring-1 ring-emerald-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
+          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs col-span-2 sm:col-span-1"
         >
           <Users class="w-4 h-4 text-emerald-300" />
           <span>Chiqish & Harakat</span>
@@ -219,7 +230,7 @@
               <!-- Damage -->
               <div class="flex flex-col gap-1">
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>💥 Zarar:</span>
+                  <span class="flex items-center gap-1"><Flame class="w-3 h-3 text-rose-400" /> Zarar:</span>
                   <span class="font-mono text-amber-300 font-bold">{{ selectedBp.damage }}</span>
                 </div>
                 <input 
@@ -236,7 +247,7 @@
               <!-- Attack Speed -->
               <div class="flex flex-col gap-1">
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>⚡ Hujum tezligi:</span>
+                  <span class="flex items-center gap-1"><Zap class="w-3 h-3 text-amber-300" /> Hujum tezligi:</span>
                   <span class="font-mono text-amber-300 font-bold">{{ selectedBp.attackSpeed }}s</span>
                 </div>
                 <input 
@@ -253,16 +264,16 @@
               <!-- Range -->
               <div class="flex flex-col gap-1">
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>🎯 Masofa (Radius):</span>
-                  <span class="font-mono text-amber-300 font-bold">{{ selectedBp.range }}k</span>
+                  <span class="flex items-center gap-1"><Crosshair class="w-3 h-3 text-sky-400" /> Masofa:</span>
+                  <span class="font-mono text-amber-300 font-bold">{{ selectedBp.range }} katak</span>
                 </div>
                 <input 
                   type="range" 
-                  min="1.5" 
-                  max="10.0" 
-                  step="0.5" 
+                  min="1" 
+                  max="12" 
+                  step="1" 
                   :value="selectedBp.range"
-                  @input="(e) => updateSelectedBp({ range: parseFloat((e.target as HTMLInputElement).value) })"
+                  @input="(e) => updateSelectedBp({ range: parseInt((e.target as HTMLInputElement).value) })"
                   class="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
                 />
               </div>
@@ -418,7 +429,7 @@
             <!-- 2. HP (Health) -->
             <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
               <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold">❤️ Jon (HP):</span>
+                <span class="font-semibold flex items-center gap-1"><Heart class="w-3.5 h-3.5 text-rose-400" /> Jon (HP):</span>
                 <span class="font-mono text-rose-400 font-bold">{{ selectedWave.unitHp }} HP</span>
               </div>
               <input 
@@ -436,7 +447,7 @@
             <!-- 3. Speed -->
             <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
               <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold">⚡ Yurish tezligi:</span>
+                <span class="font-semibold flex items-center gap-1"><Zap class="w-3.5 h-3.5 text-amber-300" /> Yurish tezligi:</span>
                 <span class="font-mono text-amber-300 font-bold">{{ selectedWave.unitSpeed }} k/s</span>
               </div>
               <input 
@@ -454,7 +465,7 @@
             <!-- 4. Gold Reward -->
             <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
               <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold">💰 Mukofot:</span>
+                <span class="font-semibold flex items-center gap-1"><Coins class="w-3.5 h-3.5 text-yellow-400" /> Mukofot:</span>
                 <span class="font-mono text-yellow-300 font-bold">+{{ selectedWave.goldReward }} oltin</span>
               </div>
               <input 
@@ -482,7 +493,7 @@
               class="py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
               <Play class="w-4 h-4" />
-              <span>▶️ Faqat Shu To'lqinni Sinash</span>
+              <span>Faqat Shu To'lqinni Sinash</span>
             </button>
           </div>
 
@@ -491,7 +502,167 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 3: QURILGAN MINORALAR (PLACED TOWERS)                                  -->
+      <!-- TAB 3: KARTA TD BALANSI (MAP TD BALANCE & ECONOMY)                        -->
+      <!-- ========================================================================= -->
+      <div v-else-if="toolStore.gameConfigActiveTab === 'balance'" class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+        <div class="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold shadow-inner">
+              <Coins class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Ushbu Xarita TD Balansi & Iqtisodiyoti</h3>
+              <p class="text-[11px] text-slate-400">Har bir xarita uchun boshlang'ich oltin, jonlar va taymer alohida saqlanadi</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-amber-400 font-bold">
+            🗺️ {{ mapStore.project.name || 'Xarita' }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <!-- 1. Starting Gold -->
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/30 flex flex-col gap-3 shadow-md">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Coins class="w-4 h-4 text-yellow-400" />
+                <span class="font-bold text-slate-200 text-xs">Boshlang'ich Oltin</span>
+              </div>
+              <div class="flex items-center gap-1 bg-yellow-950/40 px-2 py-0.5 rounded-lg border border-yellow-500/30">
+                <Coins class="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                <input 
+                  type="number" 
+                  min="10" 
+                  max="50000" 
+                  v-model.number="characterStore.startingGold"
+                  class="w-16 bg-transparent text-right font-mono font-bold text-yellow-300 text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              O'yinchi ushbu xaritada o'yinni boshlaganda beriladigan dastlabki oltin miqdori.
+            </p>
+            <input 
+              type="range"
+              min="50"
+              max="2000"
+              step="25"
+              v-model.number="characterStore.startingGold"
+              class="accent-yellow-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+            />
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button 
+                v-for="preset in [100, 150, 250, 500, 1000]"
+                :key="preset"
+                @click="characterStore.startingGold = preset"
+                :class="characterStore.startingGold === preset ? 'bg-yellow-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
+                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
+              >
+                {{ preset }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Starting Lives -->
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-rose-500/30 flex flex-col gap-3 shadow-md">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Heart class="w-4 h-4 text-rose-400" />
+                <span class="font-bold text-slate-200 text-xs">Boshlang'ich Jonlar</span>
+              </div>
+              <div class="flex items-center gap-1 bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-500/30">
+                <Heart class="w-3.5 h-3.5 text-rose-400 fill-rose-400 shrink-0" />
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="1000" 
+                  v-model.number="characterStore.startingLives"
+                  class="w-14 bg-transparent text-right font-mono font-bold text-rose-300 text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              Dushmanlar xaritani bosib o'tganda umumiy ruxsat etilgan xatolar / jonlar soni.
+            </p>
+            <input 
+              type="range"
+              min="1"
+              max="100"
+              step="1"
+              v-model.number="characterStore.startingLives"
+              class="accent-rose-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+            />
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button 
+                v-for="preset in [5, 10, 20, 50, 100]"
+                :key="preset"
+                @click="characterStore.startingLives = preset"
+                :class="characterStore.startingLives === preset ? 'bg-rose-500 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
+                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
+              >
+                {{ preset }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Wave Prep Timer -->
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-indigo-500/30 flex flex-col gap-3 shadow-md">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Timer class="w-4 h-4 text-indigo-400" />
+                <span class="font-bold text-slate-200 text-xs">To'lqinlar Oralig'i</span>
+              </div>
+              <div class="flex items-center gap-1 bg-indigo-950/40 px-2 py-0.5 rounded-lg border border-indigo-500/30">
+                <Timer class="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="300" 
+                  v-model.number="characterStore.wavePrepDuration"
+                  class="w-12 bg-transparent text-right font-mono font-bold text-indigo-300 text-sm focus:outline-none"
+                />
+                <span class="text-indigo-300 text-xs font-mono">s</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              Har bir to'lqin tugagach, keyingi to'lqinga qadar minora qurish va tayyorgarlik vaqti.
+            </p>
+            <input 
+              type="range"
+              min="3"
+              max="60"
+              step="1"
+              v-model.number="characterStore.wavePrepDuration"
+              class="accent-indigo-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+            />
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button 
+                v-for="preset in [5, 10, 15, 20, 30]"
+                :key="preset"
+                @click="characterStore.wavePrepDuration = preset"
+                :class="characterStore.wavePrepDuration === preset ? 'bg-indigo-500 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
+                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
+              >
+                {{ preset }}s
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary & Balance Info Card -->
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-2.5 text-xs text-slate-300">
+          <div class="font-bold text-slate-200 flex items-center gap-2">
+            <Sparkles class="w-4 h-4 text-amber-400" />
+            <span>Xarita TD Balansi Haqida:</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Ushbu sozlamalar loyiha fayliga (<code class="text-amber-300 font-mono">.isomap.json</code>) to'liq kiritiladi va eksport qilinadi. Har bir yangi yoki yuklangan xaritada o'zining mustaqil balansi saqlanadi!
+          </p>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 4: QURILGAN MINORALAR (PLACED TOWERS)                                  -->
       <!-- ========================================================================= -->
       <div v-else-if="toolStore.gameConfigActiveTab === 'placed'" class="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
         
@@ -813,7 +984,8 @@
                   v-model="characterStore.followCamera"
                   class="w-4 h-4 accent-brand-500 rounded cursor-pointer"
                 />
-                <span class="text-slate-300 font-medium">🎥 Kamera Ergashishi</span>
+                <Camera class="w-4 h-4 text-slate-400" />
+                <span class="text-slate-300 font-medium">Kamera Ergashishi</span>
               </label>
 
               <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:bg-slate-850">
@@ -822,7 +994,8 @@
                   v-model="characterStore.showPathTrail"
                   class="w-4 h-4 accent-brand-500 rounded cursor-pointer"
                 />
-                <span class="text-slate-300 font-medium">🛤️ Yo'l Chizig'i</span>
+                <GitBranch class="w-4 h-4 text-slate-400" />
+                <span class="text-slate-300 font-medium">Yo'l Chizig'i</span>
               </label>
             </div>
 
@@ -875,10 +1048,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
   Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
-  MapPin, Navigation, PenTool, Activity, User 
+  MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
+  Camera, GitBranch, Flame, Zap
 } from 'lucide-vue-next'
 import { useToolStore } from '../stores/toolStore'
 import { useTowerStore, PlacedTower } from '../stores/towerStore'
@@ -888,6 +1063,7 @@ import { useMapStore } from '../stores/mapStore'
 import { AssetItem } from '../types/map'
 import { requestAppFullscreen } from '../utils/fullscreen'
 
+const router = useRouter()
 const toolStore = useToolStore()
 const towerStore = useTowerStore()
 const characterStore = useCharacterStore()
@@ -972,6 +1148,7 @@ function handleStartDrawingRoute() {
 
 function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
+  router.push('/game')
   requestAppFullscreen()
   characterStore.startLoadingScreen(mapStore.project.name || 'Xarita')
   characterStore.setLoadingProgress(30, "Assetlar tekshirilmoqda...")

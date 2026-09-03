@@ -1,5 +1,7 @@
 import { Application, Container, Graphics, Sprite, Texture, Text, TextStyle, ImageSource } from 'pixi.js'
 import { MapProject, AssetItem, GridCoord, Point2D, SelectedElementRef } from '../types/map'
+import { networkSyncBuffer } from '../services/networkSync'
+import { assetManager } from '../services/assetManager'
 import { 
   gridToScreen, 
   screenToGrid, 
@@ -86,7 +88,7 @@ export class IsoEngine {
       height,
       backgroundColor: 0x090d16,
       backgroundAlpha: 1,
-      antialias: true,
+      antialias: !isMobile,
       resolution: dpr,
       autoDensity: true,
     })
@@ -121,9 +123,9 @@ export class IsoEngine {
     this.overlayContainer.addChild(this.previewContainer)
     this.worldContainer.addChild(this.combatGraphics)
 
-    // Load character sprites and tower structures properly with ImageSource
-    await this.loadCharacterTextures()
-    await this.loadTowerTextures()
+    // Load core terrain textures and schedule background preloader
+    await assetManager.loadCore()
+    assetManager.preloadRemainingInBackground()
 
     // Ticker animation loop with live FPS calculation
     let frameCount = 0
@@ -454,7 +456,18 @@ export class IsoEngine {
   public onTextureLoaded?: (assetId: string, texture: Texture) => void
 
   public async preloadAsset(asset: AssetItem): Promise<Texture | null> {
-    if (!asset || !asset.src) return null
+    if (!asset) return null
+
+    // 1. Fast check in AssetManager
+    const managed = assetManager.getTexture(asset.id) || 
+                    assetManager.getTexture(asset.fileRelativePath || '') ||
+                    assetManager.getTexture(asset.name)
+    if (managed) {
+      this.textureCache.set(asset.id, managed)
+      return managed
+    }
+
+    if (!asset.src) return null
     if (this.textureCache.has(asset.id)) {
       return this.textureCache.get(asset.id)!
     }
@@ -475,11 +488,14 @@ export class IsoEngine {
           const cleanId = asset.id.replace(/^sprite-/, '')
           this.textureCache.set(cleanId, texture)
           this.textureCache.set(`sprite-${cleanId}`, texture)
+          assetManager.registerCustomTexture(asset.id, texture)
+
           if (asset.fileRelativePath) {
             this.textureCache.set(asset.fileRelativePath, texture)
             const baseNoExt = asset.fileRelativePath.replace(/\.[^/.]+$/, '')
             this.textureCache.set(baseNoExt, texture)
             this.textureCache.set(`sprite-${baseNoExt}`, texture)
+            assetManager.registerCustomTexture(baseNoExt, texture)
           }
           if (this.onTextureLoaded) {
             this.onTextureLoaded(asset.id, texture)
@@ -502,8 +518,17 @@ export class IsoEngine {
   }
 
   public getTexture(asset: AssetItem): Texture | null {
-    if (!asset || !asset.src) return null
+    if (!asset) return null
 
+    // 1. Prioritize Central AssetManager (instant O(1) spritesheet sub-texture)
+    const managed = assetManager.getTexture(asset.id) || 
+                    assetManager.getTexture(asset.fileRelativePath || '') ||
+                    assetManager.getTexture(asset.name)
+    if (managed) {
+      return managed
+    }
+
+    // 2. Check local fallback cache
     if (this.textureCache.has(asset.id)) {
       return this.textureCache.get(asset.id)!
     }
@@ -514,23 +539,13 @@ export class IsoEngine {
     if (this.textureCache.has(`sprite-${cleanId}`)) {
       return this.textureCache.get(`sprite-${cleanId}`)!
     }
-    if (this.textureCache.has(asset.src)) {
+    if (asset.src && this.textureCache.has(asset.src)) {
       return this.textureCache.get(asset.src)!
     }
-    if (asset.fileRelativePath) {
-      if (this.textureCache.has(asset.fileRelativePath)) {
-        return this.textureCache.get(asset.fileRelativePath)!
-      }
-      const baseNoExt = asset.fileRelativePath.replace(/\.[^/.]+$/, '')
-      if (this.textureCache.has(baseNoExt)) {
-        return this.textureCache.get(baseNoExt)!
-      }
-      if (this.textureCache.has(`sprite-${baseNoExt}`)) {
-        return this.textureCache.get(`sprite-${baseNoExt}`)!
-      }
-    }
 
-    this.preloadAsset(asset)
+    if (asset.src) {
+      this.preloadAsset(asset)
+    }
     return null
   }
 
@@ -645,78 +660,11 @@ export class IsoEngine {
   }
 
   async loadCharacterTextures(): Promise<void> {
-    try {
-      const charModules = import.meta.glob<string>('../assets/characters/male/*.png', { eager: true, import: 'default' })
-      const entries = Object.entries(charModules)
-
-      const loadPromises = entries.map(([path, url]) => {
-        return new Promise<void>((resolve) => {
-          const filename = path.split('/').pop() || ''
-          const baseName = filename.replace(/\.[^/.]+$/, '')
-
-          const img = new window.Image()
-          img.crossOrigin = 'anonymous'
-          img.onload = () => {
-            try {
-              const source = new ImageSource({ resource: img })
-              const texture = new Texture({ source })
-              this.characterTextures.set(baseName, texture)
-            } catch (e) {
-              console.warn('Failed to create ImageSource for char:', baseName, e)
-            }
-            resolve()
-          }
-          img.onerror = (e) => {
-            console.warn('Failed to load image for char:', baseName, e)
-            resolve()
-          }
-          img.src = url
-        })
-      })
-
-      await Promise.all(loadPromises)
-      console.log(`Loaded ${this.characterTextures.size} character textures successfully.`)
-    } catch (e) {
-      console.warn('Failed to glob load character textures:', e)
-    }
+    await assetManager.loadGame()
   }
 
   async loadTowerTextures(): Promise<void> {
-    try {
-      const towerModules = import.meta.glob<string>('../assets/builds/*.png', { eager: true, import: 'default' })
-      const entries = Object.entries(towerModules)
-
-      const loadPromises = entries.map(([path, url]) => {
-        return new Promise<void>((resolve) => {
-          const filename = path.split('/').pop() || ''
-          const baseName = filename.replace(/\.[^/.]+$/, '')
-
-          const img = new window.Image()
-          img.crossOrigin = 'anonymous'
-          img.onload = () => {
-            try {
-              const source = new ImageSource({ resource: img })
-              const texture = new Texture({ source })
-              this.towerTextures.set(filename, texture)
-              this.towerTextures.set(baseName, texture)
-            } catch (e) {
-              console.warn('Failed to create ImageSource for tower:', filename, e)
-            }
-            resolve()
-          }
-          img.onerror = (e) => {
-            console.warn('Failed to load image for tower:', filename, e)
-            resolve()
-          }
-          img.src = url
-        })
-      })
-
-      await Promise.all(loadPromises)
-      console.log(`Loaded ${this.towerTextures.size} tower textures successfully.`)
-    } catch (e) {
-      console.warn('Failed to glob load tower textures:', e)
-    }
+    await assetManager.loadEditor()
   }
 
   renderTowersAndCombat(
@@ -905,12 +853,14 @@ export class IsoEngine {
     }
 
     // 2. Combat Overlays in combatGraphics
-    const hasProjectiles = towerStore.projectiles && towerStore.projectiles.length > 0
-    const hasRings = towerStore.explosionRings && towerStore.explosionRings.length > 0
-    const hasFloaters = towerStore.damageFloaters && towerStore.damageFloaters.length > 0
+    const hasProjectiles = (towerStore.projectiles && towerStore.projectiles.length > 0) || networkSyncBuffer.projectilesPool.some(p => p.active)
+    const hasRings = (towerStore.explosionRings && towerStore.explosionRings.length > 0) || networkSyncBuffer.explosionRingsPool.some(r => r.active)
+    const hasFloaters = (towerStore.damageFloaters && towerStore.damageFloaters.length > 0) || networkSyncBuffer.damageFloatersPool.some(f => f.active)
     const towerToHighlight = towerStore.placedTowers.find(t => t.id === towerStore.selectedPlacedTowerId)
     const hasRangePreview = Boolean(towerToHighlight || (towerStore.activeBuildTowerId && hoveredGridCoord))
-    const units = characterStore.units || []
+    const units = (networkSyncBuffer.renderUnitsList.length > 0)
+      ? networkSyncBuffer.renderUnitsList
+      : (characterStore.units || [])
     const hasUnits = units.length > 0
 
     if (!hasProjectiles && !hasRings && !hasFloaters && !hasRangePreview && !hasUnits) {
@@ -959,8 +909,12 @@ export class IsoEngine {
 
     // 2.2 Flying Animated Projectiles (Distinguished by projectileType)
     if (hasProjectiles) {
-      for (let i = 0; i < towerStore.projectiles.length; i++) {
-        const proj = towerStore.projectiles[i]
+      const activeProjList = (towerStore.projectiles && towerStore.projectiles.length > 0)
+        ? towerStore.projectiles
+        : networkSyncBuffer.projectilesPool.filter(p => p.active)
+
+      for (let i = 0; i < activeProjList.length; i++) {
+        const proj = activeProjList[i]
         const type = proj.projectileType || 'cannonball'
         const angle = Math.atan2(proj.targetY - proj.startY, proj.targetX - proj.startX)
 
@@ -1084,8 +1038,12 @@ export class IsoEngine {
 
     // 2.3 Explosion Shockwave Rings
     if (hasRings) {
-      for (let i = 0; i < towerStore.explosionRings.length; i++) {
-        const ring = towerStore.explosionRings[i]
+      const activeRings = (towerStore.explosionRings && towerStore.explosionRings.length > 0)
+        ? towerStore.explosionRings
+        : networkSyncBuffer.explosionRingsPool.filter(r => r.active)
+
+      for (let i = 0; i < activeRings.length; i++) {
+        const ring = activeRings[i]
         const rx = ring.radius
         const ry = ring.radius * 0.5
         this.combatGraphics
@@ -1128,8 +1086,12 @@ export class IsoEngine {
 
     // 2.5 Damage Text Floater Chips
     if (hasFloaters) {
-      for (let i = 0; i < towerStore.damageFloaters.length; i++) {
-        const df = towerStore.damageFloaters[i]
+      const activeFloaters = (towerStore.damageFloaters && towerStore.damageFloaters.length > 0)
+        ? towerStore.damageFloaters
+        : networkSyncBuffer.damageFloatersPool.filter(f => f.active)
+
+      for (let i = 0; i < activeFloaters.length; i++) {
+        const df = activeFloaters[i]
         this.combatGraphics
           .roundRect(df.x - 14, df.y - 7, 28, 14, 4)
           .fill({ color: 0x090d16, alpha: df.alpha * 0.85 })
@@ -1199,6 +1161,38 @@ export class IsoEngine {
       this.pathTrailGraphics.clear()
 
       if (isDrawing) {
+        // 1. Render all other existing routes with subtle semi-transparent lines so designer sees whole network!
+        const colors = [0x8b5cf6, 0x38bdf8, 0xf59e0b, 0xec4899]
+        if (characterStore.detectedDoors && characterStore.detectedDoors.length > 0) {
+          characterStore.detectedDoors.forEach((_: any, dIdx: number) => {
+            if (dIdx === selectedDoorIdx && characterStore.drawingPath && characterStore.drawingPath.length > 0) {
+              return // Skip the active drawing route here
+            }
+            const otherRoute = characterStore.getRouteForDoor ? characterStore.getRouteForDoor(dIdx) : null
+            if (otherRoute && otherRoute.length > 1) {
+              const otherPts = otherRoute.map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+              const c = colors[dIdx % colors.length]
+              
+              this.pathTrailGraphics.moveTo(otherPts[0].x, otherPts[0].y)
+              for (let i = 1; i < otherPts.length; i++) {
+                this.pathTrailGraphics.lineTo(otherPts[i].x, otherPts[i].y)
+              }
+              this.pathTrailGraphics.stroke({ width: 3.5, color: c, alpha: 0.25 })
+
+              this.pathTrailGraphics.moveTo(otherPts[0].x, otherPts[0].y)
+              for (let i = 1; i < otherPts.length; i++) {
+                this.pathTrailGraphics.lineTo(otherPts[i].x, otherPts[i].y)
+              }
+              this.pathTrailGraphics.stroke({ width: 1.5, color: c, alpha: 0.45 })
+
+              for (let i = 0; i < otherPts.length; i += 4) {
+                this.pathTrailGraphics.circle(otherPts[i].x, otherPts[i].y, 2.5).fill({ color: c, alpha: 0.5 })
+              }
+            }
+          })
+        }
+
+        // 2. Render actively drawing route with vivid glowing green line & waypoints
         const activeRoute = characterStore.drawingPath
         if (activeRoute && activeRoute.length > 0) {
           const pts = (activeRoute as GridCoord[]).map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
@@ -1208,20 +1202,20 @@ export class IsoEngine {
             for (let i = 1; i < pts.length; i++) {
               this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
             }
-            this.pathTrailGraphics.stroke({ width: 5, color: 0x10b981, alpha: 0.5 })
+            this.pathTrailGraphics.stroke({ width: 6, color: 0x10b981, alpha: 0.55 })
 
             this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
             for (let i = 1; i < pts.length; i++) {
               this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
             }
-            this.pathTrailGraphics.stroke({ width: 2.5, color: 0x6ee7b7, alpha: 1.0 })
+            this.pathTrailGraphics.stroke({ width: 3, color: 0x6ee7b7, alpha: 1.0 })
           }
 
           // Draw start door marker & waypoint dots
           for (let i = 0; i < pts.length; i++) {
             const isStart = i === 0
             const isEnd = i === pts.length - 1
-            const radius = isStart || isEnd ? 6 : 3.5
+            const radius = isStart || isEnd ? 7 : 4
             const colr = isStart ? 0xf59e0b : (isEnd ? 0x38bdf8 : 0x10b981)
 
             this.pathTrailGraphics
@@ -1284,7 +1278,9 @@ export class IsoEngine {
     }
 
     // 2. Render Multiple Character Units
-    const units = characterStore.units || []
+    const units = (networkSyncBuffer.renderUnitsList.length > 0)
+      ? networkSyncBuffer.renderUnitsList
+      : (characterStore.units || [])
 
     // Ensure container pool size matches units count
     while (this.unitContainers.length < units.length) {
@@ -1342,17 +1338,10 @@ export class IsoEngine {
       const shadow = container.getChildAt(0) as Graphics
       const sprite = container.getChildAt(1) as Sprite
 
-      // Get Texture
+      // Get Texture from AssetManager
       const actionPrefix = unit.action || 'Idle'
       const frame = actionPrefix === 'Idle' ? '0' : (unit.frameIndex || 0)
-      const key = `Male_${unit.direction}_${actionPrefix}${frame}`
-
-      let texture = this.characterTextures.get(key)
-      if (!texture) {
-        texture = this.characterTextures.get(`Male_${unit.direction}_Idle0`) || 
-                  this.characterTextures.get('Male_2_Idle0') ||
-                  this.characterTextures.values().next().value
-      }
+      const texture = assetManager.getCharacterTexture(unit.direction, actionPrefix, frame)
 
       const fadeAlpha = unit.isDead ? Math.max(0, unit.deathFade ?? 1.0) : 1.0
 
@@ -1434,8 +1423,35 @@ export class IsoEngine {
     }
   }
 
+  stopTicker(): void {
+    this.onTick = undefined
+  }
+
+  clearCombatVisuals(): void {
+    if (this.combatGraphics) {
+      this.combatGraphics.clear()
+    }
+  }
+
+  clearCharacterVisuals(): void {
+    if (this.pathTrailGraphics) {
+      this.pathTrailGraphics.clear()
+    }
+    for (let i = 0; i < this.unitContainers.length; i++) {
+      this.unitContainers[i].visible = false
+    }
+    this.characterContainer.visible = false
+  }
+
+  clearOverlayVisuals(): void {
+    if (this.hoverGraphics) this.hoverGraphics.clear()
+    if (this.selectionGraphics) this.selectionGraphics.clear()
+    if (this.previewContainer) this.previewContainer.removeChildren()
+  }
+
   destroy(): void {
     if (this.isInitialized) {
+      this.stopTicker()
       this.app.destroy(true, { children: true, texture: true })
       this.isInitialized = false
     }

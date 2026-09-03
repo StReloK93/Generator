@@ -13,8 +13,8 @@
     <header class="relative z-10 w-full px-4 sm:px-6 py-3 sm:py-5 max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2.5 sm:gap-3.5">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 p-0.5 shadow-xl shadow-brand-500/20 flex items-center justify-center shrink-0">
-          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-lg sm:text-xl">
-            🏰
+          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <Castle class="w-5 h-5 text-brand-400" />
           </div>
         </div>
         <div>
@@ -69,8 +69,8 @@
           class="group p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-amber-500/10 via-slate-900/90 to-slate-950/95 border border-amber-500/40 hover:border-amber-400/90 hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer flex flex-col justify-between text-left relative overflow-hidden active:scale-98 touch-target"
         >
           <div class="space-y-2.5 sm:space-y-3">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl sm:text-2xl group-hover:scale-110 transition-transform shadow-lg">
-              🎮
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+              <Gamepad2 class="w-6 h-6" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -99,8 +99,8 @@
           class="group p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-brand-500/10 via-slate-900/90 to-slate-950/95 border border-brand-500/40 hover:border-brand-400/90 hover:shadow-2xl hover:shadow-brand-500/20 transition-all duration-300 cursor-pointer flex flex-col justify-between text-left relative overflow-hidden active:scale-98 touch-target"
         >
           <div class="space-y-2.5 sm:space-y-3">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-brand-500/20 text-brand-400 border border-brand-500/40 flex items-center justify-center text-xl sm:text-2xl group-hover:scale-110 transition-transform shadow-lg">
-              🌐
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-brand-500/20 text-brand-400 border border-brand-500/40 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+              <Globe class="w-6 h-6" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -129,8 +129,8 @@
           class="group p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-indigo-500/10 via-slate-900/90 to-slate-950/95 border border-indigo-500/40 hover:border-indigo-400/90 hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 cursor-pointer flex flex-col justify-between text-left relative overflow-hidden active:scale-98 touch-target"
         >
           <div class="space-y-2.5 sm:space-y-3">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 flex items-center justify-center text-xl sm:text-2xl group-hover:scale-110 transition-transform shadow-lg">
-              🗺️
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+              <Map class="w-6 h-6" />
             </div>
             <div>
               <div class="flex items-center justify-between">
@@ -233,19 +233,22 @@
       ref="joinGameModalRef" 
       @open-create-game="createGameModalRef?.open()" 
     />
+    <WelcomeProjectModal ref="editorSetupModalRef" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Sparkles, ArrowRight, Play, Radio } from 'lucide-vue-next'
+import { Sparkles, ArrowRight, Play, Radio, Castle, Gamepad2, Globe, Map } from 'lucide-vue-next'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import CreateGameModal from '../components/CreateGameModal.vue'
 import JoinGameModal from '../components/JoinGameModal.vue'
+import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import burbenogMapData from '../maps/Burbenog.json'
+import { assetManager } from '../services/assetManager'
 
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
@@ -254,9 +257,13 @@ const characterStore = useCharacterStore()
 
 const createGameModalRef = ref<any>(null)
 const joinGameModalRef = ref<any>(null)
+const editorSetupModalRef = ref<any>(null)
 
 let discoveryTimer: any = null
 onMounted(() => {
+  // Trigger background idle preload of game assets
+  assetManager.preloadRemainingInBackground()
+
   multiplayerStore.refreshDiscovery()
   discoveryTimer = setInterval(() => {
     multiplayerStore.refreshDiscovery()
@@ -268,7 +275,7 @@ onUnmounted(() => {
 })
 
 function goToEditor() {
-  router.push('/editor')
+  editorSetupModalRef.value?.open('new', false)
 }
 
 async function quickJoinRoom(roomId: string) {

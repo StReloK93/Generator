@@ -1,5 +1,6 @@
 import Peer, { DataConnection } from 'peerjs'
 import { NetMessage, ActiveRoomSummary } from '../types/multiplayer'
+import { networkSyncBuffer } from './networkSync'
 
 class NetworkService {
   private peer: Peer | null = null
@@ -433,12 +434,14 @@ class NetworkService {
     }
   }
 
+  private outgoingSeq = 0
+
   /**
    * Internal deduplicated message dispatcher
    */
   public receiveMessage(msg: NetMessage) {
     if (!msg || !msg.type) return
-    const key = `${msg.type}_${msg.senderId}_${msg.timestamp}_${JSON.stringify((msg.payload as any)?.id || '')}`
+    const key = `${msg.senderId}_${msg.seq || msg.timestamp}_${msg.type}`
     if (this.processedMessageIds.has(key)) return
 
     this.processedMessageIds.add(key)
@@ -450,6 +453,8 @@ class NetworkService {
       }
     }
 
+    networkSyncBuffer.recordPacketIn(100)
+
     if (this.onMessageCallback) {
       this.onMessageCallback(msg)
     }
@@ -460,12 +465,13 @@ class NetworkService {
    */
   public startRoomMessagePolling(roomId: string) {
     this.stopRoomMessagePolling()
-    if (!this.isServerRelayAvailable) return
+    // Do not poll HTTP if WebRTC or direct peer connection is already established
+    if (!this.isServerRelayAvailable || (this.hostConnection && this.hostConnection.open)) return
 
     this.lastMessageFetchTimestamp = Date.now() - 500
 
     const poll = async () => {
-      if (!this.roomId || !this.isServerRelayAvailable) {
+      if (!this.roomId || !this.isServerRelayAvailable || (this.hostConnection && this.hostConnection.open)) {
         this.stopRoomMessagePolling()
         return
       }
@@ -500,7 +506,7 @@ class NetworkService {
       }
     }
 
-    this.messagePollingInterval = setInterval(poll, 120)
+    this.messagePollingInterval = setInterval(poll, 150)
   }
 
   public stopRoomMessagePolling() {
@@ -516,12 +522,16 @@ class NetworkService {
   public broadcast(msg: NetMessage) {
     if (!msg.senderId) msg.senderId = this.myPeerId
     if (!msg.timestamp) msg.timestamp = Date.now()
+    if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
+
+    let sentViaWebRTC = false
 
     // 1. Send via WebRTC to all connected peer clients
     for (const [_, conn] of this.clientConnections.entries()) {
       if (conn && conn.open) {
         try {
           conn.send(msg)
+          sentViaWebRTC = true
         } catch (e) {
           console.warn('[P2P Broadcast Send Error]:', e)
         }
@@ -537,8 +547,10 @@ class NetworkService {
       }
     }
 
-    // 3. Send via HTTP Relay (only if server relay is available)
-    if (this.isServerRelayAvailable && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
+    networkSyncBuffer.recordPacketOut(100)
+
+    // 3. Fallback to HTTP Relay ONLY if no WebRTC clients are connected and server is available
+    if (!sentViaWebRTC && this.isServerRelayAvailable && msg.type !== 'WORLD_SNAPSHOT' && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
       this.sendToHttpRelay(msg)
     }
   }
@@ -549,11 +561,15 @@ class NetworkService {
   public sendToHost(msg: NetMessage) {
     if (!msg.senderId) msg.senderId = this.myPeerId
     if (!msg.timestamp) msg.timestamp = Date.now()
+    if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
+
+    let sentViaWebRTC = false
 
     // 1. Send via WebRTC
     if (this.hostConnection && this.hostConnection.open) {
       try {
         this.hostConnection.send(msg)
+        sentViaWebRTC = true
       } catch (e) {
         console.warn('[P2P Send to Host Error]:', e)
       }
@@ -568,8 +584,10 @@ class NetworkService {
       }
     }
 
-    // 3. Send via HTTP Relay (only if server relay is available)
-    if (this.isServerRelayAvailable && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
+    networkSyncBuffer.recordPacketOut(100)
+
+    // 3. Fallback to HTTP Relay ONLY if WebRTC is not connected
+    if (!sentViaWebRTC && this.isServerRelayAvailable && msg.type !== 'WORLD_SNAPSHOT' && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
       this.sendToHttpRelay(msg)
     }
   }

@@ -332,13 +332,26 @@
               />
             </div>
           </div>
+
+          <!-- Category Filter Chips -->
+          <div class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar shrink-0 text-[10px]">
+            <button 
+              v-for="cat in assetStore.categories"
+              :key="cat"
+              @click="assetStore.selectedCategory = cat"
+              :class="assetStore.selectedCategory === cat ? 'bg-brand-600/30 text-brand-300 border-brand-500/50 font-bold' : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border-slate-800/80'"
+              class="px-2 py-0.5 rounded-lg border whitespace-nowrap transition-all cursor-pointer shrink-0"
+            >
+              {{ cat }}
+            </button>
+          </div>
         </div>
 
-        <!-- Scrollable Asset Grid -->
-        <div class="flex-1 p-2.5 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <!-- Scrollable Asset Grid (3 Columns, Square Aspect Ratio, Crisp Previews) -->
+        <div class="flex-1 p-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div 
             v-if="assetStore.filteredAssets.length > 0"
-            class="grid grid-cols-3 sm:grid-cols-4 gap-2"
+            class="grid grid-cols-3 gap-2"
           >
             <div 
               v-for="asset in assetStore.filteredAssets" 
@@ -346,39 +359,40 @@
               @click="handleAssetClick(asset.id)"
               draggable="true"
               @dragstart="(e) => handleAssetDragStart(e, asset)"
-              :class="assetStore.selectedAssetId === asset.id ? 'border-brand-500 bg-brand-950/70 ring-2 ring-brand-500/80 scale-[1.03]' : 'border-slate-800/90 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-850'"
-              class="group relative flex flex-col items-center justify-between p-1.5 rounded-xl border aspect-square cursor-pointer transition-all shadow-sm"
+              :class="assetStore.selectedAssetId === asset.id ? 'border-brand-500 bg-brand-950/70 ring-2 ring-brand-500/80 scale-[1.03]' : 'border-slate-800/90 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-850'"
+              class="group relative flex flex-col items-center justify-between p-1.5 rounded-xl border aspect-square cursor-pointer transition-all shadow-sm overflow-hidden"
               :title="asset.name"
             >
-              <!-- Thumbnail -->
-              <div class="w-full flex-1 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 overflow-hidden">
+              <!-- Thumbnail Box (Square, fills area, clear background) -->
+              <div class="w-full flex-1 rounded-lg bg-slate-950/90 checker-pattern flex items-center justify-center p-1 overflow-hidden relative">
                 <img 
                   :src="asset.previewSrc || asset.src" 
                   :alt="asset.name"
-                  class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-110 transition-transform"
+                  class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200"
+                  :style="getAssetThumbnailStyle(asset)"
                   loading="lazy"
                 />
               </div>
 
               <!-- Name -->
-              <div class="w-full text-center mt-1 px-0.5">
-                <span class="text-[9px] font-medium text-slate-300 truncate block">
+              <div class="w-full text-center mt-1 px-0.5 shrink-0">
+                <span class="text-[9px] sm:text-[10px] font-semibold text-slate-300 truncate block">
                   {{ asset.name.replace(/\.png|\.jpg|\.webp/gi, '') }}
                 </span>
               </div>
 
               <!-- Quick Hover Actions (Anchor & Delete) -->
-              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/90 rounded-lg p-0.5 border border-slate-800 shadow-md">
+              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/95 rounded-lg p-0.5 border border-slate-800 shadow-md backdrop-blur-sm">
                 <button 
                   @click.stop="openAnchorModal(asset)"
-                  class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-brand-400 cursor-pointer"
-                  title="Anchor & O'lcham sozlash"
+                  class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-brand-400 cursor-pointer transition-colors"
+                  title="Anchor sozlash"
                 >
                   <Crosshair class="w-3 h-3" />
                 </button>
                 <button 
                   @click.stop="assetStore.deleteAsset(asset.id)"
-                  class="p-0.5 rounded hover:bg-red-950/60 text-slate-400 hover:text-red-400 cursor-pointer"
+                  class="p-0.5 rounded hover:bg-red-950/60 text-slate-400 hover:text-red-400 cursor-pointer transition-colors"
                   title="O'chirish"
                 >
                   <Trash2 class="w-3 h-3" />
@@ -514,7 +528,44 @@ const filteredPlacedElements = computed(() => {
 })
 
 function getAsset(assetId: string) {
-  return assetStore.assets.find(a => a.id === assetId) || null
+  if (!assetId) return null
+  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+  return assetStore.assets.find(a => {
+    if (a.id === assetId) return true
+    const aClean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    return aClean === cleanId || (a.fileRelativePath && a.fileRelativePath.toLowerCase().includes(cleanId))
+  }) || null
+}
+
+function getAssetThumbnailStyle(asset: AssetItem) {
+  if (asset.contentBounds && asset.height && asset.width) {
+    const b = asset.contentBounds
+    const contentCenterY = (b.minY + b.maxY) / 2
+    const contentCenterX = (b.minX + b.maxX) / 2
+    
+    // Shift content to exact center of the box
+    const offsetYPercent = ((asset.height / 2 - contentCenterY) / asset.height) * 100
+    const offsetXPercent = ((asset.width / 2 - contentCenterX) / asset.width) * 100
+    
+    const contentW = Math.max(1, b.maxX - b.minX)
+    const contentH = Math.max(1, b.maxY - b.minY)
+    
+    // Calculate scale to fill ~90% of the square thumbnail container
+    const scaleX = asset.width / contentW
+    const scaleY = asset.height / contentH
+    const fillScale = Math.min(1.85, Math.max(1.0, Math.min(scaleX, scaleY) * 0.90))
+    
+    return {
+      transform: `translate(${offsetXPercent.toFixed(1)}%, ${offsetYPercent.toFixed(1)}%) scale(${fillScale.toFixed(2)})`,
+      transformOrigin: 'center center',
+    }
+  }
+
+  // Fallback for square or standard assets
+  return {
+    transform: 'scale(1.05)',
+    transformOrigin: 'center center',
+  }
 }
 
 function handleSelectAndFocus(entry: PlacedElementEntry) {
@@ -524,6 +575,8 @@ function handleSelectAndFocus(entry: PlacedElementEntry) {
     layerId: entry.layerId,
     itemId: entry.item.id,
   })
+  toolStore.setTool('select')
+  mapStore.activeLayerId = entry.layerId
   emit('focus-cell', { col: entry.col, row: entry.row })
 }
 

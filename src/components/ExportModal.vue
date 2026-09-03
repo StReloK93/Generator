@@ -176,6 +176,7 @@ async function handleExport() {
       towerStore.syncToProject()
       characterStore.syncWavesToProject()
       characterStore.syncSpawnPointsToProject()
+      characterStore.syncGameSettingsToProject()
 
       exportProjectJson(
         mapStore.project, 
@@ -194,6 +195,11 @@ async function handleExport() {
             showPathTrail: characterStore.showPathTrail,
             autoLoop: characterStore.autoLoop,
           },
+          speed: characterStore.speed,
+          formation: characterStore.formation,
+          pairDistance: characterStore.pairDistance,
+          followCamera: characterStore.followCamera,
+          showPathTrail: characterStore.showPathTrail,
         },
         {
           placedTowers: towerStore.placedTowers,
@@ -202,6 +208,11 @@ async function handleExport() {
         {
           waveConfigs: characterStore.waveConfigs,
           currentWaveIndex: characterStore.currentWaveIndex,
+        },
+        {
+          startingGold: characterStore.startingGold,
+          startingLives: characterStore.startingLives,
+          wavePrepTime: characterStore.wavePrepDuration,
         }
       )
       closeModal()

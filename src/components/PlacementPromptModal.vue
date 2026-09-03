@@ -78,7 +78,7 @@
         <!-- Option 1: Stack on Top (Recommended) -->
         <button 
           @click.stop="chooseStack"
-          class="w-full p-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center justify-between group active:scale-95"
+          class="w-full p-3 rounded-xl bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center justify-between group active:scale-95"
         >
           <div class="flex items-center gap-2.5">
             <PlusCircle class="w-4 h-4 text-white" />

@@ -551,9 +551,19 @@ const activeItem = computed<TileItem | null>(() => {
   return entry ? entry.item : (coveringElements.value[0]?.item || null)
 })
 
+function getAsset(assetId: string) {
+  if (!assetId) return null
+  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+  return assetStore.assets.find(a => {
+    if (a.id === assetId) return true
+    const aClean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    return aClean === cleanId || (a.fileRelativePath && a.fileRelativePath.toLowerCase().includes(cleanId))
+  }) || null
+}
+
 const currentAsset = computed(() => {
   if (!activeItem.value) return null
-  return assetStore.assets.find(a => a.id === activeItem.value?.assetId) || null
+  return getAsset(activeItem.value.assetId)
 })
 
 const currentLayerName = computed(() => {
@@ -590,10 +600,6 @@ const depthOffsetStatusText = computed(() => {
   if (off > 0) return `Pastdagi +${off} katak ustida`
   return `Tepadagi ${off} katak tagida`
 })
-
-function getAsset(assetId: string) {
-  return assetStore.assets.find(a => a.id === assetId) || null
-}
 
 function selectElementEntry(entry: { item: TileItem; originCol: number; originRow: number }) {
   if (toolStore.selectedElement) {

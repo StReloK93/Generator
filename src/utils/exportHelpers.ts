@@ -13,15 +13,23 @@ export function downloadDataUrl(dataUrl: string, filename: string): void {
 }
 
 /**
- * Export full project state and custom assets to a JSON file
+ * Builds the canonical 100% complete JSON payload for an Isocraft Map.
+ * Used identically by both Export JSON and Local Auto-save / Recents storage.
  */
-export function exportProjectJson(
+export function buildFullProjectJsonPayload(
   project: MapProject, 
   assets: AssetItem[],
   characterData?: {
     customRoutes?: Record<string, any>
     characterConfig?: Record<string, any>
     spawnPoints?: any[]
+    speed?: number
+    formation?: string
+    pairDistance?: number
+    followCamera?: boolean
+    showPathTrail?: boolean
+    autoLoop?: boolean
+    selectedDoorIndex?: number
   },
   towerData?: {
     placedTowers?: any[]
@@ -30,9 +38,62 @@ export function exportProjectJson(
   waveData?: {
     waveConfigs?: any[]
     currentWaveIndex?: number
+  },
+  gameSettings?: {
+    startingGold: number
+    startingLives: number
+    wavePrepTime: number
+    scoreMultiplier?: number
   }
-): void {
-  const payload = {
+): any {
+  const resolvedGameSettings = gameSettings || project.gameSettings || {
+    startingGold: 150,
+    startingLives: 20,
+    wavePrepTime: 10,
+  }
+
+  const resolvedCustomRoutes = characterData?.customRoutes || project.customRoutes || {}
+  const resolvedSpawnPoints = characterData?.spawnPoints || (project as any).spawnPoints || []
+  const resolvedCharacterConfig = {
+    ...(project.characterConfig || {}),
+    ...(characterData?.characterConfig || {}),
+    speed: characterData?.speed ?? characterData?.characterConfig?.speed ?? project.characterConfig?.speed ?? 1.5,
+    formation: characterData?.formation ?? characterData?.characterConfig?.formation ?? project.characterConfig?.formation ?? 'single',
+    pairDistance: characterData?.pairDistance ?? characterData?.characterConfig?.pairDistance ?? project.characterConfig?.pairDistance ?? 0.6,
+    followCamera: characterData?.followCamera ?? characterData?.characterConfig?.followCamera ?? project.characterConfig?.followCamera ?? false,
+    showPathTrail: characterData?.showPathTrail ?? characterData?.characterConfig?.showPathTrail ?? project.characterConfig?.showPathTrail ?? true,
+    autoLoop: characterData?.autoLoop ?? characterData?.characterConfig?.autoLoop ?? project.characterConfig?.autoLoop ?? false,
+    selectedDoorIndex: characterData?.selectedDoorIndex ?? characterData?.characterConfig?.selectedDoorIndex ?? project.characterConfig?.selectedDoorIndex ?? 0,
+  }
+
+  const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
+  const resolvedTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
+  const resolvedWaveConfigs = waveData?.waveConfigs || (project as any).waveConfigs || []
+  const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
+
+  const processedAssets = (assets || []).map(a => {
+    const isCustomDataUrl = a.src && a.src.startsWith('data:')
+    return {
+      id: a.id,
+      name: a.name,
+      fileRelativePath: a.fileRelativePath || '',
+      // Only embed src if it's a custom uploaded base64 data URL
+      src: isCustomDataUrl ? a.src : '',
+      previewSrc: a.previewSrc || '',
+      category: a.category,
+      width: a.width,
+      height: a.height,
+      anchorX: a.anchorX,
+      anchorY: a.anchorY,
+      contentBounds: a.contentBounds,
+      spanX: a.spanX || 1,
+      spanY: a.spanY || 1,
+      scale: a.scale || 1.0,
+      isSample: a.isSample,
+    }
+  })
+
+  return {
     version: '2.1.0',
     type: 'isocraft-map-project',
     project: {
@@ -46,52 +107,63 @@ export function exportProjectJson(
       showGrid: project.showGrid,
       gridColor: project.gridColor,
       layers: project.layers,
-      customRoutes: characterData?.customRoutes || project.customRoutes || {},
-      spawnPoints: characterData?.spawnPoints || (project as any).spawnPoints || [],
-      characterConfig: characterData?.characterConfig || project.characterConfig || {},
-      placedTowers: towerData?.placedTowers || (project as any).placedTowers || [],
-      towerBlueprints: towerData?.towerBlueprints || (project as any).towerBlueprints || [],
-      waveConfigs: waveData?.waveConfigs || (project as any).waveConfigs || [],
-      currentWaveIndex: waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0,
-      createdAt: project.createdAt,
+      gameSettings: resolvedGameSettings,
+      customRoutes: resolvedCustomRoutes,
+      spawnPoints: resolvedSpawnPoints,
+      characterConfig: resolvedCharacterConfig,
+      placedTowers: resolvedPlacedTowers,
+      towerBlueprints: resolvedTowerBlueprints,
+      waveConfigs: resolvedWaveConfigs,
+      currentWaveIndex: resolvedCurrentWaveIndex,
+      createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
     },
-    // Save asset metadata without embedding heavy base64 data for built-in/sample sprites
-    assets: assets.map(a => {
-      const isCustomDataUrl = a.src && a.src.startsWith('data:')
-      return {
-        id: a.id,
-        name: a.name,
-        fileRelativePath: a.fileRelativePath || '',
-        // Only embed src if it's a custom uploaded base64 data URL
-        src: isCustomDataUrl ? a.src : '',
-        category: a.category,
-        width: a.width,
-        height: a.height,
-        anchorX: a.anchorX,
-        anchorY: a.anchorY,
-        contentBounds: a.contentBounds,
-        spanX: a.spanX || 1,
-        spanY: a.spanY || 1,
-        scale: a.scale || 1.0,
-        isSample: a.isSample,
-      }
-    }),
+    assets: processedAssets,
+    gameSettings: resolvedGameSettings,
     characterData: {
-      customRoutes: characterData?.customRoutes || project.customRoutes || {},
-      spawnPoints: characterData?.spawnPoints || (project as any).spawnPoints || [],
-      characterConfig: characterData?.characterConfig || project.characterConfig || {},
+      customRoutes: resolvedCustomRoutes,
+      spawnPoints: resolvedSpawnPoints,
+      characterConfig: resolvedCharacterConfig,
+      speed: resolvedCharacterConfig.speed,
+      formation: resolvedCharacterConfig.formation,
+      pairDistance: resolvedCharacterConfig.pairDistance,
+      followCamera: resolvedCharacterConfig.followCamera,
+      showPathTrail: resolvedCharacterConfig.showPathTrail,
+      autoLoop: resolvedCharacterConfig.autoLoop,
+      selectedDoorIndex: resolvedCharacterConfig.selectedDoorIndex,
     },
     towerData: {
-      placedTowers: towerData?.placedTowers || (project as any).placedTowers || [],
-      towerBlueprints: towerData?.towerBlueprints || (project as any).towerBlueprints || [],
+      placedTowers: resolvedPlacedTowers,
+      towerBlueprints: resolvedTowerBlueprints,
     },
     waveData: {
-      waveConfigs: waveData?.waveConfigs || (project as any).waveConfigs || [],
-      currentWaveIndex: waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0,
+      waveConfigs: resolvedWaveConfigs,
+      currentWaveIndex: resolvedCurrentWaveIndex,
     },
+    savedAt: new Date().toISOString(),
     exportedAt: new Date().toISOString(),
   }
+}
+
+/**
+ * Export full project state and custom assets to a JSON file
+ */
+export function exportProjectJson(
+  project: MapProject, 
+  assets: AssetItem[],
+  characterData?: any,
+  towerData?: any,
+  waveData?: any,
+  gameSettings?: any
+): void {
+  const payload = buildFullProjectJsonPayload(
+    project, 
+    assets, 
+    characterData, 
+    towerData, 
+    waveData, 
+    gameSettings
+  )
 
   const jsonStr = JSON.stringify(payload, null, 2)
   const blob = new Blob([jsonStr], { type: 'application/json' })
@@ -112,6 +184,7 @@ export function importProjectFromJson(
 ): Promise<{ 
   project: MapProject
   assets: AssetItem[]
+  gameSettings?: any
   characterData?: {
     customRoutes?: Record<string, any>
     characterConfig?: Record<string, any>
@@ -151,9 +224,16 @@ export function importProjectFromJson(
           currentWaveIndex: data.project.currentWaveIndex ?? 0,
         }
 
+        const gameSettings = data.project.gameSettings || data.gameSettings || {
+          startingGold: 150,
+          startingLives: 20,
+          wavePrepTime: 10,
+        }
+
         resolve({
           project: data.project,
           assets: data.assets || [],
+          gameSettings,
           characterData,
           towerData,
           waveData,

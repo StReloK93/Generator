@@ -27,6 +27,13 @@ export interface Layer {
   tiles: Record<string, TileItem[]> // key: `${x},${y}` -> array of stacked TileItems
 }
 
+export interface MapGameSettings {
+  startingGold: number
+  startingLives: number
+  wavePrepTime: number
+  scoreMultiplier?: number
+}
+
 export interface MapProject {
   id: string
   name: string
@@ -50,6 +57,7 @@ export interface MapProject {
     autoLoop?: boolean
     selectedDoorIndex?: number
   }
+  gameSettings?: MapGameSettings
   placedTowers?: any[]
   towerBlueprints?: any[]
   waveConfigs?: any[]

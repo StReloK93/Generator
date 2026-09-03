@@ -31,18 +31,23 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
   - Jang simulyatsiyasi (`updateCombatTick`).
 - **`toolStore.ts`**: Faol asboblar (`select`, `brush`, `eraser`, `bucket`, `line`, `rectangle`), tanlangan element, modal oynalar holati.
 
-### 3. 🖥️ Asosiy Komponentlar (`src/components/`)
-- **`CanvasViewport.vue`**: PixiJS viewport, pan & zoom, sichqoncha va klaviatura hodisalari, simulyatsiya tick loopi (`effectiveDelta = rawDelta * gameSpeed`).
-- **`Header.vue`**: Loyiha nomi, qatlamlar, o'lchamlar, simmetriya/setka boshqaruvi, xarita yuklash (Import) va eksport, o'yin rejimiga o'tish ("🎮 O'ynab Ko'rish").
-- **`ElementInspector.vue`** (Chap yon panel): Tanlangan katakdagi elementlarni sozlash (X/Y ofset, masshtab, aylantirish, z-index, qirqish).
-- **`CharacterControlBar.vue`** (O'ng yon panel): Chiqish nuqtalari qo'yish/ko'chirish, yo'nalish chizish, 2 kishi yonma-yon/bittalab harakat, oraliq zichlik, kamera ergashishi va yo'l chizig'i.
-- **`TowerDefenseBar.vue`** (Pastki o'ng panel):
-  - **1-tab**: Minora turlarini yaratish, tahrirlash, spriteni almashtirish (rasm galereyasi), xususiyatlarni sinxronlash.
-  - **2-tab**: To'lqinlar redaktori (har bir to'lqinga alohida odam soni, HP, tezlik, mukofot, saqlash, faqat shu to'lqinni sinash).
-  - **3-tab**: Xaritaga qurilgan minoralar ro'yxati va statistikasi.
-- **`GamePlayHUD.vue`**: O'yin rejimi oynasi (Jonlar, Oltin, To'lqinlar, Hisob, 10s qurilish taymeri va Skip tugmasi, Minora sotib olish do'koni, kuchaytirish, sotish, G'alaba va Mag'lubiyat oynalari).
-- **`ExportModal.vue`**: Loyihani to'liq JSON (`.isomap.json`) yoki shaffof PNG rasm qilib yuklab olish.
-- **`WelcomeProjectModal.vue`**: Boshlang'ich xush kelibsiz oynasi, tayyor shablonlar, JSON import va oxirgi sessiyani tiklash.
+### 3. 🖥️ Asosiy Komponentlar (`src/components/` & `src/views/`)
+- **`HomeView.vue`**: Asosiy sahifa (Yangi xona ochish, Onlayn o'yinga ulanish, Xarita redaktori).
+- **`LobbyView.vue`**: Ko'p o'yinchili xona (O'yinchilar slotlari, rang tanlash, xaritani sinxronlash, chat).
+- **`EditorView.vue`**: Asosiy xarita redaktori sahifasi.
+  - **`editor/EditorHeader.vue`**: Yuqori panel (Asboblar: Brush, Bucket, Eraser, Line, Rect, Select; Grid/Symmetry boshqaruvi, Eksport, O'ynab ko'rish).
+  - **`editor/EditorCanvas.vue`**: PixiJS 8 izometrik muharrir viewporti (Pan, Zoom, qatlamlarni chizish, elementlarni tanlash).
+  - **`RightSidebar.vue`**: O'ng yon panel (1-tab: Qatlamlar & Elementlar boshqaruvi; 2-tab: Sprite kutubxonasi & qidiruv).
+  - **`editor/GameplayPreviewOverlay.vue`**: Redaktor ichida dizayn ko'rinishi (o'yindagi bilan 100% bir xil HUD va Do'kon).
+  - **`ElementInspector.vue`**: Tanlangan katakdagi element sozlamalari (X/Y ofset, masshtab, Z-index, aylantirish).
+  - **`GameConfigModal.vue`**: 5 ta tabli TD sozlamalari (Minoralar, To'lqinlar, Karta balansi, Qurilganlar, Chiqish yo'llari).
+  - **`WelcomeProjectModal.vue`**: Xarita yaratish, tayyor andozalar (Burbenog TD) va JSON yuklash.
+  - **`ExportModal.vue`**: Xaritani to'liq JSON (`.isomap.json`) yoki shaffof PNG rasm qilib yuklab olish.
+- **`GameView.vue`**: Haqiqiy TD o'yini jangi sahifasi.
+  - **`game/GameCanvas.vue`**: O'yin maydoni (Personajlar harakati, minoralar otishi, zarbalar va jang effektlari).
+  - **`game/GameHud.vue`**: Yuqori o'yin paneli (Jonlar, Oltin, To'lqinlar, Score, Kills, FPS, To'xtatish).
+  - **`game/GameControls.vue`**: Pastki minora sotib olish do'koni, tezlik ko'paytirgichlari (1x-50x), to'lqin taymeri.
+  - **`game/GameOverModal.vue`** va **`game/GameVictoryModal.vue`**: Mag'lubiyat va G'alaba oynalari.
 
 ---
 

@@ -22,15 +22,13 @@ export const useToolStore = defineStore('toolStore', () => {
   const pan = ref<Point2D>({ x: 0, y: 0 })
 
   // UI Modals & Panels
-  const isNewProjectModalOpen = ref<boolean>(false)
   const isExportModalOpen = ref<boolean>(false)
   const isShortcutsModalOpen = ref<boolean>(false)
-  const isLayerPanelOpen = ref<boolean>(true)
-  const isAssetManagerOpen = ref<boolean>(true)
   const isGameConfigModalOpen = ref<boolean>(false)
-  const gameConfigActiveTab = ref<'towers' | 'waves' | 'placed' | 'spawns'>('towers')
+  const isPreviewMode = ref<boolean>(false)
+  const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'placed' | 'spawns'>('towers')
 
-  function openGameConfig(tab?: 'towers' | 'waves' | 'placed' | 'spawns') {
+  function openGameConfig(tab?: 'towers' | 'waves' | 'balance' | 'placed' | 'spawns') {
     if (tab) gameConfigActiveTab.value = tab
     isGameConfigModalOpen.value = true
   }
@@ -92,12 +90,10 @@ export const useToolStore = defineStore('toolStore', () => {
     placementMode,
     zoom,
     pan,
-    isNewProjectModalOpen,
     isExportModalOpen,
     isShortcutsModalOpen,
-    isLayerPanelOpen,
-    isAssetManagerOpen,
     isGameConfigModalOpen,
+    isPreviewMode,
     gameConfigActiveTab,
     openGameConfig,
     closeGameConfig,

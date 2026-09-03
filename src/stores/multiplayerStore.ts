@@ -8,9 +8,12 @@ import {
   RoomState, 
   ActiveRoomSummary,
   TeammateHover,
+  CompactUnitSnapshot,
+  CompactCombatEvent,
   PLAYER_COLORS 
 } from '../types/multiplayer'
 import { networkService } from '../services/networkService'
+import { networkSyncBuffer } from '../services/networkSync'
 import { useMapStore } from './mapStore'
 import { useCharacterStore } from './characterStore'
 import { useTowerStore } from './towerStore'
@@ -157,6 +160,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // Create slots based on map doors
     slots.value = initializeSlotsFromMap(mapProject)
 
+    const startGold = mapProject.gameSettings?.startingGold || characterStore.startingGold || 150
+
     // Setup Host Player
     const hostPlayer: PlayerInfo = {
       id: myPlayerId.value,
@@ -165,7 +170,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       slotIndex: 0,
       isHost: true,
       isReady: true,
-      gold: 500,
+      gold: startGold,
       score: 0,
       towersBuilt: 0,
       killsCount: 0,
@@ -335,6 +340,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           assignedColor = PLAYER_COLORS.find(c => !usedColors.has(c)) || PLAYER_COLORS[emptySlot.slotIndex % PLAYER_COLORS.length]
         }
 
+        const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+
         const newPlayer: PlayerInfo = {
           id: applicant.id,
           name: applicant.name,
@@ -342,7 +349,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           slotIndex: emptySlot.slotIndex,
           isHost: false,
           isReady: false,
-          gold: 500,
+          gold: startGold,
           score: 0,
           towersBuilt: 0,
           killsCount: 0,
@@ -435,7 +442,14 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
         }
         towerStore.restoreFromProject()
+        characterStore.restoreGameSettingsFromProject()
         characterStore.detectDoors()
+
+        const startingGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+        players.value.forEach(p => {
+          p.gold = startingGold
+        })
+        characterStore.gold = startingGold
 
         roomGameState.value = 'in_game'
         isNudgeModalOpen.value = false
@@ -472,6 +486,18 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           if (!existing) {
             towerStore.placedTowers.push(tower)
             addSystemMessage(`🔨 ${tower.builderName || 'O\'yinchi'} (${tower.col}, ${tower.row}) katagiga minora qurdilar!`)
+
+            // Authoritative Host Gold Deduction:
+            if (isHost.value) {
+              const builderId = tower.builderId || msg.senderId
+              const builderPlayer = players.value.find(p => p.id === builderId)
+              const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
+              const cost = bp ? bp.cost : (tower.damage ? Math.round(tower.damage * 0.8) : 50)
+              if (builderPlayer) {
+                builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - cost)
+                builderPlayer.towersBuilt = (builderPlayer.towersBuilt || 0) + 1
+              }
+            }
           }
           if (isHost.value && msg.senderId !== myPlayerId.value) {
             networkService.broadcast(msg)
@@ -484,6 +510,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         const { towerId } = msg.payload
         const target = towerStore.placedTowers.find(t => t.id === towerId)
         if (target) {
+          const bp = towerStore.blueprints.find(b => b.id === target.blueprintId)
+          const baseCost = bp ? bp.cost : 100
+          const cost = Math.round(baseCost * 0.6 * target.level)
+
           target.level++
           target.damage = Math.round(target.damage * 1.35)
           target.attackSpeed = Math.max(0.15, Number((target.attackSpeed * 0.9).toFixed(2)))
@@ -492,6 +522,15 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             target.splashRadius = Number((target.splashRadius + 0.2).toFixed(1))
           }
           addSystemMessage(`⭐ ${target.name} ${target.level}-darajaga kuchaytirildi!`)
+
+          // Authoritative Host Gold Deduction:
+          if (isHost.value) {
+            const builderId = target.builderId || msg.senderId
+            const builderPlayer = players.value.find(p => p.id === builderId)
+            if (builderPlayer) {
+              builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - cost)
+            }
+          }
         }
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
@@ -504,7 +543,19 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         const idx = towerStore.placedTowers.findIndex(t => t.id === towerId)
         if (idx !== -1) {
           const removed = towerStore.placedTowers.splice(idx, 1)[0]
-          addSystemMessage(`💰 ${removed.name} sotildi.`)
+          const bp = towerStore.blueprints.find(b => b.id === removed.blueprintId)
+          const baseCost = bp ? bp.cost : 100
+          const refund = Math.round(baseCost * 0.7 * (1 + (removed.level - 1) * 0.5))
+          addSystemMessage(`💰 ${removed.name} sotildi (+${refund} oltin).`)
+
+          // Authoritative Host Gold Refund:
+          if (isHost.value) {
+            const builderId = removed.builderId || msg.senderId
+            const builderPlayer = players.value.find(p => p.id === builderId)
+            if (builderPlayer) {
+              builderPlayer.gold = (builderPlayer.gold || 0) + refund
+            }
+          }
         }
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
@@ -521,6 +572,60 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         break
       }
 
+      case 'WORLD_SNAPSHOT': {
+        if (!isHost.value) {
+          const snapshot = msg.payload
+          if (snapshot) {
+            networkSyncBuffer.pushSnapshot(snapshot)
+            characterStore.isGameMode = true
+            characterStore.isEnabled = true
+          }
+        }
+        break
+      }
+
+      case 'COMBAT_EVENT': {
+        if (!isHost.value) {
+          const event = msg.payload
+          if (event) {
+            networkSyncBuffer.pushCombatEvent(event)
+          }
+        }
+        break
+      }
+
+      case 'GAME_STATE_SYNC': {
+        if (!isHost.value) {
+          const state = msg.payload
+          if (!state) return
+          characterStore.gameState = state.gameState
+          characterStore.prepCountdown = state.prepCountdown
+          characterStore.currentWaveIndex = state.currentWaveIndex
+          characterStore.playerLives = state.playerLives
+          characterStore.score = state.score
+          characterStore.isGameMode = true
+          characterStore.isEnabled = true
+          characterStore.isPlaying = state.gameState === 'wave_running'
+
+          if (state.playerStats && Array.isArray(state.playerStats)) {
+            for (const stat of state.playerStats) {
+              const p = players.value.find(x => x.id === stat.id)
+              if (p) {
+                p.killsCount = stat.killsCount || 0
+                p.score = stat.score || 0
+                if (stat.gold !== undefined) {
+                  p.gold = stat.gold
+                }
+                if (p.id === myPlayerId.value) {
+                  characterStore.gold = p.gold
+                }
+              }
+            }
+          }
+        }
+        break
+      }
+
       case 'WAVE_TICK': {
         if (!isHost.value) {
           const tick = msg.payload
@@ -533,23 +638,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           characterStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = tick.gameState === 'wave_running'
-
-          // 100% Authoritative unit synchronization from Host
-          if (tick.units && Array.isArray(tick.units)) {
-            characterStore.units = tick.units
-          }
-
-          if (tick.projectiles && Array.isArray(tick.projectiles)) {
-            towerStore.projectiles = tick.projectiles
-          }
-
-          if (tick.explosionRings && Array.isArray(tick.explosionRings)) {
-            towerStore.explosionRings = tick.explosionRings
-          }
-
-          if (tick.damageFloaters && Array.isArray(tick.damageFloaters)) {
-            towerStore.damageFloaters = tick.damageFloaters
-          }
 
           if (tick.playerStats && Array.isArray(tick.playerStats)) {
             for (const stat of tick.playerStats) {
@@ -716,58 +804,104 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }
   }
 
+  const combatEventsQueue: CompactCombatEvent[] = []
+  let lastTickBroadcastTime = 0
+  let lastGameStateBroadcastTime = 0
+  let worldSnapshotSeq = 0
+
+  function queueCombatEvent(event: CompactCombatEvent) {
+    combatEventsQueue.push(event)
+  }
+
   /**
-   * Host broadcasts real-time wave simulation state
+   * Host broadcasts real-time wave simulation state:
+   * 1. 25Hz Compact WORLD_SNAPSHOT (x, y, col, row, dir, hp, flags)
+   * 2. Authoritative COMBAT_EVENTs (shoot, hit, die)
+   * 3. 1Hz Low-frequency GAME_STATE_SYNC (countdown, lives, score, gold)
    */
-    let lastTickBroadcastTime = 0
   function broadcastGameTick() {
     if (!isHost.value || !roomId.value) return
     const now = Date.now()
-    if (now - lastTickBroadcastTime < 33) return // ~30 FPS network sync
-    lastTickBroadcastTime = now
 
-    networkService.broadcast({
-      type: 'WAVE_TICK',
-      payload: {
-        gameState: characterStore.gameState,
-        prepCountdown: characterStore.prepCountdown,
-        currentWaveIndex: characterStore.currentWaveIndex,
-        playerLives: characterStore.playerLives,
-        score: characterStore.score,
-        units: characterStore.units.map(u => ({
+    // 1. High-frequency 25Hz WORLD_SNAPSHOT
+    if (now - lastTickBroadcastTime >= 40) {
+      lastTickBroadcastTime = now
+
+      const compactUnits: CompactUnitSnapshot[] = []
+      const sourceUnits = characterStore.units
+
+      for (let i = 0; i < sourceUnits.length; i++) {
+        const u = sourceUnits[i]
+        if (!u.isSpawned && !u.isDead) continue
+
+        let fl = 0
+        if (u.isSpawned) fl |= 1
+        if (u.hasReachedEnd) fl |= 2
+        if (u.isDead) fl |= 4
+
+        compactUnits.push({
           id: u.id,
-          doorIndex: u.doorIndex,
-          doorId: u.doorId,
-          unitIndex: u.unitIndex,
-          pairIndex: u.pairIndex,
-          sideOffset: u.sideOffset,
-          currentCol: u.currentCol,
-          currentRow: u.currentRow,
-          screenX: u.screenX,
-          screenY: u.screenY,
-          direction: u.direction,
-          action: u.action,
-          frameIndex: u.frameIndex,
-          isSpawned: u.isSpawned,
-          hasReachedEnd: u.hasReachedEnd,
-          maxHp: u.maxHp,
-          currentHp: u.currentHp,
-          isDead: u.isDead,
-          deathFade: u.deathFade,
-        })),
-        projectiles: towerStore.projectiles.map(p => ({ ...p })),
-        explosionRings: towerStore.explosionRings.map(r => ({ ...r })),
-        damageFloaters: towerStore.damageFloaters.map(f => ({ ...f })),
-        playerStats: players.value.map(p => ({
-          id: p.id,
-          killsCount: p.killsCount || 0,
-          score: p.score || 0,
-          gold: p.gold || 500,
-        })),
-      },
-      senderId: myPlayerId.value,
-      timestamp: now,
-    })
+          x: Math.round(u.screenX * 10) / 10,
+          y: Math.round(u.screenY * 10) / 10,
+          col: Math.round(u.currentCol * 100) / 100,
+          row: Math.round(u.currentRow * 100) / 100,
+          d: u.direction,
+          a: u.action,
+          f: u.frameIndex,
+          hp: Math.round(u.currentHp),
+          fl,
+          df: u.deathFade,
+        })
+      }
+
+      networkService.broadcast({
+        type: 'WORLD_SNAPSHOT',
+        payload: {
+          seq: ++worldSnapshotSeq,
+          time: now,
+          units: compactUnits,
+        },
+        senderId: myPlayerId.value,
+        timestamp: now,
+      })
+    }
+
+    // 2. Authoritative Combat Events
+    if (combatEventsQueue.length > 0) {
+      for (let i = 0; i < combatEventsQueue.length; i++) {
+        networkService.broadcast({
+          type: 'COMBAT_EVENT',
+          payload: combatEventsQueue[i],
+          senderId: myPlayerId.value,
+          timestamp: now,
+        })
+      }
+      combatEventsQueue.length = 0
+    }
+
+    // 3. Low-frequency 1Hz Game State Sync
+    if (now - lastGameStateBroadcastTime >= 800) {
+      lastGameStateBroadcastTime = now
+      const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
+      networkService.broadcast({
+        type: 'GAME_STATE_SYNC',
+        payload: {
+          gameState: characterStore.gameState,
+          prepCountdown: Math.ceil(characterStore.prepCountdown),
+          currentWaveIndex: characterStore.currentWaveIndex,
+          playerLives: characterStore.playerLives,
+          score: characterStore.score,
+          playerStats: players.value.map(p => ({
+            id: p.id,
+            killsCount: p.killsCount || 0,
+            score: p.score || 0,
+            gold: p.gold !== undefined ? p.gold : defaultGold,
+          })),
+        },
+        senderId: myPlayerId.value,
+        timestamp: now,
+      })
+    }
   }
 
   /**
@@ -776,8 +910,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function recordPlayerKill(playerId: string, killGold: number) {
     const p = players.value.find(x => x.id === playerId)
     if (p) {
+      const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
       p.killsCount = (p.killsCount || 0) + 1
-      p.gold = (p.gold || 500) + killGold
+      p.gold = (p.gold !== undefined ? p.gold : defaultGold) + killGold
       p.score = (p.score || 0) + killGold * 10
       if (p.id === myPlayerId.value) {
         characterStore.gold = p.gold
@@ -916,6 +1051,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       timestamp: Date.now(),
     })
 
+    const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+    players.value.forEach(p => {
+      p.gold = startGold
+    })
+    characterStore.gold = startGold
+
     characterStore.startPlayMode()
 
     if (globalRouter) {
@@ -1042,6 +1183,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     sendReadyCheck,
     broadcastTeammateHover,
     broadcastGameTick,
+    queueCombatEvent,
     sendChat,
     broadcastTowerBuild,
     broadcastTowerUpgrade,

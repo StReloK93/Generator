@@ -9,7 +9,7 @@
       <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50 shrink-0">
         <div class="flex items-center gap-2.5 sm:gap-3">
           <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-sm sm:text-base shrink-0">
-            🎮
+            <Gamepad2 class="w-4 h-4 text-amber-400" />
           </div>
           <div>
             <h2 class="text-sm sm:text-base font-bold text-white tracking-wide">Yangi Xona Ochish</h2>
@@ -151,7 +151,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { X, Check, Users, Sparkles } from 'lucide-vue-next'
+import { X, Check, Users, Sparkles, Gamepad2 } from 'lucide-vue-next'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
