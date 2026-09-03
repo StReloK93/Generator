@@ -517,9 +517,22 @@ class NetworkService {
   }
 
   /**
+   * Deeply sanitizes messages to Plain Old JavaScript Objects (POJO)
+   * eliminating Vue reactive Proxies, non-cloneable objects and circular references.
+   */
+  private sanitizeMessage<T>(data: T): T {
+    try {
+      return JSON.parse(JSON.stringify(data))
+    } catch {
+      return data
+    }
+  }
+
+  /**
    * Broadcasts message to all clients (Host) or sends to all tabs
    */
-  public broadcast(msg: NetMessage) {
+  public broadcast(rawMsg: NetMessage) {
+    const msg = this.sanitizeMessage(rawMsg)
     if (!msg.senderId) msg.senderId = this.myPeerId
     if (!msg.timestamp) msg.timestamp = Date.now()
     if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
@@ -558,7 +571,8 @@ class NetworkService {
   /**
    * Sends message from client to host
    */
-  public sendToHost(msg: NetMessage) {
+  public sendToHost(rawMsg: NetMessage) {
+    const msg = this.sanitizeMessage(rawMsg)
     if (!msg.senderId) msg.senderId = this.myPeerId
     if (!msg.timestamp) msg.timestamp = Date.now()
     if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
@@ -652,6 +666,10 @@ class NetworkService {
     this.isHost = false
     this.roomId = ''
     this.myPeerId = ''
+  }
+
+  public getIsHost(): boolean {
+    return this.isHost
   }
 }
 

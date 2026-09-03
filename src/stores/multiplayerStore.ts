@@ -273,8 +273,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       hostId: myPlayerId.value,
       mapName: mapName.value,
       maxPlayers: maxPlayers.value,
-      slots: slots.value,
-      players: players.value,
+      slots: JSON.parse(JSON.stringify(slots.value)),
+      players: JSON.parse(JSON.stringify(players.value)),
       gameState: roomGameState.value,
       countdownTimer: countdownTimer.value,
       createdAt: Date.now(),
@@ -507,19 +507,18 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'UPGRADE_TOWER': {
-        const { towerId } = msg.payload
+        // Prevent duplicate upgrade execution on sender's client
+        if (msg.senderId === myPlayerId.value) break
+
+        const { towerId, newLevel, newDamage, newAttackSpeed, newRange, newSplashRadius, cost } = msg.payload
         const target = towerStore.placedTowers.find(t => t.id === towerId)
         if (target) {
-          const bp = towerStore.blueprints.find(b => b.id === target.blueprintId)
-          const baseCost = bp ? bp.cost : 100
-          const cost = Math.round(baseCost * 0.6 * target.level)
-
-          target.level++
-          target.damage = Math.round(target.damage * 1.35)
-          target.attackSpeed = Math.max(0.15, Number((target.attackSpeed * 0.9).toFixed(2)))
-          target.range = Number((target.range + 0.3).toFixed(1))
-          if (target.isSplash) {
-            target.splashRadius = Number((target.splashRadius + 0.2).toFixed(1))
+          target.level = newLevel ?? (target.level + 1)
+          target.damage = newDamage ?? Math.round(target.damage * 1.35)
+          target.attackSpeed = newAttackSpeed ?? Math.max(0.15, Number((target.attackSpeed * 0.9).toFixed(2)))
+          target.range = newRange ?? Number((target.range + 0.3).toFixed(1))
+          if (newSplashRadius !== undefined) {
+            target.splashRadius = newSplashRadius
           }
           addSystemMessage(`⭐ ${target.name} ${target.level}-darajaga kuchaytirildi!`)
 
@@ -528,11 +527,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             const builderId = target.builderId || msg.senderId
             const builderPlayer = players.value.find(p => p.id === builderId)
             if (builderPlayer) {
-              builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - cost)
+              builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - (cost || 0))
             }
           }
         }
-        if (isHost.value && msg.senderId !== myPlayerId.value) {
+        if (isHost.value) {
           networkService.broadcast(msg)
         }
         break
@@ -992,10 +991,18 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   /**
    * Broadcasts upgrading a tower in multiplayer
    */
-  function broadcastTowerUpgrade(towerId: string) {
+  function broadcastTowerUpgrade(tower: any, cost?: number) {
     const msg: NetMessage = {
       type: 'UPGRADE_TOWER',
-      payload: { towerId },
+      payload: { 
+        towerId: tower.id,
+        newLevel: tower.level,
+        newDamage: tower.damage,
+        newAttackSpeed: tower.attackSpeed,
+        newRange: tower.range,
+        newSplashRadius: tower.splashRadius,
+        cost: cost ?? 0
+      },
       senderId: myPlayerId.value,
       timestamp: Date.now(),
     }
@@ -1042,9 +1049,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       type: 'START_GAME',
       payload: {
         roomId: roomId.value,
-        mapProject: mapStore.project,
-        waveConfigs: characterStore.waveConfigs,
-        towerBlueprints: towerStore.blueprints,
+        mapProject: JSON.parse(JSON.stringify(mapStore.project)),
+        waveConfigs: JSON.parse(JSON.stringify(characterStore.waveConfigs)),
+        towerBlueprints: JSON.parse(JSON.stringify(towerStore.blueprints)),
         timestamp: Date.now(),
       },
       senderId: myPlayerId.value,

@@ -51,7 +51,6 @@ import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
-import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { saveRecentProject } from '../services/projectStorage'
 
@@ -60,7 +59,6 @@ const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
-const multiplayerStore = useMultiplayerStore()
 
 const viewportRef = ref<any>(null)
 const welcomeModalRef = ref<any>(null)

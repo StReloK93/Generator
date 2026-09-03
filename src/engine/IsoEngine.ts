@@ -34,7 +34,6 @@ export class IsoEngine {
   public characterShadow: Graphics
   public characterSprite: Sprite
   public characterMarker: Graphics
-  private characterTextures = new Map<string, Texture>()
   public onTick?: (deltaSec: number) => void
 
   // Tower Defense & Combat Visuals
@@ -74,7 +73,6 @@ export class IsoEngine {
   }
 
   private lastTrailSignature = ''
-  private lastSelectedTowerId: string | null = null
   private unitLastDepths: number[] = []
 
   async init(containerEl: HTMLElement, width: number, height: number): Promise<void> {

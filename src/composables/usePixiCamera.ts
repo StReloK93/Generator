@@ -1,5 +1,5 @@
 import { ref, Ref } from 'vue'
-import { Point2D, GridCoord, MapProject } from '../types/map'
+import { MapProject } from '../types/map'
 import { IsoEngine } from '../engine/IsoEngine'
 import { gridToScreen } from '../utils/isometric'
 
@@ -318,5 +318,6 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
+    isDragging: () => isLocalDragging,
   }
 }

@@ -1,4 +1,4 @@
-import{w as _,z as g,A as c,H as y,J as l,E as U,s as m}from"./multiplayerStore-CjhEAVDG.js";import{c as I}from"./GameControls.vue_vue_type_script_setup_true_lang-iviA5mUK.js";const h={name:"local-uniform-bit",vertex:{header:`
+import{w as _,z as g,A as c,H as y,J as l,E as U,s as m}from"./multiplayerStore-6SnSdu_K.js";import{b as I}from"./GameControls.vue_vue_type_script_setup_true_lang-BSZ1knn4.js";const h={name:"local-uniform-bit",vertex:{header:`
 
             struct LocalUniforms {
                 uTransformMatrix:mat3x3<f32>,

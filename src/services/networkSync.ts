@@ -206,9 +206,6 @@ class NetworkSyncBuffer {
 
     const now = performance.now()
     const snapshotInterval = Math.max(15, this.currentTime - this.previousTime)
-    const timeSinceCurrent = now - this.currentTime
-    // Interpolation factor between previous and current snapshot
-    const t = Math.min(1.5, Math.max(0.0, 1.0 + (timeSinceCurrent / snapshotInterval)))
 
     const currentIds = new Set<string>()
 

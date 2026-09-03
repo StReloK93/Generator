@@ -109,7 +109,7 @@
 
 /* Safe Area Inset Helpers for Mobile Notches & Navigation Bars */
 .pt-safe {
-  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  padding-top: max(env(safe-area-inset-top, 0px), 8px);
 }
 
 .pb-safe {

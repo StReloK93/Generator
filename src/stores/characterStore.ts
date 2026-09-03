@@ -6,7 +6,7 @@ import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { networkSyncBuffer } from '../services/networkSync'
-import { cellKey, isInsideGrid, gridToScreen } from '../utils/isometric'
+import { gridToScreen } from '../utils/isometric'
 
 export interface DoorInfo {
   id: string
@@ -206,6 +206,28 @@ export const useCharacterStore = defineStore('characterStore', () => {
     return units.value.filter(u => u.hasReachedEnd).length
   })
 
+  const aliveEnemiesCount = computed(() => {
+    if (multiplayerStore.roomId && !multiplayerStore.isHost && networkSyncBuffer.renderUnitsList.length > 0) {
+      return networkSyncBuffer.renderUnitsList.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
+    }
+    return units.value.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
+  })
+
+  const leakedEnemiesCount = computed(() => {
+    if (multiplayerStore.roomId && !multiplayerStore.isHost && networkSyncBuffer.renderUnitsList.length > 0) {
+      return networkSyncBuffer.renderUnitsList.filter(u => u.hasReachedEnd).length
+    }
+    return units.value.filter(u => u.hasReachedEnd).length
+  })
+
+  const deadEnemiesCount = computed(() => {
+    return units.value.filter(u => u.isDead).length
+  })
+
+  const totalWaveEnemiesCount = computed(() => {
+    return units.value.length
+  })
+
   const progressPercent = computed(() => {
     const active = units.value.filter(u => u.isSpawned)
     if (active.length === 0) return 0
@@ -360,143 +382,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
       cornerName: d.cornerName,
       assetId: d.assetId,
     }))
-  }
-
-  function findAdjacentSpawnCell(doorCol: number, doorRow: number): GridCoord {
-    const candidates = [
-      { col: doorCol, row: doorRow },
-      { col: doorCol + 1, row: doorRow },
-      { col: doorCol, row: doorRow + 1 },
-      { col: doorCol - 1, row: doorRow },
-      { col: doorCol, row: doorRow - 1 },
-      { col: doorCol + 1, row: doorRow + 1 },
-      { col: doorCol - 1, row: doorRow - 1 },
-    ]
-
-    const walkableSet = getWalkableCellsSet()
-    for (const c of candidates) {
-      if (isInsideGrid(c.col, c.row, mapStore.project.cols, mapStore.project.rows)) {
-        if (walkableSet.has(cellKey(c.col, c.row))) {
-          return c
-        }
-      }
-    }
-
-    return { col: doorCol, row: doorRow }
-  }
-
-  function getWalkableCellsSet(): Set<string> {
-    const walkable = new Set<string>()
-    const solidObstacles = new Set<string>()
-
-    for (const layer of mapStore.project.layers) {
-      if (!layer.visible) continue
-
-      for (const [key, items] of Object.entries(layer.tiles)) {
-        const [col, row] = key.split(',').map(Number)
-        const itemArr = Array.isArray(items) ? items : [items]
-
-        for (const item of itemArr) {
-          if (!item) continue
-          const assetId = (item.assetId || '').toLowerCase()
-
-          const isGround = layer.id.includes('ground') || 
-                           assetId.includes('tile') || 
-                           assetId.includes('dirt') || 
-                           assetId.includes('plank') || 
-                           (assetId.includes('stone') && !assetId.includes('wall') && !assetId.includes('column')) ||
-                           assetId.includes('bridge') || 
-                           assetId.includes('stairs') || 
-                           assetId.includes('road') || 
-                           assetId.includes('grass')
-
-          const isDoor = assetId.includes('door') || assetId.includes('gate') || assetId.includes('archway')
-          const isSolidWall = (assetId.includes('wall') || assetId.includes('column') || assetId.includes('crate') || assetId.includes('barrel')) && !isDoor
-
-          if (isGround || isDoor) {
-            walkable.add(cellKey(col, row))
-          }
-
-          if (isSolidWall) {
-            solidObstacles.add(cellKey(col, row))
-          }
-        }
-      }
-    }
-
-    for (const obs of solidObstacles) {
-      walkable.delete(obs)
-    }
-
-    return walkable
-  }
-
-  function aStar(start: GridCoord, goal: GridCoord, walkableSet: Set<string>): GridCoord[] {
-    const startKey = cellKey(start.col, start.row)
-    const goalKey = cellKey(goal.col, goal.row)
-    if (startKey === goalKey) return [start]
-
-    const openSet = new Set<string>([startKey])
-    const cameFrom = new Map<string, GridCoord>()
-    const gScore = new Map<string, number>([[startKey, 0]])
-    const fScore = new Map<string, number>([[startKey, Math.hypot(goal.col - start.col, goal.row - start.row)]])
-
-    const deltas = [
-      { dc: 1, dr: 0 },
-      { dc: 0, dr: 1 },
-      { dc: -1, dr: 0 },
-      { dc: 0, dr: -1 },
-    ]
-
-    const cols = mapStore.project.cols
-    const rows = mapStore.project.rows
-
-    while (openSet.size > 0) {
-      let currentKey = ''
-      let lowestF = Infinity
-      for (const key of openSet) {
-        const f = fScore.get(key) ?? Infinity
-        if (f < lowestF) {
-          lowestF = f
-          currentKey = key
-        }
-      }
-
-      if (currentKey === goalKey) {
-        const path: GridCoord[] = []
-        let curr: GridCoord | undefined = goal
-        while (curr) {
-          path.unshift(curr)
-          const k = cellKey(curr.col, curr.row)
-          curr = cameFrom.get(k)
-        }
-        return path
-      }
-
-      openSet.delete(currentKey)
-      const [c, r] = currentKey.split(',').map(Number)
-      const currentG = gScore.get(currentKey) ?? Infinity
-
-      for (const { dc, dr } of deltas) {
-        const nc = c + dc
-        const nr = r + dr
-        const nk = cellKey(nc, nr)
-
-        if (!isInsideGrid(nc, nr, cols, rows)) continue
-        if (!walkableSet.has(nk) && nk !== goalKey) continue
-
-        const tentativeG = currentG + 1
-        if (tentativeG < (gScore.get(nk) ?? Infinity)) {
-          cameFrom.set(nk, { col: c, row: r })
-          gScore.set(nk, tentativeG)
-          const h = Math.hypot(goal.col - nc, goal.row - nr)
-          fScore.set(nk, tentativeG + h)
-          openSet.add(nk)
-        }
-      }
-    }
-
-    return []
   }
 
   function getRouteForDoor(doorIdx: number): GridCoord[] {
@@ -1389,5 +1274,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     isCellBlockedForBuilding,
     fps,
     totalKills,
+    aliveEnemiesCount,
+    leakedEnemiesCount,
+    deadEnemiesCount,
+    totalWaveEnemiesCount,
   }
 })

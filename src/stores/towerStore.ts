@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { GridCoord, Point2D } from '../types/map'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useCharacterStore } from './characterStore'
@@ -125,10 +124,6 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
     return map
   })
-
-  function getBlueprint(id: string): TowerBlueprint | undefined {
-    return blueprintMap.value.get(id)
-  }
 
   const selectedPlacedTower = computed<PlacedTower | null>(() => {
     if (!selectedPlacedTowerId.value) return null
@@ -304,7 +299,12 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     placedTowers.value.push(newTower)
-    selectedPlacedTowerId.value = newTower.id
+    // In game mode: do NOT automatically select newly placed tower so bottom panels don't pop up and cover the screen on mobile!
+    if (!characterStore.isGameMode) {
+      selectedPlacedTowerId.value = newTower.id
+    } else {
+      selectedPlacedTowerId.value = null
+    }
     syncToProject()
     if (!characterStore.isGameMode) {
       mapStore.pushHistory(`${bp.name} (${col}, ${row}) katagiga qurildi`)
@@ -372,45 +372,54 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
   }
 
+  let lastUpgradeTimestamp = 0
+
   /**
    * Upgrades a tower (increases stats by +30%)
    * In multiplayer: only the owner/builder can upgrade their tower!
    */
-  function upgradePlacedTower(towerId: string) {
+  function upgradePlacedTower(towerId: string): boolean {
+    const now = Date.now()
+    if (now - lastUpgradeTimestamp < 300) {
+      return false
+    }
+
     const tower = placedTowers.value.find(t => t.id === towerId)
-    if (!tower) return
+    if (!tower) return false
 
     // Ownership check: only builder can upgrade
     if (multiplayerStore.roomId && tower.builderId && tower.builderId !== multiplayerStore.myPlayerId) {
       console.warn('[Upgrade Tower]: Only the tower owner can upgrade this tower.')
-      return
+      return false
     }
 
+    let cost = 0
     if (characterStore.isGameMode) {
       const bp = blueprints.value.find(b => b.id === tower.blueprintId)
       const baseCost = bp ? bp.cost : 100
-      const cost = Math.round(baseCost * 0.6 * tower.level)
+      cost = Math.round(baseCost * 0.6 * tower.level)
 
       let currentGold = characterStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
-        if (myPl) currentGold = myPl.gold
+        if (myPl) currentGold = myPl.gold ?? 0
       }
-      if (currentGold < cost) return
+      if (currentGold < cost) return false
 
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
         if (myPl) {
-          myPl.gold -= cost
+          myPl.gold = Math.max(0, (myPl.gold ?? 0) - cost)
           characterStore.gold = myPl.gold
         } else {
-          characterStore.gold -= cost
+          characterStore.gold = Math.max(0, characterStore.gold - cost)
         }
       } else {
-        characterStore.gold -= cost
+        characterStore.gold = Math.max(0, characterStore.gold - cost)
       }
     }
 
+    lastUpgradeTimestamp = now
     tower.level++
     tower.damage = Math.round(tower.damage * 1.35)
     tower.attackSpeed = Math.max(0.15, Number((tower.attackSpeed * 0.9).toFixed(2)))
@@ -424,8 +433,10 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     if (multiplayerStore.roomId) {
-      multiplayerStore.broadcastTowerUpgrade(towerId)
+      multiplayerStore.broadcastTowerUpgrade(tower, cost)
     }
+
+    return true
   }
 
   const editorTowersSnapshot = ref<PlacedTower[] | null>(null)

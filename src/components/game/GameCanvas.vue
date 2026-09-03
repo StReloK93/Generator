@@ -18,47 +18,6 @@
     @wheel.prevent="handleWheel"
     @contextmenu.prevent="handleContextMenu"
   >
-    <!-- Floating Mobile Zoom & Map Navigation Widget (Right side) -->
-    <div class="absolute right-3.5 top-16 z-20 flex flex-col gap-2 pointer-events-none select-none">
-      <div 
-        class="glass-panel p-1.5 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/90 flex flex-col gap-1.5 pointer-events-auto items-center"
-        @mousedown.stop @mouseup.stop @click.stop @touchstart.stop @touchend.stop @touchmove.stop
-      >
-        <!-- Zoom In -->
-        <button 
-          @click="camera.zoomIn(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Kattalashtirish (+)"
-        >
-          <Plus class="w-4 h-4" />
-        </button>
-
-        <!-- Current Zoom Percentage -->
-        <div class="py-0.5 text-center font-mono text-[9px] text-slate-400 font-semibold select-none leading-none">
-          {{ Math.round(camera.localZoom.value * 100) }}%
-        </div>
-
-        <!-- Zoom Out -->
-        <button 
-          @click="camera.zoomOut(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Kichiklashtirish (-)"
-        >
-          <Minus class="w-4 h-4" />
-        </button>
-
-        <div class="h-px w-6 bg-slate-800 my-0.5"></div>
-
-        <!-- Center Map View -->
-        <button 
-          @click="camera.focusOnCenter(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
-          title="Xaritani markazga qaytarish"
-        >
-          <Crosshair class="w-4 h-4" />
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -89,6 +48,7 @@ const engine = new IsoEngine()
 const camera = usePixiCamera(engine, toRef(mapStore, 'project'))
 
 let resizeObserver: ResizeObserver | null = null
+let cleanListeners: (() => void) | null = null
 
 function getAssetMap(): Map<string, AssetItem> {
   const map = new Map<string, AssetItem>()
@@ -158,6 +118,26 @@ onMounted(async () => {
   camera.focusOnCenter(viewportContainerRef.value)
   updateEngineState()
 
+  function onZoomIn() {
+    camera.zoomIn(viewportContainerRef.value)
+  }
+  function onZoomOut() {
+    camera.zoomOut(viewportContainerRef.value)
+  }
+  function onFocusCenter() {
+    camera.focusOnCenter(viewportContainerRef.value)
+  }
+
+  window.addEventListener('game-zoom-in', onZoomIn)
+  window.addEventListener('game-zoom-out', onZoomOut)
+  window.addEventListener('game-focus-center', onFocusCenter)
+
+  cleanListeners = () => {
+    window.removeEventListener('game-zoom-in', onZoomIn)
+    window.removeEventListener('game-zoom-out', onZoomOut)
+    window.removeEventListener('game-focus-center', onFocusCenter)
+  }
+
   // Automatic canvas resize on window or container size change
   if (typeof ResizeObserver !== 'undefined' && viewportContainerRef.value) {
     resizeObserver = new ResizeObserver((entries) => {
@@ -173,6 +153,11 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (cleanListeners) {
+    cleanListeners()
+    cleanListeners = null
+  }
+
   if (resizeObserver) {
     resizeObserver.disconnect()
     resizeObserver = null
@@ -192,10 +177,7 @@ function handleGameCellClick(gridCoord: GridCoord) {
 
   // 1. If building a tower from shop
   if (towerStore.activeBuildTowerId) {
-    const placed = towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
-    if (placed && multiplayerStore.roomId) {
-      multiplayerStore.broadcastTowerBuild(placed)
-    }
+    towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
     towerStore.selectBuildTower(null)
     return
   }

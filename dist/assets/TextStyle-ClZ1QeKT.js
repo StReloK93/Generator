@@ -1,4 +1,4 @@
-import{D as X,o as gt,C as K,M as St,F as Z,r as J,w as lt,E as xt,s as _t,t as V,x as et,y as it,m as nt,v as st}from"./multiplayerStore-CjhEAVDG.js";import{c as mt}from"./CanvasPool-DD_geRl7.js";/**
+import{D as X,i as gt,C as K,M as St,F as Z,r as J,w as lt,E as xt,s as _t,t as V,x as et,y as it,h as nt,v as st}from"./multiplayerStore-6SnSdu_K.js";import{c as mt}from"./CanvasPool-C_lgMoN1.js";/**
  * tiny-lru
  *
  * @copyright 2026 Jason Mulligan <jason.mulligan@avoidwork.com>

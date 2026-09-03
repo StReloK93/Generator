@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { MapProject, Layer, TileItem, ProjectHistoryItem, SelectedElementRef } from '../types/map'
+import { MapProject, Layer, TileItem, ProjectHistoryItem } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
 import { useAssetStore } from './assetStore'
 
