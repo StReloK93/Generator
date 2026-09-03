@@ -15,6 +15,10 @@ class NetworkService {
   private roomId = ''
   private myPeerId = ''
 
+  // Only enable local HTTP relay if running on localhost / 127.0.0.1 with Vite dev server
+  private isServerRelayAvailable: boolean = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
   private onMessageCallback: ((msg: NetMessage) => void) | null = null
   private onPeerConnectCallback: ((peerId: string) => void) | null = null
   private onPeerDisconnectCallback: ((peerId: string) => void) | null = null
@@ -56,6 +60,12 @@ class NetworkService {
       try {
         this.peer = new Peer(formattedHostPeerId, {
           debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
         })
 
         this.peer.on('open', (id) => {
@@ -89,8 +99,10 @@ class NetworkService {
         const summary = summaryProvider()
         summary.lastHeartbeat = Date.now()
 
-        // 1. Send to Local Server/Vite discovery hub
-        this.sendHttpHeartbeat(summary)
+        // 1. Send to Local Server/Vite discovery hub (only if local server is available)
+        if (this.isServerRelayAvailable) {
+          this.sendHttpHeartbeat(summary)
+        }
 
         // 2. Broadcast via Discovery Channel (Same browser multi-tab)
         if (this.discoveryChannel) {
@@ -128,16 +140,22 @@ class NetworkService {
   }
 
   private async sendHttpHeartbeat(summary: ActiveRoomSummary) {
+    if (!this.isServerRelayAvailable) return
     const urls = ['/api/rooms', '/Generator/api/rooms']
     for (const url of urls) {
       try {
-        await fetch(url, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(summary),
         })
+        if (!res.ok) {
+          this.isServerRelayAvailable = false
+        }
         break
-      } catch {}
+      } catch {
+        this.isServerRelayAvailable = false
+      }
     }
   }
 
@@ -147,11 +165,13 @@ class NetworkService {
       this.discoveryInterval = null
     }
     if (this.roomId) {
-      const urls = [`/api/rooms/${this.roomId}`, `/Generator/api/rooms/${this.roomId}`]
-      for (const url of urls) {
-        try {
-          fetch(url, { method: 'DELETE' }).catch(() => {})
-        } catch {}
+      if (this.isServerRelayAvailable) {
+        const urls = [`/api/rooms/${this.roomId}`, `/Generator/api/rooms/${this.roomId}`]
+        for (const url of urls) {
+          try {
+            fetch(url, { method: 'DELETE' }).catch(() => {})
+          } catch {}
+        }
       }
 
       try {
@@ -238,6 +258,7 @@ class NetworkService {
   }
 
   private async fetchServerRooms() {
+    if (!this.isServerRelayAvailable) return
     const urls = ['/api/rooms', '/Generator/api/rooms']
     for (const url of urls) {
       try {
@@ -253,8 +274,12 @@ class NetworkService {
             }
           }
           break
+        } else {
+          this.isServerRelayAvailable = false
         }
-      } catch {}
+      } catch {
+        this.isServerRelayAvailable = false
+      }
     }
   }
 
@@ -305,6 +330,12 @@ class NetworkService {
       try {
         this.peer = new Peer({
           debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
         })
 
         this.peer.on('open', () => {
@@ -429,10 +460,15 @@ class NetworkService {
    */
   public startRoomMessagePolling(roomId: string) {
     this.stopRoomMessagePolling()
+    if (!this.isServerRelayAvailable) return
+
     this.lastMessageFetchTimestamp = Date.now() - 500
 
     const poll = async () => {
-      if (!this.roomId) return
+      if (!this.roomId || !this.isServerRelayAvailable) {
+        this.stopRoomMessagePolling()
+        return
+      }
       const cleanId = this.roomId.toUpperCase()
       const urls = [
         `/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`,
@@ -453,12 +489,18 @@ class NetworkService {
               }
             }
             break
+          } else {
+            this.isServerRelayAvailable = false
+            this.stopRoomMessagePolling()
           }
-        } catch {}
+        } catch {
+          this.isServerRelayAvailable = false
+          this.stopRoomMessagePolling()
+        }
       }
     }
 
-    this.messagePollingInterval = setInterval(poll, 80)
+    this.messagePollingInterval = setInterval(poll, 120)
   }
 
   public stopRoomMessagePolling() {
@@ -495,8 +537,8 @@ class NetworkService {
       }
     }
 
-    // 3. Send via HTTP Relay (only for lobby/action events, skip high-frequency ticks)
-    if (msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
+    // 3. Send via HTTP Relay (only if server relay is available)
+    if (this.isServerRelayAvailable && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
       this.sendToHttpRelay(msg)
     }
   }
@@ -526,14 +568,14 @@ class NetworkService {
       }
     }
 
-    // 3. Send via HTTP Relay (only for lobby/action events)
-    if (msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
+    // 3. Send via HTTP Relay (only if server relay is available)
+    if (this.isServerRelayAvailable && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
       this.sendToHttpRelay(msg)
     }
   }
 
   private async sendToHttpRelay(msg: NetMessage) {
-    if (!this.roomId) return
+    if (!this.roomId || !this.isServerRelayAvailable) return
     const cleanId = this.roomId.toUpperCase()
     const urls = [
       `/api/rooms/${cleanId}/messages`,
@@ -541,13 +583,18 @@ class NetworkService {
     ]
     for (const u of urls) {
       try {
-        await fetch(u, {
+        const res = await fetch(u, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(msg),
         })
+        if (!res.ok) {
+          this.isServerRelayAvailable = false
+        }
         break
-      } catch {}
+      } catch {
+        this.isServerRelayAvailable = false
+      }
     }
   }
 
