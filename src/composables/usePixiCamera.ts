@@ -65,9 +65,9 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
 
   function focusOnCenter(containerEl: HTMLElement | null) {
     const project = projectRef.value
-    const centerCol = Math.floor(project.cols / 2)
-    const centerRow = Math.floor(project.rows / 2)
-    focusOnCell(centerCol, centerRow, containerEl)
+    const midCol = (project.cols - 1) / 2
+    const midRow = (project.rows - 1) / 2
+    focusOnCell(midCol, midRow, containerEl)
   }
 
   function focusOnCell(col: number, row: number, containerEl: HTMLElement | null) {

@@ -1,139 +1,128 @@
 <template>
-  <div 
-    @mousedown.stop
-    @click.stop
-    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none pt-safe pb-safe"
+  <UiModal
+    :is-open="true"
+    title="Asset Properties (Anchor & Size)"
+    subtitle="Image base anchor point, scale multiplier and grid footprint"
+    :icon="Settings2"
+    icon-color="brand"
+    size="lg"
+    @close="$emit('close')"
   >
-    <div class="glass-panel border border-slate-700 w-full max-w-lg max-h-[88dvh] overflow-y-auto rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col gap-3.5 sm:gap-4 animate-in fade-in zoom-in-95 duration-200 custom-scrollbar">
-      <!-- Header -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <Settings2 class="w-5 h-5 text-brand-400" />
-          <h3 class="font-bold text-sm text-slate-100">
-            Asset Parametrlari (Anchor & O'lcham)
-          </h3>
-        </div>
-        <button 
-          @click="$emit('close')"
-          class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-        >
-          <X class="w-4 h-4" />
-        </button>
-      </div>
+    <!-- Interactive Canvas / Image Box -->
+    <div 
+      ref="boxRef"
+      class="w-full h-48 rounded-2xl bg-slate-950 checker-pattern relative overflow-hidden flex items-center justify-center cursor-crosshair border border-slate-800 shadow-inner group"
+      @click="handleBoxClick"
+    >
+      <img 
+        ref="imgRef"
+        :src="asset.src" 
+        :alt="asset.name"
+        class="max-w-[80%] max-h-[80%] object-contain pointer-events-none filter drop-shadow-lg"
+      />
 
-      <!-- Interactive Canvas / Image Box -->
+      <!-- Pivot Crosshair Indicator -->
       <div 
-        ref="boxRef"
-        @click="handleBoxClick"
-        class="w-full h-48 rounded-2xl bg-slate-950 checker-pattern relative overflow-hidden flex items-center justify-center cursor-crosshair border border-slate-800 shadow-inner group"
+        class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-75 flex items-center justify-center"
+        :style="{
+          left: `${currentX * 100}%`,
+          top: `${currentY * 100}%`
+        }"
       >
-        <img 
-          ref="imgRef"
-          :src="asset.src" 
-          :alt="asset.name"
-          class="max-w-[80%] max-h-[80%] object-contain pointer-events-none filter drop-shadow-lg"
-        />
-
-        <!-- Pivot Crosshair Indicator -->
-        <div 
-          class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-75 flex items-center justify-center"
-          :style="{
-            left: `${currentX * 100}%`,
-            top: `${currentY * 100}%`
-          }"
-        >
-          <div class="w-2.5 h-2.5 rounded-full bg-brand-500 ring-4 ring-brand-500/40 shadow-glow-brand"></div>
-          <div class="absolute w-full h-px bg-brand-400/80"></div>
-          <div class="absolute h-full w-px bg-brand-400/80"></div>
-        </div>
-
-        <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-[10px] font-mono text-slate-300">
-          Anchor X: {{ Math.round(currentX * 100) }}% | Y: {{ Math.round(currentY * 100) }}%
-        </div>
+        <div class="w-2.5 h-2.5 rounded-full bg-brand-500 ring-4 ring-brand-500/40 shadow-glow-brand"></div>
+        <div class="absolute w-full h-px bg-brand-400/80"></div>
+        <div class="absolute h-full w-px bg-brand-400/80"></div>
       </div>
 
-      <!-- Footprint / Katak o'lchami (Span) -->
-      <div class="flex flex-col gap-1.5 text-xs">
-        <div class="flex justify-between items-center">
-          <span class="text-slate-300 font-medium">Egallaydigan kataklar soni (Footprint):</span>
-          <span class="font-mono text-brand-300 font-bold">{{ currentSpanX }}×{{ currentSpanY }} katak</span>
-        </div>
-        <div class="grid grid-cols-5 gap-1.5">
-          <button 
-            v-for="s in spans" 
-            :key="s.label"
-            @click="setSpan(s.x, s.y)"
-            :class="currentSpanX === s.x && currentSpanY === s.y ? 'bg-brand-600 text-white font-bold shadow-sm' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'"
-            class="py-1.5 rounded-xl text-xs text-center border border-slate-700/80 transition-colors"
-          >
-            {{ s.label }}
-          </button>
-        </div>
+      <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-[10px] font-mono text-slate-300">
+        Anchor X: {{ Math.round(currentX * 100) }}% | Y: {{ Math.round(currentY * 100) }}%
       </div>
+    </div>
 
-      <!-- Scale Slider -->
-      <div class="flex items-center gap-3 text-xs">
-        <span class="text-slate-400 w-28">Boshlang'ich masshtab:</span>
-        <input 
-          v-model.number="currentScale" 
-          type="range" 
-          min="0.3" 
-          max="3.0" 
-          step="0.05"
-          class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-        />
-        <span class="font-mono text-slate-200 w-12 text-right">{{ Math.round(currentScale * 100) }}%</span>
+    <!-- Footprint / Cell Span -->
+    <div class="flex flex-col gap-1.5 text-xs">
+      <div class="flex justify-between items-center">
+        <span class="text-slate-300 font-medium">Grid Footprint Span:</span>
+        <span class="font-mono text-brand-300 font-bold">{{ currentSpanX }}×{{ currentSpanY }} cells</span>
       </div>
-
-      <!-- Anchor Sliders -->
-      <div class="flex flex-col gap-2 pt-1 border-t border-slate-800">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400 text-[11px]">Anchor tezkor shablonlar:</span>
-          <div class="flex items-center gap-1.5">
-            <button 
-              @click="setPreset(0.5, 0.5)"
-              class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]"
-            >
-              Tekis (50%)
-            </button>
-            <button 
-              @click="setPreset(0.5, 0.88)"
-              class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]"
-            >
-              Baland (88%)
-            </button>
-            <button 
-              @click="setPreset(0.5, 1.0)"
-              class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]"
-            >
-              Pastki (100%)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+      <div class="grid grid-cols-5 gap-1.5">
         <button 
-          @click="$emit('close')"
-          class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 text-xs font-medium transition-colors"
+          v-for="s in spans" 
+          :key="s.label"
+          type="button"
+          :class="currentSpanX === s.x && currentSpanY === s.y ? 'bg-brand-600 text-white font-bold shadow-sm' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'"
+          class="py-1.5 rounded-xl text-xs text-center border border-slate-700/80 transition-colors cursor-pointer touch-target"
+          @click="setSpan(s.x, s.y)"
         >
-          Bekor qilish
-        </button>
-        <button 
-          @click="save"
-          class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-md transition-all active:scale-95"
-        >
-          Saqlash
+          {{ s.label }}
         </button>
       </div>
     </div>
-  </div>
+
+    <!-- Scale Slider -->
+    <UiSlider
+      v-model="currentScale"
+      label="Base Scale Multiplier:"
+      :min="0.3"
+      :max="3.0"
+      :step="0.05"
+      :format-value="(val) => `${Math.round(val * 100)}%`"
+    />
+
+    <!-- Anchor Preset Buttons -->
+    <div class="flex flex-col gap-2 pt-1 border-t border-slate-800">
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-400 text-[11px]">Anchor Presets:</span>
+        <div class="flex items-center gap-1.5">
+          <button 
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-semibold transition-colors cursor-pointer touch-target"
+            @click="setPreset(0.5, 0.5)"
+          >
+            Flat (50%)
+          </button>
+          <button 
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-semibold transition-colors cursor-pointer touch-target"
+            @click="setPreset(0.5, 0.88)"
+          >
+            Tall (88%)
+          </button>
+          <button 
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-semibold transition-colors cursor-pointer touch-target"
+            @click="setPreset(0.5, 1.0)"
+          >
+            Bottom (100%)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <template #footer>
+      <UiButton
+        variant="ghost"
+        size="sm"
+        @click="$emit('close')"
+      >
+        Cancel
+      </UiButton>
+      <UiButton
+        variant="primary"
+        size="sm"
+        @click="save"
+      >
+        Save
+      </UiButton>
+    </template>
+  </UiModal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Settings2, X } from 'lucide-vue-next'
+import { Settings2 } from 'lucide-vue-next'
+import { UiModal, UiSlider, UiButton } from './ui'
 import { AssetItem } from '../types/map'
 import { useAssetStore } from '../stores/assetStore'
 

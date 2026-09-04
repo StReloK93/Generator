@@ -187,7 +187,7 @@ export const useTowerStore = defineStore('towerStore', () => {
   function applyBlueprintToAllPlacedTowers(bpId: string) {
     syncBlueprintChanges(bpId)
     const bp = blueprints.value.find(b => b.id === bpId)
-    mapStore.pushHistory(`${bp?.name || 'Minora'} xususiyatlari barcha minoralarga qo'llandi`)
+    mapStore.pushHistory(`Applied ${bp?.name || 'Tower'} properties to all placed towers`)
   }
 
   /**
@@ -211,7 +211,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     blueprints.value.push(customBp)
     selectedBlueprintId.value = customBp.id
     syncBlueprintChanges(customBp.id)
-    mapStore.pushHistory(`Yangi minora blueprint yaratildi: ${customBp.name}`)
+    mapStore.pushHistory(`Created new tower blueprint: ${customBp.name}`)
   }
 
   function removeBlueprint(bpId: string) {
@@ -307,7 +307,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
     syncToProject()
     if (!characterStore.isGameMode) {
-      mapStore.pushHistory(`${bp.name} (${col}, ${row}) katagiga qurildi`)
+      mapStore.pushHistory(`Built ${bp.name} at (${col}, ${row})`)
     }
 
     // Broadcast to multiplayer peers
@@ -349,7 +349,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     removePlacedTower(towerId)
-    mapStore.pushHistory(`${t.name} sotildi (+${refund} oltin)`)
+    mapStore.pushHistory(`Sold ${t.name} (+${refund} Gold)`)
 
     if (multiplayerStore.roomId) {
       multiplayerStore.broadcastTowerSell(towerId)
@@ -368,7 +368,7 @@ export const useTowerStore = defineStore('towerStore', () => {
         selectedPlacedTowerId.value = null
       }
       syncToProject()
-      mapStore.pushHistory(`${removed.name} olib tashlandi`)
+      mapStore.pushHistory(`Removed ${removed.name}`)
     }
   }
 
@@ -429,7 +429,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
     syncToProject()
     if (!characterStore.isGameMode) {
-      mapStore.pushHistory(`${tower.name} ${tower.level}-darajaga kuchaytirildi`)
+      mapStore.pushHistory(`Upgraded ${tower.name} to Level ${tower.level}`)
     }
 
     if (multiplayerStore.roomId) {
@@ -486,9 +486,10 @@ export const useTowerStore = defineStore('towerStore', () => {
    */
   function restoreFromProject() {
     const p = mapStore.project as any
-    if (p.placedTowers && Array.isArray(p.placedTowers)) {
+    const rawTowers = p.placedTowers || p.towerData?.placedTowers || []
+    if (rawTowers && Array.isArray(rawTowers)) {
       const { tileWidth, tileHeight } = mapStore.project
-      placedTowers.value = p.placedTowers.map((t: any) => {
+      placedTowers.value = rawTowers.map((t: any) => {
         const pt = gridToScreen(t.col, t.row, tileWidth, tileHeight)
         return {
           ...t,
@@ -498,8 +499,12 @@ export const useTowerStore = defineStore('towerStore', () => {
         }
       })
     }
-    if (p.towerBlueprints && Array.isArray(p.towerBlueprints)) {
-      blueprints.value = p.towerBlueprints
+    const rawBlueprints = p.towerBlueprints || p.towerData?.towerBlueprints || []
+    if (rawBlueprints && Array.isArray(rawBlueprints) && rawBlueprints.length > 0) {
+      blueprints.value = rawBlueprints.map((bp: any) => ({
+        ...bp,
+        assetId: bp.assetId || (bp.assetName ? `sprite-${bp.assetName.replace(/\.[^/.]+$/, '')}` : ''),
+      }))
     }
   }
 

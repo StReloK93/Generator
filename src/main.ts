@@ -4,10 +4,25 @@ import App from './App.vue'
 import { router } from './router'
 import './style.css'
 
-const app = createApp(App)
-const pinia = createPinia()
+async function initApp() {
+  // Ensure the primary SpaceMono font is loaded before rendering UI
+  if (typeof document !== 'undefined' && 'fonts' in document) {
+    try {
+      await document.fonts.load('16px SpaceMono')
+      await document.fonts.ready
+    } catch {
+      // Graceful fallback
+    }
+  }
 
-app.use(pinia)
-app.use(router)
-app.mount('#app')
+  const app = createApp(App)
+  const pinia = createPinia()
+
+  app.use(pinia)
+  app.use(router)
+  app.mount('#app')
+}
+
+initApp()
+
 

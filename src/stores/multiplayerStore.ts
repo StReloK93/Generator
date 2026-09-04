@@ -121,8 +121,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     const newSlots: PlayerSlot[] = []
     for (let i = 0; i < count; i++) {
       const door = doors[i]
-      const defaultName = `Eshik #${i + 1}`
-      const cornerNames = ['Shimoliy / Yuqori', 'Sharqiy / O\'ng', 'Janubiy / Pastki', 'G\'arbiy / Chap']
+      const defaultName = `Spawn Point #${i + 1}`
+      const cornerNames = ['North / Top', 'East / Right', 'South / Bottom', 'West / Left']
       const quadrant = door?.cornerName || cornerNames[i % cornerNames.length]
 
       newSlots.push({
@@ -147,8 +147,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
     const code = Math.random().toString(36).substring(2, 8).toUpperCase()
     roomId.value = code
-    roomName.value = customRoomName || `${myPlayerName.value}'ning O'yini`
-    mapName.value = mapProject.name || 'Izometrik TD Karta'
+    roomName.value = customRoomName || `${myPlayerName.value}'s Game`
+    mapName.value = mapProject.name || 'Isometric TD Map'
     isHost.value = true
     connectionStatus.value = 'connecting'
     chatMessages.value = []
@@ -181,7 +181,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomGameState.value = 'lobby'
 
     // Add System Chat
-    addSystemMessage(`🏠 Xona yaratildi: ${code}. Do'stlaringizga kodni ulashing!`)
+    addSystemMessage(`🏠 Room created: ${code}. Share this PIN code with your friends!`)
 
     // Start P2P Host Node
     await networkService.initHost(
@@ -247,9 +247,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       },
       () => {
         connectionStatus.value = 'disconnected'
-        statusMessage.value = 'Xona egasi bilan aloqa uzildi.'
+        statusMessage.value = 'Lost connection to host.'
         if (roomId.value) {
-          alert("⚠️ Xona egasi (Host) xonadan chiqdi. Xona yopildi.")
+          alert("⚠️ Host left the room. Room closed.")
           leaveRoom(globalRouter)
         }
       }
@@ -358,7 +358,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         emptySlot.player = newPlayer
         players.value.push(newPlayer)
 
-        addSystemMessage(`👋 ${newPlayer.name} xonaga qo'shildi (${emptySlot.doorName})`)
+        addSystemMessage(`👋 ${newPlayer.name} joined the room (${emptySlot.doorName})`)
 
         // Send map data to client so client loads exact same map
         networkService.broadcast({
@@ -379,7 +379,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       case 'MAP_DATA': {
         if (msg.payload.project) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.project))
-          mapName.value = mapStore.project.name || 'Izometrik TD Karta'
+          mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload.waveConfigs && msg.payload.waveConfigs.length > 0) {
           characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w }))
@@ -421,11 +421,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'READY_CHECK': {
         if (!isHost.value) {
-          const host = msg.payload?.hostName || 'Xona egasi'
+          const host = msg.payload?.hostName || 'Host'
           nudgeHostName.value = host
           isNudgeModalOpen.value = true
           isReadyButtonGlowing.value = true
-          addSystemMessage(`🔔 ${host} barchani tayyor bo'lishga chaqirdi!`)
+          addSystemMessage(`🔔 ${host} requested everyone to ready up!`)
         }
         break
       }
@@ -433,7 +433,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       case 'START_GAME': {
         if (msg.payload?.mapProject) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.mapProject))
-          mapName.value = mapStore.project.name || 'Izometrik TD Karta'
+          mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload?.waveConfigs && msg.payload.waveConfigs.length > 0) {
           characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w }))
@@ -471,7 +471,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         })
         isNudgeModalOpen.value = false
         isReadyButtonGlowing.value = false
-        addSystemMessage("🏠 Barcha o'yinchilar lobby kutish zaliga qaytdilar!")
+        addSystemMessage("🏠 All players returned to the lobby!")
 
         if (globalRouter) {
           globalRouter.push(`/lobby/${roomId.value}`)
@@ -485,7 +485,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           const existing = towerStore.placedTowers.find(t => t.id === tower.id || (t.col === tower.col && t.row === tower.row))
           if (!existing) {
             towerStore.placedTowers.push(tower)
-            addSystemMessage(`🔨 ${tower.builderName || 'O\'yinchi'} (${tower.col}, ${tower.row}) katagiga minora qurdilar!`)
+            addSystemMessage(`🔨 ${tower.builderName || 'Player'} built a tower at (${tower.col}, ${tower.row})!`)
 
             // Authoritative Host Gold Deduction:
             if (isHost.value) {
@@ -520,7 +520,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           if (newSplashRadius !== undefined) {
             target.splashRadius = newSplashRadius
           }
-          addSystemMessage(`⭐ ${target.name} ${target.level}-darajaga kuchaytirildi!`)
+          addSystemMessage(`⭐ ${target.name} was upgraded to Level ${target.level}!`)
 
           // Authoritative Host Gold Deduction:
           if (isHost.value) {
@@ -545,7 +545,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           const bp = towerStore.blueprints.find(b => b.id === removed.blueprintId)
           const baseCost = bp ? bp.cost : 100
           const refund = Math.round(baseCost * 0.7 * (1 + (removed.level - 1) * 0.5))
-          addSystemMessage(`💰 ${removed.name} sotildi (+${refund} oltin).`)
+          addSystemMessage(`💰 ${removed.name} was sold (+${refund} Gold).`)
 
           // Authoritative Host Gold Refund:
           if (isHost.value) {
@@ -667,7 +667,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'PING_CELL': {
         const ping = msg.payload
-        addSystemMessage(`📍 ${ping.playerName} (${ping.col}, ${ping.row}) katakni ko'rsatdi!`)
+        addSystemMessage(`📍 ${ping.playerName} pinged cell (${ping.col}, ${ping.row})!`)
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
         }
@@ -680,7 +680,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'ROOM_CLOSED': {
-        alert(msg.payload?.message || "⚠️ Xona egasi (Host) xonadan chiqdi. Xona yopildi.")
+        alert(msg.payload?.message || "⚠️ Room Host left the room. Room closed.")
         characterStore.exitPlayMode()
         towerStore.clearAllTowers()
         leaveRoom(globalRouter)
@@ -696,7 +696,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function handlePeerDisconnected(peerId: string) {
     const leftPlayer = players.value.find(p => p.id === peerId)
     if (leftPlayer) {
-      addSystemMessage(`🚪 ${leftPlayer.name} xonani tark etdi.`)
+      addSystemMessage(`🚪 ${leftPlayer.name} left the room.`)
       const slot = slots.value.find(s => s.player?.id === peerId)
       if (slot) {
         slot.player = null
@@ -759,7 +759,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    */
   function sendReadyCheck() {
     if (!isHost.value) return
-    addSystemMessage("🔔 Barcha o'yinchilarga tayyorgarlik bildirishnomasi yuborildi!")
+    addSystemMessage("🔔 Ready check notification sent to all players!")
     networkService.broadcast({
       type: 'READY_CHECK',
       payload: {
@@ -1120,7 +1120,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         type: 'ROOM_CLOSED',
         payload: {
           roomId: roomId.value,
-          message: "⚠️ Xona egasi (Host) xonadan chiqdi. Xona yopildi."
+          message: "⚠️ Host left the room. Room closed."
         },
         senderId: myPlayerId.value,
         timestamp: Date.now(),

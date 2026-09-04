@@ -7,21 +7,25 @@
       <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 pointer-events-auto">
         
         <!-- 1. PREVIEW MODE BADGE (If preview) -->
-        <div v-if="props.isPreview" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-indigo-950/90 border border-indigo-500/40 text-indigo-200 font-bold text-xs shadow-xl backdrop-blur-md">
-          <Eye class="w-4 h-4 text-indigo-400 shrink-0" />
-          <span>Dizayn Ko'rinishi</span>
-          <span class="text-[10px] text-indigo-400 font-normal hidden sm:inline">(Simulyatsiyasiz)</span>
-        </div>
+        <UiBadge
+          v-if="props.isPreview"
+          variant="purple"
+          style-type="glow"
+          size="md"
+          :icon="Eye"
+        >
+          Design Preview Mode
+        </UiBadge>
 
         <template v-else>
           <!-- 2. GLOBAL GAME (BASE & WAVE) INDICATORS -->
           <div class="glass-panel px-2.5 sm:px-3 py-1 landscape:py-0.5 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-slate-800/90 shadow-xl flex items-center gap-2 sm:gap-2.5 text-xs backdrop-blur-md">
             
-            <!-- Baza Jonlari (Base Lives) -->
+            <!-- Base Lives -->
             <div 
               class="flex items-center gap-1 shrink-0" 
               :class="characterStore.playerLives <= 5 ? 'text-rose-400 animate-pulse font-black' : 'text-slate-200'"
-              title="Qolgan baza jonlari"
+              title="Remaining base lives"
             >
               <Heart class="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
               <span class="font-mono font-bold text-xs">
@@ -31,8 +35,8 @@
 
             <div class="h-3.5 w-px bg-slate-800 shrink-0"></div>
 
-            <!-- To'lqin (Wave) -->
-            <div class="flex items-center gap-1 shrink-0" title="To'lqin raqami">
+            <!-- Wave -->
+            <div class="flex items-center gap-1 shrink-0" title="Current wave">
               <Swords class="w-3.5 h-3.5 text-purple-400 shrink-0" />
               <span class="font-mono font-bold text-xs text-purple-200">
                 {{ characterStore.currentWaveIndex + 1 }}<span class="text-slate-500 font-normal text-[10px]">/{{ characterStore.waveConfigs.length || 0 }}</span>
@@ -41,18 +45,18 @@
 
             <div class="h-3.5 w-px bg-slate-800 shrink-0"></div>
 
-            <!-- Xaritadagi Tirik Dushmanlar (Alive Enemies) -->
-            <div class="flex items-center gap-1 shrink-0 text-slate-300" title="Xaritada tirik dushmanlar soni">
+            <!-- Alive Enemies -->
+            <div class="flex items-center gap-1 shrink-0 text-slate-300" title="Enemies alive on map">
               <Users class="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span class="font-mono font-bold text-xs text-cyan-200">
                 {{ characterStore.aliveEnemiesCount }}
               </span>
             </div>
 
-            <!-- O'tib ketgan dushmanlar (Leaked Enemies) -->
+            <!-- Leaked Enemies -->
             <template v-if="characterStore.leakedEnemiesCount > 0">
               <div class="h-3.5 w-px bg-slate-800 shrink-0"></div>
-              <div class="flex items-center gap-1 shrink-0 text-rose-300 bg-rose-950/60 px-1.5 py-0.2 rounded-lg border border-rose-500/40" title="Bazaga o'tib ketgan dushmanlar soni">
+              <div class="flex items-center gap-1 shrink-0 text-rose-300 bg-rose-950/60 px-1.5 py-0.2 rounded-lg border border-rose-500/40" title="Enemies leaked into base">
                 <DoorOpen class="w-3.5 h-3.5 text-rose-400 shrink-0" />
                 <span class="font-mono font-black text-xs text-rose-300">
                   -{{ characterStore.leakedEnemiesCount }}
@@ -69,7 +73,7 @@
             class="glass-panel px-2.5 sm:px-3 py-1 landscape:py-0.5 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-xl flex items-center gap-2 sm:gap-2.5 text-xs backdrop-blur-md"
           >
             <!-- Gold -->
-            <div class="flex items-center gap-1 shrink-0" title="Sizning oltiningiz">
+            <div class="flex items-center gap-1 shrink-0" title="Current gold balance">
               <Coins class="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span class="font-mono font-bold text-xs text-amber-300">{{ characterStore.gold }}</span>
             </div>
@@ -77,7 +81,7 @@
             <div class="h-3.5 w-px bg-slate-800 shrink-0"></div>
 
             <!-- Total Kills -->
-            <div class="flex items-center gap-1 shrink-0" title="Jami o'ldirilgan dushmanlar">
+            <div class="flex items-center gap-1 shrink-0" title="Total enemies killed">
               <Skull class="w-3.5 h-3.5 text-rose-400 shrink-0" />
               <span class="font-mono font-bold text-xs text-rose-300">{{ characterStore.totalKills }}</span>
             </div>
@@ -85,7 +89,7 @@
             <div class="h-3.5 w-px bg-slate-800 shrink-0 hidden sm:block"></div>
 
             <!-- Score -->
-            <div class="hidden sm:flex items-center gap-1 shrink-0" title="Ochkolar">
+            <div class="hidden sm:flex items-center gap-1 shrink-0" title="Score points">
               <Trophy class="w-3.5 h-3.5 text-yellow-400 shrink-0" />
               <span class="font-mono font-bold text-xs text-yellow-300">{{ characterStore.score }}</span>
             </div>
@@ -100,36 +104,38 @@
             <div
               v-for="p in multiplayerStore.players"
               :key="p.id"
-              class="glass-panel px-2.5 sm:px-3 py-1 landscape:py-0.5 rounded-xl sm:rounded-2xl border flex items-center gap-2 sm:gap-2.5 text-xs shadow-xl transition-all backdrop-blur-md"
-              :class="p.id === multiplayerStore.myPlayerId ? 'bg-slate-900/95 border-brand-500/80 ring-1 ring-brand-500/50 shadow-brand-500/10' : 'bg-slate-950/85 border-slate-800/80'"
+              class="glass-panel px-2 sm:px-2.5 py-1 rounded-xl sm:rounded-2xl flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs shadow-lg backdrop-blur-md transition-all border"
+              :class="p.id === multiplayerStore.myPlayerId ? 'bg-slate-900/95 border-emerald-500/60 ring-1 ring-emerald-500/30 shadow-emerald-500/10' : 'bg-slate-950/85 border-slate-800/80'"
             >
-              <!-- Player Dot & Name -->
-              <div class="flex items-center gap-1.5 shrink-0">
-                <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" :style="{ backgroundColor: p.color }"></span>
-                <span class="font-bold text-[11px] sm:text-xs truncate max-w-[65px] sm:max-w-[100px]" :class="p.id === multiplayerStore.myPlayerId ? 'text-white' : 'text-slate-300'">
-                  {{ p.name }} <span v-if="p.id === multiplayerStore.myPlayerId" class="text-[9px] text-brand-400 font-normal">(Siz)</span>
+              <div 
+                class="w-5 h-5 sm:w-6 sm:h-6 rounded-lg sm:rounded-xl border border-white/40 flex items-center justify-center text-[10px] font-black text-slate-950 shrink-0 shadow-sm"
+                :style="{ backgroundColor: p.color || '#38bdf8' }"
+                :title="p.name"
+              >
+                {{ (p.name || 'P').slice(0, 1).toUpperCase() }}
+              </div>
+
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span 
+                  class="font-bold truncate max-w-[65px] sm:max-w-[85px]"
+                  :class="p.id === multiplayerStore.myPlayerId ? 'text-white' : 'text-slate-300'"
+                >
+                  {{ p.name }}
                 </span>
-              </div>
 
-              <div class="h-3 w-px bg-slate-800 shrink-0"></div>
+                <span class="font-mono font-black text-amber-300 flex items-center gap-0.5 text-[11px]">
+                  <Coins class="w-3 h-3 text-amber-400 shrink-0" />{{ p.gold ?? 0 }}
+                </span>
 
-              <!-- Player Gold -->
-              <div class="flex items-center gap-1 text-amber-300 font-mono text-[11px] font-bold" title="Oltin">
-                <Coins class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>{{ p.gold ?? 0 }}</span>
-              </div>
+                <span class="text-slate-600 hidden sm:inline">•</span>
 
-              <div class="h-3 w-px bg-slate-800/60 shrink-0"></div>
-
-              <!-- Player Kills -->
-              <div class="flex items-center gap-1 text-rose-300 font-mono text-[11px] font-bold" title="O'ldirilgan dushmanlar">
-                <Skull class="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                <span>{{ p.killsCount ?? 0 }}</span>
+                <span class="font-mono text-rose-300 hidden sm:flex items-center gap-0.5 text-[10px]" title="Kills">
+                  <Skull class="w-2.5 h-2.5 text-rose-400 shrink-0" />{{ p.killsCount ?? 0 }}
+                </span>
               </div>
             </div>
           </div>
         </template>
-
       </div>
 
       <!-- Right: Unified Action Dock (Exit, Fullscreen, Zoom In +, Zoom Out -, Center) -->
@@ -137,55 +143,55 @@
         <div class="glass-panel p-1 landscape:p-0.5 rounded-xl sm:rounded-2xl border border-slate-800/80 shadow-2xl backdrop-blur-xl bg-slate-950/80 flex items-center gap-1 sm:gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
           
           <!-- 1. Exit / Back to Editor Button -->
-          <button
+          <UiButton
+            variant="danger"
+            size="xs"
+            :leading-icon="ArrowLeft"
+            :title="props.isPreview ? 'Back to editor' : 'Exit game'"
             @click="handleExitGame"
-            class="px-2 sm:px-2.5 py-1.5 landscape:py-1 rounded-lg sm:rounded-xl bg-slate-900/90 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 transition-colors border border-slate-800/80 shadow-md cursor-pointer active:scale-95 touch-target flex items-center gap-1"
-            :title="props.isPreview ? 'Tahrirlashga qaytish' : 'O\'yindan chiqish'"
           >
-            <ArrowLeft class="w-3.5 h-3.5" />
-            <span class="text-[11px] sm:text-xs font-bold">{{ props.isPreview ? 'Tahrir' : 'Chiqish' }}</span>
-          </button>
+            <span class="text-[11px] sm:text-xs font-bold">{{ props.isPreview ? 'Edit' : 'Exit' }}</span>
+          </UiButton>
 
           <div class="h-4 w-px bg-slate-800/80"></div>
 
           <!-- 2. Fullscreen Button -->
-          <button
+          <UiIconButton
+            variant="default"
+            size="sm"
+            :icon="isFullscreenMode ? Minimize2 : Maximize2"
+            :title="isFullscreenMode ? 'Exit Fullscreen' : 'Enter Fullscreen'"
             @click="handleToggleFullscreen"
-            class="p-1.5 landscape:p-1 rounded-lg sm:rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-800/80 shadow-md cursor-pointer active:scale-95 touch-target flex items-center justify-center"
-            :title="isFullscreenMode ? 'To\'liq ekrandan chiqish' : 'To\'liq ekran'"
-          >
-            <Minimize2 v-if="isFullscreenMode" class="w-3.5 h-3.5" />
-            <Maximize2 v-else class="w-3.5 h-3.5" />
-          </button>
+          />
 
           <div class="h-4 w-px bg-slate-800/80"></div>
 
           <!-- 3. Zoom In (+) Button -->
-          <button
+          <UiIconButton
+            variant="default"
+            size="sm"
+            :icon="Plus"
+            title="Zoom In (+)"
             @click="handleZoomIn"
-            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors border border-slate-800/80 shadow-md cursor-pointer active:scale-95 touch-target flex items-center justify-center font-bold"
-            title="Kattalashtirish (+)"
-          >
-            <Plus class="w-3.5 h-3.5" />
-          </button>
+          />
 
           <!-- 4. Zoom Out (-) Button -->
-          <button
+          <UiIconButton
+            variant="default"
+            size="sm"
+            :icon="Minus"
+            title="Zoom Out (-)"
             @click="handleZoomOut"
-            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors border border-slate-800/80 shadow-md cursor-pointer active:scale-95 touch-target flex items-center justify-center font-bold"
-            title="Kichiklashtirish (-)"
-          >
-            <Minus class="w-3.5 h-3.5" />
-          </button>
+          />
 
           <!-- 5. Center Focus Button -->
-          <button
+          <UiIconButton
+            variant="success"
+            size="sm"
+            :icon="Crosshair"
+            title="Reset View to Center"
             @click="handleFocusCenter"
-            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-900/90 hover:bg-emerald-950 text-emerald-400 hover:text-emerald-300 transition-colors border border-slate-800/80 shadow-md cursor-pointer active:scale-95 touch-target flex items-center justify-center"
-            title="Xaritani markazga qaytarish"
-          >
-            <Crosshair class="w-3.5 h-3.5" />
-          </button>
+          />
 
         </div>
       </div>
@@ -199,7 +205,7 @@
     >
       <div class="flex items-center justify-between pb-1 border-b border-slate-800 font-bold text-sky-400">
         <span class="flex items-center gap-1.5"><Activity class="w-3.5 h-3.5" /> Performance Telemetry</span>
-        <button @click="showDiagnostics = false" class="text-slate-400 hover:text-white cursor-pointer">✕</button>
+        <button type="button" class="text-slate-400 hover:text-white cursor-pointer" @click="showDiagnostics = false">✕</button>
       </div>
       <div class="flex justify-between">
         <span class="text-slate-400">FPS:</span>
@@ -235,8 +241,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Heart, Coins, Swords, Trophy, Skull, ArrowLeft, Maximize2, Minimize2, Eye, EyeOff, Activity, Plus, Minus, Crosshair, Users, DoorOpen 
+  Heart, Coins, Swords, Trophy, Skull, ArrowLeft, Maximize2, Minimize2, Eye, Activity, Plus, Minus, Crosshair, Users, DoorOpen 
 } from 'lucide-vue-next'
+import { UiButton, UiIconButton, UiBadge } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
@@ -306,7 +313,7 @@ function handleExitGame() {
     return
   }
 
-  if (confirm("O'yindan chiqib, tahrirlovchiga qaytmoqchimisiz?")) {
+  if (confirm("Exit game and return to editor?")) {
     characterStore.exitPlayMode()
     if (multiplayerStore.roomId) {
       multiplayerStore.leaveRoom(router)

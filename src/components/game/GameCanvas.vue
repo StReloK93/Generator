@@ -76,14 +76,14 @@ onMounted(async () => {
   camera.updateViewportRect(viewportContainerRef.value)
   const rect = camera.getViewportRect(viewportContainerRef.value)
   
-  characterStore.setLoadingProgress(10, "Izometrik dvijok va grafik kesh tayyorlanmoqda...")
+  characterStore.setLoadingProgress(10, "Initializing isometric engine and graphics cache...")
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
 
   // Fast PixiJS 8 Asset Bundle Loading (Core + Game bundles)
-  characterStore.setLoadingProgress(30, "Personajlar va minora modellari yuklanmoqda...")
+  characterStore.setLoadingProgress(30, "Loading character and tower models...")
   await assetManager.loadGame((prog) => {
     const p = 30 + Math.round(prog * 50)
-    characterStore.setLoadingProgress(p, `O'yin teksturalari yuklanmoqda (${Math.round(prog * 100)}%)...`)
+    characterStore.setLoadingProgress(p, `Loading game textures (${Math.round(prog * 100)}%)...`)
   })
 
   // Ensure asset store manifest is ready

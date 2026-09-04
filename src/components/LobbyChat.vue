@@ -1,14 +1,18 @@
 <template>
-  <div class="flex flex-col h-full rounded-3xl bg-slate-950/80 border border-slate-800/90 shadow-2xl overflow-hidden backdrop-blur-md">
+  <UiCard 
+    variant="slate" 
+    padding="none" 
+    custom-class="flex flex-col h-full rounded-3xl border-slate-800/90 shadow-2xl overflow-hidden backdrop-blur-md"
+  >
     <!-- Chat Header -->
-    <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+    <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
       <div class="flex items-center gap-2">
         <MessageSquare class="w-4 h-4 text-brand-400" />
-        <span class="text-xs font-bold text-white uppercase tracking-wider">Xona Chati</span>
+        <span class="text-xs font-bold text-white uppercase tracking-wider">Room Chat</span>
       </div>
-      <span class="text-[10px] font-mono text-slate-500">
-        {{ multiplayerStore.chatMessages.length }} xabar
-      </span>
+      <UiBadge variant="slate" size="xs">
+        {{ multiplayerStore.chatMessages.length }} messages
+      </UiBadge>
     </div>
 
     <!-- Messages Container -->
@@ -18,9 +22,9 @@
     >
       <div 
         v-if="multiplayerStore.chatMessages.length === 0"
-        class="h-full flex items-center justify-center text-center text-slate-600 text-xs py-8"
+        class="h-full flex items-center justify-center text-center text-slate-500 text-xs py-8"
       >
-        <span>Xabarlar yo'q. Birinchi bo'lib yozing!</span>
+        <span>No messages yet. Be the first to say hello!</span>
       </div>
 
       <div 
@@ -54,30 +58,32 @@
     </div>
 
     <!-- Input Bar -->
-    <div class="p-2.5 border-t border-slate-800/80 bg-slate-900/60 flex items-center gap-2">
-      <input 
+    <div class="p-2.5 border-t border-slate-800/80 bg-slate-900/60 flex items-center gap-2 shrink-0">
+      <UiInput 
         v-model="inputMsg"
-        type="text"
-        placeholder="Xabar yozing... (Enter)"
-        maxlength="120"
-        class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/40"
+        size="sm"
+        placeholder="Type a message... (Enter)"
+        :maxlength="120"
+        custom-class="flex-1"
         @keyup.enter="handleSend"
       />
-      <button 
-        @click="handleSend"
+      <UiIconButton 
+        :icon="Send"
+        size="md"
+        variant="default"
         :disabled="!inputMsg.trim()"
-        class="p-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
-        title="Yuborish"
-      >
-        <Send class="w-3.5 h-3.5" />
-      </button>
+        title="Send"
+        custom-class="bg-brand-600 hover:bg-brand-500 text-white border-brand-500/40"
+        @click="handleSend"
+      />
     </div>
-  </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { MessageSquare, Send } from 'lucide-vue-next'
+import { UiCard, UiInput, UiIconButton, UiBadge } from './ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 
 const multiplayerStore = useMultiplayerStore()

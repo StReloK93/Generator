@@ -24,12 +24,12 @@
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2">
       <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
       <span>
-        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? '➕ Yangi Chiqish Nuqtasi' : '📍 Chiqish Nuqtasini Ko\'chirish' }}:</strong>
-        Xaritadagi istalgan katakni bosing
+        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? '➕ New Spawn Point' : '📍 Relocate Spawn Point' }}:</strong>
+        Click any cell on the map
       </span>
       <button @click="characterStore.isSettingSpawnPoint = false"
         class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer">
-        Bekor qilish
+        Cancel
       </button>
     </div>
 
@@ -38,38 +38,38 @@
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2">
       <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
       <span>
-        <strong>🖌️ Marshrut chizilmoqda:</strong> Kataklarni ketma-ket bosing (Nuqtalar: {{
+        <strong>🖌️ Drawing Route:</strong> Click cells sequentially (Points: {{
           characterStore.drawingPath.length }})
       </span>
       <button @click="characterStore.finishDrawingRoute()"
         class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm cursor-pointer">
-        Tugatish
+        Finish
       </button>
       <button @click="characterStore.cancelDrawingRoute()"
         class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer">
-        Bekor qilish
+        Cancel
       </button>
     </div>
 
     <!-- Top Help / Quick Guide Notification Banner -->
     <div v-if="showGuide"
-      class="absolute top-4 left-1/2 -translate-x-1/2 z-20 glass-panel px-4 py-2 rounded-2xl border border-brand-500/40 shadow-2xl hidden md:flex items-center gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl text-slate-200">
+      class="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-slate-500/50  px-4 py-2 rounded-2xl border border-brand-500/40 shadow-2xl hidden md:flex items-center gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl text-slate-200">
       <div class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center shrink-0">
         <Sparkles class="w-3.5 h-3.5" />
       </div>
       <div class="flex-1 leading-snug">
         <strong>Hotkeys:</strong>
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Delete</kbd> —
-        O'chirish |
+        Delete |
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Shift+Click</kbd>
-        — Ketma-ket qo'yish |
+        — Continuous Place |
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">R</kbd> —
-        Aylantirish |
+        Rotate |
         <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">F</kbd> — Flip |
-        <span class="text-amber-300 font-semibold">O'ng tugma</span> — Bo'shatish
+        <span class="text-amber-300 font-semibold">Right-click</span> — Deselect
       </div>
       <button @click="showGuide = false"
-        class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Yopish">
+        class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Close">
         <X class="w-3.5 h-3.5" />
       </button>
     </div>
@@ -80,7 +80,7 @@
       <div
         class="glass-panel px-6 py-3 rounded-2xl border border-brand-400 text-brand-300 font-semibold text-sm shadow-2xl flex items-center gap-2">
         <PlusCircle class="w-5 h-5 animate-bounce" />
-        <span>Plitkani shu yerga tashlang</span>
+        <span>Drop sprite tile here</span>
       </div>
     </div>
 
@@ -91,7 +91,7 @@
         class="glass-panel px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2.5 border border-slate-800/90 shadow-xl text-slate-300 backdrop-blur-xl bg-slate-900/90">
         <!-- Hover Grid Coordinates -->
         <div class="flex items-center gap-1.5">
-          <span class="text-slate-500 font-sans text-[11px]">Katak:</span>
+          <span class="text-slate-500 font-sans text-[11px]">Cell:</span>
           <span v-if="toolStore.hoveredCell"
             class="text-brand-300 font-bold bg-brand-500/20 px-1.5 py-0.5 rounded border border-brand-500/30">
             ({{ toolStore.hoveredCell.col }}, {{ toolStore.hoveredCell.row }})
@@ -103,16 +103,16 @@
 
         <!-- Active Layer Name -->
         <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-sans text-[11px]">Qatlam:</span>
+          <span class="text-slate-500 font-sans text-[11px]">Layer:</span>
           <span class="text-emerald-400 font-sans font-medium truncate max-w-27.5">
-            {{ mapStore.activeLayer?.name || 'Qatlam' }}
+            {{ mapStore.activeLayer?.name || 'Layer' }}
           </span>
         </div>
 
         <template v-if="toolStore.hoveredCell && hoveredCellItemsCount > 0">
           <div class="h-3 w-px bg-slate-800 hidden sm:block"></div>
           <div class="hidden sm:flex items-center gap-1 text-[11px] text-amber-300 font-sans">
-            <span>📦 {{ hoveredCellItemsCount }} ta element</span>
+            <span>📦 {{ hoveredCellItemsCount }} items</span>
           </div>
         </template>
       </div>
@@ -126,7 +126,7 @@
         <!-- Zoom In -->
         <button @click="camera.zoomIn(viewportContainerRef)"
           class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Kattalashtirish (+)">
+          title="Zoom In (+)">
           <Plus class="w-4 h-4" />
         </button>
 
@@ -138,7 +138,7 @@
         <!-- Zoom Out -->
         <button @click="camera.zoomOut(viewportContainerRef)"
           class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Kichiklashtirish (-)">
+          title="Zoom Out (-)">
           <Minus class="w-4 h-4" />
         </button>
 
@@ -147,7 +147,7 @@
         <!-- Center Map View -->
         <button @click="camera.focusOnCenter(viewportContainerRef)"
           class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
-          title="Xaritani umumiy ko'rinishga qaytarish">
+          title="Reset View to Center">
           <Crosshair class="w-4 h-4" />
         </button>
       </div>

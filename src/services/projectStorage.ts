@@ -70,7 +70,7 @@ export function saveRecentProject(
 
     const entry: RecentProjectItem = {
       id: projectId,
-      name: project.name || 'Nomsiz Karta',
+      name: project.name || 'Untitled Map',
       cols: project.cols,
       rows: project.rows,
       tilesCount: totalTiles,

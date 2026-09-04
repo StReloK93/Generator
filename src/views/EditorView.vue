@@ -13,7 +13,7 @@
       <!-- Main Isometric Canvas Viewport -->
       <div class="flex-1 flex flex-col h-full relative overflow-hidden">
         <EditorCanvas ref="viewportRef" class="flex-1" />
-        <!-- Design Gameplay Preview Overlay (Simulyatsiyasiz o'yin ko'rinishi) -->
+        <!-- Design Gameplay Preview Overlay (Static Game Preview) -->
         <GameplayPreviewOverlay />
       </div>
 

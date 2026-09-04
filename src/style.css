@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'SpaceMono';
+  src: url('/fonts/SpaceMono-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
 @theme {
   --color-dark-950: #090d16;
   --color-dark-900: #0d1322;
@@ -29,15 +37,30 @@
   --color-amber-400: #fbbf24;
   --color-amber-500: #f59e0b;
 
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SpaceMono', monospace;
 
   --shadow-glow-brand: 0 0 20px -5px rgba(99, 102, 241, 0.5);
   --shadow-glow-emerald: 0 0 20px -5px rgba(16, 185, 129, 0.5);
 }
 
 @layer base {
-  body {
-    font-family: var(--font-sans);
+  *,
+  *::before,
+  *::after {
+    font-family: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+
+  html,
+  body,
+  #app,
+  input,
+  button,
+  select,
+  textarea,
+  optgroup,
+  option {
+    font-family: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     color: #f1f5f9;
     background-color: #090d16;
     overflow: hidden;

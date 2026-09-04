@@ -67,7 +67,17 @@ export function buildFullProjectJsonPayload(
   }
 
   const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
-  const resolvedTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
+  const rawTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
+  const resolvedTowerBlueprints = rawTowerBlueprints.map((bp: any) => {
+    const rawName = (bp.assetName || '').replace(/\.[^/.]+$/, '').trim()
+    const fallbackId = rawName ? (rawName.startsWith('sprite-') ? rawName : `sprite-${rawName}`) : 'sprite-stoneColumn_W'
+    return {
+      ...bp,
+      assetId: bp.assetId || fallbackId,
+      assetName: bp.assetName || (rawName ? `${rawName}.png` : 'stoneColumn_W.png'),
+      assetPath: bp.assetPath && bp.assetPath.startsWith('data:') ? bp.assetPath : '',
+    }
+  })
   const resolvedWaveConfigs = waveData?.waveConfigs || (project as any).waveConfigs || []
   const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
 
@@ -205,7 +215,7 @@ export function importProjectFromJson(
       try {
         const data = JSON.parse(reader.result as string)
         if (!data.project || !data.project.cols || !data.project.rows) {
-          throw new Error('Fayl ichida xarita loyihasi topilmadi!')
+          throw new Error('No valid map project found in file!')
         }
         
         const characterData = data.characterData || {

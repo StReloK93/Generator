@@ -70,7 +70,8 @@ export interface AssetItem {
   id: string
   name: string
   src: string // original full data URL or blob URL
-  previewSrc?: string // auto-centered thumbnail for clean gallery display
+  previewSrc?: string // preview thumbnail for gallery display
+  trimmedSrc?: string // trimmed standalone graphic specifically for Asset Redactor
   category: string
   width: number
   height: number

@@ -16,7 +16,7 @@ export const useMapStore = defineStore('mapStore', () => {
   // Project configuration
   const project = ref<MapProject>({
     id: `proj-${Date.now()}`,
-    name: 'Yangi Izometrik Karta',
+    name: 'New Isometric Map',
     cols: 60,
     rows: 60,
     tileWidth: 128,
@@ -27,7 +27,7 @@ export const useMapStore = defineStore('mapStore', () => {
     layers: [
       {
         id: 'layer-ground',
-        name: 'Ground (Yer)',
+        name: 'Ground',
         visible: true,
         locked: false,
         opacity: 1.0,
@@ -35,7 +35,7 @@ export const useMapStore = defineStore('mapStore', () => {
       },
       {
         id: 'layer-objects',
-        name: 'Objects (Obyektlar)',
+        name: 'Objects',
         visible: true,
         locked: false,
         opacity: 1.0,
@@ -43,7 +43,7 @@ export const useMapStore = defineStore('mapStore', () => {
       },
       {
         id: 'layer-deco',
-        name: 'Decoration (Bezaklar)',
+        name: 'Decoration',
         visible: true,
         locked: false,
         opacity: 1.0,
@@ -158,7 +158,7 @@ export const useMapStore = defineStore('mapStore', () => {
   }) {
     project.value = {
       id: `proj-${Date.now()}`,
-      name: config.name || 'Yangi Izometrik Karta',
+      name: config.name || 'New Isometric Map',
       cols: Math.max(2, Math.min(256, config.cols)),
       rows: Math.max(2, Math.min(256, config.rows)),
       tileWidth: config.tileWidth || 128,
@@ -169,7 +169,7 @@ export const useMapStore = defineStore('mapStore', () => {
       layers: [
         {
           id: `layer-ground-${Date.now()}`,
-          name: 'Ground (Yer)',
+          name: 'Ground',
           visible: true,
           locked: false,
           opacity: 1.0,
@@ -177,7 +177,7 @@ export const useMapStore = defineStore('mapStore', () => {
         },
         {
           id: `layer-objects-${Date.now()}`,
-          name: 'Objects (Obyektlar)',
+          name: 'Objects',
           visible: true,
           locked: false,
           opacity: 1.0,
@@ -185,7 +185,7 @@ export const useMapStore = defineStore('mapStore', () => {
         },
         {
           id: `layer-deco-${Date.now()}`,
-          name: 'Decoration (Bezaklar)',
+          name: 'Decoration',
           visible: true,
           locked: false,
           opacity: 1.0,
@@ -200,7 +200,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     history.value = [
       {
-        description: 'Loyiha yaratildi',
+        description: 'Project created',
         timestamp: Date.now(),
         layers: cloneLayers(project.value.layers),
       }
@@ -211,7 +211,7 @@ export const useMapStore = defineStore('mapStore', () => {
   function resizeMap(cols: number, rows: number) {
     project.value.cols = Math.max(4, Math.min(256, Math.round(cols)))
     project.value.rows = Math.max(4, Math.min(256, Math.round(rows)))
-    pushHistory(`Xarita o'lchami o'zgartirildi (${project.value.cols}x${project.value.rows})`)
+    pushHistory(`Map resized (${project.value.cols}x${project.value.rows})`)
   }
 
   // Get items placed directly at a specific cell
@@ -292,7 +292,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const num = project.value.layers.length + 1
     const newLayer: Layer = {
       id: `layer-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      name: name || `Qatlam ${num}`,
+      name: name || `Layer ${num}`,
       visible: true,
       locked: false,
       opacity: 1.0,
@@ -300,7 +300,7 @@ export const useMapStore = defineStore('mapStore', () => {
     }
     project.value.layers.push(newLayer)
     activeLayerId.value = newLayer.id
-    pushHistory(`Yangi qatlam qo'shildi: ${newLayer.name}`)
+    pushHistory(`Added layer: ${newLayer.name}`)
   }
 
   function removeLayer(id: string) {
@@ -312,7 +312,7 @@ export const useMapStore = defineStore('mapStore', () => {
       if (activeLayerId.value === id) {
         activeLayerId.value = project.value.layers[Math.max(0, index - 1)].id
       }
-      pushHistory(`Qatlam o'chirildi: ${removed.name}`)
+      pushHistory(`Deleted layer: ${removed.name}`)
     }
   }
 
@@ -344,7 +344,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const [moved] = project.value.layers.splice(index, 1)
     project.value.layers.splice(targetIndex, 0, moved)
-    pushHistory(`Qatlam tartibi o'zgartirildi`)
+    pushHistory(`Reordered layers`)
   }
 
   // Set / Add Tile to cell (Stack or Replace)
@@ -420,7 +420,7 @@ export const useMapStore = defineStore('mapStore', () => {
     }
 
     if (pushHist) {
-      pushHistory(mode === 'stack' ? `Element joylashtirildi (${col}, ${row})` : `Element almashtirildi (${col}, ${row})`)
+      pushHistory(mode === 'stack' ? `Placed element (${col}, ${row})` : `Replaced element (${col}, ${row})`)
     } else {
       project.value.updatedAt = Date.now()
     }
@@ -430,7 +430,6 @@ export const useMapStore = defineStore('mapStore', () => {
 
   function removeTile(col: number, row: number, layerId = activeLayerId.value, pushHist = true) {
     if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return
-
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return
 
@@ -446,7 +445,7 @@ export const useMapStore = defineStore('mapStore', () => {
     }
 
     if (pushHist) {
-      pushHistory(`Element o'chirildi (${col}, ${row})`)
+      pushHistory(`Deleted element (${col}, ${row})`)
     } else {
       project.value.updatedAt = Date.now()
     }
@@ -466,7 +465,7 @@ export const useMapStore = defineStore('mapStore', () => {
       layer.tiles[key] = updated
     }
 
-    pushHistory(`Element o'chirildi`)
+    pushHistory(`Deleted element`)
   }
 
   function moveTileItem(
@@ -515,7 +514,7 @@ export const useMapStore = defineStore('mapStore', () => {
     item.zIndex = toItems.length > 0 ? Math.max(...toItems.map(i => i.zIndex)) + 1 : 0
 
     layer.tiles[toKey] = [...toItems, item]
-    pushHistory(`Element ko'chirildi (${fromCol}, ${fromRow}) -> (${toCol}, ${toRow})`)
+    pushHistory(`Moved element (${fromCol}, ${fromRow}) -> (${toCol}, ${toRow})`)
   }
 
   // Move an element from one layer to another
@@ -539,10 +538,10 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const toItems = getCellItems(col, row, toLayerId)
     toLayer.tiles[key] = [...toItems, item]
-    pushHistory(`Element qatlamiga ko'chirildi: ${toLayer.name}`)
+    pushHistory(`Moved element to layer: ${toLayer.name}`)
   }
 
-  // --- Relative Depth Offset (Atrofdagi qo'shnilarga nisbatan Z-Index) ---
+  // --- Relative Depth Offset ---
   function shiftItemDepthOffset(col: number, row: number, itemId: string, delta: number, layerId = activeLayerId.value) {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return
@@ -554,7 +553,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const current = item.depthOffset || 0
     item.depthOffset = Math.max(-10, Math.min(10, current + delta))
     project.value.updatedAt = Date.now()
-    pushHistory(`Atrofdagilarga nisbatan Z o'zgartirildi (${item.depthOffset > 0 ? '+' : ''}${item.depthOffset})`)
+    pushHistory(`Relative depth adjusted (${item.depthOffset > 0 ? '+' : ''}${item.depthOffset})`)
   }
 
   function setItemDepthOffset(col: number, row: number, itemId: string, offset: number, layerId = activeLayerId.value) {
@@ -658,7 +657,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (!item) return
 
     setAllCellsZIndex(col, row, itemId, (item.zIndex || 0) + 1, layerId)
-    pushHistory(`Z-Index ko'tarildi (${(item.zIndex || 0)})`)
+    pushHistory(`Brought forward (${(item.zIndex || 0)})`)
   }
 
   function sendItemBackward(col: number, row: number, itemId: string, layerId = activeLayerId.value) {
@@ -670,7 +669,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (!item) return
 
     setAllCellsZIndex(col, row, itemId, Math.max(0, (item.zIndex || 0) - 1), layerId)
-    pushHistory(`Z-Index tushirildi (${(item.zIndex || 0)})`)
+    pushHistory(`Sent backward (${(item.zIndex || 0)})`)
   }
 
   function bringItemToTop(col: number, row: number, itemId: string, layerId = activeLayerId.value) {
@@ -683,7 +682,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const maxZ = items.reduce((max, i) => Math.max(max, i.zIndex), 0)
     setAllCellsZIndex(col, row, itemId, maxZ + 1, layerId)
-    pushHistory(`Element eng yuqoriga chiqarildi`)
+    pushHistory(`Brought to front`)
   }
 
   function sendItemToBottom(col: number, row: number, itemId: string, layerId = activeLayerId.value) {
@@ -703,7 +702,7 @@ export const useMapStore = defineStore('mapStore', () => {
       }
     }
     setAllCellsZIndex(col, row, itemId, 0, layerId)
-    pushHistory(`Element eng pastga tushirildi`)
+    pushHistory(`Sent to back`)
   }
 
   function flipTileItem(col: number, row: number, itemId: string, layerId = activeLayerId.value) {
@@ -716,7 +715,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     item.flipX = !item.flipX
     project.value.updatedAt = Date.now()
-    pushHistory(`Element gorizontal burildi (Flip)`)
+    pushHistory(`Flipped horizontally`)
   }
 
   function rotateTileItem(col: number, row: number, itemId: string, layerId = activeLayerId.value) {
@@ -729,7 +728,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     item.rotation = ((item.rotation || 0) + 90) % 360
     project.value.updatedAt = Date.now()
-    pushHistory(`Element 90° burildi`)
+    pushHistory(`Rotated 90°`)
   }
 
   function updateItemScale(col: number, row: number, itemId: string, scale: number, layerId = activeLayerId.value) {
@@ -779,7 +778,7 @@ export const useMapStore = defineStore('mapStore', () => {
     }
 
     project.value.updatedAt = Date.now()
-    pushHistory(`Katak o'lchami o'zgartirildi (${item.spanX}x${item.spanY})`)
+    pushHistory(`Span resized (${item.spanX}x${item.spanY})`)
   }
 
   function updateTileOffset(col: number, row: number, itemId: string, offsetX: number, offsetY: number, layerId = activeLayerId.value) {
@@ -826,7 +825,7 @@ export const useMapStore = defineStore('mapStore', () => {
       }
     }
 
-    pushHistory(`${cells.length} ta plitka joylashtirildi`)
+    pushHistory(`Placed ${cells.length} tiles`)
   }
 
   function clearLayerTiles(layerId = activeLayerId.value) {
@@ -834,7 +833,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (!layer || layer.locked) return
 
     layer.tiles = {}
-    pushHistory(`Qatlam tozalandi: ${layer.name}`)
+    pushHistory(`Cleared layer: ${layer.name}`)
   }
 
   function clearAllTiles() {
@@ -843,12 +842,12 @@ export const useMapStore = defineStore('mapStore', () => {
         layer.tiles = {}
       }
     }
-    pushHistory('Barcha qatlamlar tozalandi')
+    pushHistory('Cleared all layers')
   }
 
   if (history.value.length === 0) {
     history.value.push({
-      description: 'Dastlabki holat',
+      description: 'Initial state',
       timestamp: Date.now(),
       layers: cloneLayers(project.value.layers),
     })

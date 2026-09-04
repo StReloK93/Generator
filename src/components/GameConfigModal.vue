@@ -1,1049 +1,898 @@
 <template>
-  <div 
-    v-if="toolStore.isGameConfigModalOpen"
-    @mousedown.stop
-    @mouseup.stop
-    @click.stop
-    @pointerdown.stop
-    @wheel.stop
-    class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-6 select-none animate-in fade-in duration-200 pt-safe pb-safe"
+  <UiModal
+    :is-open="toolStore.isGameConfigModalOpen"
+    title="Tower Defense & Movement Settings"
+    subtitle="Configure tower blueprints, wave difficulty, map balance, placed defenses and routes"
+    :icon="Gamepad2"
+    icon-color="amber"
+    size="5xl"
+    @close="toolStore.closeGameConfig()"
   >
-    <div 
-      class="glass-panel border border-slate-700/80 w-full max-w-4xl rounded-3xl p-4 sm:p-5 shadow-2xl bg-slate-900/98 flex flex-col gap-3.5 sm:gap-4 text-xs text-slate-200 max-h-[88dvh] overflow-hidden animate-in zoom-in-95 duration-200"
-    >
-      <!-- MODAL HEADER -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-2xl bg-linear-to-tr from-amber-600 via-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
-            <Gamepad2 class="w-5 h-5" />
-          </div>
-          <div>
-            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>Tower Defense & Harakat Sozlamalari</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">Minoralar, to'lqinlar, xaritadagi minoralar va chiqish nuqtalarini boshqarish</p>
-          </div>
-        </div>
+    <!-- Header Extra Slot for Gold -->
+    <template #title>
+      <div class="flex items-center justify-between w-full">
+        <span>Tower Defense & Movement Settings</span>
+        <UiBadge variant="amber" size="sm" :icon="Coins" custom-class="hidden sm:inline-flex ml-3">
+          {{ characterStore.gold }} gold
+        </UiBadge>
+      </div>
+    </template>
 
-        <div class="flex items-center gap-2.5">
-          <!-- Gold Badge -->
-          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono font-bold text-xs">
-            <Coins class="w-3.5 h-3.5 text-amber-400" />
-            <span>{{ characterStore.gold }} oltin</span>
-          </div>
+    <!-- NAVIGATION TABS -->
+    <UiTabs
+      v-model="toolStore.gameConfigActiveTab"
+      :items="configTabItems"
+      fill
+      size="md"
+    />
 
-          <!-- Close Modal Button -->
-          <button 
-            @click="toolStore.closeGameConfig()"
-            class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Yopish (Esc)"
+    <!-- ========================================================================= -->
+    <!-- TAB 1: TOWER BLUEPRINTS                                                   -->
+    <!-- ========================================================================= -->
+    <div v-if="toolStore.gameConfigActiveTab === 'towers'" class="flex flex-col gap-3">
+      
+      <!-- Header Actions: Blueprint tabs & Create button -->
+      <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+          <UiButton 
+            v-for="bp in towerStore.blueprints" 
+            :key="bp.id"
+            :variant="towerStore.selectedBlueprintId === bp.id ? 'game-amber' : 'secondary'"
+            size="sm"
+            @click="towerStore.selectedBlueprintId = bp.id"
           >
-            <X class="w-5 h-5" />
-          </button>
+            <span class="w-2 h-2 rounded-full bg-amber-400 mr-1"></span>
+            <span>{{ bp.name }}</span>
+          </UiButton>
         </div>
+
+        <UiButton 
+          variant="game-amber"
+          size="sm"
+          :leading-icon="Plus"
+          custom-class="ml-auto"
+          @click="towerStore.isCreateTowerModalOpen = true"
+        >
+          Create Tower
+        </UiButton>
       </div>
 
-      <!-- NAVIGATION TABS -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 shrink-0">
-        <!-- Tab 1: Tower Blueprints -->
-        <button 
-          @click="toolStore.gameConfigActiveTab = 'towers'"
-          :class="toolStore.gameConfigActiveTab === 'towers' ? 'bg-amber-600 text-white font-bold shadow-md ring-1 ring-amber-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+      <!-- No Blueprints State -->
+      <UiCard 
+        v-if="towerStore.blueprints.length === 0" 
+        variant="subtle"
+        padding="lg"
+        custom-class="flex flex-col items-center text-center gap-3 my-4"
+      >
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <TowerControl class="w-6 h-6" />
+        </div>
+        <div class="flex flex-col gap-1 max-w-md">
+          <span class="font-bold text-sm text-amber-300">No defense towers configured</span>
+          <span class="text-xs text-slate-400">Select any sprite image from your library to forge custom defense towers.</span>
+        </div>
+        <UiButton 
+          variant="game-amber"
+          size="md"
+          :leading-icon="Plus"
+          @click="towerStore.isCreateTowerModalOpen = true"
         >
-          <ShieldAlert class="w-4 h-4 text-amber-300" />
-          <span>Minoralar ({{ towerStore.blueprints.length }})</span>
-        </button>
+          Create First Tower
+        </UiButton>
+      </UiCard>
 
-        <!-- Tab 2: Waves Config -->
-        <button 
-          @click="toolStore.gameConfigActiveTab = 'waves'"
-          :class="toolStore.gameConfigActiveTab === 'waves' ? 'bg-purple-600 text-white font-bold shadow-md ring-1 ring-purple-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
-        >
-          <Swords class="w-4 h-4 text-purple-300" />
-          <span>To'lqinlar ({{ characterStore.waveConfigs.length }})</span>
-        </button>
-
-        <!-- Tab 3: Map Balance (Economy & Lives & Timer) -->
-        <button 
-          @click="toolStore.gameConfigActiveTab = 'balance'"
-          :class="toolStore.gameConfigActiveTab === 'balance' ? 'bg-amber-600 text-white font-bold shadow-md ring-1 ring-amber-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
-        >
-          <Coins class="w-4 h-4 text-amber-300" />
-          <span>Karta Balansi</span>
-        </button>
-
-        <!-- Tab 4: Placed Towers -->
-        <button 
-          @click="toolStore.gameConfigActiveTab = 'placed'"
-          :class="toolStore.gameConfigActiveTab === 'placed' ? 'bg-sky-600 text-white font-bold shadow-md ring-1 ring-sky-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
-        >
-          <TowerControl class="w-4 h-4 text-sky-300" />
-          <span>Qurilganlar ({{ towerStore.placedTowers.length }})</span>
-        </button>
-
-        <!-- Tab 5: Spawn Points & Movement -->
-        <button 
-          @click="toolStore.gameConfigActiveTab = 'spawns'"
-          :class="toolStore.gameConfigActiveTab === 'spawns' ? 'bg-emerald-600 text-white font-bold shadow-md ring-1 ring-emerald-400/50' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'"
-          class="py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs col-span-2 sm:col-span-1"
-        >
-          <Users class="w-4 h-4 text-emerald-300" />
-          <span>Chiqish & Harakat</span>
-        </button>
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- TAB 1: MINORALAR (TOWER BLUEPRINTS)                                       -->
-      <!-- ========================================================================= -->
-      <div v-if="toolStore.gameConfigActiveTab === 'towers'" class="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
+      <!-- Active Selected Blueprint Editor -->
+      <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3">
         
-        <!-- Header Actions: Blueprint tabs & Create button -->
-        <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800 shrink-0">
-          <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
-            <button 
-              v-for="bp in towerStore.blueprints" 
-              :key="bp.id"
-              @click="towerStore.selectedBlueprintId = bp.id"
-              :class="towerStore.selectedBlueprintId === bp.id ? 'bg-amber-600 text-white font-bold ring-2 ring-amber-400/80 shadow-md' : 'bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700'"
-              class="py-1.5 px-3 rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0 text-xs"
-            >
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span>{{ bp.name }}</span>
-            </button>
+        <!-- Left Column: Visual Preview & Sprite Select -->
+        <UiCard variant="amber" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-300 text-xs">Tower Appearance</span>
+            <UiBadge variant="amber" size="xs">{{ selectedBp.assetName || 'Custom' }}</UiBadge>
           </div>
 
-          <button 
-            @click="towerStore.isCreateTowerModalOpen = true"
-            class="py-1.5 px-3 rounded-xl bg-linear-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
-          >
-            <Plus class="w-4 h-4" />
-            <span>➕ Yangi Minora Yaratish</span>
-          </button>
-        </div>
-
-        <!-- No Blueprints State -->
-        <div v-if="towerStore.blueprints.length === 0" class="p-8 rounded-3xl bg-slate-950/80 border border-slate-800 flex flex-col items-center text-center gap-3 my-auto">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <TowerControl class="w-6 h-6" />
-          </div>
-          <div class="flex flex-col gap-1 max-w-md">
-            <span class="font-bold text-sm text-amber-300">Hali birorta minora yaratilmagan</span>
-            <span class="text-xs text-slate-400">Xaritangiz uchun sprite rasm tanlab shaxsiy mudofaa minorangizni yarating.</span>
-          </div>
-          <button 
-            @click="towerStore.isCreateTowerModalOpen = true"
-            class="py-2 px-5 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
-          >
-            ➕ Yangi Minora Yaratish
-          </button>
-        </div>
-
-        <!-- Active Selected Blueprint Editor -->
-        <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          
-          <!-- Left Column: Visual Preview & Sprite Select -->
-          <div class="flex flex-col gap-3 p-3.5 rounded-2xl bg-slate-950/90 border border-amber-500/30">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-300 text-xs">Minora Ko'rinishi</span>
-              <span class="text-[10px] text-slate-400 font-mono">{{ selectedBp.assetName || 'Custom' }}</span>
-            </div>
-
-            <!-- Sprite Preview -->
-            <div class="h-32 rounded-2xl bg-slate-900 checker-pattern flex items-center justify-center p-3 border border-slate-800 shadow-inner overflow-hidden">
-              <img 
-                :src="selectedBp.assetPath" 
-                :alt="selectedBp.name"
-                class="max-w-full max-h-full object-contain filter drop-shadow-lg"
-              />
-            </div>
-
-            <!-- Quick Sprite Picker Grid -->
-            <div class="flex flex-col gap-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-slate-400 font-semibold">Rasmni almashtirish:</span>
-                <span class="text-[9px] text-slate-500 font-mono">{{ towerAvailableAssets.length }} ta</span>
-              </div>
-              <input 
-                v-model="assetSearchQuery"
-                type="text"
-                placeholder="Asset qidirish..."
-                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-              <div class="grid grid-cols-4 gap-1.5 max-h-24 overflow-y-auto custom-scrollbar p-1 rounded-xl bg-slate-900 border border-slate-800">
-                <div 
-                  v-for="asset in towerAvailableAssets" 
-                  :key="asset.id"
-                  @click="changeBlueprintAsset(selectedBp.id, asset)"
-                  :class="selectedBp.assetId === asset.id ? 'ring-2 ring-amber-400 bg-amber-500/30' : 'hover:bg-slate-800 border border-slate-800/80'"
-                  class="p-1 rounded-lg flex items-center justify-center aspect-square cursor-pointer transition-all"
-                  :title="asset.name"
-                >
-                  <img :src="asset.previewSrc || asset.src" :alt="asset.name" class="max-w-full max-h-full object-contain" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Delete Blueprint -->
-            <button 
-              v-if="towerStore.blueprints.length > 1"
-              @click="handleRemoveSelectedBp()"
-              class="w-full py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-semibold transition-all mt-auto cursor-pointer"
-            >
-              🗑️ Minorani O'chirish
-            </button>
-          </div>
-
-          <!-- Middle & Right Columns: Attributes Configuration Form -->
-          <div class="md:col-span-2 flex flex-col gap-3 p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800">
-            <!-- Name & Cost Row -->
-            <div class="grid grid-cols-2 gap-3">
-              <div class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold text-slate-300">Minora Nomi:</span>
-                <input 
-                  type="text" 
-                  :value="selectedBp.name"
-                  @input="(e) => updateSelectedBp({ name: (e.target as HTMLInputElement).value })"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-colors"
-                />
-              </div>
-
-              <div class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold text-slate-300">Qurish Narxi (Oltin):</span>
-                <input 
-                  type="number" 
-                  min="10" 
-                  max="5000" 
-                  step="10" 
-                  :value="selectedBp.cost"
-                  @input="(e) => updateSelectedBp({ cost: parseInt((e.target as HTMLInputElement).value) || 50 })"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-colors"
-                />
-              </div>
-            </div>
-
-            <!-- Damage, Attack Speed, Range Sliders -->
-            <div class="grid grid-cols-3 gap-2.5 p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <!-- Damage -->
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span class="flex items-center gap-1"><Flame class="w-3 h-3 text-rose-400" /> Zarar:</span>
-                  <span class="font-mono text-amber-300 font-bold">{{ selectedBp.damage }}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="5" 
-                  max="500" 
-                  step="5" 
-                  :value="selectedBp.damage"
-                  @input="(e) => updateSelectedBp({ damage: parseInt((e.target as HTMLInputElement).value) })"
-                  class="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-
-              <!-- Attack Speed -->
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span class="flex items-center gap-1"><Zap class="w-3 h-3 text-amber-300" /> Hujum tezligi:</span>
-                  <span class="font-mono text-amber-300 font-bold">{{ selectedBp.attackSpeed }}s</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0.1" 
-                  max="3.0" 
-                  step="0.1" 
-                  :value="selectedBp.attackSpeed"
-                  @input="(e) => updateSelectedBp({ attackSpeed: parseFloat((e.target as HTMLInputElement).value) })"
-                  class="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-
-              <!-- Range -->
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span class="flex items-center gap-1"><Crosshair class="w-3 h-3 text-sky-400" /> Masofa:</span>
-                  <span class="font-mono text-amber-300 font-bold">{{ selectedBp.range }} katak</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="12" 
-                  step="1" 
-                  :value="selectedBp.range"
-                  @input="(e) => updateSelectedBp({ range: parseInt((e.target as HTMLInputElement).value) })"
-                  class="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-            </div>
-
-            <!-- Projectile Type & Color -->
-            <div class="flex flex-col gap-1.5">
-              <span class="text-[11px] font-semibold text-slate-300">Snaryad Turi:</span>
-              <div class="grid grid-cols-4 gap-2">
-                <button 
-                  v-for="pType in projectileOptions" 
-                  :key="pType.id"
-                  @click="updateSelectedBp({ projectileType: pType.id as any })"
-                  :class="selectedBp.projectileType === pType.id ? 'bg-amber-600/40 text-amber-300 border-amber-500 font-bold ring-1 ring-amber-400' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'"
-                  class="py-1.5 px-2 rounded-xl border text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span>{{ pType.icon }}</span>
-                  <span>{{ pType.name }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Splash Damage Options -->
-            <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  id="splashToggle"
-                  :checked="selectedBp.isSplash"
-                  @change="(e) => updateSelectedBp({ isSplash: (e.target as HTMLInputElement).checked })"
-                  class="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-                />
-                <label for="splashToggle" class="text-xs font-semibold text-slate-200 cursor-pointer">
-                  💥 Maydoniy Zarar (Splash AoE)
-                </label>
-              </div>
-
-              <div v-if="selectedBp.isSplash" class="flex items-center gap-2">
-                <span class="text-[10px] text-slate-400">Radius:</span>
-                <input 
-                  type="number" 
-                  min="0.5" 
-                  max="5.0" 
-                  step="0.5" 
-                  :value="selectedBp.splashRadius"
-                  @input="(e) => updateSelectedBp({ splashRadius: parseFloat((e.target as HTMLInputElement).value) || 1.5 })"
-                  class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-0.5 text-xs text-amber-300 font-mono text-center"
-                />
-                <span class="text-[10px] text-slate-500">katak</span>
-              </div>
-            </div>
-
-            <!-- Apply To Placed Towers Button -->
-            <button 
-              @click="handleApplySelectedBp()"
-              class="w-full py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-auto"
-            >
-              <Sparkles class="w-4 h-4" />
-              <span>✨ Xaritadagi Barcha Shu Minoralarga Qo'llash</span>
-            </button>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- TAB 2: TO'LQINLAR (WAVES CONFIGURATOR)                                    -->
-      <!-- ========================================================================= -->
-      <div v-else-if="toolStore.gameConfigActiveTab === 'waves'" class="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
-        
-        <!-- Top Wave Tabs Row + Add Wave Button -->
-        <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800 shrink-0">
-          <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
-            <button 
-              v-for="(w, idx) in characterStore.waveConfigs" 
-              :key="w.waveNumber"
-              @click="characterStore.selectWave(idx)"
-              :class="characterStore.currentWaveIndex === idx ? 'bg-purple-600 text-white font-bold ring-2 ring-purple-400/80 shadow-md' : 'bg-slate-850 text-slate-300 hover:bg-slate-800 border border-slate-700'"
-              class="py-1.5 px-3 rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0 text-xs"
-            >
-              <span>{{ w.name }}</span>
-              <span class="text-[10px] font-mono px-1 rounded bg-slate-900/60 text-purple-300">{{ w.unitCount }}x</span>
-            </button>
-          </div>
-
-          <button 
-            @click="characterStore.addNewWave()"
-            class="py-1.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
-          >
-            <Plus class="w-4 h-4" />
-            <span>➕ Yangi To'lqin</span>
-          </button>
-        </div>
-
-        <!-- No Waves State -->
-        <div v-if="characterStore.waveConfigs.length === 0" class="p-8 rounded-3xl bg-slate-950/80 border border-slate-800 flex flex-col items-center text-center gap-3 my-auto">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-            <Swords class="w-6 h-6" />
-          </div>
-          <div class="flex flex-col gap-1 max-w-md">
-            <span class="font-bold text-sm text-purple-300">Birorta ham to'lqin belgilanmagan</span>
-            <span class="text-xs text-slate-400">Yangi to'lqin qo'shing va undagi dushmanlar soni, joni va tezligini sozlang.</span>
-          </div>
-          <button 
-            @click="characterStore.addNewWave()"
-            class="py-2 px-5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
-          >
-            ➕ 1-To'lqinni Yaratish
-          </button>
-        </div>
-
-        <!-- Active Wave Editor Card -->
-        <div v-else-if="selectedWave" class="flex flex-col gap-3 p-4 rounded-2xl bg-slate-950/90 border border-purple-500/30">
-          
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-purple-300 text-sm">{{ selectedWave.name }} Sozlamalari</span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <button 
-                v-if="characterStore.waveConfigs.length > 1"
-                @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
-                class="px-2.5 py-1 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs transition-colors cursor-pointer"
-              >
-                🗑️ O'chirish
-              </button>
-            </div>
-          </div>
-
-          <!-- Parameters Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            
-            <!-- 1. Unit Count -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold">👥 Odamlar soni:</span>
-                <span class="font-mono text-purple-300 font-bold">{{ selectedWave.unitCount }} ta</span>
-              </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="100" 
-                step="1" 
-                :value="selectedWave.unitCount"
-                @input="(e) => characterStore.setWaveUnitCount(parseInt((e.target as HTMLInputElement).value) || 1)"
-                class="accent-purple-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-              <span class="text-[10px] text-slate-500">To'lqinda chiqadigan dushmanlar</span>
-            </div>
-
-            <!-- 2. HP (Health) -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold flex items-center gap-1"><Heart class="w-3.5 h-3.5 text-rose-400" /> Jon (HP):</span>
-                <span class="font-mono text-rose-400 font-bold">{{ selectedWave.unitHp }} HP</span>
-              </div>
-              <input 
-                type="range" 
-                min="20" 
-                max="5000" 
-                step="10" 
-                :value="selectedWave.unitHp"
-                @input="(e) => characterStore.setWaveUnitHp(parseInt((e.target as HTMLInputElement).value) || 20)"
-                class="accent-rose-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-              <span class="text-[10px] text-slate-500">Har bir dushmanning chidamliligi</span>
-            </div>
-
-            <!-- 3. Speed -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold flex items-center gap-1"><Zap class="w-3.5 h-3.5 text-amber-300" /> Yurish tezligi:</span>
-                <span class="font-mono text-amber-300 font-bold">{{ selectedWave.unitSpeed }} k/s</span>
-              </div>
-              <input 
-                type="range" 
-                min="0.5" 
-                max="5.0" 
-                step="0.1" 
-                :value="selectedWave.unitSpeed"
-                @input="(e) => characterStore.setWaveSpeed(parseFloat((e.target as HTMLInputElement).value) || 1.0)"
-                class="accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-              <span class="text-[10px] text-slate-500">Kataklar soni sekundiga</span>
-            </div>
-
-            <!-- 4. Gold Reward -->
-            <div class="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold flex items-center gap-1"><Coins class="w-3.5 h-3.5 text-yellow-400" /> Mukofot:</span>
-                <span class="font-mono text-yellow-300 font-bold">+{{ selectedWave.goldReward }} oltin</span>
-              </div>
-              <input 
-                type="range" 
-                min="10" 
-                max="1000" 
-                step="10" 
-                :value="selectedWave.goldReward"
-                @input="(e) => characterStore.setWaveGoldReward(parseInt((e.target as HTMLInputElement).value) || 50)"
-                class="accent-yellow-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-              <span class="text-[10px] text-slate-500">To'lqinni qaytarganlik uchun oltin</span>
-            </div>
-
-          </div>
-
-          <!-- Bottom Test Wave Action Button -->
-          <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-            <span class="text-[11px] text-slate-400">
-              Hozirgi to'lqinni sinash uchun tugmani bosing:
-            </span>
-
-            <button 
-              @click="handleTestWave(characterStore.currentWaveIndex)"
-              class="py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-            >
-              <Play class="w-4 h-4" />
-              <span>Faqat Shu To'lqinni Sinash</span>
-            </button>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- TAB 3: KARTA TD BALANSI (MAP TD BALANCE & ECONOMY)                        -->
-      <!-- ========================================================================= -->
-      <div v-else-if="toolStore.gameConfigActiveTab === 'balance'" class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
-        <div class="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold shadow-inner">
-              <Coins class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Ushbu Xarita TD Balansi & Iqtisodiyoti</h3>
-              <p class="text-[11px] text-slate-400">Har bir xarita uchun boshlang'ich oltin, jonlar va taymer alohida saqlanadi</p>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-amber-400 font-bold">
-            🗺️ {{ mapStore.project.name || 'Xarita' }}
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <!-- 1. Starting Gold -->
-          <div class="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/30 flex flex-col gap-3 shadow-md">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Coins class="w-4 h-4 text-yellow-400" />
-                <span class="font-bold text-slate-200 text-xs">Boshlang'ich Oltin</span>
-              </div>
-              <div class="flex items-center gap-1 bg-yellow-950/40 px-2 py-0.5 rounded-lg border border-yellow-500/30">
-                <Coins class="w-3.5 h-3.5 text-yellow-400 shrink-0" />
-                <input 
-                  type="number" 
-                  min="10" 
-                  max="50000" 
-                  v-model.number="characterStore.startingGold"
-                  class="w-16 bg-transparent text-right font-mono font-bold text-yellow-300 text-sm focus:outline-none"
-                />
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-tight">
-              O'yinchi ushbu xaritada o'yinni boshlaganda beriladigan dastlabki oltin miqdori.
-            </p>
-            <input 
-              type="range"
-              min="50"
-              max="2000"
-              step="25"
-              v-model.number="characterStore.startingGold"
-              class="accent-yellow-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+          <!-- Sprite Preview -->
+          <div class="h-32 rounded-2xl bg-slate-900 checker-pattern flex items-center justify-center p-3 border border-slate-800 shadow-inner overflow-hidden">
+            <img 
+              :src="assetStore.getAssetPreview(selectedBp.assetId || selectedBp.assetName) || selectedBp.assetPath" 
+              :alt="selectedBp.name" 
+              class="max-w-full max-h-full object-contain filter drop-shadow-lg scale-110"
             />
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <button 
-                v-for="preset in [100, 150, 250, 500, 1000]"
-                :key="preset"
-                @click="characterStore.startingGold = preset"
-                :class="characterStore.startingGold === preset ? 'bg-yellow-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
-                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
-              >
-                {{ preset }}
-              </button>
-            </div>
           </div>
 
-          <!-- 2. Starting Lives -->
-          <div class="p-4 rounded-2xl bg-slate-950/80 border border-rose-500/30 flex flex-col gap-3 shadow-md">
+          <!-- Quick Sprite Picker Grid -->
+          <div class="flex flex-col gap-1.5">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Heart class="w-4 h-4 text-rose-400" />
-                <span class="font-bold text-slate-200 text-xs">Boshlang'ich Jonlar</span>
-              </div>
-              <div class="flex items-center gap-1 bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-500/30">
-                <Heart class="w-3.5 h-3.5 text-rose-400 fill-rose-400 shrink-0" />
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="1000" 
-                  v-model.number="characterStore.startingLives"
-                  class="w-14 bg-transparent text-right font-mono font-bold text-rose-300 text-sm focus:outline-none"
-                />
-              </div>
+              <span class="text-[10px] text-slate-400 font-semibold">Change Sprite:</span>
+              <span class="text-[9px] text-slate-500 font-mono">{{ towerAvailableAssets.length }} sprites</span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-tight">
-              Dushmanlar xaritani bosib o'tganda umumiy ruxsat etilgan xatolar / jonlar soni.
-            </p>
-            <input 
-              type="range"
-              min="1"
-              max="100"
-              step="1"
-              v-model.number="characterStore.startingLives"
-              class="accent-rose-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+            <UiInput 
+              v-model="assetSearchQuery"
+              size="sm"
+              placeholder="Search assets..."
+              :leading-icon="Search"
+              clearable
             />
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <button 
-                v-for="preset in [5, 10, 20, 50, 100]"
-                :key="preset"
-                @click="characterStore.startingLives = preset"
-                :class="characterStore.startingLives === preset ? 'bg-rose-500 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
-                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
+            <div class="grid grid-cols-4 gap-1.5 max-h-24 overflow-y-auto custom-scrollbar p-1 rounded-xl bg-slate-900 border border-slate-800">
+              <div 
+                v-for="asset in towerAvailableAssets" 
+                :key="asset.id"
+                @click="changeBlueprintAsset(selectedBp.id, asset)"
+                :class="selectedBp.assetId === asset.id ? 'ring-2 ring-amber-400 bg-amber-500/30' : 'hover:bg-slate-800 border border-slate-800/80'"
+                class="p-1 rounded-lg flex items-center justify-center aspect-square cursor-pointer transition-all overflow-hidden"
+                :title="asset.name"
               >
-                {{ preset }}
-              </button>
+                <img :src="assetStore.getAssetPreview(asset)" :alt="asset.name" class="max-w-full max-h-full object-contain pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          <!-- 3. Wave Prep Timer -->
-          <div class="p-4 rounded-2xl bg-slate-950/80 border border-indigo-500/30 flex flex-col gap-3 shadow-md">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Timer class="w-4 h-4 text-indigo-400" />
-                <span class="font-bold text-slate-200 text-xs">To'lqinlar Oralig'i</span>
-              </div>
-              <div class="flex items-center gap-1 bg-indigo-950/40 px-2 py-0.5 rounded-lg border border-indigo-500/30">
-                <Timer class="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="300" 
-                  v-model.number="characterStore.wavePrepDuration"
-                  class="w-12 bg-transparent text-right font-mono font-bold text-indigo-300 text-sm focus:outline-none"
-                />
-                <span class="text-indigo-300 text-xs font-mono">s</span>
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-tight">
-              Har bir to'lqin tugagach, keyingi to'lqinga qadar minora qurish va tayyorgarlik vaqti.
-            </p>
-            <input 
-              type="range"
-              min="3"
-              max="60"
-              step="1"
-              v-model.number="characterStore.wavePrepDuration"
-              class="accent-indigo-500 cursor-pointer h-2 bg-slate-800 rounded-lg w-full"
+          <!-- Delete Blueprint -->
+          <UiButton 
+            v-if="towerStore.blueprints.length > 1"
+            variant="danger"
+            size="sm"
+            block
+            :leading-icon="Trash2"
+            custom-class="mt-auto"
+            @click="handleRemoveSelectedBp()"
+          >
+            Delete Blueprint
+          </UiButton>
+        </UiCard>
+
+        <!-- Middle & Right Columns: Attributes Configuration Form -->
+        <UiCard variant="default" padding="md" custom-class="md:col-span-2 flex flex-col gap-3">
+          <!-- Name & Cost Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <UiInput 
+              :model-value="selectedBp.name"
+              label="Tower Name"
+              size="sm"
+              @update:model-value="(val) => updateSelectedBp({ name: String(val) })"
             />
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <button 
-                v-for="preset in [5, 10, 15, 20, 30]"
-                :key="preset"
-                @click="characterStore.wavePrepDuration = preset"
-                :class="characterStore.wavePrepDuration === preset ? 'bg-indigo-500 text-white font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'"
-                class="px-2.5 py-1 rounded-lg text-[10px] transition-all cursor-pointer"
+
+            <UiNumberInput 
+              :model-value="selectedBp.cost"
+              label="Build Cost (Gold)"
+              :min="10"
+              :max="5000"
+              :step="10"
+              unit=" gold"
+              @update:model-value="(val) => updateSelectedBp({ cost: val || 50 })"
+            />
+          </div>
+
+          <!-- Damage, Attack Speed, Range Sliders -->
+          <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Damage -->
+            <UiSlider 
+              :model-value="selectedBp.damage"
+              label="💥 Damage"
+              :min="5"
+              :max="500"
+              :step="5"
+              unit=" DMG"
+              @update:model-value="(val) => updateSelectedBp({ damage: val })"
+            />
+
+            <!-- Attack Speed -->
+            <UiSlider 
+              :model-value="selectedBp.attackSpeed"
+              label="⚡ Attack Speed"
+              :min="0.1"
+              :max="3.0"
+              :step="0.1"
+              unit="s"
+              @update:model-value="(val) => updateSelectedBp({ attackSpeed: val })"
+            />
+
+            <!-- Range -->
+            <UiSlider 
+              :model-value="selectedBp.range"
+              label="🎯 Attack Range"
+              :min="1"
+              :max="12"
+              :step="1"
+              unit=" cells"
+              @update:model-value="(val) => updateSelectedBp({ range: val })"
+            />
+          </UiCard>
+
+          <!-- Projectile Type & Color -->
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-300">Projectile Type:</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <UiButton 
+                v-for="pType in projectileOptions" 
+                :key="pType.id"
+                :variant="selectedBp.projectileType === pType.id ? 'game-amber' : 'secondary'"
+                size="xs"
+                @click="updateSelectedBp({ projectileType: pType.id as any })"
               >
-                {{ preset }}s
-              </button>
+                <span class="mr-1">{{ pType.icon }}</span>
+                <span>{{ pType.name }}</span>
+              </UiButton>
             </div>
           </div>
-        </div>
 
-        <!-- Summary & Balance Info Card -->
-        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-2.5 text-xs text-slate-300">
-          <div class="font-bold text-slate-200 flex items-center gap-2">
-            <Sparkles class="w-4 h-4 text-amber-400" />
-            <span>Xarita TD Balansi Haqida:</span>
-          </div>
-          <p class="text-[11px] text-slate-400 leading-relaxed">
-            Ushbu sozlamalar loyiha fayliga (<code class="text-amber-300 font-mono">.isomap.json</code>) to'liq kiritiladi va eksport qilinadi. Har bir yangi yoki yuklangan xaritada o'zining mustaqil balansi saqlanadi!
-          </p>
-        </div>
-      </div>
+          <!-- Splash Damage Options -->
+          <UiSwitch
+            :model-value="selectedBp.isSplash"
+            label="💥 Area of Effect (Splash AoE)"
+            description="Deals splash damage to adjacent enemies around the impact point"
+            variant="amber"
+            @update:model-value="(val) => updateSelectedBp({ isSplash: val })"
+          />
 
-      <!-- ========================================================================= -->
-      <!-- TAB 4: QURILGAN MINORALAR (PLACED TOWERS)                                  -->
-      <!-- ========================================================================= -->
-      <div v-else-if="toolStore.gameConfigActiveTab === 'placed'" class="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
-        
-        <!-- Placed Towers Summary Row -->
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-slate-200 text-xs">Xaritada Qurilgan Minoralar:</span>
-            <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono font-bold text-xs border border-sky-500/30">
-              {{ towerStore.placedTowers.length }} ta
-            </span>
+          <div v-if="selectedBp.isSplash" class="flex items-center gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <UiSlider 
+              :model-value="selectedBp.splashRadius || 1.5"
+              label="Splash Radius"
+              :min="0.5"
+              :max="5.0"
+              :step="0.5"
+              unit=" cells"
+              @update:model-value="(val) => updateSelectedBp({ splashRadius: val })"
+            />
           </div>
 
-          <button 
-            v-if="towerStore.placedTowers.length > 0"
-            @click="towerStore.clearAllTowers()"
-            class="px-2.5 py-1 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs transition-colors cursor-pointer"
+          <!-- Apply To Placed Towers Button -->
+          <UiButton 
+            variant="primary"
+            size="md"
+            block
+            :leading-icon="Sparkles"
+            custom-class="mt-auto"
+            @click="handleApplySelectedBp()"
           >
-            🗑️ Barcha Minoralarni Tozalash
-          </button>
-        </div>
-
-        <!-- No Placed Towers State -->
-        <div v-if="towerStore.placedTowers.length === 0" class="p-8 rounded-3xl bg-slate-950/80 border border-slate-800 flex flex-col items-center text-center gap-3 my-auto">
-          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
-            <TowerControl class="w-6 h-6" />
-          </div>
-          <div class="flex flex-col gap-1 max-w-md">
-            <span class="font-bold text-sm text-sky-300">Xaritada birorta ham minora qurilmagan</span>
-            <span class="text-xs text-slate-400">Minoralar tabidan minora tanlab xaritadagi katakka bosing yoki o'yin rejimida do'kondan sotib oling.</span>
-          </div>
-        </div>
-
-        <!-- Placed Towers List Cards -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          <div 
-            v-for="tower in towerStore.placedTowers" 
-            :key="tower.id"
-            class="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-col gap-2.5 hover:border-slate-700 transition-all"
-          >
-            <!-- Card Top: Name & Level -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="font-bold text-white text-xs truncate">{{ tower.name }}</span>
-                <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold shrink-0">
-                  Lvl {{ tower.level }}
-                </span>
-              </div>
-              <span class="text-[10px] font-mono text-emerald-400 font-semibold shrink-0">
-                ({{ tower.col }}, {{ tower.row }})
-              </span>
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-1 p-1.5 rounded-xl bg-slate-900 text-[10px] text-center">
-              <div>
-                <span class="text-slate-500 block">💥 Zarar</span>
-                <strong class="text-amber-300">{{ tower.damage }}</strong>
-              </div>
-              <div>
-                <span class="text-slate-500 block">🎯 Masofa</span>
-                <strong class="text-sky-300">{{ tower.range }}k</strong>
-              </div>
-              <div>
-                <span class="text-slate-500 block">☠️ Qotillik</span>
-                <strong class="text-rose-400">{{ tower.killsCount }}</strong>
-              </div>
-            </div>
-
-            <!-- Action Buttons: Focus, Upgrade, Sell -->
-            <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800/80">
-              <button 
-                @click="handleFocusTower(tower)"
-                class="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-                title="Xaritada ushbu minoraga borish"
-              >
-                <Crosshair class="w-3 h-3 text-brand-400" />
-                <span>Ko'rish</span>
-              </button>
-
-              <button 
-                @click="towerStore.upgradePlacedTower(tower.id)"
-                class="py-1 px-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/40 text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-                title="Darajasini oshirish"
-              >
-                <Sparkles class="w-3 h-3" />
-                <span>+Lvl</span>
-              </button>
-
-              <button 
-                @click="towerStore.sellPlacedTower(tower.id)"
-                class="py-1 px-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-                title="Sotish / O'chirish"
-              >
-                <Trash2 class="w-3 h-3" />
-                <span>Sotish</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- TAB 4: CHIQISH VA HARAKAT (SPAWN POINTS & MOVEMENT)                       -->
-      <!-- ========================================================================= -->
-      <div v-else-if="toolStore.gameConfigActiveTab === 'spawns'" class="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-1">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          
-          <!-- LEFT CARD: SPAWN POINTS & ROUTE MANAGEMENT -->
-          <div class="flex flex-col gap-3 p-3.5 rounded-2xl bg-slate-950/90 border border-emerald-500/30">
-            <div class="flex items-center justify-between pb-1 border-b border-slate-800">
-              <span class="font-bold text-emerald-300 text-xs flex items-center gap-1.5">
-                <MapPin class="w-4 h-4" />
-                <span>Chiqish Nuqtalari (Spawn Points)</span>
-              </span>
-              <span class="text-[10px] font-mono text-emerald-400 font-bold">
-                {{ characterStore.detectedDoors.length }} ta nuqta
-              </span>
-            </div>
-
-            <!-- Empty State for Spawn Points -->
-            <div v-if="characterStore.detectedDoors.length === 0" class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-center flex flex-col items-center gap-2">
-              <span class="text-xs text-slate-300 font-semibold">🚩 Hozircha chiqish nuqtasi qo'yilmagan</span>
-              <p class="text-[10px] text-slate-400 leading-tight">Yangi xaritalarda boshlang'ich nuqta bo'lishi shart emas. Istalgan vaqtda nuqta qo'shishingiz mumkin.</p>
-              <button 
-                @click="handleTriggerAddSpawnPoint"
-                class="py-1.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md mt-1"
-              >
-                <Plus class="w-3.5 h-3.5" />
-                <span>+ 1-Chiqish Nuqtasini Qo'yish</span>
-              </button>
-            </div>
-
-            <!-- Active Spawn Points Section -->
-            <template v-else>
-              <!-- Spawn Mode Toggle -->
-              <div class="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px]">
-                <button 
-                  @click="characterStore.spawnMode = 'all_doors'"
-                  :class="characterStore.spawnMode === 'all_doors' ? 'bg-emerald-600 text-white font-bold shadow-md' : 'text-slate-400 hover:text-slate-200'"
-                  class="py-1 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <Sparkles class="w-3 h-3" />
-                  <span>Barcha Nuqtalar</span>
-                </button>
-
-                <button 
-                  @click="characterStore.spawnMode = 'single_door'"
-                  :class="characterStore.spawnMode === 'single_door' ? 'bg-brand-600 text-white font-bold shadow-md' : 'text-slate-400 hover:text-slate-200'"
-                  class="py-1 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <MapPin class="w-3 h-3" />
-                  <span>Yagona Nuqta</span>
-                </button>
-              </div>
-
-              <!-- Spawn Point Dropdown Selector -->
-              <div class="flex items-center gap-2">
-                <select 
-                  v-model.number="characterStore.selectedDoorIndex"
-                  class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  <option 
-                    v-for="(door, idx) in characterStore.detectedDoors" 
-                    :key="door.id" 
-                    :value="idx"
-                  >
-                    🚩 {{ door.name }} (Kat: {{ door.col }}, {{ door.row }})
-                  </option>
-                </select>
-
-                <button 
-                  @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex)"
-                  class="p-2 rounded-xl text-rose-400 hover:bg-rose-950/60 hover:text-rose-300 border border-slate-700 transition-colors cursor-pointer"
-                  title="Ushbu chiqish nuqtasini o'chirish"
-                >
-                  <Trash2 class="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <!-- Action Buttons: Add Spawn Point & Relocate -->
-              <div class="grid grid-cols-2 gap-2">
-                <button 
-                  @click="handleTriggerAddSpawnPoint"
-                  class="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                >
-                  <Plus class="w-3.5 h-3.5" />
-                  <span>+ Yangi Nuqta Qo'yish</span>
-                </button>
-
-                <button 
-                  @click="handleTriggerRelocateSpawnPoint"
-                  class="py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                >
-                  <MapPin class="w-3.5 h-3.5" />
-                  <span>📍 Ko'chirish</span>
-                </button>
-              </div>
-            </template>
-
-            <!-- Route Drawing Tools -->
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col gap-2 mt-auto">
-              <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
-                <Navigation class="w-3.5 h-3.5 text-brand-400" />
-                <span>Marshrut (Custom Route):</span>
-              </span>
-
-              <div class="grid grid-cols-2 gap-2">
-                <button 
-                  @click="handleStartDrawingRoute"
-                  class="py-1.5 px-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1 cursor-pointer shadow-md"
-                >
-                  <PenTool class="w-3.5 h-3.5" />
-                  <span>🖌️ Marshrut Chizish</span>
-                </button>
-
-                <button 
-                  @click="characterStore.deleteCurrentRoute()"
-                  class="py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <RotateCcw class="w-3.5 h-3.5" />
-                  <span>Tozalash</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- RIGHT CARD: MOVEMENT & SIMULATION PARAMETERS -->
-          <div class="flex flex-col gap-3 p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800">
-            <div class="flex items-center justify-between pb-1 border-b border-slate-800">
-              <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-                <Activity class="w-4 h-4 text-brand-400" />
-                <span>Harakat va Sayr Parametrlari</span>
-              </span>
-            </div>
-
-            <!-- Formation: Pairs vs Single -->
-            <div class="flex flex-col gap-1.5">
-              <span class="text-[11px] font-semibold text-slate-300">Harakat Tarkibi (Saf):</span>
-              <div class="grid grid-cols-2 gap-2">
-                <button 
-                  @click="characterStore.formation = 'pairs'"
-                  :class="characterStore.formation === 'pairs' ? 'bg-brand-600 text-white font-bold ring-1 ring-brand-400' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
-                  class="py-1.5 px-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Users class="w-3.5 h-3.5" />
-                  <span>2 kishi yonma-yon (Juflik)</span>
-                </button>
-
-                <button 
-                  @click="characterStore.formation = 'single'"
-                  :class="characterStore.formation === 'single' ? 'bg-brand-600 text-white font-bold ring-1 ring-brand-400' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
-                  class="py-1.5 px-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <User class="w-3.5 h-3.5" />
-                  <span>1 kishilik saf</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Pair Distance & Unit Speed Sliders -->
-            <div class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
-              <!-- Pair Distance -->
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Oraliq masofa:</span>
-                  <span class="font-mono text-brand-300 font-bold">{{ characterStore.pairDistance }}k</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0.1" 
-                  max="1.5" 
-                  step="0.05" 
-                  v-model.number="characterStore.pairDistance"
-                  class="accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-
-              <!-- Unit Speed -->
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Personaj tezligi:</span>
-                  <span class="font-mono text-emerald-300 font-bold">{{ characterStore.unitSpeed }} k/s</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0.5" 
-                  max="6.0" 
-                  step="0.1" 
-                  v-model.number="characterStore.unitSpeed"
-                  class="accent-emerald-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                />
-              </div>
-            </div>
-
-            <!-- Game Speed Slider -->
-            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col gap-1.5">
-              <div class="flex items-center justify-between text-xs text-slate-300">
-                <span class="font-semibold">⚡ Simulyatsiya Tezligi (O'yin):</span>
-                <span class="font-mono text-amber-300 font-bold">{{ characterStore.gameSpeed }}x</span>
-              </div>
-              <input 
-                type="range" 
-                min="1.0" 
-                max="50.0" 
-                step="1.0" 
-                v-model.number="characterStore.gameSpeed"
-                class="accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-              />
-            </div>
-
-            <!-- Follow Camera & Trail Toggles -->
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:bg-slate-850">
-                <input 
-                  type="checkbox" 
-                  v-model="characterStore.followCamera"
-                  class="w-4 h-4 accent-brand-500 rounded cursor-pointer"
-                />
-                <Camera class="w-4 h-4 text-slate-400" />
-                <span class="text-slate-300 font-medium">Kamera Ergashishi</span>
-              </label>
-
-              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:bg-slate-850">
-                <input 
-                  type="checkbox" 
-                  v-model="characterStore.showPathTrail"
-                  class="w-4 h-4 accent-brand-500 rounded cursor-pointer"
-                />
-                <GitBranch class="w-4 h-4 text-slate-400" />
-                <span class="text-slate-300 font-medium">Yo'l Chizig'i</span>
-              </label>
-            </div>
-
-            <!-- Tour Playback Controls -->
-            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 mt-auto">
-              <button 
-                v-if="!characterStore.isPlaying"
-                @click="characterStore.startTour()"
-                class="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-md active:scale-95"
-              >
-                <Play class="w-4 h-4" />
-                <span>Boshlash</span>
-              </button>
-
-              <button 
-                v-else
-                @click="characterStore.pauseTour()"
-                class="py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-md active:scale-95"
-              >
-                <Pause class="w-4 h-4" />
-                <span>To'xtatish</span>
-              </button>
-
-              <button 
-                @click="characterStore.resetTour()"
-                class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer active:scale-95"
-              >
-                <RotateCcw class="w-4 h-4" />
-                <span>Qayta</span>
-              </button>
-
-              <button 
-                @click="handleStartPlayModeFromModal"
-                class="py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-md active:scale-95"
-              >
-                <Gamepad2 class="w-4 h-4" />
-                <span>O'yinga</span>
-              </button>
-            </div>
-
-          </div>
-
-        </div>
+            Apply to All Placed Towers on Map
+          </UiButton>
+        </UiCard>
 
       </div>
 
     </div>
-  </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: WAVES CONFIGURATOR                                                 -->
+    <!-- ========================================================================= -->
+    <div v-else-if="toolStore.gameConfigActiveTab === 'waves'" class="flex flex-col gap-3">
+      
+      <!-- Top Wave Tabs Row + Add Wave Button -->
+      <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+          <UiButton 
+            v-for="(w, idx) in characterStore.waveConfigs" 
+            :key="w.waveNumber"
+            :variant="characterStore.currentWaveIndex === idx ? 'primary' : 'secondary'"
+            size="sm"
+            @click="characterStore.selectWave(idx)"
+          >
+            <span>{{ w.name }}</span>
+            <UiBadge variant="brand" size="xs" custom-class="ml-1">{{ w.unitCount }}x</UiBadge>
+          </UiButton>
+        </div>
+
+        <UiButton 
+          variant="primary"
+          size="sm"
+          :leading-icon="Plus"
+          custom-class="ml-auto"
+          @click="characterStore.addNewWave()"
+        >
+          New Wave
+        </UiButton>
+      </div>
+
+      <!-- No Waves State -->
+      <UiCard 
+        v-if="characterStore.waveConfigs.length === 0" 
+        variant="subtle"
+        padding="lg"
+        custom-class="flex flex-col items-center text-center gap-3 my-4"
+      >
+        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <Swords class="w-6 h-6" />
+        </div>
+        <div class="flex flex-col gap-1 max-w-md">
+          <span class="font-bold text-sm text-purple-300">No waves defined</span>
+          <span class="text-xs text-slate-400">Add a wave to customize enemy density, health and gold bounty.</span>
+        </div>
+        <UiButton 
+          variant="primary"
+          size="md"
+          :leading-icon="Plus"
+          @click="characterStore.addNewWave()"
+        >
+          Create Wave 1
+        </UiButton>
+      </UiCard>
+
+      <!-- Active Wave Editor Card -->
+      <UiCard v-else-if="selectedWave" variant="default" padding="md" custom-class="flex flex-col gap-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-purple-300 text-sm">{{ selectedWave.name }} Settings</span>
+          </div>
+
+          <UiButton 
+            v-if="characterStore.waveConfigs.length > 1"
+            variant="danger"
+            size="xs"
+            :leading-icon="Trash2"
+            @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
+          >
+            Delete Wave
+          </UiButton>
+        </div>
+
+        <!-- Parameters Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- 1. Unit Count -->
+          <UiCard variant="subtle" padding="sm">
+            <UiSlider 
+              :model-value="selectedWave.unitCount"
+              label="👥 Enemies Count"
+              :min="1"
+              :max="100"
+              :step="1"
+              unit=" units"
+              @update:model-value="(val) => characterStore.setWaveUnitCount(val || 1)"
+            />
+            <span class="text-[10px] text-slate-500 block mt-1">Invaders spawned per wave</span>
+          </UiCard>
+
+          <!-- 2. HP (Health) -->
+          <UiCard variant="subtle" padding="sm">
+            <UiSlider 
+              :model-value="selectedWave.unitHp"
+              label="❤️ Health (HP)"
+              :min="20"
+              :max="5000"
+              :step="10"
+              unit=" HP"
+              @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
+            />
+            <span class="text-[10px] text-slate-500 block mt-1">Health durability per enemy unit</span>
+          </UiCard>
+
+          <!-- 3. Speed -->
+          <UiCard variant="subtle" padding="sm">
+            <UiSlider 
+              :model-value="selectedWave.unitSpeed"
+              label="⚡ Movement Speed"
+              :min="0.5"
+              :max="5.0"
+              :step="0.1"
+              unit=" cells/s"
+              @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
+            />
+            <span class="text-[10px] text-slate-500 block mt-1">Grid cells per second</span>
+          </UiCard>
+
+          <!-- 4. Gold Reward -->
+          <UiCard variant="subtle" padding="sm">
+            <UiSlider 
+              :model-value="selectedWave.goldReward"
+              label="🪙 Bounty Reward"
+              :min="10"
+              :max="1000"
+              :step="10"
+              unit=" gold"
+              @update:model-value="(val) => characterStore.setWaveGoldReward(val || 50)"
+            />
+            <span class="text-[10px] text-slate-500 block mt-1">Gold awarded upon wave clearance</span>
+          </UiCard>
+        </div>
+
+        <!-- Bottom Test Wave Action Button -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+          <span class="text-[11px] text-slate-400">
+            Simulate and test this specific wave on the map:
+          </span>
+
+          <UiButton 
+            variant="game-green"
+            size="sm"
+            :leading-icon="Play"
+            @click="handleTestWave(characterStore.currentWaveIndex)"
+          >
+            Test This Wave Only
+          </UiButton>
+        </div>
+      </UiCard>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: MAP TD BALANCE & ECONOMY                                           -->
+    <!-- ========================================================================= -->
+    <div v-else-if="toolStore.gameConfigActiveTab === 'balance'" class="flex flex-col gap-4">
+      <UiCard variant="amber" padding="sm" custom-class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold shadow-inner">
+            <Coins class="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Map Economy & Defense Balance</h3>
+            <p class="text-[11px] text-slate-400">Starting treasury, base lives and wave prep timers are saved per project</p>
+          </div>
+        </div>
+        <UiBadge variant="amber" size="sm">
+          🗺️ {{ mapStore.project.name || 'Map' }}
+        </UiBadge>
+      </UiCard>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <!-- 1. Starting Gold -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <Coins class="w-4 h-4 text-yellow-400" />
+              Starting Gold
+            </span>
+            <UiBadge variant="amber" size="sm">{{ characterStore.startingGold }} gold</UiBadge>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-tight">
+            Initial treasury given to players upon game start.
+          </p>
+          <UiSlider 
+            v-model="characterStore.startingGold"
+            :min="50"
+            :max="2000"
+            :step="25"
+            unit=" gold"
+          />
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <UiButton 
+              v-for="preset in [100, 150, 250, 500, 1000]"
+              :key="preset"
+              :variant="characterStore.startingGold === preset ? 'game-amber' : 'secondary'"
+              size="xs"
+              @click="characterStore.startingGold = preset"
+            >
+              {{ preset }}
+            </UiButton>
+          </div>
+        </UiCard>
+
+        <!-- 2. Starting Lives -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <Heart class="w-4 h-4 text-rose-400" />
+              Base Lives
+            </span>
+            <UiBadge variant="rose" size="sm">{{ characterStore.startingLives }} lives</UiBadge>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-tight">
+            Total permitted enemy breaches before defeat.
+          </p>
+          <UiSlider 
+            v-model="characterStore.startingLives"
+            :min="1"
+            :max="100"
+            :step="1"
+            unit=" lives"
+          />
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <UiButton 
+              v-for="preset in [5, 10, 20, 50, 100]"
+              :key="preset"
+              :variant="characterStore.startingLives === preset ? 'danger' : 'secondary'"
+              size="xs"
+              @click="characterStore.startingLives = preset"
+            >
+              {{ preset }}
+            </UiButton>
+          </div>
+        </UiCard>
+
+        <!-- 3. Wave Prep Timer -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <Timer class="w-4 h-4 text-indigo-400" />
+              Wave Prep Timer
+            </span>
+            <UiBadge variant="brand" size="sm">{{ characterStore.wavePrepDuration }}s</UiBadge>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-tight">
+            Build preparation cooldown between consecutive enemy waves.
+          </p>
+          <UiSlider 
+            v-model="characterStore.wavePrepDuration"
+            :min="3"
+            :max="60"
+            :step="1"
+            unit="s"
+          />
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <UiButton 
+              v-for="preset in [5, 10, 15, 20, 30]"
+              :key="preset"
+              :variant="characterStore.wavePrepDuration === preset ? 'primary' : 'secondary'"
+              size="xs"
+              @click="characterStore.wavePrepDuration = preset"
+            >
+              {{ preset }}s
+            </UiButton>
+          </div>
+        </UiCard>
+      </div>
+
+      <!-- Summary & Balance Info Card -->
+      <UiCard variant="subtle" padding="md" custom-class="flex flex-col gap-2 text-xs text-slate-300">
+        <div class="font-bold text-slate-200 flex items-center gap-2">
+          <Sparkles class="w-4 h-4 text-amber-400" />
+          <span>About Map Defense Balance:</span>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          These settings are persisted inside the project file (<code class="text-amber-300 font-mono">.isomap.json</code>) and exported cleanly. Each imported or newly forged map retains its own autonomous balance parameters.
+        </p>
+      </UiCard>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: PLACED TOWERS                                                      -->
+    <!-- ========================================================================= -->
+    <div v-else-if="toolStore.gameConfigActiveTab === 'placed'" class="flex flex-col gap-3">
+      
+      <!-- Placed Towers Summary Row -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-200 text-xs">Towers Constructed on Map:</span>
+          <UiBadge variant="cyan" size="xs">
+            {{ towerStore.placedTowers.length }} towers
+          </UiBadge>
+        </div>
+
+        <UiButton 
+          v-if="towerStore.placedTowers.length > 0"
+          variant="danger"
+          size="xs"
+          :leading-icon="Trash2"
+          @click="towerStore.clearAllTowers()"
+        >
+          Clear All Towers
+        </UiButton>
+      </div>
+
+      <!-- No Placed Towers State -->
+      <UiCard 
+        v-if="towerStore.placedTowers.length === 0" 
+        variant="subtle"
+        padding="lg"
+        custom-class="flex flex-col items-center text-center gap-3 my-4"
+      >
+        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+          <TowerControl class="w-6 h-6" />
+        </div>
+        <div class="flex flex-col gap-1 max-w-md">
+          <span class="font-bold text-sm text-sky-300">No towers placed on the map</span>
+          <span class="text-xs text-slate-400">Select a tower blueprint to place defenses directly onto map cells or construct during battle.</span>
+        </div>
+      </UiCard>
+
+      <!-- Placed Towers List Cards -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        <UiCard 
+          v-for="tower in towerStore.placedTowers" 
+          :key="tower.id"
+          variant="default"
+          padding="sm"
+          custom-class="flex flex-col gap-2.5 hover:border-slate-700"
+        >
+          <!-- Card Top: Name & Level -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-bold text-white text-xs truncate">{{ tower.name }}</span>
+              <UiBadge variant="amber" size="xs">Lvl {{ tower.level }}</UiBadge>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-400 font-semibold shrink-0">
+              ({{ tower.col }}, {{ tower.row }})
+            </span>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-1 p-1.5 rounded-xl bg-slate-900 text-[10px] text-center">
+            <div>
+              <span class="text-slate-500 block">💥 Damage</span>
+              <strong class="text-amber-300">{{ tower.damage }}</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">🎯 Range</span>
+              <strong class="text-sky-300">{{ tower.range }}k</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">☠️ Kills</span>
+              <strong class="text-rose-400">{{ tower.killsCount }}</strong>
+            </div>
+          </div>
+
+          <!-- Action Buttons: Focus, Upgrade, Sell -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800/80">
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="Crosshair"
+              title="Focus on this tower in map view"
+              @click="handleFocusTower(tower)"
+            >
+              View
+            </UiButton>
+
+            <UiButton 
+              variant="game-amber"
+              size="xs"
+              :leading-icon="Sparkles"
+              title="Upgrade tower level"
+              @click="towerStore.upgradePlacedTower(tower.id)"
+            >
+              +Lvl
+            </UiButton>
+
+            <UiButton 
+              variant="danger"
+              size="xs"
+              :leading-icon="Trash2"
+              title="Sell / Dismantle"
+              @click="towerStore.sellPlacedTower(tower.id)"
+            >
+              Sell
+            </UiButton>
+          </div>
+        </UiCard>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: SPAWN POINTS & MOVEMENT                                            -->
+    <!-- ========================================================================= -->
+    <div v-else-if="toolStore.gameConfigActiveTab === 'spawns'" class="flex flex-col gap-3">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        
+        <!-- LEFT CARD: SPAWN POINTS & ROUTE MANAGEMENT -->
+        <UiCard variant="emerald" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+            <span class="font-bold text-emerald-300 text-xs flex items-center gap-1.5">
+              <MapPin class="w-4 h-4" />
+              <span>Spawn Points</span>
+            </span>
+            <UiBadge variant="emerald" size="xs">
+              {{ characterStore.detectedDoors.length }} doors
+            </UiBadge>
+          </div>
+
+          <!-- Empty State for Spawn Points -->
+          <UiCard 
+            v-if="characterStore.detectedDoors.length === 0" 
+            variant="subtle"
+            padding="md"
+            custom-class="text-center flex flex-col items-center gap-2"
+          >
+            <span class="text-xs text-slate-300 font-semibold">🚩 No spawn points placed</span>
+            <p class="text-[10px] text-slate-400 leading-tight">New maps do not require default doors. You can place spawn doors whenever needed.</p>
+            <UiButton 
+              variant="game-green"
+              size="sm"
+              :leading-icon="Plus"
+              custom-class="mt-1"
+              @click="handleTriggerAddSpawnPoint"
+            >
+              Place First Spawn Door
+            </UiButton>
+          </UiCard>
+
+          <!-- Active Spawn Points Section -->
+          <template v-else>
+            <!-- Spawn Mode Toggle -->
+            <UiTabs 
+              v-model="characterStore.spawnMode"
+              :items="[
+                { id: 'all_doors', label: 'All Spawn Doors', icon: Sparkles },
+                { id: 'single_door', label: 'Single Door Only', icon: MapPin },
+              ]"
+              fill
+              size="sm"
+            />
+
+            <!-- Spawn Point Dropdown Selector -->
+            <div class="flex items-center gap-2">
+              <select 
+                v-model.number="characterStore.selectedDoorIndex"
+                class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+              >
+                <option 
+                  v-for="(door, idx) in characterStore.detectedDoors" 
+                  :key="door.id" 
+                  :value="idx"
+                >
+                  🚩 {{ door.name }} (Cell: {{ door.col }}, {{ door.row }})
+                </option>
+              </select>
+
+              <UiIconButton 
+                :icon="Trash2"
+                size="md"
+                variant="danger"
+                title="Delete this spawn door"
+                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex)"
+              />
+            </div>
+
+            <!-- Action Buttons: Add Spawn Point & Relocate -->
+            <div class="grid grid-cols-2 gap-2">
+              <UiButton 
+                variant="game-amber"
+                size="sm"
+                :leading-icon="Plus"
+                @click="handleTriggerAddSpawnPoint"
+              >
+                Place New Door
+              </UiButton>
+
+              <UiButton 
+                variant="secondary"
+                size="sm"
+                :leading-icon="MapPin"
+                @click="handleTriggerRelocateSpawnPoint"
+              >
+                Relocate Door
+              </UiButton>
+            </div>
+          </template>
+
+          <!-- Route Drawing Tools -->
+          <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2 mt-auto">
+            <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
+              <Navigation class="w-3.5 h-3.5 text-brand-400" />
+              <span>Custom Route Waypoints:</span>
+            </span>
+
+            <div class="grid grid-cols-2 gap-2">
+              <UiButton 
+                variant="primary"
+                size="sm"
+                :leading-icon="PenTool"
+                @click="handleStartDrawingRoute"
+              >
+                Draw Custom Route
+              </UiButton>
+
+              <UiButton 
+                variant="secondary"
+                size="sm"
+                :leading-icon="RotateCcw"
+                @click="characterStore.deleteCurrentRoute()"
+              >
+                Clear Route
+              </UiButton>
+            </div>
+          </UiCard>
+
+        </UiCard>
+
+        <!-- RIGHT CARD: MOVEMENT & SIMULATION PARAMETERS -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <Activity class="w-4 h-4 text-brand-400" />
+              <span>Movement & Simulation Parameters</span>
+            </span>
+          </div>
+
+          <!-- Formation: Pairs vs Single -->
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-300">March Formation:</span>
+            <UiTabs 
+              v-model="characterStore.formation"
+              :items="[
+                { id: 'pairs', label: 'Pairs (2 abreast)', icon: Users },
+                { id: 'single', label: 'Single File', icon: User },
+              ]"
+              fill
+              size="sm"
+            />
+          </div>
+
+          <!-- Pair Distance & Unit Speed Sliders -->
+          <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-2 gap-3">
+            <UiSlider 
+              v-model="characterStore.pairDistance"
+              label="Pair Spacing"
+              :min="0.1"
+              :max="1.5"
+              :step="0.05"
+              unit="k"
+            />
+
+            <UiSlider 
+              v-model="characterStore.unitSpeed"
+              label="March Speed"
+              :min="0.5"
+              :max="6.0"
+              :step="0.1"
+              unit=" cells/s"
+            />
+          </UiCard>
+
+          <!-- Game Speed Slider -->
+          <UiCard variant="subtle" padding="sm">
+            <UiSlider 
+              v-model="characterStore.gameSpeed"
+              label="⚡ Simulation Multiplier"
+              :min="1.0"
+              :max="50.0"
+              :step="1.0"
+              unit="x"
+            />
+          </UiCard>
+
+          <!-- Follow Camera & Trail Toggles -->
+          <div class="grid grid-cols-2 gap-2">
+            <UiSwitch 
+              v-model="characterStore.followCamera"
+              label="Follow Camera"
+              variant="brand"
+            />
+            <UiSwitch 
+              v-model="characterStore.showPathTrail"
+              label="Waypoint Trail"
+              variant="brand"
+            />
+          </div>
+
+          <!-- Tour Playback Controls -->
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 mt-auto">
+            <UiButton 
+              v-if="!characterStore.isPlaying"
+              variant="game-green"
+              size="sm"
+              :leading-icon="Play"
+              @click="characterStore.startTour()"
+            >
+              Start Tour
+            </UiButton>
+
+            <UiButton 
+              v-else
+              variant="game-amber"
+              size="sm"
+              :leading-icon="Pause"
+              @click="characterStore.pauseTour()"
+            >
+              Pause
+            </UiButton>
+
+            <UiButton 
+              variant="secondary"
+              size="sm"
+              :leading-icon="RotateCcw"
+              @click="characterStore.resetTour()"
+            >
+              Reset
+            </UiButton>
+
+            <UiButton 
+              variant="game-green"
+              size="sm"
+              :leading-icon="Gamepad2"
+              @click="handleStartPlayModeFromModal"
+            >
+              To Game
+            </UiButton>
+          </div>
+
+        </UiCard>
+
+      </div>
+
+    </div>
+  </UiModal>
 </template>
 
 <script setup lang="ts">
@@ -1053,8 +902,21 @@ import {
   Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
   Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
-  Camera, GitBranch, Flame, Zap
+  Search
 } from 'lucide-vue-next'
+import { 
+  UiModal, 
+  UiTabs, 
+  UiButton, 
+  UiIconButton, 
+  UiInput, 
+  UiNumberInput, 
+  UiSlider, 
+  UiSwitch, 
+  UiCard, 
+  UiBadge, 
+  TabItem 
+} from './ui'
 import { useToolStore } from '../stores/toolStore'
 import { useTowerStore, PlacedTower } from '../stores/towerStore'
 import { useCharacterStore } from '../stores/characterStore'
@@ -1070,14 +932,22 @@ const characterStore = useCharacterStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
 
+const configTabItems = computed<TabItem[]>(() => [
+  { id: 'towers', label: 'Towers', icon: ShieldAlert, count: towerStore.blueprints.length },
+  { id: 'waves', label: 'Waves', icon: Swords, count: characterStore.waveConfigs.length },
+  { id: 'balance', label: 'Map Balance', icon: Coins },
+  { id: 'placed', label: 'Placed Defenses', icon: TowerControl, count: towerStore.placedTowers.length },
+  { id: 'spawns', label: 'Spawn & Movement', icon: Users },
+])
+
 const selectedBp = computed(() => towerStore.selectedBlueprint)
 const selectedWave = computed(() => characterStore.currentWaveConfig)
 
 const projectileOptions = [
-  { id: 'cannonball', name: "To'p (Cannon)", icon: '💣' },
-  { id: 'arrow', name: "Kamon O'qi", icon: '🏹' },
-  { id: 'magic_bolt', name: "Sehrli Nur", icon: '⚡' },
-  { id: 'fireball', name: "Olov Shari", icon: '🔥' },
+  { id: 'cannonball', name: 'Cannonball', icon: '💣' },
+  { id: 'arrow', name: 'Arrow', icon: '🏹' },
+  { id: 'magic_bolt', name: 'Magic Bolt', icon: '⚡' },
+  { id: 'fireball', name: 'Fireball', icon: '🔥' },
 ]
 
 const assetSearchQuery = ref('')
@@ -1107,10 +977,11 @@ function handleApplySelectedBp() {
 }
 
 function changeBlueprintAsset(bpId: string, asset: AssetItem) {
+  const preview = assetStore.getAssetPreview(asset)
   towerStore.updateBlueprint(bpId, {
     assetId: asset.id,
-    assetName: asset.name,
-    assetPath: asset.previewSrc || asset.src,
+    assetName: `${asset.name}.png`,
+    assetPath: preview || asset.previewSrc || asset.src || '',
   })
 }
 
@@ -1150,10 +1021,10 @@ function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
   router.push('/game')
   requestAppFullscreen()
-  characterStore.startLoadingScreen(mapStore.project.name || 'Xarita')
-  characterStore.setLoadingProgress(30, "Assetlar tekshirilmoqda...")
+  characterStore.startLoadingScreen(mapStore.project.name || 'Map')
+  characterStore.setLoadingProgress(30, "Checking assets...")
   setTimeout(() => {
-    characterStore.setLoadingProgress(100, "Tayyor!")
+    characterStore.setLoadingProgress(100, "Ready!")
     characterStore.startPlayMode()
     characterStore.finishLoadingScreen()
   }, 400)

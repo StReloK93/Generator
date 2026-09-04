@@ -10,26 +10,24 @@
   >
     <!-- Collapsed Toggle Strip -->
     <div v-if="isCollapsed" class="h-full flex flex-col items-center py-4 justify-between">
-      <button 
+      <UiIconButton 
+        :icon="ChevronLeft"
+        size="sm"
+        title="Expand Right Panel"
         @click="isCollapsed = false"
-        class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-brand-400 border border-slate-700 transition-all shadow-md cursor-pointer"
-        title="O'ng panelni ochish"
-      >
-        <ChevronLeft class="w-4 h-4" />
-      </button>
+      />
 
       <div class="writing-mode-vertical text-xs font-bold text-slate-400 tracking-wider flex items-center gap-2">
         <Boxes class="w-3.5 h-3.5 text-brand-400" />
-        <span>Obyektlar & Assetlar ({{ mapStore.allPlacedElements.length }} / {{ assetStore.assets.length }})</span>
+        <span>Objects & Assets ({{ mapStore.allPlacedElements.length }} / {{ assetStore.assets.length }})</span>
       </div>
 
-      <button 
+      <UiIconButton 
+        :icon="FolderOpen"
+        size="sm"
+        title="Open"
         @click="isCollapsed = false"
-        class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-all cursor-pointer"
-        title="Ochish"
-      >
-        <FolderOpen class="w-4 h-4 text-brand-400" />
-      </button>
+      />
     </div>
 
     <!-- Expanded Right Sidebar with 40% / 60% Split -->
@@ -41,68 +39,56 @@
       <div class="h-[40%] min-h-[160px] flex flex-col border-b border-slate-800/90 bg-slate-900/40 overflow-hidden shrink-0">
         
         <!-- Top Driver Header & Tab Switcher -->
-        <div class="p-2.5 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between shrink-0">
-          <div class="flex items-center gap-1 bg-slate-950/80 p-0.5 rounded-xl border border-slate-800">
-            <!-- Objects Tab -->
-            <button 
-              @click="activeTopTab = 'elements'"
-              :class="activeTopTab === 'elements' ? 'bg-brand-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-slate-200'"
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
-            >
-              <Boxes class="w-3.5 h-3.5" />
-              <span>Obyektlar ({{ mapStore.allPlacedElements.length }})</span>
-            </button>
-
-            <!-- Layers Tab -->
-            <button 
-              @click="activeTopTab = 'layers'"
-              :class="activeTopTab === 'layers' ? 'bg-brand-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-slate-200'"
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
-            >
-              <Layers class="w-3.5 h-3.5" />
-              <span>Qatlamlar ({{ mapStore.project.layers.length }})</span>
-            </button>
+        <div class="p-2 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex-1 min-w-0">
+            <UiTabs
+              v-model="activeTopTab"
+              :items="topTabItems"
+              size="sm"
+              fill
+            />
           </div>
 
           <!-- Collapse Panel Button -->
-          <button 
+          <UiIconButton
+            :icon="ChevronRight"
+            size="sm"
+            variant="ghost"
+            title="Collapse Panel"
             @click="isCollapsed = true"
-            class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-            title="Panelni yig'ish"
-          >
-            <ChevronRight class="w-4 h-4" />
-          </button>
+          />
         </div>
 
         <!-- TAB 1: PLACED OBJECTS OUTLINER -->
-        <div v-if="activeTopTab === 'elements'" class="flex-1 flex flex-col overflow-hidden p-2.5 gap-2">
+        <div v-if="activeTopTab === 'elements'" class="flex-1 flex flex-col overflow-hidden p-2 gap-1.5">
           <!-- Search filter -->
-          <div class="relative shrink-0">
-            <Search class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input 
-              v-model="elementSearchQuery"
-              type="text"
-              placeholder="Obyektlarni qidirish..."
-              class="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-8 pr-2.5 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500"
-            />
-          </div>
+          <UiInput 
+            v-model="elementSearchQuery"
+            size="sm"
+            placeholder="Search placed objects..."
+            :leading-icon="Search"
+            clearable
+          />
 
           <!-- Placed Elements List -->
           <div 
             v-if="filteredPlacedElements.length > 0"
-            class="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-0.5 custom-scrollbar"
+            class="flex-1 overflow-y-auto flex flex-col gap-1.5 p-1 custom-scrollbar"
           >
-            <div 
+            <UiCard 
               v-for="entry in filteredPlacedElements" 
               :key="entry.item.id"
+              :selected="toolStore.selectedElement?.itemId === entry.item.id"
+              variant="default"
+              padding="sm"
+              interactive
+              custom-class="p-1.5! flex items-center gap-2 shrink-0 group hover:border-slate-700"
               @click="handleSelectAndFocus(entry)"
-              :class="toolStore.selectedElement?.itemId === entry.item.id ? 'border-brand-500 bg-brand-950/40 ring-1 ring-brand-500/50' : 'border-slate-800/80 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-850'"
-              class="border rounded-xl p-1.5 flex items-center gap-2 cursor-pointer transition-all group shrink-0"
             >
               <!-- Thumbnail -->
-              <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner">
+              <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner border border-slate-800/80">
                 <img 
-                  :src="getAsset(entry.item.assetId)?.previewSrc || getAsset(entry.item.assetId)?.src" 
+                  :src="assetStore.getAssetPreview(entry.item.assetId)" 
                   :alt="getAsset(entry.item.assetId)?.name"
                   class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform"
                   loading="lazy"
@@ -113,9 +99,9 @@
               <div class="flex-1 min-w-0">
                 <div class="text-[11px] font-semibold text-slate-200 truncate flex items-center justify-between">
                   <span class="truncate">{{ getAsset(entry.item.assetId)?.name || 'Element' }}</span>
-                  <span class="text-[9px] font-mono px-1 rounded bg-slate-800 text-brand-300 font-bold shrink-0 ml-1">
+                  <UiBadge variant="brand" size="xs">
                     Z:{{ entry.item.zIndex || 0 }}
-                  </span>
+                  </UiBadge>
                 </div>
                 <div class="text-[9px] text-slate-400 font-mono flex items-center justify-between mt-0.5">
                   <span class="text-emerald-400 font-semibold">X:{{ entry.col }}, Y:{{ entry.row }}</span>
@@ -125,32 +111,34 @@
 
               <!-- Focus / Delete buttons on hover -->
               <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                <button 
+                <UiIconButton 
+                  :icon="Crosshair"
+                  size="sm"
+                  variant="ghost"
+                  title="Focus on Map"
+                  custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleFocusOnly(entry)"
-                  class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-brand-400 cursor-pointer"
-                  title="Xaritada ko'rish"
-                >
-                  <Crosshair class="w-3.5 h-3.5" />
-                </button>
-                <button 
+                />
+                <UiIconButton 
+                  :icon="Trash2"
+                  size="sm"
+                  variant="danger"
+                  title="Delete Object"
+                  custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleDeleteItem(entry)"
-                  class="p-1 rounded hover:bg-red-950/60 text-slate-400 hover:text-red-400 cursor-pointer"
-                  title="O'chirish"
-                >
-                  <Trash2 class="w-3.5 h-3.5" />
-                </button>
+                />
               </div>
-            </div>
+            </UiCard>
           </div>
 
           <!-- Empty state when map has 0 elements -->
           <div 
             v-else 
-            class="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-800/80 rounded-xl bg-slate-950/40 p-3 text-center"
+            class="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 p-3 text-center"
           >
             <Boxes class="w-6 h-6 text-slate-600 mb-1" />
-            <p class="text-[11px] font-bold text-slate-300">Obyektlar yo'q</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">Quyidagi galereyadan rasm tanlab xaritaga qo'ying</p>
+            <p class="text-[11px] font-bold text-slate-300">No objects placed</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">Select a sprite from the library below to place on the map</p>
           </div>
         </div>
 
@@ -158,35 +146,38 @@
         <div v-else class="flex-1 overflow-hidden flex flex-col p-2 gap-1.5 custom-scrollbar">
           <!-- Add Layer Action Row -->
           <div class="flex items-center justify-between px-1 shrink-0">
-            <span class="text-[11px] font-semibold text-slate-300">Qatlamlar Ro'yxati</span>
-            <button 
+            <span class="text-[11px] font-semibold text-slate-300">Layers List</span>
+            <UiButton 
+              variant="primary"
+              size="xs"
+              :leading-icon="Plus"
               @click="mapStore.addLayer()"
-              class="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-600/30 hover:bg-brand-600/50 text-brand-300 text-[10px] font-semibold border border-brand-500/40 transition-all cursor-pointer"
             >
-              <Plus class="w-3 h-3" />
-              <span>Yangi Qatlam</span>
-            </button>
+              New Layer
+            </UiButton>
           </div>
 
           <!-- Scrollable Layer Items -->
-          <div class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar pr-0.5">
-            <div 
+          <div class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar p-1">
+            <UiCard 
               v-for="layer in reversedLayers" 
               :key="layer.id"
+              :selected="mapStore.activeLayerId === layer.id"
+              variant="default"
+              padding="sm"
+              custom-class="p-1.5! flex flex-col gap-1 cursor-pointer shrink-0 hover:border-slate-700"
               @click="mapStore.activeLayerId = layer.id"
-              :class="mapStore.activeLayerId === layer.id ? 'border-brand-500/80 bg-brand-950/40 ring-1 ring-brand-500/50' : 'border-slate-800/80 hover:border-slate-700 bg-slate-900/50'"
-              class="border rounded-xl p-1.5 flex flex-col gap-1 cursor-pointer transition-all shrink-0"
             >
               <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                  <button 
+                  <UiIconButton 
+                    :icon="layer.visible ? Eye : EyeOff"
+                    size="sm"
+                    variant="ghost"
+                    :title="layer.visible ? 'Hide Layer' : 'Show Layer'"
+                    :custom-class="layer.visible ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-600'"
                     @click.stop="mapStore.toggleLayerVisibility(layer.id)"
-                    class="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-                    :title="layer.visible ? 'Qatlamni yashirish' : 'Qatlamni ko\'rsatish'"
-                  >
-                    <Eye v-if="layer.visible" class="w-3.5 h-3.5 text-emerald-400" />
-                    <EyeOff v-else class="w-3.5 h-3.5 text-slate-600" />
-                  </button>
+                  />
 
                   <input 
                     :value="layer.name"
@@ -197,43 +188,43 @@
                 </div>
 
                 <div class="flex items-center gap-0.5 shrink-0">
-                  <button 
+                  <UiIconButton 
+                    :icon="layer.locked ? Lock : Unlock"
+                    size="sm"
+                    variant="ghost"
+                    :title="layer.locked ? 'Unlock Layer' : 'Lock Layer'"
+                    :custom-class="layer.locked ? 'text-amber-400' : 'text-slate-500'"
                     @click.stop="mapStore.toggleLayerLock(layer.id)"
-                    class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
-                    :title="layer.locked ? 'Qatlamni ochish' : 'Qatlamni qulflash'"
-                  >
-                    <Lock v-if="layer.locked" class="w-3 h-3 text-amber-400" />
-                    <Unlock v-else class="w-3 h-3 text-slate-500" />
-                  </button>
-                  <button 
+                  />
+                  <UiIconButton 
+                    :icon="ArrowUp"
+                    size="sm"
+                    variant="ghost"
+                    title="Move Up"
                     @click.stop="mapStore.moveLayer(layer.id, 'up')"
-                    class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
-                    title="Yuqoriga"
-                  >
-                    <ArrowUp class="w-3 h-3" />
-                  </button>
-                  <button 
+                  />
+                  <UiIconButton 
+                    :icon="ArrowDown"
+                    size="sm"
+                    variant="ghost"
+                    title="Move Down"
                     @click.stop="mapStore.moveLayer(layer.id, 'down')"
-                    class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
-                    title="Pastga"
-                  >
-                    <ArrowDown class="w-3 h-3" />
-                  </button>
-                  <button 
+                  />
+                  <UiIconButton 
                     v-if="mapStore.project.layers.length > 1"
+                    :icon="Trash2"
+                    size="sm"
+                    variant="danger"
+                    title="Delete Layer"
                     @click.stop="mapStore.removeLayer(layer.id)"
-                    class="p-0.5 rounded hover:bg-red-950/60 text-slate-500 hover:text-red-400 cursor-pointer"
-                    title="O'chirish"
-                  >
-                    <Trash2 class="w-3 h-3" />
-                  </button>
+                  />
                 </div>
               </div>
 
               <!-- Layer Opacity -->
               <div class="flex items-center justify-between gap-2 text-[9px] text-slate-400 pt-0.5 border-t border-slate-800/50">
                 <div class="flex items-center gap-1.5 flex-1" @click.stop>
-                  <span>Shaffoflik:</span>
+                  <span>Opacity:</span>
                   <input 
                     type="range"
                     min="0"
@@ -245,9 +236,9 @@
                   />
                   <span class="font-mono w-6 text-right">{{ Math.round(layer.opacity * 100) }}%</span>
                 </div>
-                <span class="font-mono text-slate-500">{{ Object.keys(layer.tiles).length }} ta</span>
+                <span class="font-mono text-slate-500">{{ Object.keys(layer.tiles).length }} items</span>
               </div>
-            </div>
+            </UiCard>
           </div>
         </div>
       </div>
@@ -263,75 +254,73 @@
             <div class="flex items-center gap-2">
               <FolderOpen class="w-4 h-4 text-brand-400" />
               <span class="text-xs font-bold text-slate-200">
-                Assetlar Galereyasi
+                Asset Library
               </span>
-              <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] font-mono text-brand-400 font-bold">
+              <UiBadge variant="brand" size="xs">
                 {{ assetStore.assets.length }}
-              </span>
+              </UiBadge>
             </div>
 
             <!-- Upload Action Buttons -->
             <div class="flex items-center gap-1">
-              <button 
+              <UiButton 
+                variant="primary"
+                size="xs"
+                :leading-icon="FolderUp"
+                title="Upload sprite folder"
                 @click="triggerFolderUpload"
-                class="flex items-center gap-1 px-2 py-1 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 text-[10px] font-semibold transition-all active:scale-95 cursor-pointer"
-                title="Butun rasmlar papkasini yuklash"
               >
-                <FolderUp class="w-3 h-3" />
-                <span>Papka</span>
-              </button>
+                Folder
+              </UiButton>
 
-              <button 
+              <UiButton 
+                variant="secondary"
+                size="xs"
+                :leading-icon="ImagePlus"
+                title="Upload sprite image files"
                 @click="triggerFilesUpload"
-                class="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-semibold transition-all active:scale-95 cursor-pointer"
-                title="Rasm fayllarini yuklash"
               >
-                <ImagePlus class="w-3 h-3 text-emerald-400" />
-                <span>Rasmlar</span>
-              </button>
+                Images
+              </UiButton>
 
-              <button 
+              <UiIconButton 
                 v-if="assetStore.assets.length > 0"
+                :icon="Trash2"
+                size="sm"
+                variant="danger"
+                title="Clear all assets"
                 @click="assetStore.clearAllAssets()"
-                class="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/40 text-[10px] transition-colors cursor-pointer"
-                title="Barcha assetlarni tozalash"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-              </button>
+              />
             </div>
           </div>
 
           <!-- Hidden Upload Inputs -->
           <input 
-            ref="folderInputRef"
-            type="file"
-            webkitdirectory
-            directory
-            multiple
-            class="hidden"
-            @change="handleFolderSelect"
+            ref="folderInputRef" 
+            type="file" 
+            webkitdirectory 
+            directory 
+            multiple 
+            class="hidden" 
+            @change="handleFolderSelect" 
           />
           <input 
-            ref="filesInputRef"
-            type="file"
-            multiple
-            accept="image/*,.png,.jpg,.jpeg,.webp,.svg"
-            class="hidden"
-            @change="handleFilesSelect"
+            ref="filesInputRef" 
+            type="file" 
+            multiple 
+            accept="image/*,.png,.jpg,.jpeg,.webp,.svg" 
+            class="hidden" 
+            @change="handleFilesSelect" 
           />
 
           <!-- Search Filter -->
-          <div class="flex items-center gap-1.5">
-            <div class="relative flex-1">
-              <Search class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input 
-                v-model="assetStore.searchQuery"
-                type="text"
-                placeholder="Asset nomini qidirish..."
-                class="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-8 pr-2.5 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500"
-              />
-            </div>
-          </div>
+          <UiInput 
+            v-model="assetStore.searchQuery"
+            size="sm"
+            placeholder="Search asset library..."
+            :leading-icon="Search"
+            clearable
+          />
 
           <!-- Category Filter Chips -->
           <div class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar shrink-0 text-[10px]">
@@ -339,15 +328,15 @@
               v-for="cat in assetStore.categories"
               :key="cat"
               @click="assetStore.selectedCategory = cat"
-              :class="assetStore.selectedCategory === cat ? 'bg-brand-600/30 text-brand-300 border-brand-500/50 font-bold' : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border-slate-800/80'"
-              class="px-2 py-0.5 rounded-lg border whitespace-nowrap transition-all cursor-pointer shrink-0"
+              :class="assetStore.selectedCategory === cat ? 'bg-brand-600/30 text-brand-300 border-brand-500/50 font-bold shadow-sm' : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border-slate-800/80'"
+              class="px-2.5 py-1 rounded-xl border whitespace-nowrap transition-all cursor-pointer shrink-0 text-xs"
             >
               {{ cat }}
             </button>
           </div>
         </div>
 
-        <!-- Scrollable Asset Grid (3 Columns, Square Aspect Ratio, Crisp Previews) -->
+        <!-- Scrollable Asset Grid (3 Columns, Square Aspect Ratio, Crisp Large Previews) -->
         <div class="flex-1 p-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div 
             v-if="assetStore.filteredAssets.length > 0"
@@ -359,44 +348,43 @@
               @click="handleAssetClick(asset.id)"
               draggable="true"
               @dragstart="(e) => handleAssetDragStart(e, asset)"
-              :class="assetStore.selectedAssetId === asset.id ? 'border-brand-500 bg-brand-950/70 ring-2 ring-brand-500/80 scale-[1.03]' : 'border-slate-800/90 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-850'"
-              class="group relative flex flex-col items-center justify-between p-1.5 rounded-xl border aspect-square cursor-pointer transition-all shadow-sm overflow-hidden"
+              :class="assetStore.selectedAssetId === asset.id ? 'border-brand-500 bg-brand-950/80 ring-2 ring-brand-500/80 scale-[1.03]' : 'border-slate-800/90 bg-slate-900/80 hover:border-slate-700 hover:bg-slate-850'"
+              class="group relative flex items-center justify-center p-2 rounded-2xl border aspect-square cursor-pointer transition-all shadow-sm overflow-hidden"
               :title="asset.name"
             >
-              <!-- Thumbnail Box (Square, fills area, clear background) -->
-              <div class="w-full flex-1 rounded-lg bg-slate-950/90 checker-pattern flex items-center justify-center p-1 overflow-hidden relative">
-                <img 
-                  :src="asset.previewSrc || asset.src" 
-                  :alt="asset.name"
-                  class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200"
-                  :style="getAssetThumbnailStyle(asset)"
-                  loading="lazy"
-                />
-              </div>
+              <!-- Thumbnail Image (Large, fills box, perfectly centered) -->
+              <img 
+                :src="assetStore.getAssetPreview(asset)" 
+                :alt="asset.name"
+                class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200 pointer-events-none"
+                loading="lazy"
+              />
 
-              <!-- Name -->
-              <div class="w-full text-center mt-1 px-0.5 shrink-0">
-                <span class="text-[9px] sm:text-[10px] font-semibold text-slate-300 truncate block">
+              <!-- Hover Subtitle Name Bar -->
+              <div class="absolute inset-x-0 bottom-0 py-0.5 px-1 bg-slate-950/90 backdrop-blur-xs text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border-t border-slate-800/60">
+                <span class="text-[9px] font-semibold text-slate-200 truncate block">
                   {{ asset.name.replace(/\.png|\.jpg|\.webp/gi, '') }}
                 </span>
               </div>
 
               <!-- Quick Hover Actions (Anchor & Delete) -->
-              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/95 rounded-lg p-0.5 border border-slate-800 shadow-md backdrop-blur-sm">
-                <button 
+              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/95 rounded-xl p-0.5 border border-slate-800 shadow-md backdrop-blur-sm z-10">
+                <UiIconButton 
+                  :icon="Crosshair"
+                  size="sm"
+                  variant="ghost"
+                  title="Adjust Anchor"
+                  custom-class="p-0.5! w-5! h-5!"
                   @click.stop="openAnchorModal(asset)"
-                  class="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-brand-400 cursor-pointer transition-colors"
-                  title="Anchor sozlash"
-                >
-                  <Crosshair class="w-3 h-3" />
-                </button>
-                <button 
+                />
+                <UiIconButton 
+                  :icon="Trash2"
+                  size="sm"
+                  variant="danger"
+                  title="Delete Asset"
+                  custom-class="p-0.5! w-5! h-5!"
                   @click.stop="assetStore.deleteAsset(asset.id)"
-                  class="p-0.5 rounded hover:bg-red-950/60 text-slate-400 hover:text-red-400 cursor-pointer transition-colors"
-                  title="O'chirish"
-                >
-                  <Trash2 class="w-3 h-3" />
-                </button>
+                />
               </div>
             </div>
           </div>
@@ -404,26 +392,28 @@
           <!-- Empty State when no assets uploaded -->
           <div 
             v-else 
-            class="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 p-4 text-center"
+            class="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-800/80 rounded-3xl bg-slate-950/40 p-4 text-center"
           >
             <UploadCloud class="w-8 h-8 text-brand-400/60 mb-2" />
-            <h4 class="text-xs font-bold text-slate-200">Assetlar yuklanmagan</h4>
-            <p class="text-[10px] text-slate-400 mt-0.5 mb-3">Papka yoki rasmlarni yuklang</p>
-            <div class="flex items-center gap-2">
-              <button 
+            <p class="text-xs font-bold text-slate-300">Asset library is empty</p>
+            <p class="text-[10px] text-slate-500 max-w-[180px] mt-0.5 mb-3">Upload sprite images or folders to use on your map</p>
+            <div class="flex items-center gap-1.5">
+              <UiButton 
+                variant="primary"
+                size="sm"
+                :leading-icon="FolderUp"
                 @click="triggerFolderUpload"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-md transition-all active:scale-95 cursor-pointer"
               >
-                <FolderUp class="w-3.5 h-3.5" />
-                <span>Papka yuklash</span>
-              </button>
-              <button 
+                Upload Folder
+              </UiButton>
+              <UiButton 
+                variant="secondary"
+                size="sm"
+                :leading-icon="ImagePlus"
                 @click="triggerFilesUpload"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
               >
-                <ImagePlus class="w-3.5 h-3.5 text-emerald-400" />
-                <span>Rasmlar</span>
-              </button>
+                Images
+              </UiButton>
             </div>
           </div>
         </div>
@@ -434,36 +424,36 @@
           class="p-2 border-t border-slate-800/90 bg-slate-900/95 flex items-center justify-between shrink-0 text-xs"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <div class="w-6 h-6 rounded bg-slate-950 checker-pattern flex items-center justify-center p-0.5 shrink-0 border border-slate-800">
+            <div class="w-7 h-7 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-0.5 shrink-0 border border-slate-800">
               <img 
-                :src="assetStore.selectedAsset.previewSrc || assetStore.selectedAsset.src" 
+                :src="assetStore.getAssetPreview(assetStore.selectedAsset)" 
                 :alt="assetStore.selectedAsset.name" 
                 class="max-w-full max-h-full object-contain"
               />
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="text-[10px] text-slate-400 font-semibold">Tanlangan:</span>
+              <span class="text-[9px] text-slate-400 font-semibold">Selected:</span>
               <span class="text-xs font-bold text-brand-300 truncate max-w-[140px]">{{ assetStore.selectedAsset.name }}</span>
             </div>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
-            <button 
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="Crosshair"
               @click="openAnchorModal(assetStore.selectedAsset)"
-              class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold border border-slate-700 flex items-center gap-1 cursor-pointer"
-              title="Anchor sozlash"
             >
-              <Crosshair class="w-3 h-3 text-brand-400" />
-              <span>Anchor</span>
-            </button>
+              Anchor
+            </UiButton>
 
-            <button 
+            <UiIconButton 
+              :icon="X"
+              size="sm"
+              variant="ghost"
+              title="Deselect"
               @click="assetStore.selectAsset(null)"
-              class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-              title="Tanlovni bekor qilish"
-            >
-              <X class="w-3.5 h-3.5" />
-            </button>
+            />
           </div>
         </div>
 
@@ -489,6 +479,15 @@ import {
   UploadCloud, Plus, Eye, EyeOff, Lock, Unlock, 
   ArrowUp, ArrowDown, X 
 } from 'lucide-vue-next'
+import { 
+  UiButton, 
+  UiIconButton, 
+  UiInput, 
+  UiCard, 
+  UiTabs, 
+  UiBadge, 
+  TabItem 
+} from './ui'
 import { useMapStore, PlacedElementEntry } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -506,6 +505,11 @@ const assetStore = useAssetStore()
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 const activeTopTab = ref<'elements' | 'layers'>('elements')
 const elementSearchQuery = ref('')
+
+const topTabItems = computed<TabItem[]>(() => [
+  { id: 'elements', label: 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
+  { id: 'layers', label: 'Layers', icon: Layers, count: mapStore.project.layers.length }
+])
 
 const folderInputRef = ref<HTMLInputElement | null>(null)
 const filesInputRef = ref<HTMLInputElement | null>(null)

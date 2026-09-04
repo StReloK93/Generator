@@ -145,11 +145,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const loadingMessage = ref('')
   const loadingAssetsCount = ref(0)
 
-  function startLoadingScreen(mapTitle = "O'yin Xaritasi") {
+  function startLoadingScreen(mapTitle = "Game Map") {
     isLoadingGame.value = true
     loadingProgress.value = 5
     loadingMapTitle.value = mapTitle
-    loadingMessage.value = "Grafik assetlar va teksturalar tayyorlanmoqda..."
+    loadingMessage.value = "Preparing graphic assets and textures..."
     loadingAssetsCount.value = 0
   }
 
@@ -161,7 +161,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function finishLoadingScreen() {
     loadingProgress.value = 100
-    loadingMessage.value = "Barcha teksturalar yuklandi! O'yin boshlanmoqda..."
+    loadingMessage.value = "All textures loaded! Starting game..."
     setTimeout(() => {
       isLoadingGame.value = false
     }, 280)
@@ -178,7 +178,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   // Multi-unit Crowd Array
   const units = ref<CharacterUnit[]>([])
   const lapCount = ref(0)
-  const statusMessage = ref("Eshik yonida kutmoqda")
+  const statusMessage = ref("Waiting at spawn point")
 
   // Doors
   const detectedDoors = ref<DoorInfo[]>([])
@@ -206,39 +206,45 @@ export const useCharacterStore = defineStore('characterStore', () => {
     return units.value.filter(u => u.hasReachedEnd).length
   })
 
+  // Multiplayer live enemy counts
   const aliveEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId && !multiplayerStore.isHost && networkSyncBuffer.renderUnitsList.length > 0) {
+    if (multiplayerStore.roomId) {
       return networkSyncBuffer.renderUnitsList.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
     }
     return units.value.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
   })
 
+  const deadEnemiesCount = computed(() => {
+    if (multiplayerStore.roomId) {
+      return networkSyncBuffer.renderUnitsList.filter(u => u.isDead).length
+    }
+    return units.value.filter(u => u.isDead).length
+  })
+
   const leakedEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId && !multiplayerStore.isHost && networkSyncBuffer.renderUnitsList.length > 0) {
+    if (multiplayerStore.roomId) {
       return networkSyncBuffer.renderUnitsList.filter(u => u.hasReachedEnd).length
     }
     return units.value.filter(u => u.hasReachedEnd).length
   })
 
-  const deadEnemiesCount = computed(() => {
-    return units.value.filter(u => u.isDead).length
-  })
-
   const totalWaveEnemiesCount = computed(() => {
+    if (multiplayerStore.roomId) {
+      return networkSyncBuffer.renderUnitsList.length
+    }
     return units.value.length
   })
 
   const progressPercent = computed(() => {
     const active = units.value.filter(u => u.isSpawned)
     if (active.length === 0) return 0
-    const totalProg = active.reduce((sum, u) => {
-      if (u.hasReachedEnd) return sum + 100
+    let totalInterp = 0
+    for (const u of active) {
       const route = getRouteForDoor(u.doorIndex)
-      const maxIdx = Math.max(1, route.length - 1)
-      const p = ((u.pathIndex + u.pathInterpolation) / maxIdx) * 100
-      return sum + Math.min(100, Math.max(0, p))
-    }, 0)
-    return Math.round(totalProg / active.length)
+      const maxLen = Math.max(1, route.length - 1)
+      totalInterp += Math.min(100, Math.round((u.pathIndex / maxLen) * 100))
+    }
+    return Math.round(totalInterp / active.length)
   })
 
   /**
@@ -256,22 +262,28 @@ export const useCharacterStore = defineStore('characterStore', () => {
         const c = s.col !== undefined ? s.col : (s.spawnCol ?? 2)
         const r = s.row !== undefined ? s.row : (s.spawnRow ?? 2)
         return {
-          ...s,
+          id: s.id || `spawn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           col: c,
           row: r,
           spawnCol: c,
           spawnRow: r,
+          assetId: s.assetId || '',
+          name: s.name || `Spawn Point (${c}, ${r})`,
+          layerId: s.layerId || 'layer-ground',
+          quadrant: s.quadrant ?? 0,
+          isCorner: s.isCorner ?? true,
+          cornerName: s.cornerName,
         }
       })
       if (selectedDoorIndex.value >= detectedDoors.value.length || selectedDoorIndex.value < 0) {
         selectedDoorIndex.value = 0
       }
-      if (mapStore.project.customRoutes && Object.keys(mapStore.project.customRoutes).length > 0) {
-        customRoutes.value = { ...mapStore.project.customRoutes, ...customRoutes.value }
+      if (p.customRoutes) {
+        customRoutes.value = { ...p.customRoutes }
       }
       doorRoutesCache.value = {}
-      if (!isPlaying.value && !isGameMode.value) {
-        initializeUnits()
+      if (detectedDoors.value.length > 0) {
+        spawnAtDoor(selectedDoorIndex.value)
       }
       return detectedDoors.value
     }
@@ -291,19 +303,19 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const midR = Math.floor(rows / 2)
 
     let quadrant = 0
-    let cornerName = '1-Krug (Yuqori)'
+    let cornerName = 'Circle 1 (North)'
     if (col <= midC && row <= midR) {
       quadrant = 0
-      cornerName = "1-Krug (Yuqori/Shimol)"
+      cornerName = "Circle 1 (North)"
     } else if (col >= midC && row <= midR) {
       quadrant = 1
-      cornerName = "2-Krug (O'ng/Sharq)"
+      cornerName = "Circle 2 (East)"
     } else if (col >= midC && row >= midR) {
       quadrant = 2
-      cornerName = "3-Krug (Quyi/Janub)"
+      cornerName = "Circle 3 (South)"
     } else {
       quadrant = 3
-      cornerName = "4-Krug (Chap/G'arb)"
+      cornerName = "Circle 4 (West)"
     }
 
     const num = detectedDoors.value.length + 1
@@ -318,7 +330,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       cornerName,
       assetId: '',
       layerId: 'layer-ground',
-      name: customName || `${num}-Chiqish Nuqtasi (${col}, ${row})`,
+      name: customName || `Spawn Point ${num} (${col}, ${row})`,
     }
 
     detectedDoors.value.push(newPoint)
@@ -326,7 +338,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     syncSpawnPointsToProject()
     doorRoutesCache.value = {}
     spawnAtDoor(selectedDoorIndex.value)
-    mapStore.pushHistory(`Yangi chiqish nuqtasi (${col}, ${row}) qo'shildi`)
+    mapStore.pushHistory(`Added spawn point (${col}, ${row})`)
     return newPoint
   }
 
@@ -342,11 +354,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
       pt.row = row
       pt.spawnCol = col
       pt.spawnRow = row
-      pt.name = `${idx + 1}-Chiqish Nuqtasi (${col}, ${row})`
+      pt.name = `Spawn Point ${idx + 1} (${col}, ${row})`
       syncSpawnPointsToProject()
       doorRoutesCache.value = {}
       spawnAtDoor(idx)
-      mapStore.pushHistory(`Chiqish nuqtasi (${col}, ${row}) ga ko'chirildi`)
+      mapStore.pushHistory(`Moved spawn point to (${col}, ${row})`)
     }
   }
 
@@ -357,7 +369,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (detectedDoors.value.length === 0) {
       selectedDoorIndex.value = 0
       units.value = []
-      statusMessage.value = "Chiqish nuqtasi belgilanmagan"
+      statusMessage.value = "No spawn point configured"
     } else {
       selectedDoorIndex.value = Math.max(0, Math.min(detectedDoors.value.length - 1, idx > 0 ? idx - 1 : 0))
     }
@@ -366,7 +378,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (detectedDoors.value.length > 0) {
       spawnAtDoor(selectedDoorIndex.value)
     }
-    mapStore.pushHistory(`${removed ? removed.name : 'Chiqish nuqtasi'} o'chirildi`)
+    mapStore.pushHistory(`Deleted ${removed ? removed.name : 'spawn point'}`)
   }
 
   function syncSpawnPointsToProject() {
@@ -457,7 +469,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       drawingPath.value = [startPt]
     }
     
-    statusMessage.value = "✏️ Xaritada ketma-ket kataklarni bosing. Yo'lni xohlagan joyingizda tugatishingiz mumkin!"
+    statusMessage.value = "✏️ Click consecutive cells on the map to draw. Finish your route anywhere!"
   }
 
   function addPathTile(coord: GridCoord) {
@@ -516,17 +528,17 @@ export const useCharacterStore = defineStore('characterStore', () => {
       isDrawingRoute.value = false
       doorRoutesCache.value = {}
       spawnAtDoor(selectedDoorIndex.value)
-      mapStore.pushHistory(`Yo'nalish (${drawingPath.value.length} katak) saqlandi`)
-      statusMessage.value = `✅ Yo'nalish saqlandi (${drawingPath.value.length} katak)! Harakatni boshlashingiz mumkin.`
+      mapStore.pushHistory(`Saved route (${drawingPath.value.length} cells)`)
+      statusMessage.value = `✅ Route saved (${drawingPath.value.length} cells)! Ready to begin movement.`
     } else {
       isDrawingRoute.value = false
-      statusMessage.value = "Yo'nalish bekor qilindi (kamida 2 ta katak kerak)"
+      statusMessage.value = "Route drawing cancelled (at least 2 cells required)"
     }
   }
 
   function cancelDrawingRoute() {
     isDrawingRoute.value = false
-    statusMessage.value = "Yo'nalish chizish bekor qilindi"
+    statusMessage.value = "Route drawing cancelled"
   }
 
   function deleteCurrentRoute() {
@@ -537,8 +549,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
     doorRoutesCache.value = {}
     spawnAtDoor(selectedDoorIndex.value)
-    mapStore.pushHistory("Yo'nalish o'chirildi")
-    statusMessage.value = "Yo'nalish o'chirildi"
+    mapStore.pushHistory("Route deleted")
+    statusMessage.value = "Route deleted"
   }
 
   function setWaveUnitCount(count: number) {
@@ -598,7 +610,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function saveCurrentWave() {
     if (!currentWaveConfig.value) return
     syncWavesToProject()
-    mapStore.pushHistory(`To'lqin ${currentWaveConfig.value.waveNumber} sozlamalari saqlandi`)
+    mapStore.pushHistory(`Saved Wave ${currentWaveConfig.value.waveNumber} settings`)
     isWaveSaveFeedback.value = true
     setTimeout(() => {
       isWaveSaveFeedback.value = false
@@ -637,9 +649,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function restoreWavesFromProject() {
     const p = mapStore.project as any
-    if (p.waveConfigs && Array.isArray(p.waveConfigs) && p.waveConfigs.length > 0) {
-      waveConfigs.value = p.waveConfigs.map((w: any) => ({ ...w }))
-      currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? 0))
+    const waves = p.waveConfigs || p.waveData?.waveConfigs || []
+    if (waves && Array.isArray(waves) && waves.length > 0) {
+      waveConfigs.value = waves.map((w: any) => ({ ...w }))
+      currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
     restoreGameSettingsFromProject()
   }
@@ -653,7 +666,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     waveConfigs.value.push({
       waveNumber: nextNum,
-      name: `${nextNum}-To'lqin (Yangi To'lqin)`,
+      name: `Wave ${nextNum} (New Wave)`,
       unitHp: baseHp,
       unitSpeed: 3.5,
       unitCount: baseCount,
@@ -753,8 +766,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const totalCount = units.value.length
     const hpStr = currentWaveConfig.value ? `(HP: ${currentWaveConfig.value.unitHp})` : ''
     statusMessage.value = spawnMode.value === 'all_doors' && detectedDoors.value.length > 1
-      ? `Barcha ${detectedDoors.value.length} ta eshikdan ${totalCount} ta personaj ${hpStr} chiqishga tayyor`
-      : `${selectedDoor.value?.name || 'Eshik'}dan ${totalCount} ta personaj ${hpStr} chiqishga tayyor`
+      ? `All ${detectedDoors.value.length} spawn points ready (${totalCount} units ${hpStr})`
+      : `${selectedDoor.value?.name || 'Spawn point'} ready (${totalCount} units ${hpStr})`
   }
 
   function startTour() {
@@ -767,8 +780,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
         u.action = 'Run'
       }
     }
-    const waveName = currentWaveConfig.value ? currentWaveConfig.value.name : 'Personajlar'
-    statusMessage.value = `${waveName} — ${units.value.length} ta personaj Markazga yugurmoqda...`
+    const waveName = currentWaveConfig.value ? currentWaveConfig.value.name : 'Units'
+    statusMessage.value = `${waveName} — ${units.value.length} units marching to target...`
   }
 
   function pauseTour() {
@@ -778,7 +791,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
         u.action = 'Idle'
       }
     }
-    statusMessage.value = "Harakat to'xtatildi (Pauza)"
+    statusMessage.value = "Movement paused"
   }
 
   function togglePlay() {
@@ -793,7 +806,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     pauseTour()
     lapCount.value = 0
     initializeUnits()
-    statusMessage.value = "Eshikka qaytarildi va qayta tayyorlandi"
+    statusMessage.value = "Reset to spawn point and ready"
   }
 
   function calculateDirection(fromCol: number, fromRow: number, toCol: number, toRow: number): number {
@@ -904,7 +917,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
             if (playerLives.value <= 0) {
               gameState.value = 'game_over'
               isPlaying.value = false
-              statusMessage.value = "Mag'lubiyat! Barcha jonlaringiz tugadi."
+              statusMessage.value = "Defeat! All lives lost."
             }
           }
         }
@@ -947,7 +960,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       const baseScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
 
-      // Side-by-side (yonma-yon 2 kishi) perpendicular offset calculation
+      // Side-by-side (2 units side-by-side) perpendicular offset calculation
       if (formation.value === 'pairs' && unit.sideOffset !== 0) {
         const ptAScreen = gridToScreen(ptA.col, ptA.row, tileWidth, tileHeight)
         const ptBScreen = gridToScreen(ptB.col, ptB.row, tileWidth, tileHeight)
@@ -1011,7 +1024,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
           if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
             gameState.value = 'victory'
             isPlaying.value = false
-            statusMessage.value = "🏆 G'alaba! Barcha to'lqinlar muvaffaqiyatli qaytarildi!"
+            statusMessage.value = "🏆 Victory! All waves successfully cleared!"
           } else {
             // Next wave: Enter building & prep phase!
             currentWaveIndex.value++
@@ -1019,14 +1032,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
             prepCountdown.value = wavePrepDuration.value
             isPlaying.value = false
             spawnAtDoor(0)
-            statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} qaytarildi! +${reward} oltin. ${wavePrepDuration.value}s qurilish vaqti...`
+            statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
           }
         }
       } else {
         // Redaktor mode: Stop after testing the wave
         gold.value += reward
         pauseTour()
-        statusMessage.value = `🎉 ${completedWave?.name || 'To\'lqin'} sinovi yakunlandi!`
+        statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} test completed!`
       }
     }
   }
@@ -1116,7 +1129,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const pathCells: GridCoord[] = []
     const circleRadius = Math.min(5, Math.floor(cols / 10))
     
-    // Top Krug (2, 2)
+    // Top Circle (2, 2)
     for (let c = 2; c <= 2 + circleRadius; c++) {
       pathCells.push({ col: c, row: 2 }, { col: c, row: 2 + circleRadius })
     }
@@ -1124,7 +1137,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       pathCells.push({ col: 2, row: r }, { col: 2 + circleRadius, row: r })
     }
 
-    // Right Krug (cols - 3, 2)
+    // Right Circle (cols - 3, 2)
     for (let c = cols - 3 - circleRadius; c <= cols - 3; c++) {
       pathCells.push({ col: c, row: 2 }, { col: c, row: 2 + circleRadius })
     }
@@ -1132,7 +1145,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       pathCells.push({ col: cols - 3 - circleRadius, row: r }, { col: cols - 3, row: r })
     }
 
-    // Bottom Krug (cols - 3, rows - 3)
+    // Bottom Circle (cols - 3, rows - 3)
     for (let c = cols - 3 - circleRadius; c <= cols - 3; c++) {
       pathCells.push({ col: c, row: rows - 3 - circleRadius }, { col: c, row: rows - 3 })
     }
@@ -1140,7 +1153,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       pathCells.push({ col: cols - 3 - circleRadius, row: r }, { col: cols - 3, row: r })
     }
 
-    // Left Krug (2, rows - 3)
+    // Left Circle (2, rows - 3)
     for (let c = 2; c <= 2 + circleRadius; c++) {
       pathCells.push({ col: c, row: rows - 3 - circleRadius }, { col: c, row: rows - 3 })
     }
@@ -1175,7 +1188,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
 
     mapStore.fillTiles(pathCells, 'sprite-stoneTile_E', 'layer-ground')
-    mapStore.pushHistory("Warcraft Burbenog TD xaritasi (4 ta Krug va Markaz) yaratildi")
+    mapStore.pushHistory("Created Warcraft Burbenog TD map (4 Circles & Center)")
 
     spawnAtDoor(0)
   }

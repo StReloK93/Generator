@@ -11320,10 +11320,10 @@
         "row": 6,
         "spawnCol": 0,
         "spawnRow": 6,
-        "name": "1-Chiqish Nuqtasi (0, 6)",
+        "name": "Spawn Point 1 (0, 6)",
         "quadrant": 0,
         "isCorner": true,
-        "cornerName": "1-Krug (Yuqori/Shimol)",
+        "cornerName": "Circle 1 (North)",
         "assetId": ""
       },
       {
@@ -11332,10 +11332,10 @@
         "row": 24,
         "spawnCol": 0,
         "spawnRow": 24,
-        "name": "2-Chiqish Nuqtasi (0, 24)",
+        "name": "Spawn Point 2 (0, 24)",
         "quadrant": 3,
         "isCorner": true,
-        "cornerName": "4-Krug (Chap/G'arb)",
+        "cornerName": "Circle 4 (West)",
         "assetId": ""
       }
     ],
@@ -11354,10 +11354,11 @@
     "towerBlueprints": [
       {
         "id": "tower-1788434699819-c2c2",
-        "name": "Olov Minorasi",
-        "assetName": "Stone Column (E).png",
-        "assetPath": "/Generator/src/assets/sprites/stoneColumn_E.png",
-        "description": "Maxsus yaratilgan minora: Olov Minorasi",
+        "name": "Fire Tower",
+        "assetId": "sprite-stoneColumn_E",
+        "assetName": "stoneColumn_E.png",
+        "assetPath": "",
+        "description": "Custom Tower: Fire Tower",
         "damage": 40,
         "attackSpeed": 0.5,
         "range": 4,
@@ -11373,7 +11374,7 @@
     "waveConfigs": [
       {
         "waveNumber": 1,
-        "name": "1-To'lqin (Yangi To'lqin)",
+        "name": "Wave 1 (New Wave)",
         "unitHp": 250,
         "unitSpeed": 2,
         "unitCount": 15,
@@ -11382,7 +11383,7 @@
       },
       {
         "waveNumber": 2,
-        "name": "2-To'lqin (Yangi To'lqin)",
+        "name": "Wave 2 (New Wave)",
         "unitHp": 300,
         "unitSpeed": 2,
         "unitCount": 15,
@@ -11391,7 +11392,7 @@
       },
       {
         "waveNumber": 3,
-        "name": "3-To'lqin (Yangi To'lqin)",
+        "name": "Wave 3 (New Wave)",
         "unitHp": 350,
         "unitSpeed": 2.5,
         "unitCount": 15,
@@ -18208,10 +18209,10 @@
         "row": 6,
         "spawnCol": 0,
         "spawnRow": 6,
-        "name": "1-Chiqish Nuqtasi (0, 6)",
+        "name": "Spawn Point 1 (0, 6)",
         "quadrant": 0,
         "isCorner": true,
-        "cornerName": "1-Krug (Yuqori/Shimol)",
+        "cornerName": "Circle 1 (North)",
         "assetId": ""
       },
       {
@@ -18220,10 +18221,10 @@
         "row": 24,
         "spawnCol": 0,
         "spawnRow": 24,
-        "name": "2-Chiqish Nuqtasi (0, 24)",
+        "name": "Spawn Point 2 (0, 24)",
         "quadrant": 3,
         "isCorner": true,
-        "cornerName": "4-Krug (Chap/G'arb)",
+        "cornerName": "Circle 4 (West)",
         "assetId": ""
       }
     ],
@@ -18251,10 +18252,11 @@
     "towerBlueprints": [
       {
         "id": "tower-1788434699819-c2c2",
-        "name": "Olov Minorasi",
-        "assetName": "Stone Column (E).png",
-        "assetPath": "/Generator/src/assets/sprites/stoneColumn_E.png",
-        "description": "Maxsus yaratilgan minora: Olov Minorasi",
+        "name": "Fire Tower",
+        "assetId": "sprite-stoneColumn_E",
+        "assetName": "stoneColumn_E.png",
+        "assetPath": "",
+        "description": "Custom Tower: Fire Tower",
         "damage": 40,
         "attackSpeed": 0.5,
         "range": 4,
@@ -18272,7 +18274,7 @@
     "waveConfigs": [
       {
         "waveNumber": 1,
-        "name": "1-To'lqin (Yangi To'lqin)",
+        "name": "Wave 1 (New Wave)",
         "unitHp": 250,
         "unitSpeed": 2,
         "unitCount": 15,
@@ -18281,7 +18283,7 @@
       },
       {
         "waveNumber": 2,
-        "name": "2-To'lqin (Yangi To'lqin)",
+        "name": "Wave 2 (New Wave)",
         "unitHp": 300,
         "unitSpeed": 2,
         "unitCount": 15,
@@ -18290,7 +18292,7 @@
       },
       {
         "waveNumber": 3,
-        "name": "3-To'lqin (Yangi To'lqin)",
+        "name": "Wave 3 (New Wave)",
         "unitHp": 350,
         "unitSpeed": 2.5,
         "unitCount": 15,

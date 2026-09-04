@@ -1,0 +1,17 @@
+{
+  "core": [
+    "terrain_atlas"
+  ],
+  "editor": [
+    "terrain_atlas",
+    "structures_atlas_0",
+    "structures_atlas_1",
+    "props_atlas_0",
+    "props_atlas_1"
+  ],
+  "game": [
+    "characters_male",
+    "structures_atlas_0",
+    "structures_atlas_1"
+  ]
+}

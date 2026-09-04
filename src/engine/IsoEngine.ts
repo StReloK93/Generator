@@ -161,10 +161,10 @@ export class IsoEngine {
   }
 
   centerMap(project: MapProject, viewWidth: number, viewHeight: number, zoom = 1.0): Point2D {
-    const centerCol = Math.floor(project.cols / 2)
-    const centerRow = Math.floor(project.rows / 2)
+    const midCol = (project.cols - 1) / 2
+    const midRow = (project.rows - 1) / 2
 
-    const centerScreen = gridToScreen(centerCol, centerRow, project.tileWidth, project.tileHeight)
+    const centerScreen = gridToScreen(midCol, midRow, project.tileWidth, project.tileHeight)
 
     const panX = viewWidth / 2 - centerScreen.x * zoom
     const panY = viewHeight / 2 - centerScreen.y * zoom
@@ -187,8 +187,9 @@ export class IsoEngine {
     const { cols, rows, tileWidth, tileHeight } = project
     const halfW = tileWidth / 2
     const halfH = tileHeight / 2
-    const centerCol = Math.floor(cols / 2)
-    const centerRow = Math.floor(rows / 2)
+    const midCol = (cols - 1) / 2
+    const midRow = (rows - 1) / 2
+    const centerPt = gridToScreen(midCol, midRow, tileWidth, tileHeight)
 
     const gridColorNum = parseInt(project.gridColor.replace('#', ''), 16) || 0x38bdf8
 
@@ -216,48 +217,88 @@ export class IsoEngine {
         .closePath()
         .stroke({ width: 2, color: 0x6366f1, alpha: Math.min(1, gridOpacity * 2 + 0.4) })
 
-      // Exact Symmetry Axis Lines directly connecting the centers of every cell
+      // Exact Symmetry Axis Lines passing directly through the true center of the map
       if (showSymmetry) {
-        // Col symmetry axis: from exact center of (centerCol, 0) to exact center of (centerCol, rows - 1)
-        const colStart = gridToScreen(centerCol, 0, tileWidth, tileHeight)
-        const colEnd = gridToScreen(centerCol, rows - 1, tileWidth, tileHeight)
+        // 1. Grid Column symmetry axis (midpoint of top-right edge to midpoint of bottom-left edge)
+        const colStart = gridToScreen(midCol, -0.5, tileWidth, tileHeight)
+        const colEnd = gridToScreen(midCol, rows - 0.5, tileWidth, tileHeight)
 
         this.borderGraphics
           .moveTo(colStart.x, colStart.y)
           .lineTo(colEnd.x, colEnd.y)
-          .stroke({ width: 2, color: 0x10b981, alpha: 0.65 })
+          .stroke({ width: 2, color: 0x10b981, alpha: 0.85 })
 
-        // Row symmetry axis: from exact center of (0, centerRow) to exact center of (cols - 1, centerRow)
-        const rowStart = gridToScreen(0, centerRow, tileWidth, tileHeight)
-        const rowEnd = gridToScreen(cols - 1, centerRow, tileWidth, tileHeight)
+        // 2. Grid Row symmetry axis (midpoint of top-left edge to midpoint of bottom-right edge)
+        const rowStart = gridToScreen(-0.5, midRow, tileWidth, tileHeight)
+        const rowEnd = gridToScreen(cols - 0.5, midRow, tileWidth, tileHeight)
 
         this.borderGraphics
           .moveTo(rowStart.x, rowStart.y)
           .lineTo(rowEnd.x, rowEnd.y)
-          .stroke({ width: 2, color: 0x10b981, alpha: 0.65 })
-      }
+          .stroke({ width: 2, color: 0x10b981, alpha: 0.85 })
 
-      // Center Origin Diamond Highlight & Glowing Center Point
-      if (showCenter) {
-        const centerPoly = getCellPolygon(centerCol, centerRow, tileWidth, tileHeight)
-        const centerPt = gridToScreen(centerCol, centerRow, tileWidth, tileHeight)
+        // 3. Screen Diagonal Symmetry Axes (Corner to Corner Cross)
+        this.borderGraphics
+          .moveTo(pTop.x, pTop.y)
+          .lineTo(pBottom.x, pBottom.y)
+          .stroke({ width: 1.5, color: 0x06b6d4, alpha: 0.6 })
 
         this.borderGraphics
-          .poly(centerPoly)
-          .fill({ color: 0x10b981, alpha: 0.28 })
-          .stroke({ width: 2.5, color: 0x34d399, alpha: 0.95 })
+          .moveTo(pLeft.x, pLeft.y)
+          .lineTo(pRight.x, pRight.y)
+          .stroke({ width: 1.5, color: 0x06b6d4, alpha: 0.6 })
+      }
+
+      // Center Origin Highlight & Glowing Center Point
+      if (showCenter) {
+        const isOddOdd = cols % 2 !== 0 && rows % 2 !== 0
+
+        if (isOddOdd) {
+          const centerPoly = getCellPolygon(midCol, midRow, tileWidth, tileHeight)
+          this.borderGraphics
+            .poly(centerPoly)
+            .fill({ color: 0x10b981, alpha: 0.28 })
+            .stroke({ width: 2.5, color: 0x34d399, alpha: 0.95 })
+        } else {
+          const c0 = Math.floor(midCol)
+          const r0 = Math.floor(midRow)
+          const spanX = cols % 2 === 0 ? 2 : 1
+          const spanY = rows % 2 === 0 ? 2 : 1
+          const centerPoly = getFootprintPolygon(c0, r0, spanX, spanY, tileWidth, tileHeight)
+          this.borderGraphics
+            .poly(centerPoly)
+            .fill({ color: 0x10b981, alpha: 0.22 })
+            .stroke({ width: 2, color: 0x34d399, alpha: 0.85 })
+        }
+
+        // Outer glow ring
+        this.borderGraphics
+          .circle(centerPt.x, centerPt.y, 8)
+          .stroke({ width: 1.5, color: 0x34d399, alpha: 0.7 })
 
         // Central Bullseye Dot
         this.borderGraphics
-          .circle(centerPt.x, centerPt.y, 5)
+          .circle(centerPt.x, centerPt.y, 4.5)
           .fill({ color: 0x10b981, alpha: 1.0 })
           .stroke({ width: 2, color: 0xffffff, alpha: 0.95 })
 
+        // Central Crosshair Ticks
+        this.borderGraphics
+          .moveTo(centerPt.x - 12, centerPt.y)
+          .lineTo(centerPt.x + 12, centerPt.y)
+          .moveTo(centerPt.x, centerPt.y - 12)
+          .lineTo(centerPt.x, centerPt.y + 12)
+          .stroke({ width: 1.5, color: 0xffffff, alpha: 0.85 })
+
         // Center Pin Badge
+        const centerLabel = isOddOdd
+          ? `🎯 CENTER (${midCol}, ${midRow})`
+          : `🎯 CENTER (${cols % 2 === 0 ? `${midCol - 0.5}..${midCol + 0.5}` : midCol}, ${rows % 2 === 0 ? `${midRow - 0.5}..${midRow + 0.5}` : midRow})`
+
         const centerBadge = new Text({
-          text: `🎯 MARKAZ (${centerCol}, ${centerRow})`,
+          text: centerLabel,
           style: new TextStyle({
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: 'SpaceMono, monospace',
             fontSize: Math.max(10, Math.min(12, tileWidth / 9)),
             fontWeight: 'bold',
             fill: 0x34d399,
@@ -265,7 +306,7 @@ export class IsoEngine {
             align: 'center',
           })
         })
-        centerBadge.anchor.set(0.5, 1.4)
+        centerBadge.anchor.set(0.5, 1.5)
         centerBadge.position.set(centerPt.x, centerPt.y)
         this.coordsContainer.addChild(centerBadge)
       }
@@ -273,15 +314,17 @@ export class IsoEngine {
 
     if (showCoords) {
       const textStyle = new TextStyle({
-        fontFamily: 'JetBrains Mono, monospace',
+        fontFamily: 'SpaceMono, monospace',
         fontSize: Math.max(9, Math.min(12, tileWidth / 10)),
         fill: 0x94a3b8,
         align: 'center',
       })
 
+      const isOddOdd = cols % 2 !== 0 && rows % 2 !== 0
+
       for (let c = 0; c < cols; c++) {
         for (let r = 0; r < rows; r++) {
-          if (c === centerCol && r === centerRow) continue
+          if (isOddOdd && c === midCol && r === midRow) continue
           const pt = gridToScreen(c, r, tileWidth, tileHeight)
           const coordText = new Text({
             text: `${c},${r}`,
@@ -737,33 +780,23 @@ export class IsoEngine {
         const assetPath = bp.assetPath || ''
         const assetId = bp.assetId || ''
 
-        // 1. Check in towerTextures
-        if (assetName && this.towerTextures.has(assetName)) {
-          texture = this.towerTextures.get(assetName)!
-        } else if (baseName && this.towerTextures.has(baseName)) {
-          texture = this.towerTextures.get(baseName)!
-        } else if (assetPath && this.towerTextures.has(assetPath)) {
-          texture = this.towerTextures.get(assetPath)!
-        }
+        // 1. Fast lookup from AssetManager (Atlas WebP textures)
+        texture = (assetId ? assetManager.getTexture(assetId) : null) ||
+                  (assetName ? assetManager.getTexture(assetName) : null) ||
+                  (baseName ? assetManager.getTexture(baseName) : null) ||
+                  (baseName ? assetManager.getTexture(`sprite-${baseName}`) : null) ||
+                  (assetName ? this.towerTextures.get(assetName) : null) ||
+                  (baseName ? this.towerTextures.get(baseName) : null) ||
+                  (assetPath ? this.towerTextures.get(assetPath) : null) ||
+                  (assetId ? this.textureCache.get(assetId) : null) ||
+                  (baseName ? this.textureCache.get(`sprite-${baseName}`) : null) ||
+                  (baseName ? this.textureCache.get(baseName) : null) ||
+                  (assetName ? this.textureCache.get(assetName) : null) ||
+                  null
 
-        // 2. Check in global textureCache (for map assets/structures/columns)
-        if (!texture) {
-          if (assetId && this.textureCache.has(assetId)) {
-            texture = this.textureCache.get(assetId)!
-          } else if (this.textureCache.has(`sprite-${baseName}`)) {
-            texture = this.textureCache.get(`sprite-${baseName}`)!
-          } else if (this.textureCache.has(baseName)) {
-            texture = this.textureCache.get(baseName)!
-          } else if (this.textureCache.has(assetName)) {
-            texture = this.textureCache.get(assetName)!
-          } else if (assetPath && this.textureCache.has(assetPath)) {
-            texture = this.textureCache.get(assetPath)!
-          }
-        }
-
-        // 3. Preload texture from assetPath if not loaded yet
-        if (!texture && assetPath) {
-          try {
+        // 2. Fallback for custom uploaded image data URLs (Async with deduplication)
+        if (!texture && assetPath && assetPath.startsWith('data:') && !this.loadingPromises.has(assetPath)) {
+          const promise = new Promise<Texture | null>((resolve) => {
             const img = new window.Image()
             img.crossOrigin = 'anonymous'
             img.onload = () => {
@@ -776,10 +809,15 @@ export class IsoEngine {
                 this.textureCache.set(assetPath, tex)
                 if (assetId) this.textureCache.set(assetId, tex)
                 sprite.texture = tex
-              } catch {}
+                resolve(tex)
+              } catch {
+                resolve(null)
+              }
             }
+            img.onerror = () => resolve(null)
             img.src = assetPath
-          } catch {}
+          })
+          this.loadingPromises.set(assetPath, promise)
         }
       }
 
@@ -822,7 +860,7 @@ export class IsoEngine {
             .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
         }
 
-        // 2. Overhead Builder Gem Badge (Bino tepasidagi o'yinchi rangi)
+        // 2. Overhead Builder Gem Badge (Player color gem over tower)
         const topY = -tileHeight * 1.32
         
         // Shadow / Outer Glow

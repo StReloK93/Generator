@@ -1,6 +1,8 @@
 import { Assets, Texture, Spritesheet } from 'pixi.js'
+import { ref } from 'vue'
 import { AssetItem } from '../types/map'
 import spriteManifestRaw from '../assets/generated/spriteManifest.json'
+import atlasIndexRaw from '../assets/generated/atlasIndex.json'
 
 export type AssetBundleName = 'core' | 'editor' | 'game'
 
@@ -21,6 +23,9 @@ class AssetManagerService {
     return this._instance
   }
 
+  // Reactive revision counter so Vue components update when atlases load
+  public readonly atlasRevision = ref<number>(0)
+
   // Loaded & in-flight states
   private loadedBundles = new Set<string>()
   private loadingPromises = new Map<string, Promise<any>>()
@@ -29,6 +34,7 @@ class AssetManagerService {
   // Central Fast Texture Cache
   private textureMap = new Map<string, Texture>()
   private spritesheets = new Map<string, Spritesheet>()
+  private previewCache = new Map<string, string>()
   private isBundlesRegistered = false
 
   // Precomputed manifest list
@@ -44,29 +50,21 @@ class AssetManagerService {
     return base.endsWith('/') ? base : `${base}/`
   }
 
-  // Register PixiJS 8 Asset Bundles
+  // Register PixiJS 8 Asset Bundles dynamically from atlasIndex.json
   public registerBundles(): void {
     if (this.isBundlesRegistered) return
     this.isBundlesRegistered = true
 
     const base = this.getBaseUrl()
+    const index = atlasIndexRaw as Record<string, string[]>
 
-    // 1. Core Bundle: Basic terrain & ground tiles needed everywhere
-    Assets.addBundle('core', {
-      terrain: `${base}assets/atlases/terrain_atlas.json`,
-    })
-
-    // 2. Editor Bundle: Props & structures for the map editor
-    Assets.addBundle('editor', {
-      props: `${base}assets/atlases/props_atlas.json`,
-      structures: `${base}assets/atlases/structures_atlas.json`,
-    })
-
-    // 3. Game Bundle: Character animation frames & structure models (towers & obstacles)
-    Assets.addBundle('game', {
-      characters: `${base}assets/atlases/characters_male.json`,
-      structures: `${base}assets/atlases/structures_atlas.json`,
-    })
+    for (const [bundleName, sheets] of Object.entries(index)) {
+      const bundleAssets: Record<string, string> = {}
+      for (const sheet of sheets) {
+        bundleAssets[sheet] = `${base}assets/atlases/${sheet}.json`
+      }
+      Assets.addBundle(bundleName, bundleAssets)
+    }
   }
 
   // Load a specific bundle with in-flight deduplication and progress callback
@@ -118,6 +116,7 @@ class AssetManagerService {
 
         const duration = Math.round(performance.now() - startTime)
         this.loadedBundles.add(bundleName)
+        this.atlasRevision.value++
         this.bundleDiagnostics.set(bundleName, {
           bundleName,
           status: 'loaded',
@@ -200,6 +199,7 @@ class AssetManagerService {
   // Register custom uploaded user texture
   public registerCustomTexture(id: string, texture: Texture): void {
     this.indexTexture(id, texture)
+    this.atlasRevision.value++
   }
 
   // Fast O(1) Texture Retrieval
@@ -232,6 +232,44 @@ class AssetManagerService {
     }
 
     return null
+  }
+
+  // Extract a standalone cropped preview Data URL directly from the loaded Atlas texture
+  public getPreviewDataUrl(assetIdOrName: string): string {
+    if (!assetIdOrName) return ''
+
+    const clean = assetIdOrName.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+    if (this.previewCache.has(clean)) {
+      return this.previewCache.get(clean)!
+    }
+
+    const tex = this.getTexture(assetIdOrName)
+    if (!tex || !tex.source) return ''
+
+    const res = (tex.source as any)?.resource || (tex.source as any)?.source || (tex.source as any)?._source || (tex.source as any)
+    if (!res) return ''
+
+    try {
+      const frame = tex.frame
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, frame.width)
+      canvas.height = Math.max(1, frame.height)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return ''
+
+      ctx.drawImage(
+        res,
+        frame.x, frame.y, frame.width, frame.height,
+        0, 0, frame.width, frame.height
+      )
+
+      const dataUrl = canvas.toDataURL('image/png')
+      this.previewCache.set(clean, dataUrl)
+      this.previewCache.set(assetIdOrName, dataUrl)
+      return dataUrl
+    } catch (e) {
+      return ''
+    }
   }
 
   // Fast Character Frame Texture Lookup

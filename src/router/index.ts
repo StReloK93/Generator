@@ -17,6 +17,11 @@ const routes = [
     component: () => import('../views/EditorView.vue'),
   },
   {
+    path: '/asset-editor',
+    name: 'asset-editor',
+    component: () => import('../views/AssetEditorView.vue'),
+  },
+  {
     path: '/lobby/:roomId',
     name: 'lobby',
     component: () => import('../views/LobbyView.vue'),

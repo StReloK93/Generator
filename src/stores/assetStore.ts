@@ -18,34 +18,51 @@ export const useAssetStore = defineStore('assetStore', () => {
 
   const isLoaded = ref(false)
 
-  // Map of static sprite URLs for HTML <img> preview rendering
-  const spriteUrls = import.meta.glob<string>('../assets/sprites/*.png', { eager: true, import: 'default' })
-  const urlMap = new Map<string, string>()
-  for (const [path, url] of Object.entries(spriteUrls)) {
-    const filename = path.split('/').pop() || ''
-    urlMap.set(filename, url)
-  }
-
-  // Instantly load precomputed sprite manifest (0 runtime canvas scanning!)
-  function loadBuiltinSprites(): Promise<void> {
-    if (isLoaded.value && assets.value.length > 0) return Promise.resolve()
+  // Instantly load precomputed sprite manifest from compiled atlases
+  async function loadBuiltinSprites(): Promise<void> {
+    if (isLoaded.value && assets.value.length > 0) return
 
     const list: AssetItem[] = assetManager.manifest.map((item) => {
-      const srcUrl = item.fileRelativePath ? urlMap.get(item.fileRelativePath) || '' : ''
       return {
         ...item,
-        src: srcUrl,
-        previewSrc: srcUrl,
+        src: '',
+        previewSrc: '',
+        trimmedSrc: '',
       }
     })
 
     assets.value = list
     isLoaded.value = true
-    return Promise.resolve()
+
+    // Trigger atlas loading so preview data URLs become immediately available
+    try {
+      await assetManager.loadEditor()
+    } catch (e) {
+      console.warn('[AssetStore] Failed to load editor bundle:', e)
+    }
   }
 
   // Load automatically on store creation
   loadBuiltinSprites()
+
+  // Get preview data URL extracted directly from PixiJS Atlas texture
+  function getAssetPreview(assetOrId: AssetItem | string | null | undefined): string {
+    // Read atlasRevision to ensure reactivity when PixiJS atlases load
+    void assetManager.atlasRevision.value
+
+    if (!assetOrId) return ''
+    if (typeof assetOrId === 'string') {
+      const found = assets.value.find(a => a.id === assetOrId || a.name === assetOrId)
+      if (found && found.src && found.src.startsWith('data:')) return found.src
+      return assetManager.getPreviewDataUrl(assetOrId) || (found?.previewSrc || '')
+    }
+
+    if (assetOrId.src && assetOrId.src.startsWith('data:')) {
+      return assetOrId.src
+    }
+
+    return assetManager.getPreviewDataUrl(assetOrId.id || assetOrId.name) || assetOrId.previewSrc || ''
+  }
 
   const selectedAsset = computed(() => {
     return assets.value.find(a => a.id === selectedAssetId.value) || null
@@ -95,7 +112,7 @@ export const useAssetStore = defineStore('assetStore', () => {
         const dataUrl = await readFileAsDataUrl(file)
         const analysis = await analyzeImage(dataUrl)
         
-        let category = 'Yuklanganlar'
+        let category = 'Uploaded'
         const relativePath = (file as any).webkitRelativePath || file.name
         if (relativePath.includes('/')) {
           const parts = relativePath.split('/')
@@ -237,7 +254,6 @@ export const useAssetStore = defineStore('assetStore', () => {
           mergedList.push({ ...match, id: imp.id })
         }
       } else if (imp.src && imp.src.startsWith('data:')) {
-        // Custom asset with embedded data URL
         const existingIdx = mergedList.findIndex(a => a.id === imp.id)
         if (existingIdx !== -1) {
           mergedList[existingIdx] = { ...mergedList[existingIdx], ...imp }
@@ -249,6 +265,11 @@ export const useAssetStore = defineStore('assetStore', () => {
 
     assets.value = mergedList
     return mergedList
+  }
+
+  function addCustomAsset(item: AssetItem) {
+    assets.value.unshift(item)
+    selectedAssetId.value = item.id
   }
 
   return {
@@ -263,7 +284,9 @@ export const useAssetStore = defineStore('assetStore', () => {
     isLoaded,
     uploadProgress,
     loadBuiltinSprites,
+    getAssetPreview,
     uploadFiles,
+    addCustomAsset,
     selectAsset,
     updateAssetProperties,
     updateAssetAnchor,

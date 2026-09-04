@@ -11,50 +11,53 @@
     <!-- Panel Header -->
     <div class="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
       <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
+        <div class="w-8 h-8 rounded-xl bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400 shadow-sm">
           <Sliders class="w-4 h-4" />
         </div>
         <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-100">
-            Element Driveri
+            Element Inspector
           </h2>
           <p class="text-[10px] font-mono text-brand-400">
-            Katak: X: {{ toolStore.selectedElement.col }}, Y: {{ toolStore.selectedElement.row }}
+            Cell: X: {{ toolStore.selectedElement.col }}, Y: {{ toolStore.selectedElement.row }}
           </p>
         </div>
       </div>
-      <button 
+      <UiIconButton
+        :icon="X"
+        size="sm"
+        variant="ghost"
+        title="Close (Right click or Esc)"
         @click="toolStore.setSelectedElement(null)"
-        class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
-        title="Yopish (O'ng tugma yoki Esc)"
-      >
-        <X class="w-4 h-4" />
-      </button>
+      />
     </div>
 
     <!-- Scrollable Content -->
-    <div class="flex-1 p-3.5 overflow-y-auto flex flex-col gap-3.5 custom-scrollbar">
+    <div class="flex-1 p-3 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
       <!-- 1. List of Elements on / covering this cell -->
       <div class="flex flex-col gap-1.5">
-        <div class="flex items-center justify-between text-xs">
-          <span class="font-semibold text-slate-300">Shu katakdagi elementlar:</span>
-          <span class="px-2 py-0.5 rounded-full bg-slate-800 text-brand-400 font-mono text-[10px] font-bold">
-            {{ coveringElements.length }} ta
-          </span>
+        <div class="flex items-center justify-between text-xs px-0.5">
+          <span class="font-semibold text-slate-300">Elements on this cell:</span>
+          <UiBadge variant="brand" size="xs">
+            {{ coveringElements.length }} items
+          </UiBadge>
         </div>
 
-        <div class="flex flex-col gap-1.5 max-h-32 overflow-y-auto pr-0.5">
-          <div 
+        <div class="flex flex-col gap-1.5 max-h-32 overflow-y-auto p-1">
+          <UiCard 
             v-for="entry in coveringElements" 
             :key="entry.item.id"
+            :selected="toolStore.selectedElement.itemId === entry.item.id"
+            variant="default"
+            padding="sm"
+            interactive
+            custom-class="p-2! flex items-center gap-2.5"
             @click="selectElementEntry(entry)"
-            :class="toolStore.selectedElement.itemId === entry.item.id ? 'border-brand-500 bg-brand-950/40 ring-1 ring-brand-500/50' : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'"
-            class="border rounded-xl p-2 flex items-center gap-2.5 cursor-pointer transition-all"
           >
             <!-- Thumbnail -->
-            <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden">
+            <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden border border-slate-800">
               <img 
-                :src="getAsset(entry.item.assetId)?.previewSrc || getAsset(entry.item.assetId)?.src" 
+                :src="assetStore.getAssetPreview(entry.item.assetId)" 
                 :alt="getAsset(entry.item.assetId)?.name"
                 class="max-w-full max-h-full object-contain filter drop-shadow"
                 :style="{
@@ -67,28 +70,28 @@
             <div class="flex-1 min-w-0">
               <div class="text-xs font-semibold text-slate-200 truncate flex items-center justify-between">
                 <span>{{ getAsset(entry.item.assetId)?.name || 'Element' }}</span>
-                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-brand-300">
+                <UiBadge variant="brand" size="xs">
                   Z: {{ entry.cellZIndex }}
-                </span>
+                </UiBadge>
               </div>
               <div class="text-[10px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                <span>{{ entry.item.spanX || 1 }}×{{ entry.item.spanY || 1 }} katak</span>
+                <span>{{ entry.item.spanX || 1 }}×{{ entry.item.spanY || 1 }} cells</span>
                 <span v-if="entry.item.depthOffset" class="text-amber-400 text-[9px] font-bold">
-                  (Atrof: {{ entry.item.depthOffset > 0 ? '+' : '' }}{{ entry.item.depthOffset }})
+                  (Depth: {{ entry.item.depthOffset > 0 ? '+' : '' }}{{ entry.item.depthOffset }})
                 </span>
               </div>
             </div>
-          </div>
+          </UiCard>
         </div>
       </div>
 
       <!-- Active Element Full Inspector -->
-      <div v-if="activeItem" class="flex flex-col gap-3.5 border-t border-slate-800 pt-3">
+      <div v-if="activeItem" class="flex flex-col gap-3 border-t border-slate-800/80 pt-3">
         <!-- Asset Title & Info Badge -->
-        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
-          <div class="w-11 h-11 rounded-xl bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner">
+        <UiCard variant="default" padding="sm" custom-class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner border border-slate-800">
             <img 
-              :src="currentAsset?.previewSrc || currentAsset?.src" 
+              :src="assetStore.getAssetPreview(currentAsset)" 
               :alt="currentAsset?.name" 
               class="max-w-full max-h-full object-contain filter drop-shadow"
               :style="{
@@ -101,130 +104,138 @@
               {{ currentAsset?.name || 'Element' }}
             </div>
             <div class="text-[10px] text-slate-400 font-mono mt-0.5 flex flex-col gap-0.5">
-              <span>Asos koordinatasi: ({{ activeItem.x }}, {{ activeItem.y }})</span>
-              <span class="text-brand-300 font-semibold">Qatlam: {{ currentLayerName }}</span>
+              <span>Base coord: ({{ activeItem.x }}, {{ activeItem.y }})</span>
+              <span class="text-brand-300 font-semibold">Layer: {{ currentLayerName }}</span>
             </div>
           </div>
-        </div>
+        </UiCard>
 
-        <!-- 2. ATROFDAGI QO'SHNI KATAKLARGA NISBATAN Z-INDEX (RELATIVE DEPTH SHIFT) -->
-        <div class="flex flex-col gap-2 p-3 rounded-2xl bg-brand-950/30 border border-brand-500/40 shadow-inner">
+        <!-- 2. RELATIVE DEPTH SHIFT -->
+        <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2">
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-brand-300 flex items-center gap-1.5">
               <Layers class="w-4 h-4 text-brand-400" />
-              Atrofdagilarga nisbatan Z-Index:
+              Relative Depth Offset:
             </span>
-            <span 
-              class="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold"
-              :class="(activeItem.depthOffset || 0) > 0 ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-500/40' : (activeItem.depthOffset || 0) < 0 ? 'bg-amber-900/80 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-400'"
+            <UiBadge 
+              :variant="(activeItem.depthOffset || 0) > 0 ? 'emerald' : (activeItem.depthOffset || 0) < 0 ? 'amber' : 'slate'"
+              size="xs"
             >
               {{ depthOffsetStatusText }}
-            </span>
+            </UiBadge>
           </div>
 
           <!-- Quick Big Push/Pull Buttons -->
           <div class="grid grid-cols-2 gap-2 mt-0.5">
             <!-- Shift forward on top of bottom neighbor -->
-            <button 
+            <UiButton 
+              variant="primary"
+              size="sm"
+              :leading-icon="ArrowDownToLine"
+              title="Render on top of front / bottom neighbor cell (+1 layer)"
               @click="shiftDepth(+1)"
-              class="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-md transition-all active:scale-95 group"
-              title="Oldindagi / pastdagi katakdagi element ustiga chiqarish (+1 qavat)"
             >
-              <ArrowDownToLine class="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" />
-              <span>Pastdagi ustiga (+1)</span>
-            </button>
+              Above Front (+1)
+            </UiButton>
 
             <!-- Shift backward behind top neighbor -->
-            <button 
+            <UiButton 
+              variant="secondary"
+              size="sm"
+              :leading-icon="ArrowUpToLine"
+              title="Render behind back / top neighbor cell (-1 layer)"
               @click="shiftDepth(-1)"
-              class="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold shadow-sm transition-all active:scale-95 group"
-              title="Orqadagi / tepadagi katakdagi element tagiga tushirish (-1 qavat)"
             >
-              <ArrowUpToLine class="w-4 h-4 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
-              <span>Tepadagi tagiga (-1)</span>
-            </button>
+              Behind Back (-1)
+            </UiButton>
           </div>
 
           <!-- Stepper & Direct Offset Setting -->
           <div class="flex items-center justify-between gap-2 pt-1 border-t border-brand-500/20 text-xs">
-            <span class="text-[11px] text-slate-400">Siljish darajasi:</span>
+            <span class="text-[11px] text-slate-400">Shift amount:</span>
             <div class="flex items-center gap-1">
-              <button 
+              <UiIconButton 
+                size="sm"
+                variant="default"
+                custom-class="w-6! h-6!"
                 @click="shiftDepth(-1)"
-                class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
               >
                 -
-              </button>
+              </UiIconButton>
               <span class="w-10 text-center font-mono font-bold text-brand-300 text-xs">
                 {{ (activeItem.depthOffset || 0) > 0 ? '+' : '' }}{{ activeItem.depthOffset || 0 }}
               </span>
-              <button 
+              <UiIconButton 
+                size="sm"
+                variant="default"
+                custom-class="w-6! h-6!"
                 @click="shiftDepth(+1)"
-                class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
               >
                 +
-              </button>
-              <button 
+              </UiIconButton>
+              <UiButton 
                 v-if="activeItem.depthOffset !== 0"
+                variant="ghost"
+                size="xs"
+                title="Reset to default depth"
                 @click="resetDepth"
-                class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] ml-1"
-                title="Standart holatga qaytarish"
               >
-                Nollash
-              </button>
+                Reset
+              </UiButton>
             </div>
           </div>
           <p class="text-[10px] text-slate-400 leading-tight">
-            💡 <strong>Pastdagi ustiga</strong> tugmasini bossangiz, bu element o'zidan pastdagi/oldidagi devor va toshlarning ustiga chiqadi.
+            💡 Click <strong>Above Front</strong> to place this object above overlapping front walls and props.
           </p>
-        </div>
+        </UiCard>
 
-        <!-- 3. Qatlamni o'zgartirish (Layer Selector) -->
+        <!-- 3. Layer Selector -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-slate-300">Qatlam (Layer):</span>
+          <span class="text-xs font-semibold text-slate-300">Layer:</span>
           <div class="grid grid-cols-3 gap-1">
-            <button 
+            <UiButton 
               v-for="layer in mapStore.project.layers"
               :key="layer.id"
+              :variant="toolStore.selectedElement?.layerId === layer.id ? 'primary' : 'secondary'"
+              size="xs"
+              custom-class="truncate"
               @click="handleSwitchLayer(layer.id)"
-              :class="toolStore.selectedElement?.layerId === layer.id ? 'bg-brand-600 text-white font-bold shadow-sm' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'"
-              class="py-1.5 px-1 rounded-lg text-[10px] text-center border border-slate-700/80 truncate transition-colors"
             >
               {{ layer.name }}
-            </button>
+            </UiButton>
           </div>
         </div>
 
-        <!-- 4. Katak ichidagi Z-Index (Lokal qavat tartibi) -->
-        <div class="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+        <!-- 4. In-Cell Z-Index -->
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Layers class="w-3.5 h-3.5 text-slate-400" />
-              Katak ichidagi Z-Index
+              In-Cell Z-Index
             </span>
             <div class="flex items-center gap-1">
-              <span class="text-[10px] text-slate-400">Qiymat:</span>
+              <span class="text-[10px] text-slate-400">Value:</span>
               <input 
                 type="number"
                 min="0"
                 max="999"
                 :value="currentInspectedCellZ"
                 @change="(e) => handleCurrentCellZChange((e.target as HTMLInputElement).valueAsNumber)"
-                class="w-12 bg-slate-950 border border-slate-700 rounded px-1 py-0.5 text-xs text-center font-mono font-bold text-brand-400 focus:outline-none focus:border-brand-500"
+                class="w-12 bg-slate-950 border border-slate-700 rounded-lg px-1 py-0.5 text-xs text-center font-mono font-bold text-brand-400 focus:outline-none focus:border-brand-500"
               />
             </div>
           </div>
 
           <!-- Multi-cell Mini Matrix Grid if span > 1 -->
-          <div v-if="(activeItem.spanX || 1) > 1 || (activeItem.spanY || 1) > 1" class="flex flex-col gap-1.5 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+          <div v-if="(activeItem.spanX || 1) > 1 || (activeItem.spanY || 1) > 1" class="flex flex-col gap-1.5 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
             <div class="flex justify-between items-center text-[10px]">
-              <span class="text-slate-400 font-medium">Har bir katak uchun alohida Z:</span>
+              <span class="text-slate-400 font-medium">Per-cell Z-Index:</span>
               <button 
                 @click="applyCurrentZToAllCells"
-                class="text-brand-400 hover:text-brand-300 underline font-medium"
-                title="Hamma kataklarga joriy Z-Index qiymatini o'rnatish"
+                class="text-brand-400 hover:text-brand-300 underline font-medium cursor-pointer"
+                title="Apply current Z-Index to all spanned cells"
               >
-                Hammaga qo'llash
+                Apply to all
               </button>
             </div>
 
@@ -240,27 +251,31 @@
                   <div 
                     @click="activeCellInMatrix = { col: activeItem.x + c - 1, row: activeItem.y + r - 1 }"
                     :class="isSelectedMatrixCell(activeItem.x + c - 1, activeItem.y + r - 1) ? 'border-brand-500 bg-brand-950/50 ring-1 ring-brand-400' : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'"
-                    class="border rounded-md p-1 flex flex-col items-center justify-center cursor-pointer transition-all"
+                    class="border rounded-lg p-1 flex flex-col items-center justify-center cursor-pointer transition-all"
                   >
                     <span class="text-[8px] font-mono text-slate-400">
                       ({{ activeItem.x + c - 1 }}, {{ activeItem.y + r - 1 }})
                     </span>
                     <div class="flex items-center gap-0.5 mt-0.5">
-                      <button 
+                      <UiIconButton 
+                        size="sm"
+                        variant="default"
+                        custom-class="w-4! h-4! text-[9px]!"
                         @click.stop="adjustMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1, -1)"
-                        class="w-4 h-4 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-bold"
                       >
                         -
-                      </button>
+                      </UiIconButton>
                       <span class="font-mono text-[10px] font-bold text-brand-300 px-1">
                         {{ getMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1) }}
                       </span>
-                      <button 
+                      <UiIconButton 
+                        size="sm"
+                        variant="default"
+                        custom-class="w-4! h-4! text-[9px]!"
                         @click.stop="adjustMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1, +1)"
-                        class="w-4 h-4 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-bold"
                       >
                         +
-                      </button>
+                      </UiIconButton>
                     </div>
                   </div>
                 </template>
@@ -270,77 +285,85 @@
 
           <!-- Quick Z Actions for Current Cell -->
           <div class="grid grid-cols-4 gap-1.5 text-xs">
-            <button 
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="ArrowUpToLine"
+              title="Bring 1 step forward in cell (+1)"
+              custom-class="flex-col! py-2! gap-0.5!"
               @click="handleBringForward"
-              class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex flex-col items-center gap-0.5"
-              title="Katak ichida 1 qavat yuqoriga chiqarish (+1)"
             >
-              <ArrowUpToLine class="w-4 h-4 text-emerald-400" />
-              <span class="text-[10px] font-semibold">Z+ (+1)</span>
-            </button>
-            <button 
+              <span class="text-[10px] font-semibold text-emerald-400">Z+ (+1)</span>
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="ArrowDownToLine"
+              title="Send 1 step backward in cell (-1)"
+              custom-class="flex-col! py-2! gap-0.5!"
               @click="handleSendBackward"
-              class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex flex-col items-center gap-0.5"
-              title="Katak ichida 1 qavat pastga tushirish (-1)"
             >
-              <ArrowDownToLine class="w-4 h-4 text-amber-400" />
-              <span class="text-[10px] font-semibold">Z- (-1)</span>
-            </button>
-            <button 
+              <span class="text-[10px] font-semibold text-amber-400">Z- (-1)</span>
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="ChevronsUp"
+              title="Bring to top in cell"
+              custom-class="flex-col! py-2! gap-0.5!"
               @click="handleBringToTop"
-              class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex flex-col items-center gap-0.5"
-              title="Eng yuqoriga chiqarish"
             >
-              <ChevronsUp class="w-4 h-4 text-brand-400" />
-              <span class="text-[10px] font-semibold">Tepaga</span>
-            </button>
-            <button 
+              <span class="text-[10px] font-semibold text-brand-400">Top</span>
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="ChevronsDown"
+              title="Send to bottom in cell"
+              custom-class="flex-col! py-2! gap-0.5!"
               @click="handleSendToBottom"
-              class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex flex-col items-center gap-0.5"
-              title="Eng pastga tushirish"
             >
-              <ChevronsDown class="w-4 h-4 text-slate-400" />
-              <span class="text-[10px] font-semibold">Pastga</span>
-            </button>
+              <span class="text-[10px] font-semibold text-slate-400">Bottom</span>
+            </UiButton>
           </div>
-        </div>
+        </UiCard>
 
-        <!-- 5. Anchor / Asos Balandligi (Devorlar va Obyektlar uchun) -->
-        <div class="flex flex-col gap-1.5 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+        <!-- 5. Anchor Base Height -->
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Crosshair class="w-3.5 h-3.5 text-brand-400" />
-              Anchor (Asos / Tag nuqtasi):
+              Anchor (Base Point):
             </span>
-            <span class="font-mono text-brand-300 font-bold text-xs">{{ Math.round(currentAnchorY * 100) }}%</span>
+            <UiBadge variant="brand" size="xs">{{ Math.round(currentAnchorY * 100) }}%</UiBadge>
           </div>
           
           <div class="grid grid-cols-3 gap-1">
-            <button 
+            <UiButton 
+              :variant="Math.abs(currentAnchorY - 0.5) < 0.05 ? 'primary' : 'secondary'"
+              size="xs"
               @click="handleSetAnchor(0.5, 0.5)"
-              :class="Math.abs(currentAnchorY - 0.5) < 0.05 ? 'bg-brand-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
-              class="py-1 rounded-lg text-[10px] text-center border border-slate-700"
             >
-              Plitka (50%)
-            </button>
-            <button 
+              Tile (50%)
+            </UiButton>
+            <UiButton 
+              :variant="Math.abs(currentAnchorY - 0.88) < 0.05 ? 'primary' : 'secondary'"
+              size="xs"
               @click="handleSetAnchor(0.5, 0.88)"
-              :class="Math.abs(currentAnchorY - 0.88) < 0.05 ? 'bg-brand-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
-              class="py-1 rounded-lg text-[10px] text-center border border-slate-700"
             >
-              Devor (88%)
-            </button>
-            <button 
+              Wall (88%)
+            </UiButton>
+            <UiButton 
+              :variant="Math.abs(currentAnchorY - 1.0) < 0.05 ? 'primary' : 'secondary'"
+              size="xs"
               @click="handleSetAnchor(0.5, 1.0)"
-              :class="Math.abs(currentAnchorY - 1.0) < 0.05 ? 'bg-brand-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
-              class="py-1 rounded-lg text-[10px] text-center border border-slate-700"
             >
-              Asos (100%)
-            </button>
+              Base (100%)
+            </UiButton>
           </div>
 
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-[10px] text-slate-500 w-12">Nozik Y:</span>
+            <span class="text-[10px] text-slate-500 w-12">Fine Y:</span>
             <input 
               type="range"
               min="0.2"
@@ -351,40 +374,41 @@
               class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded"
             />
           </div>
-        </div>
+        </UiCard>
 
-        <!-- 6. Katak o'lchami (Footprint Span: 1x1, 2x2, 3x3, 4x4) -->
+        <!-- 6. Footprint Span -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="font-semibold text-slate-300">Katak o'lchami (Footprint Span):</span>
-            <span class="font-mono text-brand-400 font-bold">{{ activeItem.spanX || 1 }}×{{ activeItem.spanY || 1 }} katak</span>
+            <span class="font-semibold text-slate-300">Footprint Span (Cells):</span>
+            <UiBadge variant="brand" size="xs">{{ activeItem.spanX || 1 }}×{{ activeItem.spanY || 1 }} cells</UiBadge>
           </div>
           <div class="grid grid-cols-6 gap-1">
-            <button 
+            <UiButton 
               v-for="span in spans"
               :key="span.label"
+              :variant="(activeItem.spanX || 1) === span.x && (activeItem.spanY || 1) === span.y ? 'primary' : 'secondary'"
+              size="xs"
               @click="handleSetSpan(span.x, span.y)"
-              :class="(activeItem.spanX || 1) === span.x && (activeItem.spanY || 1) === span.y ? 'bg-brand-600 text-white font-bold shadow-sm' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'"
-              class="py-1.5 rounded-lg text-[11px] text-center border border-slate-700/80 transition-colors"
             >
               {{ span.label }}
-            </button>
+            </UiButton>
           </div>
         </div>
 
-        <!-- 7. Masshtab / Scaling -->
+        <!-- 7. Scaling -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="font-semibold text-slate-300">Masshtab (Scale):</span>
-            <span class="font-mono text-brand-400 font-bold">{{ Math.round((activeItem.scale || 1.0) * 100) }}%</span>
+            <span class="font-semibold text-slate-300">Scale:</span>
+            <UiBadge variant="brand" size="xs">{{ Math.round((activeItem.scale || 1.0) * 100) }}%</UiBadge>
           </div>
           <div class="flex items-center gap-2">
-            <button 
+            <UiIconButton 
+              size="sm"
+              variant="default"
               @click="adjustScale(-0.1)"
-              class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold w-8 text-center"
             >
               -
-            </button>
+            </UiIconButton>
             <input 
               type="range"
               min="0.2"
@@ -394,46 +418,50 @@
               @input="(e) => handleScaleInput(parseFloat((e.target as HTMLInputElement).value))"
               class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded"
             />
-            <button 
+            <UiIconButton 
+              size="sm"
+              variant="default"
               @click="adjustScale(+0.1)"
-              class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold w-8 text-center"
             >
               +
-            </button>
-            <button 
+            </UiIconButton>
+            <UiButton 
+              variant="ghost"
+              size="xs"
               @click="handleScaleInput(1.0)"
-              class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px]"
             >
               1x
-            </button>
+            </UiButton>
           </div>
         </div>
 
         <!-- 8. Transform / Flip & Rotate -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-slate-300">Burish va Akslantirish:</span>
+          <span class="text-xs font-semibold text-slate-300">Transform & Flip:</span>
           <div class="grid grid-cols-2 gap-2">
-            <button 
+            <UiButton 
+              variant="secondary"
+              size="sm"
+              :leading-icon="FlipHorizontal"
               @click="handleFlip"
-              class="flex items-center justify-center gap-2 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-all"
             >
-              <FlipHorizontal class="w-4 h-4 text-sky-400" />
-              <span>Gorizontal Flip</span>
-            </button>
-            <button 
+              Flip Horizontal
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="sm"
+              :leading-icon="RotateCw"
               @click="handleRotate"
-              class="flex items-center justify-center gap-2 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-all"
             >
-              <RotateCw class="w-4 h-4 text-emerald-400" />
-              <span>90° Aylantirish</span>
-            </button>
+              Rotate 90°
+            </UiButton>
           </div>
         </div>
 
-        <!-- 9. Piksel nozik siljish (Nudge / Offset X, Y) -->
-        <div class="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+        <!-- 9. Pixel Offset (Nudge) -->
+        <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-medium">Piksel siljish (Offset):</span>
+            <span class="text-slate-400 font-medium">Pixel Offset (Nudge):</span>
             <span class="font-mono text-slate-300 text-[11px]">
               X: {{ activeItem.offsetX || 0 }}px | Y: {{ activeItem.offsetY || 0 }}px
             </span>
@@ -441,70 +469,78 @@
 
           <!-- Nudge 4-way arrow buttons -->
           <div class="flex items-center justify-center gap-1.5 py-1">
-            <button 
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              title="Nudge Left 2px"
               @click="nudge(-2, 0)"
-              class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono"
-              title="Chapga 2px siljitish"
             >
               ← 2px
-            </button>
-            <button 
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              title="Nudge Up 2px"
               @click="nudge(0, -2)"
-              class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono"
-              title="Tepaga 2px siljitish"
             >
               ↑ 2px
-            </button>
-            <button 
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              title="Nudge Down 2px"
               @click="nudge(0, 2)"
-              class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono"
-              title="Pastga 2px siljitish"
             >
               ↓ 2px
-            </button>
-            <button 
+            </UiButton>
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              title="Nudge Right 2px"
               @click="nudge(2, 0)"
-              class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono"
-              title="O'ngga 2px siljitish"
             >
               → 2px
-            </button>
-            <button 
+            </UiButton>
+            <UiButton 
+              variant="ghost"
+              size="xs"
+              title="Reset offset"
               @click="resetOffset"
-              class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px]"
-              title="Nollash"
             >
               0
-            </button>
+            </UiButton>
           </div>
-        </div>
+        </UiCard>
 
         <!-- 10. Move & Delete Action Buttons -->
         <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
-          <button 
+          <UiButton 
+            :variant="toolStore.isMovingElement ? 'primary' : 'secondary'"
+            size="md"
+            :leading-icon="Move"
+            block
+            :custom-class="toolStore.isMovingElement ? 'animate-pulse' : ''"
             @click="handleMoveMode"
-            :class="toolStore.isMovingElement ? 'bg-brand-600 text-white shadow-glow-brand animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'"
-            class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-slate-700 text-xs font-bold transition-all flex-1"
           >
-            <Move class="w-4 h-4" />
-            <span>{{ toolStore.isMovingElement ? 'Katakni bosing' : 'Ko‘chirish' }}</span>
-          </button>
+            {{ toolStore.isMovingElement ? 'Click Target Cell' : 'Move' }}
+          </UiButton>
 
-          <button 
+          <UiButton 
+            variant="danger"
+            size="md"
+            :leading-icon="Trash2"
             @click="handleDelete"
-            class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 text-xs font-bold transition-all"
           >
-            <Trash2 class="w-4 h-4" />
-            <span>O‘chirish</span>
-          </button>
+            Delete
+          </UiButton>
         </div>
       </div>
     </div>
 
     <!-- Footer Help -->
     <div class="p-2.5 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-400 flex items-center justify-between">
-      <span>Bekor qilish: <strong class="text-slate-300">O'ng tugma</strong></span>
-      <span>O'chirish: <strong class="text-slate-300">Delete</strong></span>
+      <span>Deselect: <strong class="text-slate-300">Right-click</strong></span>
+      <span>Delete: <strong class="text-slate-300">Delete key</strong></span>
     </div>
   </aside>
 </template>
@@ -515,6 +551,12 @@ import {
   Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine, 
   ChevronsUp, ChevronsDown, FlipHorizontal, RotateCw, Move, Trash2, Crosshair 
 } from 'lucide-vue-next'
+import { 
+  UiButton, 
+  UiIconButton, 
+  UiCard, 
+  UiBadge 
+} from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -596,9 +638,9 @@ const currentAnchorY = computed(() => {
 const depthOffsetStatusText = computed(() => {
   if (!activeItem.value) return '0'
   const off = activeItem.value.depthOffset || 0
-  if (off === 0) return 'O‘z katagida (0)'
-  if (off > 0) return `Pastdagi +${off} katak ustida`
-  return `Tepadagi ${off} katak tagida`
+  if (off === 0) return 'Default depth (0)'
+  if (off > 0) return `+${off} above front cell`
+  return `${off} behind back cell`
 })
 
 function selectElementEntry(entry: { item: TileItem; originCol: number; originRow: number }) {

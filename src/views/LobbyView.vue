@@ -10,38 +10,41 @@
     <header class="relative z-10 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0">
       <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
         <!-- Back to Home Button -->
-        <button 
+        <UiButton
+          variant="secondary"
+          size="sm"
+          :leading-icon="ArrowLeft"
+          title="Return to Home"
           @click="handleLeave"
-          class="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-700/60 shrink-0 touch-target"
         >
-          <ArrowLeft class="w-4 h-4" />
-          <span class="hidden sm:inline">Chiqish</span>
-        </button>
+          <span class="hidden sm:inline">Leave</span>
+        </UiButton>
 
         <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
 
         <div class="min-w-0">
           <h1 class="text-xs sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
-            <span class="truncate">{{ multiplayerStore.roomName || 'O\'yin Xonasi' }}</span>
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-[10px] font-bold border border-emerald-500/30 shrink-0">
+            <span class="truncate">{{ multiplayerStore.roomName || 'Game Room' }}</span>
+            <UiBadge variant="emerald" size="xs">
               LOBBY
-            </span>
+            </UiBadge>
           </h1>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">Karta: <strong class="text-slate-200">{{ multiplayerStore.mapName }}</strong></p>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">Map: <strong class="text-slate-200">{{ multiplayerStore.mapName }}</strong></p>
         </div>
       </div>
 
       <!-- Room Code Copy Badge -->
       <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <div class="glass-panel px-2.5 sm:px-3.5 py-1 rounded-xl sm:rounded-2xl border border-amber-500/40 bg-slate-900/90 flex items-center gap-1.5 sm:gap-2">
-          <span class="text-[10px] sm:text-xs text-slate-400 font-medium hidden xs:inline">Kod:</span>
+          <span class="text-[10px] sm:text-xs text-slate-400 font-medium hidden xs:inline">PIN:</span>
           <span class="font-mono text-xs sm:text-sm font-black text-amber-300 tracking-wider">
             {{ multiplayerStore.roomId || route.params.roomId }}
           </span>
           <button 
-            @click="copyRoomCode"
+            type="button"
             class="p-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 transition-colors cursor-pointer touch-target flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8"
-            :title="isCopied ? 'Nusxalandi!' : 'Kodni nusxalash'"
+            :title="isCopied ? 'Copied!' : 'Copy room code'"
+            @click="copyRoomCode"
           >
             <Check v-if="isCopied" class="w-3.5 h-3.5 text-emerald-400" />
             <Copy v-else class="w-3.5 h-3.5" />
@@ -52,23 +55,13 @@
 
     <!-- Mobile Tab Switcher (Visible only on mobile screens < lg) -->
     <div class="lg:hidden relative z-10 px-3 pt-2 shrink-0">
-      <div class="grid grid-cols-2 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
-        <button 
-          @click="mobileActiveTab = 'slots'"
-          :class="mobileActiveTab === 'slots' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400'"
-          class="py-1.5 rounded-lg transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer touch-target"
-        >
-          <Users class="w-3.5 h-3.5" />
-          <span>O'rinlar ({{ filledSlotsCount }}/{{ multiplayerStore.slots.length }})</span>
-        </button>
-        <button 
-          @click="mobileActiveTab = 'chat'"
-          :class="mobileActiveTab === 'chat' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400'"
-          class="py-1.5 rounded-lg transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer touch-target"
-        >
-          <span>💬 Xona Chati</span>
-        </button>
-      </div>
+      <UiTabs
+        v-model="mobileActiveTab"
+        :items="mobileTabs"
+        variant="segmented"
+        size="sm"
+        fill
+      />
     </div>
 
     <!-- Main Lobby Content (Scrollable & Responsive) -->
@@ -83,11 +76,11 @@
           <div class="flex items-center gap-2">
             <Users class="w-4 h-4 text-brand-400" />
             <h2 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-              O'yinchi O'rinlari ({{ filledSlotsCount }} / {{ multiplayerStore.slots.length }})
+              Player Slots ({{ filledSlotsCount }} / {{ multiplayerStore.slots.length }})
             </h2>
           </div>
           <span class="text-[11px] text-slate-400 hidden sm:inline">
-            Har bir o'yinchi bitta chiqish eshigiga biriktiriladi
+            Each player is assigned to a defensive quadrant
           </span>
         </div>
 
@@ -101,21 +94,21 @@
         </div>
 
         <!-- Map Info Banner -->
-        <div class="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <UiCard variant="subtle" padding="sm" custom-class="flex items-center justify-between text-xs text-slate-400">
           <div class="flex items-center gap-2.5 sm:gap-3">
             <div class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-base shrink-0">
               🗺️
             </div>
             <div>
               <strong class="text-white text-xs block">{{ mapStore.project.name || 'Burbenog TD' }}</strong>
-              <span class="text-[11px]">{{ mapStore.project.cols }}x{{ mapStore.project.rows }} | {{ mapStore.project.layers.length }} Qatlam</span>
+              <span class="text-[11px]">{{ mapStore.project.cols }}x{{ mapStore.project.rows }} | {{ mapStore.project.layers.length }} Layers</span>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span class="text-amber-400 font-semibold block text-[11px] sm:text-xs">{{ characterStore.waveConfigs.length || 10 }} To'lqin</span>
-            <span class="text-[10px] text-slate-500">Avto sinxron</span>
+            <span class="text-amber-400 font-semibold block text-[11px] sm:text-xs">{{ characterStore.waveConfigs.length || 10 }} Waves</span>
+            <span class="text-[10px] text-slate-500">Auto synced</span>
           </div>
-        </div>
+        </UiCard>
       </div>
 
       <!-- Right Col: Lobby Chat & Controls -->
@@ -131,49 +124,45 @@
     <footer class="relative z-20 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-800/90 bg-slate-900/95 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0 pb-safe shadow-2xl">
       <div class="flex items-center gap-2 text-xs text-slate-400 min-w-0">
         <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="multiplayerStore.connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
-        <span class="truncate text-[11px] sm:text-xs">{{ multiplayerStore.isHost ? '👑 Siz Hostsiz' : '🌐 Ulandingiz' }}</span>
+        <span class="truncate text-[11px] sm:text-xs">{{ multiplayerStore.isHost ? '👑 You are Host' : '🌐 Connected' }}</span>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
         <!-- Ready Toggle (For Clients) with pulsating attention gesture -->
-        <button 
+        <UiButton
           v-if="!multiplayerStore.isHost"
+          :variant="multiplayerStore.myPlayer?.isReady ? 'game-green' : 'game-amber'"
+          size="md"
+          :custom-class="multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady ? 'ring-4 ring-amber-400 animate-bounce' : ''"
           @click="multiplayerStore.toggleReady()"
-          class="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm tracking-wide transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-1.5 touch-target"
-          :class="[
-            multiplayerStore.myPlayer?.isReady 
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20' 
-              : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-500/30 animate-pulse',
-            multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady
-              ? 'ring-4 ring-amber-400 animate-bounce'
-              : ''
-          ]"
         >
-          <span>{{ multiplayerStore.myPlayer?.isReady ? '✅ Tayyorman' : '⏳ Tayyorman!' }}</span>
-        </button>
+          {{ multiplayerStore.myPlayer?.isReady ? '✅ Ready' : '⏳ Ready Up!' }}
+        </UiButton>
 
         <!-- Start Game / Nudge Button (For Host) -->
         <template v-if="multiplayerStore.isHost">
           <!-- When players are not ready: Nudge button -->
-          <button 
+          <UiButton
             v-if="!multiplayerStore.isAllReady"
+            variant="game-amber"
+            size="md"
+            :leading-icon="BellRing"
+            title="Request all players to ready up"
             @click="multiplayerStore.sendReadyCheck()"
-            class="px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 touch-target"
-            title="Barcha o'yinchilarga tayyor bo'lish so'rovini yuborish"
           >
-            <BellRing class="w-4 h-4 animate-bounce shrink-0" />
-            <span>🔔 Eslatish ({{ multiplayerStore.unreadyCount }} kutilmoqda)</span>
-          </button>
+            🔔 Nudge ({{ multiplayerStore.unreadyCount }} waiting)
+          </UiButton>
 
           <!-- When everyone is ready (or solo): Start Game Button -->
-          <button 
+          <UiButton
             v-else
+            variant="game-green"
+            size="md"
+            :leading-icon="Play"
             @click="handleStartGame"
-            class="px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 animate-pulse touch-target"
           >
-            <Play class="w-4 h-4 fill-current shrink-0" />
-            <span>🚀 Boshlash (Start)</span>
-          </button>
+            🚀 Start Game
+          </UiButton>
         </template>
       </div>
     </footer>
@@ -190,20 +179,22 @@
 
         <div class="space-y-1">
           <h3 class="text-base font-bold text-white tracking-wide">
-            O'yin Boshlanmoqda!
+            Game Is Starting!
           </h3>
           <p class="text-xs text-slate-300 leading-relaxed">
-            👑 Xona egasi (<strong class="text-amber-300">{{ multiplayerStore.nudgeHostName || 'Host' }}</strong>) o'yinni boshlashga tayyor. Iltimos, tayyorgarligingizni tasdiqlang!
+            👑 Room Host (<strong class="text-amber-300">{{ multiplayerStore.nudgeHostName || 'Host' }}</strong>) is ready to start the game. Please confirm readiness!
           </p>
         </div>
 
-        <button 
+        <UiButton
+          variant="game-green"
+          size="lg"
+          block
+          :leading-icon="Check"
           @click="multiplayerStore.toggleReady()"
-          class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-xl shadow-emerald-500/30 transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 touch-target"
         >
-          <Check class="w-4 h-4 font-bold" />
-          <span>✅ HA, MEN TAYYORMAN!</span>
-        </button>
+          ✅ YES, I AM READY!
+        </UiButton>
       </div>
     </div>
   </div>
@@ -213,6 +204,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Users, Copy, Check, Play, BellRing } from 'lucide-vue-next'
+import { UiButton, UiBadge, UiCard, UiTabs, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
@@ -226,7 +218,12 @@ const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 
 const isCopied = ref(false)
-const mobileActiveTab = ref<'slots' | 'chat'>('slots')
+const mobileActiveTab = ref<string | number>('slots')
+
+const mobileTabs: TabItem[] = [
+  { id: 'slots', label: 'Slots', icon: Users },
+  { id: 'chat', label: 'Room Chat' },
+]
 
 const filledSlotsCount = computed(() => {
   return multiplayerStore.slots.filter(s => s.player !== null).length
@@ -268,7 +265,7 @@ function handleStartGame() {
 }
 
 function handleLeave() {
-  if (confirm("Xonadan chiqmoqchimisiz?")) {
+  if (confirm("Are you sure you want to leave the room?")) {
     multiplayerStore.leaveRoom(router)
   }
 }
