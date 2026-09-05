@@ -16,7 +16,7 @@
         <div class="w-16 h-16 rounded-xl bg-slate-950 checker-pattern flex items-center justify-center p-1 overflow-hidden my-1">
           <img 
             v-if="topExistingAsset"
-            :src="topExistingAsset.previewSrc || topExistingAsset.src" 
+            :src="assetStore.getAssetPreview(topExistingAsset)" 
             :alt="topExistingAsset.name" 
             class="max-w-full max-h-full object-contain filter drop-shadow"
           />
@@ -32,7 +32,7 @@
         <div class="w-16 h-16 rounded-xl bg-slate-950 checker-pattern flex items-center justify-center p-1 overflow-hidden my-1">
           <img 
             v-if="newAsset"
-            :src="newAsset.previewSrc || newAsset.src" 
+            :src="assetStore.getAssetPreview(newAsset)" 
             :alt="newAsset.name" 
             class="max-w-full max-h-full object-contain filter drop-shadow"
           />

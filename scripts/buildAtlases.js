@@ -243,7 +243,10 @@ async function run() {
     const lower = baseName.toLowerCase()
 
     let category = 'Other'
-    if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
+    if (lower.startsWith('tower')) {
+      category = 'Towers'
+      structuresFrames.push(meta)
+    } else if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
       category = 'Ground'
       terrainFrames.push(meta)
     } else if (lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway') || lower.includes('column') || lower.includes('support')) {
@@ -257,7 +260,18 @@ async function run() {
       propsFrames.push(meta)
     }
 
-    let formattedName = baseName
+    const towerNamesMap = {
+      tower_stone_guard: 'Stone Guard Tower',
+      tower_wood_archer: 'Wooden Archer Tower',
+      tower_ballista_siege: 'Stone Ballista Tower',
+      tower_red_cannon: 'Red Fortress Cannon Tower',
+      tower_siege_mortar: 'Heavy Mortar Tower',
+      tower_poison_cauldron: 'Poison Cauldron Tower',
+      tower_frost_crystal: 'Frost Crystal Spire',
+      tower_arcane_orb: 'Arcane Energy Orb Tower',
+    }
+
+    let formattedName = towerNamesMap[baseName] || baseName
       .replace(/_([A-Z])$/, ' ($1)')
       .replace(/([a-z])([A-Z])/g, '$1 $2')
     formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)

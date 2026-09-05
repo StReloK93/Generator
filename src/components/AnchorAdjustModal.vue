@@ -16,9 +16,9 @@
     >
       <img 
         ref="imgRef"
-        :src="asset.src" 
+        :src="assetStore.getAssetPreview(asset) || asset.src || asset.previewSrc" 
         :alt="asset.name"
-        class="max-w-[80%] max-h-[80%] object-contain pointer-events-none filter drop-shadow-lg"
+        class="max-w-[80%] max-h-[80%] object-contain pointer-events-none filter drop-shadow-lg select-none"
       />
 
       <!-- Pivot Crosshair Indicator -->
