@@ -88,7 +88,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
   const prepCountdown = ref(10) // building countdown before each wave
   const gold = ref(150)
-  const score = ref(0)
   const currentWaveIndex = ref(0)
 
   // Per-Map TD Settings Computeds
@@ -833,12 +832,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function updateTick(deltaSec: number) {
     if (!isEnabled.value) return
 
-    // 10-second building & prep phase in Play Mode
+    // Building & prep phase in Play Mode (Auto-countdown ONLY in real multiplayer games)
     if (isGameMode.value && gameState.value === 'build_prep') {
-      prepCountdown.value -= deltaSec
-      if (prepCountdown.value <= 0) {
-        prepCountdown.value = 0
-        startNextWaveInGame()
+      if (multiplayerStore.roomId) {
+        prepCountdown.value -= deltaSec
+        if (prepCountdown.value <= 0) {
+          prepCountdown.value = 0
+          startNextWaveInGame()
+        }
       }
       return
     }
@@ -1010,15 +1011,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
           if (multiplayerStore.roomId) {
             for (const p of multiplayerStore.players) {
               p.gold = (p.gold || 0) + reward
-              p.score = (p.score || 0) + reward * 10
               if (p.id === multiplayerStore.myPlayerId) {
                 gold.value = p.gold
-                score.value = p.score
               }
             }
           } else {
             gold.value += reward
-            score.value += reward * 10
           }
 
           if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
@@ -1032,7 +1030,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
             prepCountdown.value = wavePrepDuration.value
             isPlaying.value = false
             spawnAtDoor(0)
-            statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
+            if (multiplayerStore.roomId) {
+              statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
+            } else {
+              statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. Click Start to begin next wave.`
+            }
           }
         }
       } else {
@@ -1061,7 +1063,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     maxLives.value = initLives
     playerLives.value = initLives
     gold.value = startingGold.value
-    score.value = 0
     currentWaveIndex.value = 0
     gameState.value = 'build_prep'
     prepCountdown.value = wavePrepDuration.value
@@ -1069,6 +1070,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     followCamera.value = false
     spawnAtDoor(0)
     isPlaying.value = false
+    statusMessage.value = multiplayerStore.roomId 
+      ? `Battle starting in ${wavePrepDuration.value}s...` 
+      : 'Ready! Place defense towers and click Start to begin.'
   }
 
   function setGameSpeed(speed: number) {
@@ -1236,7 +1240,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     updateTick,
     updateClientInterpolation,
     gold,
-    score,
     waveConfigs,
     currentWaveIndex,
     currentWaveConfig,

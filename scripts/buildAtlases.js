@@ -307,18 +307,12 @@ async function run() {
   // Build Props Atlas (Auto-multi-page)
   const propsRes = await buildMultiPageAtlas('props_atlas', propsFrames, 2048, 4096)
 
-  // Generate dynamic atlasIndex.json for AssetManager bundle loader
+  // Generate dynamic atlasIndex.json for AssetManager bundle loader (atomic, non-overlapping bundles)
   const atlasIndex = {
     core: [...terrainRes.generatedSheetNames],
-    editor: [
-      ...terrainRes.generatedSheetNames,
-      ...structRes.generatedSheetNames,
-      ...propsRes.generatedSheetNames,
-    ],
-    game: [
-      ...charRes.generatedSheetNames,
-      ...structRes.generatedSheetNames,
-    ],
+    structures: [...structRes.generatedSheetNames],
+    props: [...propsRes.generatedSheetNames],
+    characters: [...charRes.generatedSheetNames],
   }
 
   const atlasIndexPath = path.join(SRC_GENERATED_DIR, 'atlasIndex.json')

@@ -12,9 +12,6 @@
     <template #title>
       <div class="flex items-center justify-between w-full">
         <span>Tower Defense & Movement Settings</span>
-        <UiBadge variant="amber" size="sm" :icon="Coins" custom-class="hidden sm:inline-flex ml-3">
-          {{ characterStore.gold }} gold
-        </UiBadge>
       </div>
     </template>
 
@@ -82,7 +79,7 @@
       </UiCard>
 
       <!-- Active Selected Blueprint Editor -->
-      <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
         
         <!-- Left Column: Visual Preview & Sprite Select -->
         <UiCard variant="amber" padding="md" custom-class="flex flex-col gap-3">
@@ -101,7 +98,7 @@
           </div>
 
           <!-- Quick Sprite Picker Grid -->
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 grow">
             <div class="flex items-center justify-between">
               <span class="text-[10px] text-slate-400 font-semibold">Change Sprite:</span>
               <span class="text-[9px] text-slate-500 font-mono">{{ towerAvailableAssets.length }} sprites</span>
@@ -113,18 +110,30 @@
               :leading-icon="Search"
               clearable
             />
-            <div class="grid grid-cols-4 gap-1.5 max-h-24 overflow-y-auto custom-scrollbar p-1 rounded-xl bg-slate-900 border border-slate-800">
-              <div 
-                v-for="asset in towerAvailableAssets" 
-                :key="asset.id"
-                @click="changeBlueprintAsset(selectedBp.id, asset)"
-                :class="selectedBp.assetId === asset.id ? 'ring-2 ring-amber-400 bg-amber-500/30' : 'hover:bg-slate-800 border border-slate-800/80'"
-                class="p-1 rounded-lg flex items-center justify-center aspect-square cursor-pointer transition-all overflow-hidden"
-                :title="asset.name"
-              >
-                <img :src="assetStore.getAssetPreview(asset)" :alt="asset.name" class="max-w-full max-h-full object-contain pointer-events-none" />
-              </div>
-            </div>
+            <main class="grow min-h-0 overflow-y-auto custom-scrollbar relative">
+  <div
+    class="absolute inset-0 grid grid-cols-4 content-start auto-rows-max gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800"
+  >
+    <div
+      v-for="asset in towerAvailableAssets"
+      :key="asset.id"
+      @click="changeBlueprintAsset(selectedBp.id, asset)"
+      :class="
+        selectedBp.assetId === asset.id
+          ? 'ring-2 ring-amber-400 bg-amber-500/30'
+          : 'hover:bg-slate-800 border border-slate-800/80'
+      "
+      class="w-full aspect-square min-w-0 p-1 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden"
+      :title="asset.name"
+    >
+      <img
+        :src="assetStore.getAssetPreview(asset)"
+        :alt="asset.name"
+        class="w-full h-full object-contain pointer-events-none"
+      />
+    </div>
+  </div>
+</main>
           </div>
 
           <!-- Delete Blueprint -->

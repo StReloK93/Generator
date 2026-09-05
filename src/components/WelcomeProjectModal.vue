@@ -212,6 +212,8 @@ import {
   RecentProjectItem 
 } from '../services/projectStorage'
 
+import { useNotificationStore } from '../stores/notificationStore'
+
 const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
@@ -219,6 +221,7 @@ const assetStore = useAssetStore()
 const toolStore = useToolStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+const notify = useNotificationStore()
 
 const isOpen = ref(false)
 const isForcedMode = ref(false)
@@ -453,7 +456,7 @@ async function applyMapProject(rawData: any) {
     }
   } catch (err: any) {
     console.error('Error applying map:', err)
-    alert("Error loading map: " + (err?.message || 'Unknown format'))
+    notify.error("Xaritani yuklashda xatolik yuz berdi: " + (err?.message || 'Noma\'lum format'))
   }
 }
 
@@ -486,8 +489,9 @@ async function handleFileSelected(event: Event) {
   try {
     const data = await importProjectFromJson(file)
     applyMapProject(data)
+    notify.success(`"${file.name}" xaritasi muvaffaqiyatli yuklandi!`)
   } catch (err: any) {
-    alert('Failed to import file: ' + (err?.message || 'Invalid format'))
+    notify.error('Faylni import qilishda xatolik: ' + (err?.message || 'Noto\'g\'ri format'))
   } finally {
     target.value = ''
   }

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'rounded-2xl border transition-all duration-200 select-none relative overflow-hidden',
+      'rounded-2xl border transition-all duration-200 select-none  overflow-hidden',
       variantClasses,
       paddingClasses,
       selected ? selectedClasses : '',

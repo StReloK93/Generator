@@ -4,7 +4,7 @@ import { AssetItem } from '../types/map'
 import spriteManifestRaw from '../assets/generated/spriteManifest.json'
 import atlasIndexRaw from '../assets/generated/atlasIndex.json'
 
-export type AssetBundleName = 'core' | 'editor' | 'game'
+export type AssetBundleName = 'core' | 'structures' | 'props' | 'characters' | 'editor' | 'game'
 
 export interface BundleDiagnostics {
   bundleName: string
@@ -61,9 +61,13 @@ class AssetManagerService {
     for (const [bundleName, sheets] of Object.entries(index)) {
       const bundleAssets: Record<string, string> = {}
       for (const sheet of sheets) {
-        bundleAssets[sheet] = `${base}assets/atlases/${sheet}.json`
+        if (!Assets.resolver.hasKey(sheet)) {
+          bundleAssets[sheet] = `${base}assets/atlases/${sheet}.json`
+        }
       }
-      Assets.addBundle(bundleName, bundleAssets)
+      if (Object.keys(bundleAssets).length > 0) {
+        Assets.addBundle(bundleName, bundleAssets)
+      }
     }
   }
 
@@ -72,6 +76,13 @@ class AssetManagerService {
     bundleName: AssetBundleName,
     onProgress?: (progress: number) => void
   ): Promise<void> {
+    if (bundleName === 'editor') {
+      return this.loadEditor(onProgress)
+    }
+    if (bundleName === 'game') {
+      return this.loadGame(onProgress)
+    }
+
     this.registerBundles()
 
     if (this.loadedBundles.has(bundleName)) {
@@ -152,16 +163,20 @@ class AssetManagerService {
     await this.loadBundle('core', onProgress)
   }
 
-  // Route: Load Editor (Core + Editor)
+  // Route: Load Editor (Core + Structures + Props)
   public async loadEditor(onProgress?: (progress: number) => void): Promise<void> {
-    await this.loadCore((p) => onProgress?.(p * 0.4))
-    await this.loadBundle('editor', (p) => onProgress?.(0.4 + p * 0.6))
+    await this.loadCore((p) => onProgress?.(p * 0.2))
+    await this.loadBundle('structures', (p) => onProgress?.(0.2 + p * 0.4))
+    await this.loadBundle('props', (p) => onProgress?.(0.6 + p * 0.4))
+    if (onProgress) onProgress(1.0)
   }
 
-  // Route: Load Game (Core + Game)
+  // Route: Load Game (Core + Structures + Characters)
   public async loadGame(onProgress?: (progress: number) => void): Promise<void> {
-    await this.loadCore((p) => onProgress?.(p * 0.3))
-    await this.loadBundle('game', (p) => onProgress?.(0.3 + p * 0.7))
+    await this.loadCore((p) => onProgress?.(p * 0.2))
+    await this.loadBundle('structures', (p) => onProgress?.(0.2 + p * 0.4))
+    await this.loadBundle('characters', (p) => onProgress?.(0.6 + p * 0.4))
+    if (onProgress) onProgress(1.0)
   }
 
   // Background Preloader (Idle callback)
@@ -169,8 +184,9 @@ class AssetManagerService {
     const runPreload = async () => {
       try {
         if (!this.loadedBundles.has('core')) await this.loadBundle('core')
-        if (!this.loadedBundles.has('game')) await this.loadBundle('game')
-        if (!this.loadedBundles.has('editor')) await this.loadBundle('editor')
+        if (!this.loadedBundles.has('structures')) await this.loadBundle('structures')
+        if (!this.loadedBundles.has('characters')) await this.loadBundle('characters')
+        if (!this.loadedBundles.has('props')) await this.loadBundle('props')
       } catch (e) {
         // Silently ignore background preload issues
       }

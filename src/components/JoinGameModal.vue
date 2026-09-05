@@ -86,7 +86,7 @@
                 </div>
 
                 <div class="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                  <span class="text-slate-200 font-medium truncate max-w-[100px]">🗺️ {{ room.mapName }}</span>
+                  <span class="text-slate-200 font-medium truncate max-w-25">🗺️ {{ room.mapName }}</span>
                   <span>•</span>
                   <span class="text-amber-300 font-semibold font-mono">
                     👥 {{ room.playersCount }}/{{ room.maxPlayers }}
@@ -195,6 +195,7 @@ import { useRouter } from 'vue-router'
 import { Check, LogIn, Radio, RefreshCw, ChevronDown } from 'lucide-vue-next'
 import { UiModal, UiInput, UiCard, UiButton, UiBadge } from './ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import { PLAYER_COLORS } from '../types/multiplayer'
 
 const emit = defineEmits<{
@@ -203,6 +204,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
+const notify = useNotificationStore()
 
 const isOpen = ref(false)
 const roomCode = ref('')
@@ -254,10 +256,11 @@ async function handleJoinGame() {
   try {
     multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
     await multiplayerStore.joinGame(roomCode.value, router)
+    notify.success(`Xonaga ulanildi: ${roomCode.value}`)
     isOpen.value = false
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to join room:', err)
-    alert('Failed to connect to room. Please try again.')
+    notify.error(err?.message || 'Xonaga ulanishda xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.', 'Ulanish xatosi')
   } finally {
     isJoining.value = false
   }

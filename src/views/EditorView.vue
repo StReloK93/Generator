@@ -3,7 +3,6 @@
     class="flex flex-col h-dvh min-h-dvh max-h-dvh w-screen bg-dark-950 text-slate-100 overflow-hidden font-sans select-none">
     <!-- Top Global Editor Header -->
     <EditorHeader 
-      v-show="!toolStore.isPreviewMode"
       @open-welcome="(mode, forced) => welcomeModalRef?.open(mode, forced)"
       @open-export="isExportModalOpen = true" 
     />
@@ -13,13 +12,10 @@
       <!-- Main Isometric Canvas Viewport -->
       <div class="flex-1 flex flex-col h-full relative overflow-hidden">
         <EditorCanvas ref="viewportRef" class="flex-1" />
-        <!-- Design Gameplay Preview Overlay (Static Game Preview) -->
-        <GameplayPreviewOverlay />
       </div>
 
       <!-- Right Unified Sidebar (Objects/Layers + Asset Gallery) -->
       <RightSidebar 
-        v-show="!toolStore.isPreviewMode"
         @focus-cell="handleFocusCell" 
       />
     </div>
@@ -39,7 +35,6 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import EditorHeader from '../components/editor/EditorHeader.vue'
 import EditorCanvas from '../components/editor/EditorCanvas.vue'
-import GameplayPreviewOverlay from '../components/editor/GameplayPreviewOverlay.vue'
 import RightSidebar from '../components/RightSidebar.vue'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import ExportModal from '../components/ExportModal.vue'

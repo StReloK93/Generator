@@ -17,12 +17,14 @@ import { networkSyncBuffer } from '../services/networkSync'
 import { useMapStore } from './mapStore'
 import { useCharacterStore } from './characterStore'
 import { useTowerStore } from './towerStore'
+import { useNotificationStore } from './notificationStore'
 import { MapProject } from '../types/map'
 
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const mapStore = useMapStore()
   const characterStore = useCharacterStore()
   const towerStore = useTowerStore()
+  const notify = useNotificationStore()
 
   // Local Player Identity
   const savedName = localStorage.getItem('isocraft_player_name') || `Player_${Math.floor(Math.random() * 900 + 100)}`
@@ -249,7 +251,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         connectionStatus.value = 'disconnected'
         statusMessage.value = 'Lost connection to host.'
         if (roomId.value) {
-          alert("⚠️ Host left the room. Room closed.")
+          notify.warning("Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
           leaveRoom(globalRouter)
         }
       }
@@ -601,7 +603,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           characterStore.prepCountdown = state.prepCountdown
           characterStore.currentWaveIndex = state.currentWaveIndex
           characterStore.playerLives = state.playerLives
-          characterStore.score = state.score
           characterStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = state.gameState === 'wave_running'
@@ -633,7 +634,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           characterStore.prepCountdown = tick.prepCountdown
           characterStore.currentWaveIndex = tick.currentWaveIndex
           characterStore.playerLives = tick.playerLives
-          characterStore.score = tick.score
           characterStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = tick.gameState === 'wave_running'
@@ -680,7 +680,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'ROOM_CLOSED': {
-        alert(msg.payload?.message || "⚠️ Room Host left the room. Room closed.")
+        notify.warning(msg.payload?.message || "Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
         characterStore.exitPlayMode()
         towerStore.clearAllTowers()
         leaveRoom(globalRouter)
@@ -889,11 +889,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           prepCountdown: Math.ceil(characterStore.prepCountdown),
           currentWaveIndex: characterStore.currentWaveIndex,
           playerLives: characterStore.playerLives,
-          score: characterStore.score,
+          score: 0,
           playerStats: players.value.map(p => ({
             id: p.id,
             killsCount: p.killsCount || 0,
-            score: p.score || 0,
+            score: 0,
             gold: p.gold !== undefined ? p.gold : defaultGold,
           })),
         },

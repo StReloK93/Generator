@@ -14,7 +14,7 @@
     "layers": [
       {
         "id": "layer-ground-1788428582067",
-        "name": "Ground (Yer)",
+        "name": "Ground",
         "visible": true,
         "locked": false,
         "opacity": 1,
@@ -10839,7 +10839,7 @@
       },
       {
         "id": "layer-objects-1788428582067",
-        "name": "Objects (Obyektlar)",
+        "name": "Objects",
         "visible": true,
         "locked": false,
         "opacity": 1,
@@ -10847,7 +10847,7 @@
       },
       {
         "id": "layer-deco-1788428582067",
-        "name": "Decoration (Bezaklar)",
+        "name": "Decoration",
         "visible": true,
         "locked": false,
         "opacity": 1,

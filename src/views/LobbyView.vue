@@ -2,8 +2,8 @@
   <div class="h-dvh min-h-dvh max-h-dvh w-full bg-slate-950 text-slate-100 flex flex-col justify-between overflow-hidden select-none font-sans relative pt-safe">
     <!-- Background glow -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      <div class="absolute top-1/3 left-1/3 w-[400px] sm:w-[600px] h-[300px] sm:h-[400px] bg-brand-600/10 rounded-full blur-[140px]"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-[350px] sm:w-[500px] h-[250px] sm:h-[350px] bg-amber-500/10 rounded-full blur-[140px]"></div>
+      <div class="absolute top-1/3 left-1/3 w-100 sm:w-150 h-75 sm:h-100 bg-brand-600/10 rounded-full blur-[140px]"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-87.5 sm:w-125 h-62.5 sm:h-87.5 bg-amber-500/10 rounded-full blur-[140px]"></div>
     </div>
 
     <!-- Header Bar -->
@@ -113,7 +113,7 @@
 
       <!-- Right Col: Lobby Chat & Controls -->
       <div 
-        class="h-[360px] sm:h-[460px] lg:h-[500px] flex flex-col"
+        class="h-90 sm:h-115 lg:h-125 flex flex-col"
         :class="{ 'hidden lg:flex': mobileActiveTab !== 'chat' }"
       >
         <LobbyChat class="flex-1" />
@@ -208,6 +208,7 @@ import { UiButton, UiBadge, UiCard, UiTabs, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 
@@ -216,6 +217,7 @@ const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
+const notify = useNotificationStore()
 
 const isCopied = ref(false)
 const mobileActiveTab = ref<string | number>('slots')
@@ -254,6 +256,7 @@ function copyRoomCode() {
   if (code) {
     navigator.clipboard.writeText(code)
     isCopied.value = true
+    notify.info(`Xona kodi nusxalandi: ${code}`)
     setTimeout(() => {
       isCopied.value = false
     }, 2000)
@@ -264,8 +267,15 @@ function handleStartGame() {
   multiplayerStore.startGame(router)
 }
 
-function handleLeave() {
-  if (confirm("Are you sure you want to leave the room?")) {
+async function handleLeave() {
+  const confirmed = await notify.confirm({
+    title: "Xonadan chiqish",
+    message: "Haqiqatan ham ushbu xonadan chiqmoqchimisiz?",
+    confirmText: "Chiqish",
+    cancelText: "Bekor qilish",
+    variant: "danger"
+  })
+  if (confirmed) {
     multiplayerStore.leaveRoom(router)
   }
 }

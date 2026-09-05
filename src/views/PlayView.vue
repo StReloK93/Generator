@@ -2,9 +2,9 @@
   <div class="min-h-dvh w-full bg-slate-950 text-slate-100 flex flex-col justify-between overflow-x-hidden select-none font-sans pt-safe pb-safe relative">
     <!-- Ambient Background Glows -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-brand-600/15 rounded-full blur-[140px]"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[300px] bg-amber-500/10 rounded-full blur-[140px]"></div>
-      <div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-87.5 bg-brand-600/15 rounded-full blur-[140px]"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-100 h-75 bg-amber-500/10 rounded-full blur-[140px]"></div>
+      <div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[24px_24px]"></div>
     </div>
 
     <!-- Top Compact Header -->
@@ -16,9 +16,7 @@
           :leading-icon="ArrowLeft"
           title="Return to Home"
           @click="router.push('/')"
-        >
-          <span class="hidden xs:inline">Back</span>
-        </UiButton>
+        />
 
         <h1 class="font-black text-sm sm:text-base text-white tracking-wide flex items-center gap-2">
           <span>ENTER GAME</span>
@@ -33,7 +31,7 @@
             class="w-3 h-3 rounded-full border border-white/50 shrink-0" 
             :style="{ backgroundColor: selectedColor }"
           ></span>
-          <span class="font-bold text-white text-[11px] sm:text-xs truncate max-w-[85px] sm:max-w-[120px]">
+          <span class="font-bold text-white text-[11px] sm:text-xs truncate max-w-21.25 sm:max-w-30">
             {{ playerName || 'Player' }}
           </span>
         </div>
@@ -210,7 +208,7 @@
                 <div class="min-w-0">
                   <h4 class="font-bold text-xs sm:text-sm text-white truncate">{{ room.roomName }}</h4>
                   <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span class="text-slate-300 truncate max-w-[110px]">{{ room.mapName }}</span>
+                    <span class="text-slate-300 truncate max-w-27.5">{{ room.mapName }}</span>
                     <span>•</span>
                     <span class="text-emerald-400 font-bold font-mono">{{ room.playersCount }}/{{ room.maxPlayers }}</span>
                   </div>
@@ -271,6 +269,7 @@ import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import burbenogMapData from '../maps/Burbenog.json'
 import twoLineMapData from '../maps/TwoLineMap.json'
 
@@ -279,6 +278,7 @@ const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+const notify = useNotificationStore()
 
 const activeTab = ref<string | number>('host')
 const PLAYER_COLORS = ['#38bdf8', '#f59e0b', '#10b981', '#f43f5e', '#a855f7', '#ec4899']
@@ -371,9 +371,10 @@ async function handleCreateRoom() {
       mapStore.project,
       router
     )
+    notify.success(`"${roomName.value}" xonasi muvaffaqiyatli ochildi!`)
   } catch (err: any) {
     console.error('Failed to create room:', err)
-    alert('Failed to create room: ' + (err?.message || ''))
+    notify.error('Xona ochishda xatolik yuz berdi: ' + (err?.message || ''), 'Xona xatosi')
   } finally {
     isCreatingRoom.value = false
   }
@@ -390,9 +391,10 @@ async function joinRoom(code: string) {
   try {
     multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
     await multiplayerStore.joinGame(code, router)
+    notify.success(`Xonaga ulanildi: ${code}`)
   } catch (err: any) {
     console.error('Failed to join:', err)
-    alert('Failed to connect to room: ' + (err?.message || ''))
+    notify.error('Xonaga ulanishda xatolik: ' + (err?.message || ''), 'Ulanish xatosi')
   } finally {
     isJoining.value = false
   }

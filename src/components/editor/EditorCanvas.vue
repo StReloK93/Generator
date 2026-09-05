@@ -51,29 +51,6 @@
       </button>
     </div>
 
-    <!-- Top Help / Quick Guide Notification Banner -->
-    <div v-if="showGuide"
-      class="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-slate-500/50  px-4 py-2 rounded-2xl border border-brand-500/40 shadow-2xl hidden md:flex items-center gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl text-slate-200">
-      <div class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center shrink-0">
-        <Sparkles class="w-3.5 h-3.5" />
-      </div>
-      <div class="flex-1 leading-snug">
-        <strong>Hotkeys:</strong>
-        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Delete</kbd> —
-        Delete |
-        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">Shift+Click</kbd>
-        — Continuous Place |
-        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">R</kbd> —
-        Rotate |
-        <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px]">F</kbd> — Flip |
-        <span class="text-amber-300 font-semibold">Right-click</span> — Deselect
-      </div>
-      <button @click="showGuide = false"
-        class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Close">
-        <X class="w-3.5 h-3.5" />
-      </button>
-    </div>
-
     <!-- Drag & Drop Overlay Indicator -->
     <div v-if="isDraggingOver"
       class="absolute inset-0 z-30 pointer-events-none bg-brand-600/10 border-2 border-dashed border-brand-400 flex items-center justify-center backdrop-blur-[2px]">
@@ -119,34 +96,14 @@
     </div>
 
     <!-- Floating Mobile Zoom & Map Navigation Widget -->
-    <div class="absolute right-3.5 top-20 z-20 flex flex-col gap-2 pointer-events-none select-none">
+    <div class="absolute right-3 top-3 z-20 flex gap-5 items-center pointer-events-none select-none">
       <div
-        class="glass-panel p-1.5 rounded-2xl border border-slate-700/80 shadow-2xl backdrop-blur-xl bg-slate-900/90 flex flex-col gap-1.5 pointer-events-auto items-center"
-        @mousedown.stop @mouseup.stop @click.stop @touchstart.stop @touchend.stop @touchmove.stop>
-        <!-- Zoom In -->
-        <button @click="camera.zoomIn(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Zoom In (+)">
-          <Plus class="w-4 h-4" />
-        </button>
-
-        <!-- Current Zoom Percentage -->
-        <div class="py-0.5 text-center font-mono text-[9px] text-slate-400 font-semibold select-none leading-none">
-          {{ Math.round(camera.localZoom.value * 100) }}%
-        </div>
-
-        <!-- Zoom Out -->
-        <button @click="camera.zoomOut(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-sm text-sm font-bold active:scale-95"
-          title="Zoom Out (-)">
-          <Minus class="w-4 h-4" />
-        </button>
-
-        <div class="h-px w-6 bg-slate-800 my-0.5"></div>
-
-        <!-- Center Map View -->
+        class="py-0.5 text-center font-mono text-[9px] text-slate-400 font-semibold select-none leading-none">
+        {{ Math.round(camera.localZoom.value * 100) }}%
+      </div>
+      <div class="pointer-events-auto flex items-center gap-1">
         <button @click="camera.focusOnCenter(viewportContainerRef)"
-          class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
+          class="w-8 h-8 border border-slate-700 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
           title="Reset View to Center">
           <Crosshair class="w-4 h-4" />
         </button>

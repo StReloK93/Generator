@@ -21,7 +21,7 @@
       class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs"
     >
       <span class="flex items-center gap-1">Gold: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ characterStore.gold }}</strong></span>
-      <span class="flex items-center gap-1">Score: <Trophy class="w-3.5 h-3.5 text-yellow-300" /><strong class="text-yellow-300">{{ characterStore.score }}</strong></span>
+      <span class="flex items-center gap-1">Kills: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ characterStore.totalKills }}</strong></span>
     </div>
 
     <!-- Action Buttons Footer -->
@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Trophy, Coins, Home, LogOut } from 'lucide-vue-next'
+import { Trophy, Coins, Skull, Home, LogOut } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'

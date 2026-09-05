@@ -50,7 +50,7 @@
               {{ formatTime(msg.timestamp) }}
             </span>
           </div>
-          <div class="px-3 py-1.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 text-slate-200 text-xs break-words leading-relaxed inline-block max-w-full">
+          <div class="px-3 py-1.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 text-slate-200 text-xs wrap-break-word leading-relaxed inline-block max-w-full">
             {{ msg.text }}
           </div>
         </div>

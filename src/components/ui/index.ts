@@ -27,3 +27,7 @@ export { default as UiSectionHeader } from './UiSectionHeader.vue'
 
 export { default as UiIconButton } from './UiIconButton.vue'
 export type { IconButtonVariant, IconButtonSize } from './UiIconButton.vue'
+
+export { default as UiToastContainer } from './UiToastContainer.vue'
+export { default as UiConfirmModal } from './UiConfirmModal.vue'
+

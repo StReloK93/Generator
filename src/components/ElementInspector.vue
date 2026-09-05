@@ -87,28 +87,6 @@
 
       <!-- Active Element Full Inspector -->
       <div v-if="activeItem" class="flex flex-col gap-3 border-t border-slate-800/80 pt-3">
-        <!-- Asset Title & Info Badge -->
-        <UiCard variant="default" padding="sm" custom-class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner border border-slate-800">
-            <img 
-              :src="assetStore.getAssetPreview(currentAsset)" 
-              :alt="currentAsset?.name" 
-              class="max-w-full max-h-full object-contain filter drop-shadow"
-              :style="{
-                transform: `scaleX(${activeItem.flipX ? -1 : 1}) rotate(${activeItem.rotation || 0}deg)`
-              }"
-            />
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-xs font-bold text-slate-100 truncate">
-              {{ currentAsset?.name || 'Element' }}
-            </div>
-            <div class="text-[10px] text-slate-400 font-mono mt-0.5 flex flex-col gap-0.5">
-              <span>Base coord: ({{ activeItem.x }}, {{ activeItem.y }})</span>
-              <span class="text-brand-300 font-semibold">Layer: {{ currentLayerName }}</span>
-            </div>
-          </div>
-        </UiCard>
 
         <!-- 2. RELATIVE DEPTH SHIFT -->
         <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2">
@@ -376,39 +354,20 @@
           </div>
         </UiCard>
 
-        <!-- 6. Footprint Span -->
-        <div class="flex flex-col gap-1.5">
-          <div class="flex justify-between items-center text-xs">
-            <span class="font-semibold text-slate-300">Footprint Span (Cells):</span>
-            <UiBadge variant="brand" size="xs">{{ activeItem.spanX || 1 }}×{{ activeItem.spanY || 1 }} cells</UiBadge>
-          </div>
-          <div class="grid grid-cols-6 gap-1">
-            <UiButton 
-              v-for="span in spans"
-              :key="span.label"
-              :variant="(activeItem.spanX || 1) === span.x && (activeItem.spanY || 1) === span.y ? 'primary' : 'secondary'"
-              size="xs"
-              @click="handleSetSpan(span.x, span.y)"
-            >
-              {{ span.label }}
-            </UiButton>
-          </div>
-        </div>
-
-        <!-- 7. Scaling -->
+        <!-- 6. Scaling -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
             <span class="font-semibold text-slate-300">Scale:</span>
             <UiBadge variant="brand" size="xs">{{ Math.round((activeItem.scale || 1.0) * 100) }}%</UiBadge>
           </div>
           <div class="flex items-center gap-2">
-            <UiIconButton 
+            <UiButton 
+              variant="secondary"
               size="sm"
-              variant="default"
               @click="adjustScale(-0.1)"
             >
               -
-            </UiIconButton>
+            </UiButton>
             <input 
               type="range"
               min="0.2"
@@ -418,42 +377,20 @@
               @input="(e) => handleScaleInput(parseFloat((e.target as HTMLInputElement).value))"
               class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded"
             />
-            <UiIconButton 
+            <UiButton 
+              variant="secondary"
               size="sm"
-              variant="default"
               @click="adjustScale(+0.1)"
             >
               +
-            </UiIconButton>
+            </UiButton>
+
             <UiButton 
-              variant="ghost"
-              size="xs"
+              variant="secondary"
+              size="sm"
               @click="handleScaleInput(1.0)"
             >
               1x
-            </UiButton>
-          </div>
-        </div>
-
-        <!-- 8. Transform / Flip & Rotate -->
-        <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-slate-300">Transform & Flip:</span>
-          <div class="grid grid-cols-2 gap-2">
-            <UiButton 
-              variant="secondary"
-              size="sm"
-              :leading-icon="FlipHorizontal"
-              @click="handleFlip"
-            >
-              Flip Horizontal
-            </UiButton>
-            <UiButton 
-              variant="secondary"
-              size="sm"
-              :leading-icon="RotateCw"
-              @click="handleRotate"
-            >
-              Rotate 90°
             </UiButton>
           </div>
         </div>
@@ -468,7 +405,7 @@
           </div>
 
           <!-- Nudge 4-way arrow buttons -->
-          <div class="flex items-center justify-center gap-1.5 py-1">
+          <div class="flex items-center gap-1.5 py-1">
             <UiButton 
               variant="secondary"
               size="xs"
@@ -502,7 +439,7 @@
               → 2px
             </UiButton>
             <UiButton 
-              variant="ghost"
+              variant="secondary"
               size="xs"
               title="Reset offset"
               @click="resetOffset"
@@ -528,6 +465,7 @@
           <UiButton 
             variant="danger"
             size="md"
+            block
             :leading-icon="Trash2"
             @click="handleDelete"
           >
@@ -549,7 +487,7 @@
 import { ref, computed } from 'vue'
 import { 
   Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine, 
-  ChevronsUp, ChevronsDown, FlipHorizontal, RotateCw, Move, Trash2, Crosshair 
+  ChevronsUp, ChevronsDown, Move, Trash2, Crosshair 
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -568,15 +506,6 @@ const toolStore = useToolStore()
 const assetStore = useAssetStore()
 
 const activeCellInMatrix = ref<{ col: number; row: number } | null>(null)
-
-const spans = [
-  { label: '1×1', x: 1, y: 1 },
-  { label: '2×2', x: 2, y: 2 },
-  { label: '3×3', x: 3, y: 3 },
-  { label: '4×4', x: 4, y: 4 },
-  { label: '2×1', x: 2, y: 1 },
-  { label: '1×2', x: 1, y: 2 },
-]
 
 const coveringElements = computed(() => {
   if (!toolStore.selectedElement) return []
@@ -794,18 +723,6 @@ function handleSendToBottom() {
   )
 }
 
-function handleSetSpan(spanX: number, spanY: number) {
-  if (!activeItem.value || !toolStore.selectedElement) return
-  mapStore.updateItemSpan(
-    activeItem.value.x,
-    activeItem.value.y,
-    activeItem.value.id,
-    spanX,
-    spanY,
-    toolStore.selectedElement.layerId
-  )
-}
-
 function handleScaleInput(scale: number) {
   if (!activeItem.value || !toolStore.selectedElement) return
   mapStore.updateItemScale(
@@ -821,26 +738,6 @@ function adjustScale(delta: number) {
   if (!activeItem.value) return
   const current = activeItem.value.scale || 1.0
   handleScaleInput(current + delta)
-}
-
-function handleFlip() {
-  if (!activeItem.value || !toolStore.selectedElement) return
-  mapStore.flipTileItem(
-    activeItem.value.x,
-    activeItem.value.y,
-    activeItem.value.id,
-    toolStore.selectedElement.layerId
-  )
-}
-
-function handleRotate() {
-  if (!activeItem.value || !toolStore.selectedElement) return
-  mapStore.rotateTileItem(
-    activeItem.value.x,
-    activeItem.value.y,
-    activeItem.value.id,
-    toolStore.selectedElement.layerId
-  )
 }
 
 function nudge(dx: number, dy: number) {

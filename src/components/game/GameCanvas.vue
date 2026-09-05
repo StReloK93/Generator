@@ -22,14 +22,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, toRef } from 'vue'
-import { Plus, Minus, Crosshair } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted, toRef, watch } from 'vue'
 import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
+import { useNotificationStore } from '../../stores/notificationStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import { GridCoord, AssetItem } from '../../types/map'
@@ -42,6 +42,7 @@ const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
+const notify = useNotificationStore()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
@@ -169,20 +170,72 @@ onUnmounted(() => {
 })
 
 // --- Game Cell Tap / Click Handling ---
+let lastBuildTimestamp = 0
+let lastTouchTimestamp = 0
+let pendingBuildCell: GridCoord | null = null
+
+// Reset pending build cell if build mode is exited
+watch(() => towerStore.activeBuildTowerId, (newId) => {
+  if (!newId) {
+    pendingBuildCell = null
+    toolStore.setHoveredCell(null)
+  }
+})
+
 function handleGameCellClick(gridCoord: GridCoord) {
   if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+    towerStore.selectPlacedTower(null)
+    pendingBuildCell = null
+    toolStore.setHoveredCell(null)
+    return
+  }
+
+  // 1. If building a tower from shop (2-step confirmation)
+  if (towerStore.activeBuildTowerId) {
+    // 1.1 First tap on a cell: Target and highlight this cell
+    if (!pendingBuildCell || pendingBuildCell.col !== gridCoord.col || pendingBuildCell.row !== gridCoord.row) {
+      pendingBuildCell = { col: gridCoord.col, row: gridCoord.row }
+      toolStore.setHoveredCell({ col: gridCoord.col, row: gridCoord.row })
+      towerStore.selectPlacedTower(null)
+      return
+    }
+
+    // 1.2 Second tap on the SAME active cell: Validate and place the tower!
+    const bp = towerStore.blueprints.find(b => b.id === towerStore.activeBuildTowerId)
+    if (bp) {
+      if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
+        notify.warning("Bu katakka minora qurib bo'lmaydi (Spawn yoki yurish yo'li)!", "Taqiqlangan joy")
+        return
+      }
+
+      let currentGold = characterStore.gold
+      if (multiplayerStore.roomId) {
+        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+        if (myPl) currentGold = myPl.gold ?? 0
+      }
+
+      if (currentGold < bp.cost) {
+        notify.gold(`Ushbu minorani qurish uchun ${bp.cost} oltin kerak (Sizda: ${currentGold} oltin).`, 'Oltin yetarli emas')
+        return
+      }
+    }
+
+    towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
+    lastBuildTimestamp = Date.now()
+    pendingBuildCell = null
+    toolStore.setHoveredCell(null)
+    towerStore.selectBuildTower(null)
     towerStore.selectPlacedTower(null)
     return
   }
 
-  // 1. If building a tower from shop
-  if (towerStore.activeBuildTowerId) {
-    towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
-    towerStore.selectBuildTower(null)
+  // If a tower was just built within 450ms, ignore selecting it (prevents touch/synthetic click race condition)
+  if (Date.now() - lastBuildTimestamp < 450) {
+    towerStore.selectPlacedTower(null)
     return
   }
 
-  // 2. Check if a placed tower exists on this cell
+  // 2. Check if a placed tower exists on this cell (explicit click to select/inspect)
   const clickedTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
   if (clickedTower) {
     towerStore.selectPlacedTower(clickedTower.id)
@@ -194,6 +247,11 @@ function handleGameCellClick(gridCoord: GridCoord) {
 function handleMouseDown(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
+
+  // Prevent synthetic mouse event right after touch
+  if (Date.now() - lastTouchTimestamp < 450) {
+    return
+  }
 
   if (e.button === 2) {
     handleContextMenu()
@@ -217,7 +275,10 @@ function handleMouseMove(e: MouseEvent) {
   }
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
-  toolStore.setHoveredCell(gridCoord)
+  
+  if (!towerStore.activeBuildTowerId || !pendingBuildCell) {
+    toolStore.setHoveredCell(gridCoord)
+  }
 
   if (multiplayerStore.roomId && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
     multiplayerStore.broadcastTeammateHover(gridCoord.col, gridCoord.row)
@@ -230,7 +291,9 @@ function handleMouseUp() {
 
 function handleMouseLeave() {
   if (camera.isPanning.value) camera.endPan()
-  toolStore.setHoveredCell(null)
+  if (!towerStore.activeBuildTowerId || !pendingBuildCell) {
+    toolStore.setHoveredCell(null)
+  }
 }
 
 function handleWheel(e: WheelEvent) {
@@ -239,6 +302,8 @@ function handleWheel(e: WheelEvent) {
 
 function handleContextMenu() {
   if (towerStore.activeBuildTowerId) {
+    pendingBuildCell = null
+    toolStore.setHoveredCell(null)
     towerStore.selectBuildTower(null)
     return
   }
@@ -249,6 +314,7 @@ function handleContextMenu() {
 
 // --- Touch Handling ---
 function handleTouchStart(e: TouchEvent) {
+  lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   camera.handleTouchStart(e, viewportContainerRef.value)
@@ -261,6 +327,7 @@ function handleTouchMove(e: TouchEvent) {
 }
 
 function handleTouchEnd(e: TouchEvent) {
+  lastTouchTimestamp = Date.now()
   camera.handleTouchEnd(e, (clientX, clientY) => {
     const rect = camera.getViewportRect(viewportContainerRef.value)
     const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)

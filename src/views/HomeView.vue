@@ -3,10 +3,10 @@
     
     <!-- ================= BACKGROUND FX & ATMOSPHERE ================= -->
     <!-- Taktik Panjara (Cyber Grid) -->
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none"></div>
     
     <!-- Radar / Scanning Sweep Effect -->
-    <div class="absolute inset-0 bg-gradient-to-b from-cyan-500/[0.04] via-transparent to-transparent pointer-events-none animate-[pulse_4s_ease-in-out_infinite]"></div>
+    <div class="absolute inset-0 bg-linear-to-b from-cyan-500/4 via-transparent to-transparent pointer-events-none animate-[pulse_4s_ease-in-out_infinite]"></div>
 
     <!-- Ambient Glowing Orbs -->
     <div class="absolute -top-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -14,14 +14,14 @@
     <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
     <!-- Hexagon Overlay Pattern -->
-    <div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+    <div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[16px_16px] pointer-events-none"></div>
 
 
     <!-- ================= TOP HUD HEADER ================= -->
     <header class="relative z-20 w-full flex items-center justify-between">
       <!-- Game Logo / Insignia -->
       <div class="flex items-center gap-3">
-        <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-600 to-amber-900 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+        <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-linear-to-br from-amber-400 via-amber-600 to-amber-900 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.4)]">
           <div class="w-full h-full bg-slate-950/90 rounded-[14px] flex items-center justify-center backdrop-blur-md">
             <Castle class="w-6 h-6 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
           </div>
@@ -29,7 +29,7 @@
 
         <div class="flex flex-col text-left">
           <div class="flex items-center gap-2">
-            <span class="text-2xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-200 to-amber-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <span class="text-2xl font-black italic tracking-widest text-transparent bg-clip-text bg-linear-to-b from-white via-amber-200 to-amber-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               ISOCRAFT
             </span>
             <UiBadge variant="amber" style-type="glow" size="xs">
@@ -56,7 +56,7 @@
         </div>
         <div class="flex flex-col text-left">
           <span class="text-[8px] uppercase tracking-widest font-black text-slate-400">Commander</span>
-          <span class="font-extrabold text-xs text-white tracking-wide truncate max-w-[130px]">
+          <span class="font-extrabold text-xs text-white tracking-wide truncate max-w-32.5">
             {{ multiplayerStore.myPlayerName }}
           </span>
         </div>
@@ -68,7 +68,7 @@
     <main class="relative z-20 flex-1 grid grid-cols-12 gap-8 items-center my-auto w-full max-w-6xl mx-auto min-h-0">
       
       <!-- LEFT COLUMN: Live War Lobbies / Tactical Monitor (5 cols) -->
-      <div class="col-span-5 flex flex-col justify-center h-full max-h-[240px]">
+      <div class="col-span-5 flex flex-col justify-center h-full max-h-60">
         
         <!-- Open Lobbies Found -->
         <div v-if="multiplayerStore.availableRooms.length > 0" class="flex flex-col gap-2.5">
@@ -108,7 +108,7 @@
                   <div class="min-w-0 text-left">
                     <h4 class="font-extrabold text-xs text-white truncate group-hover:text-emerald-300 transition-colors">{{ room.roomName }}</h4>
                     <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                      <span class="text-slate-300 font-semibold truncate max-w-[90px]">{{ room.mapName }}</span>
+                      <span class="text-slate-300 font-semibold truncate max-w-22.5">{{ room.mapName }}</span>
                       <span>•</span>
                       <span class="text-amber-400 font-black font-mono">{{ room.playersCount }}/{{ room.maxPlayers }}</span>
                     </div>
@@ -158,7 +158,7 @@
         <!-- 1. BATTLE / PLAY GAME BUTTON -->
         <button 
           type="button"
-          class="group relative w-full p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 border-t-2 border-amber-200 border-b-[6px] border-amber-950 active:border-b-[2px] active:translate-y-1 shadow-[0_12px_30px_rgba(245,158,11,0.45)] hover:shadow-[0_12px_35px_rgba(245,158,11,0.65)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
+          class="group relative w-full p-4 rounded-2xl bg-linear-to-r from-amber-500 via-yellow-500 to-amber-600 border-t-2 border-amber-200 border-b-[6px] border-amber-950 active:border-b-2 active:translate-y-1 shadow-[0_12px_30px_rgba(245,158,11,0.45)] hover:shadow-[0_12px_35px_rgba(245,158,11,0.65)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
           @click="router.push('/play')"
         >
           <!-- Shimmer Sweep Line -->
@@ -186,7 +186,7 @@
         <!-- 2. TACTICAL MAP EDITOR BUTTON -->
         <button 
           type="button"
-          class="group relative w-full p-3.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-700 border-t-2 border-cyan-300 border-b-[6px] border-slate-950 active:border-b-[2px] active:translate-y-1 shadow-[0_10px_25px_rgba(6,182,212,0.35)] hover:shadow-[0_10px_30px_rgba(6,182,212,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
+          class="group relative w-full p-3.5 rounded-2xl bg-linear-to-r from-cyan-600 via-blue-600 to-indigo-700 border-t-2 border-cyan-300 border-b-[6px] border-slate-950 active:border-b-2 active:translate-y-1 shadow-[0_10px_25px_rgba(6,182,212,0.35)] hover:shadow-[0_10px_30px_rgba(6,182,212,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
           @click="goToEditor"
         >
           <!-- Shimmer Sweep Line -->
@@ -219,7 +219,7 @@
         <!-- 3. ASSET STUDIO / EDITOR BUTTON -->
         <button 
           type="button"
-          class="group relative w-full p-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 border-t-2 border-emerald-300 border-b-[6px] border-slate-950 active:border-b-[2px] active:translate-y-1 shadow-[0_10px_25px_rgba(16,185,129,0.35)] hover:shadow-[0_10px_30px_rgba(16,185,129,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
+          class="group relative w-full p-3 rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-800 border-t-2 border-emerald-300 border-b-6 border-slate-950 active:border-b-2 active:translate-y-1 shadow-[0_10px_25px_rgba(16,185,129,0.35)] hover:shadow-[0_10px_30px_rgba(16,185,129,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
           @click="router.push('/asset-editor')"
         >
           <!-- Shimmer Sweep Line -->

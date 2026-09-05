@@ -59,7 +59,7 @@
       <div class="flex flex-col gap-2 w-full max-w-xs">
         <button 
           @click="handleEnableFullscreen" 
-          class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95 touch-target"
+          class="w-full py-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95 touch-target"
         >
           <Maximize2 class="w-4 h-4" />
           <span>Fullscreen</span>

@@ -38,7 +38,6 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
   - **`editor/EditorHeader.vue`**: Yuqori panel (Asboblar: Brush, Bucket, Eraser, Line, Rect, Select; Grid/Symmetry boshqaruvi, Eksport, O'ynab ko'rish).
   - **`editor/EditorCanvas.vue`**: PixiJS 8 izometrik muharrir viewporti (Pan, Zoom, qatlamlarni chizish, elementlarni tanlash).
   - **`RightSidebar.vue`**: O'ng yon panel (1-tab: Qatlamlar & Elementlar boshqaruvi; 2-tab: Sprite kutubxonasi & qidiruv).
-  - **`editor/GameplayPreviewOverlay.vue`**: Redaktor ichida dizayn ko'rinishi (o'yindagi bilan 100% bir xil HUD va Do'kon).
   - **`ElementInspector.vue`**: Tanlangan katakdagi element sozlamalari (X/Y ofset, masshtab, Z-index, aylantirish).
   - **`GameConfigModal.vue`**: 5 ta tabli TD sozlamalari (Minoralar, To'lqinlar, Karta balansi, Qurilganlar, Chiqish yo'llari).
   - **`WelcomeProjectModal.vue`**: Xarita yaratish, tayyor andozalar (Burbenog TD) va JSON yuklash.
@@ -48,6 +47,38 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
   - **`game/GameHud.vue`**: Yuqori o'yin paneli (Jonlar, Oltin, To'lqinlar, Score, Kills, FPS, To'xtatish).
   - **`game/GameControls.vue`**: Pastki minora sotib olish do'koni, tezlik ko'paytirgichlari (1x-50x), to'lqin taymeri.
   - **`game/GameOverModal.vue`** va **`game/GameVictoryModal.vue`**: Mag'lubiyat va G'alaba oynalari.
+
+---
+
+## 🎨 Tailwind CSS v4 Qoidalari va Stil Standartlari (MAJBURIY)
+
+Barcha yangi yoki tahrirlanadigan Vue komponentlarida **faqat Tailwind CSS v4** qoidalari asosida yozilsin:
+
+1. **O'lchamlar va Spacing (Hech qachon `w-[10px]` yoki `max-w-[85px]` kabi yozilmasin)**:
+   - Standart yoki kasr sonli shkala ishlatiladi: `1 birlik = 4px (0.25rem)`.
+   - Misollar:
+     - `w-[10px]` ❌ -> `w-2.5` ✅ (yoki `w-2` / `w-3`)
+     - `max-w-[85px]` ❌ -> `max-w-21.25` ✅ (yoki `max-w-20` / `max-w-24`)
+     - `max-w-[100px]` ❌ -> `max-w-25` ✅
+     - `w-[500px]` ❌ -> `w-125` ✅
+     - `h-[350px]` ❌ -> `h-87.5` ✅
+     - `min-w-[40px]` ❌ -> `min-w-10` ✅
+     - `min-h-[160px]` ❌ -> `min-h-40` ✅
+
+2. **Gradientlar (Linear / Radial Gradients)**:
+   - Tailwind v3 `bg-gradient-to-*` ishlatilmaydi ❌
+   - Tailwind v4 `bg-linear-to-*` ishlatiladi ✅:
+     - `bg-gradient-to-r` ❌ -> `bg-linear-to-r` ✅
+     - `bg-gradient-to-b` ❌ -> `bg-linear-to-b` ✅
+     - `bg-gradient-to-tr` ❌ -> `bg-linear-to-tr` ✅
+     - Radial uchun: `bg-radial` yoki `bg-[radial-gradient(...)]`
+
+3. **Important (`!`) Modifikatori**:
+   - Oldiga qo'yish ❌ (`!relative`, `!w-10`, `!min-w-[40px]`)
+   - Orqasiga qo'yish ✅ (`relative!`, `w-10!`, `min-w-10!`, `hidden!`, `flex!`)
+
+4. **Matn va Word Break**:
+   - `break-words` ❌ -> `wrap-break-word` ✅
 
 ---
 
@@ -63,3 +94,4 @@ npm run dev
 # 3. Production build tekshirish
 npm run build
 ```
+

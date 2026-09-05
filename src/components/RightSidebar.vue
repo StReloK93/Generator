@@ -6,7 +6,7 @@
     @pointerdown.stop
     @wheel.stop
     class="glass-panel border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 right-0"
-    :class="{ 'w-10 sm:w-12 !min-w-[40px] sm:!min-w-[48px] !relative': isCollapsed }"
+    :class="{ 'w-10 sm:w-12 min-w-10! sm:min-w-12! relative!': isCollapsed }"
   >
     <!-- Collapsed Toggle Strip -->
     <div v-if="isCollapsed" class="h-full flex flex-col items-center py-4 justify-between">
@@ -36,7 +36,7 @@
       <!-- ========================================================================= -->
       <!-- TOP SECTION: 40% OBJECTS & LAYERS DRIVER                                  -->
       <!-- ========================================================================= -->
-      <div class="h-[40%] min-h-[160px] flex flex-col border-b border-slate-800/90 bg-slate-900/40 overflow-hidden shrink-0">
+      <div class="h-[40%] min-h-40 flex flex-col border-b border-slate-800/90 bg-slate-900/40 overflow-hidden shrink-0">
         
         <!-- Top Driver Header & Tab Switcher -->
         <div class="p-2 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between gap-2 shrink-0">
@@ -105,7 +105,7 @@
                 </div>
                 <div class="text-[9px] text-slate-400 font-mono flex items-center justify-between mt-0.5">
                   <span class="text-emerald-400 font-semibold">X:{{ entry.col }}, Y:{{ entry.row }}</span>
-                  <span class="text-[9px] text-slate-500 truncate max-w-[90px]">{{ entry.layerName }}</span>
+                  <span class="text-[9px] text-slate-500 truncate max-w-22.5">{{ entry.layerName }}</span>
                 </div>
               </div>
 
@@ -265,27 +265,23 @@
             <div class="flex items-center gap-1">
               <UiButton 
                 variant="primary"
-                size="xs"
+                size="sm"
                 :leading-icon="FolderUp"
                 title="Upload sprite folder"
                 @click="triggerFolderUpload"
-              >
-                Folder
-              </UiButton>
+              />
 
               <UiButton 
                 variant="secondary"
-                size="xs"
+                size="sm"
                 :leading-icon="ImagePlus"
                 title="Upload sprite image files"
                 @click="triggerFilesUpload"
-              >
-                Images
-              </UiButton>
+              />
 
-              <UiIconButton 
+              <UiButton 
                 v-if="assetStore.assets.length > 0"
-                :icon="Trash2"
+                :leading-icon="Trash2"
                 size="sm"
                 variant="danger"
                 title="Clear all assets"
@@ -396,7 +392,7 @@
           >
             <UploadCloud class="w-8 h-8 text-brand-400/60 mb-2" />
             <p class="text-xs font-bold text-slate-300">Asset library is empty</p>
-            <p class="text-[10px] text-slate-500 max-w-[180px] mt-0.5 mb-3">Upload sprite images or folders to use on your map</p>
+            <p class="text-[10px] text-slate-500 max-w-45 mt-0.5 mb-3">Upload sprite images or folders to use on your map</p>
             <div class="flex items-center gap-1.5">
               <UiButton 
                 variant="primary"
@@ -433,7 +429,7 @@
             </div>
             <div class="flex flex-col min-w-0">
               <span class="text-[9px] text-slate-400 font-semibold">Selected:</span>
-              <span class="text-xs font-bold text-brand-300 truncate max-w-[140px]">{{ assetStore.selectedAsset.name }}</span>
+              <span class="text-xs font-bold text-brand-300 truncate max-w-35">{{ assetStore.selectedAsset.name }}</span>
             </div>
           </div>
 

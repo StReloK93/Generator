@@ -38,6 +38,7 @@ export class IsoEngine {
 
   // Tower Defense & Combat Visuals
   public combatGraphics: Graphics
+  public buildGhostSprite: Sprite
   public currentFps: number = 60
   private towerTextures = new Map<string, Texture>()
   private towerContainerMap = new Map<string, Container>()
@@ -63,6 +64,8 @@ export class IsoEngine {
     this.borderGraphics = new Graphics()
     this.coordsContainer = new Container()
     this.combatGraphics = new Graphics()
+    this.buildGhostSprite = new Sprite()
+    this.buildGhostSprite.visible = false
 
     // Character elements
     this.pathTrailGraphics = new Graphics()
@@ -119,6 +122,7 @@ export class IsoEngine {
     this.overlayContainer.addChild(this.hoverGraphics)
     this.overlayContainer.addChild(this.selectionGraphics)
     this.overlayContainer.addChild(this.previewContainer)
+    this.overlayContainer.addChild(this.buildGhostSprite)
     this.worldContainer.addChild(this.combatGraphics)
 
     // Load core terrain textures and schedule background preloader
@@ -708,11 +712,64 @@ export class IsoEngine {
     await assetManager.loadEditor()
   }
 
+  public getBlueprintTexture(bp: any): Texture | null {
+    if (!bp) return null
+    const assetName = bp.assetName || ''
+    const baseName = assetName.replace(/\.[^/.]+$/, '')
+    const assetPath = bp.assetPath || ''
+    const assetId = bp.assetId || ''
+
+    let texture: Texture | null =
+      (assetId ? assetManager.getTexture(assetId) : null) ||
+      (assetName ? assetManager.getTexture(assetName) : null) ||
+      (baseName ? assetManager.getTexture(baseName) : null) ||
+      (baseName ? assetManager.getTexture(`sprite-${baseName}`) : null) ||
+      (assetName ? this.towerTextures.get(assetName) : null) ||
+      (baseName ? this.towerTextures.get(baseName) : null) ||
+      (assetPath ? this.towerTextures.get(assetPath) : null) ||
+      (assetId ? this.textureCache.get(assetId) : null) ||
+      (baseName ? this.textureCache.get(`sprite-${baseName}`) : null) ||
+      (baseName ? this.textureCache.get(baseName) : null) ||
+      (assetName ? this.textureCache.get(assetName) : null) ||
+      null
+
+    if (!texture && assetPath && assetPath.startsWith('data:') && !this.loadingPromises.has(assetPath)) {
+      const promise = new Promise<Texture | null>((resolve) => {
+        const img = new window.Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          try {
+            const source = new ImageSource({ resource: img })
+            const tex = new Texture({ source })
+            this.towerTextures.set(assetName, tex)
+            this.towerTextures.set(baseName, tex)
+            this.towerTextures.set(assetPath, tex)
+            this.textureCache.set(assetPath, tex)
+            if (assetId) this.textureCache.set(assetId, tex)
+            resolve(tex)
+          } catch {
+            resolve(null)
+          }
+        }
+        img.onerror = () => resolve(null)
+        img.src = assetPath
+      })
+      this.loadingPromises.set(assetPath, promise)
+    }
+
+    if (!texture) {
+      texture = this.towerTextures.values().next().value || null
+    }
+
+    return texture
+  }
+
   renderTowersAndCombat(
     towerStore: {
       placedTowers: any[]
       selectedPlacedTowerId: string | null
       activeBuildTowerId: string | null
+      blueprints?: any[]
       activeBlueprint?: any
       projectiles: any[]
       explosionRings: any[]
@@ -769,61 +826,8 @@ export class IsoEngine {
       const sprite = container.getChildAt(1) as Sprite
       const selection = container.getChildAt(2) as Graphics
 
-      // Choose texture dynamically from blueprint assetPath, assetId, assetName or general map assets
       const bp = (towerStore as any).blueprints?.find((b: any) => b.id === tower.blueprintId)
-      
-      let texture: Texture | null = null
-
-      if (bp) {
-        const assetName = bp.assetName || ''
-        const baseName = assetName.replace(/\.[^/.]+$/, '')
-        const assetPath = bp.assetPath || ''
-        const assetId = bp.assetId || ''
-
-        // 1. Fast lookup from AssetManager (Atlas WebP textures)
-        texture = (assetId ? assetManager.getTexture(assetId) : null) ||
-                  (assetName ? assetManager.getTexture(assetName) : null) ||
-                  (baseName ? assetManager.getTexture(baseName) : null) ||
-                  (baseName ? assetManager.getTexture(`sprite-${baseName}`) : null) ||
-                  (assetName ? this.towerTextures.get(assetName) : null) ||
-                  (baseName ? this.towerTextures.get(baseName) : null) ||
-                  (assetPath ? this.towerTextures.get(assetPath) : null) ||
-                  (assetId ? this.textureCache.get(assetId) : null) ||
-                  (baseName ? this.textureCache.get(`sprite-${baseName}`) : null) ||
-                  (baseName ? this.textureCache.get(baseName) : null) ||
-                  (assetName ? this.textureCache.get(assetName) : null) ||
-                  null
-
-        // 2. Fallback for custom uploaded image data URLs (Async with deduplication)
-        if (!texture && assetPath && assetPath.startsWith('data:') && !this.loadingPromises.has(assetPath)) {
-          const promise = new Promise<Texture | null>((resolve) => {
-            const img = new window.Image()
-            img.crossOrigin = 'anonymous'
-            img.onload = () => {
-              try {
-                const source = new ImageSource({ resource: img })
-                const tex = new Texture({ source })
-                this.towerTextures.set(assetName, tex)
-                this.towerTextures.set(baseName, tex)
-                this.towerTextures.set(assetPath, tex)
-                this.textureCache.set(assetPath, tex)
-                if (assetId) this.textureCache.set(assetId, tex)
-                sprite.texture = tex
-                resolve(tex)
-              } catch {
-                resolve(null)
-              }
-            }
-            img.onerror = () => resolve(null)
-            img.src = assetPath
-          })
-          this.loadingPromises.set(assetPath, promise)
-        }
-      }
-
-      if (!texture) {
-        texture = this.towerTextures.values().next().value || null
-      }
+      const texture = this.getBlueprintTexture(bp)
 
       if (texture) {
         if (sprite.texture !== texture) {
@@ -908,6 +912,7 @@ export class IsoEngine {
 
     // 2.1 Attack Range Indicator (When inspecting a tower or hovering while placing)
     if (towerToHighlight) {
+      if (this.buildGhostSprite) this.buildGhostSprite.visible = false
       const r = towerToHighlight.range
       const rx = r * tileWidth * 0.5
       const ry = r * tileHeight * 0.5
@@ -920,27 +925,91 @@ export class IsoEngine {
       const isBlocked = (characterStore.isCellBlockedForBuilding && characterStore.isCellBlockedForBuilding(hoveredGridCoord.col, hoveredGridCoord.row)) ||
                         towerStore.placedTowers.some(t => t.col === hoveredGridCoord.col && t.row === hoveredGridCoord.row)
       const ringColor = isBlocked ? 0xef4444 : 0x10b981
-      const bp = towerStore.activeBlueprint
+      const bp = towerStore.blueprints?.find((b: any) => b.id === towerStore.activeBuildTowerId) || towerStore.activeBlueprint
       const r = bp ? bp.range : 3.5
       const rx = r * tileWidth * 0.5
       const ry = r * tileHeight * 0.5
       const pt = gridToScreen(hoveredGridCoord.col, hoveredGridCoord.row, tileWidth, tileHeight)
 
+      // 1. Semi-transparent building ghost preview (Ozginas shaffof bino ko'rinishi)
+      if (!isBlocked && bp) {
+        const texture = this.getBlueprintTexture(bp)
+        if (texture) {
+          if (this.buildGhostSprite.texture !== texture) {
+            this.buildGhostSprite.texture = texture
+          }
+          this.buildGhostSprite.visible = true
+          this.buildGhostSprite.position.set(pt.x, pt.y)
+          this.buildGhostSprite.alpha = 0.55
+          this.buildGhostSprite.anchor.set(0.5, 0.88)
+          const texW = (texture.width && texture.width > 10) ? texture.width : 256
+          const baseScale = (tileWidth * 1.0) / texW
+          this.buildGhostSprite.scale.set(baseScale * 0.98)
+        } else {
+          this.buildGhostSprite.visible = false
+        }
+      } else {
+        this.buildGhostSprite.visible = false
+      }
+
+      // 2. Isometric Cell Footprint Diamond (Clear active cell focus)
+      this.combatGraphics
+        .poly([
+          { x: pt.x, y: pt.y - tileHeight * 0.5 },
+          { x: pt.x + tileWidth * 0.5, y: pt.y },
+          { x: pt.x, y: pt.y + tileHeight * 0.5 },
+          { x: pt.x - tileWidth * 0.5, y: pt.y },
+        ])
+        .fill({ color: ringColor, alpha: isBlocked ? 0.35 : 0.22 })
+        .stroke({ width: 2.8, color: ringColor, alpha: 0.95 })
+
+      // 3. Attack Range Preview Ellipse
       this.combatGraphics
         .ellipse(pt.x, pt.y, rx, ry)
-        .fill({ color: ringColor, alpha: isBlocked ? 0.20 : 0.14 })
-        .stroke({ width: 2.5, color: ringColor, alpha: 0.9 })
+        .fill({ color: ringColor, alpha: isBlocked ? 0.12 : 0.08 })
+        .stroke({ width: 2, color: ringColor, alpha: 0.80 })
 
-      if (isBlocked) {
-        // Red ❌ Warning mark inside cell
+      // 4. Confirmation Badge: True Galochka (✅) or Blocked (❌)
+      const badgeY = pt.y - tileHeight * 0.80
+      if (!isBlocked) {
+        // Glowing green outer halo
         this.combatGraphics
-          .moveTo(pt.x - 12, pt.y - 7)
-          .lineTo(pt.x + 12, pt.y + 7)
-          .stroke({ width: 3, color: 0xef4444, alpha: 0.95 })
-          .moveTo(pt.x + 12, pt.y - 7)
-          .lineTo(pt.x - 12, pt.y + 7)
-          .stroke({ width: 3, color: 0xef4444, alpha: 0.95 })
+          .circle(pt.x, badgeY, 15)
+          .fill({ color: 0x10b981, alpha: 0.30 })
+
+        // Dark pill background with emerald border
+        this.combatGraphics
+          .circle(pt.x, badgeY, 11)
+          .fill({ color: 0x0f172a, alpha: 0.95 })
+          .stroke({ width: 2.2, color: 0x10b981, alpha: 1.0 })
+
+        // True Galochka (✔ / Checkmark)
+        this.combatGraphics
+          .moveTo(pt.x - 5, badgeY)
+          .lineTo(pt.x - 1.5, badgeY + 3.5)
+          .lineTo(pt.x + 5.5, badgeY - 3.5)
+          .stroke({ width: 2.5, color: 0x34d399, alpha: 1.0 })
+      } else {
+        // Red ❌ Blocked Warning Badge
+        this.combatGraphics
+          .circle(pt.x, badgeY, 15)
+          .fill({ color: 0xef4444, alpha: 0.30 })
+
+        this.combatGraphics
+          .circle(pt.x, badgeY, 11)
+          .fill({ color: 0x0f172a, alpha: 0.95 })
+          .stroke({ width: 2.2, color: 0xef4444, alpha: 1.0 })
+
+        this.combatGraphics
+          .moveTo(pt.x - 4, badgeY - 4)
+          .lineTo(pt.x + 4, badgeY + 4)
+          .stroke({ width: 2.5, color: 0xef4444, alpha: 1.0 })
+          .moveTo(pt.x + 4, badgeY - 4)
+          .lineTo(pt.x - 4, badgeY + 4)
+          .stroke({ width: 2.5, color: 0xef4444, alpha: 1.0 })
       }
+    } else {
+      if (this.buildGhostSprite) this.buildGhostSprite.visible = false
     }
 
     // 2.2 Flying Animated Projectiles (Distinguished by projectileType)

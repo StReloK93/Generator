@@ -93,6 +93,7 @@ import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import { exportProjectJson, downloadDataUrl } from '../utils/exportHelpers'
 
 const props = defineProps<{
@@ -108,6 +109,7 @@ const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
+const notify = useNotificationStore()
 
 const exportType = ref<string | number>('json')
 const includeGrid = ref<boolean>(false)
@@ -172,6 +174,7 @@ async function handleExport() {
           wavePrepTime: characterStore.wavePrepDuration,
         }
       )
+      notify.success(`"${mapStore.project.name || 'Loyiha'}" JSON formati muvaffaqiyatli yuklab olindi!`)
       closeModal()
     } else {
       // PNG Export
@@ -183,13 +186,14 @@ async function handleExport() {
         if (dataUrl) {
           const cleanName = (mapStore.project.name || 'isocraft_map').toLowerCase().replace(/[^a-z0-9_-]+/gi, '_')
           downloadDataUrl(dataUrl, `${cleanName}.png`)
+          notify.success(`"${cleanName}.png" rasm muvaffaqiyatli saqlandi!`)
         }
       }
       closeModal()
     }
   } catch (err: any) {
     console.error('Export error:', err)
-    alert('Eksport qilishda xatolik yuz berdi: ' + (err?.message || ''))
+    notify.error('Eksport qilishda xatolik yuz berdi: ' + (err?.message || ''), 'Eksport xatosi')
   } finally {
     isExporting.value = false
   }

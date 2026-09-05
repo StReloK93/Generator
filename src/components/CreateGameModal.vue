@@ -136,6 +136,7 @@ import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import { PLAYER_COLORS } from '../types/multiplayer'
 
 interface DiscoveredMapPreset {
@@ -157,6 +158,7 @@ const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
+const notify = useNotificationStore()
 
 const isOpen = ref(false)
 const playerName = ref(multiplayerStore.myPlayerName)
@@ -253,10 +255,11 @@ async function handleCreateGame() {
       mapStore.project,
       router
     )
+    notify.success(`"${customRoomName.value || 'O\'yin'}" xonasi muvaffaqiyatli ochildi!`)
     isOpen.value = false
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to create room:', err)
-    alert('Failed to create room. Please try again.')
+    notify.error(err?.message || 'Xona ochishda xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.', 'Xona ochish xatosi')
   } finally {
     isCreating.value = false
   }

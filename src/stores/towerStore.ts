@@ -265,7 +265,6 @@ export const useTowerStore = defineStore('towerStore', () => {
     // Check if a tower already exists at this cell
     const existing = placedTowers.value.find(t => t.col === col && t.row === row)
     if (existing) {
-      selectedPlacedTowerId.value = existing.id
       return existing
     }
 
@@ -299,12 +298,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     placedTowers.value.push(newTower)
-    // In game mode: do NOT automatically select newly placed tower so bottom panels don't pop up and cover the screen on mobile!
-    if (!characterStore.isGameMode) {
-      selectedPlacedTowerId.value = newTower.id
-    } else {
-      selectedPlacedTowerId.value = null
-    }
+    selectedPlacedTowerId.value = null
     syncToProject()
     if (!characterStore.isGameMode) {
       mapStore.pushHistory(`Built ${bp.name} at (${col}, ${row})`)
@@ -799,7 +793,6 @@ export const useTowerStore = defineStore('towerStore', () => {
         // Single Player Game Mode:
         if (characterStore.isGameMode) {
           characterStore.gold += killGold
-          characterStore.score += killGold * 10
         }
       }
 

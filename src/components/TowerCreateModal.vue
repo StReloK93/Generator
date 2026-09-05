@@ -17,7 +17,7 @@
             <span class="text-xs font-bold text-amber-300">1. Select Tower Appearance</span>
             <UiBadge variant="amber" size="xs">{{ filteredAssets.length }} available</UiBadge>
           </div>
-          <span v-if="selectedAsset" class="text-[11px] font-mono font-bold text-slate-300 truncate max-w-[200px]">
+          <span v-if="selectedAsset" class="text-[11px] font-mono font-bold text-slate-300 truncate max-w-50">
             Selected: <span class="text-amber-400">{{ selectedAsset.name }}</span>
           </span>
         </div>
@@ -236,10 +236,12 @@ import { Plus, ShieldAlert, Search } from 'lucide-vue-next'
 import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge } from './ui'
 import { useTowerStore, ProjectileType, SplashType } from '../stores/towerStore'
 import { useAssetStore } from '../stores/assetStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import { AssetItem } from '../types/map'
 
 const towerStore = useTowerStore()
 const assetStore = useAssetStore()
+const notify = useNotificationStore()
 
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
@@ -328,7 +330,7 @@ function closeModal() {
 
 function handleCreateTower() {
   if (!form.value.name.trim()) {
-    alert("Please enter a tower name!")
+    notify.warning("Iltimos, minora nomini kiriting!", "Nom kiritilmadi")
     return
   }
 
@@ -370,6 +372,7 @@ function handleCreateTower() {
   }
 
   towerStore.addNewBlueprint(newBlueprint)
+  notify.success(`"${newBlueprint.name}" minorasi muvaffaqiyatli yaratildi!`)
   closeModal()
 }
 </script>

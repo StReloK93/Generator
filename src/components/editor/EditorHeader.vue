@@ -20,8 +20,7 @@
         class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-bold text-slate-200"
         :title="mapStore.project.name || 'Untitled Map'"
       >
-        <span class="text-sm">🗺️</span>
-        <span class="truncate max-w-[100px] sm:max-w-[130px]">{{ mapStore.project.name || 'New Map' }}</span>
+        <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || 'New Map' }}</span>
       </div>
 
       <!-- New Map Action Button -->
@@ -118,17 +117,6 @@
         <span class="hidden sm:inline">TD Settings</span>
       </UiButton>
 
-      <!-- Design Gameplay Preview Button -->
-      <UiButton
-        :variant="toolStore.isPreviewMode ? 'primary' : 'secondary'"
-        size="sm"
-        :leading-icon="Eye"
-        title="Design Gameplay Preview (Visual HUD preview without battle simulation)"
-        @click="toolStore.isPreviewMode = !toolStore.isPreviewMode"
-      >
-        <span class="hidden sm:inline">Preview</span>
-      </UiButton>
-
       <!-- Play Game Button (Navigates cleanly to /game) -->
       <UiButton
         variant="game-green"
@@ -167,7 +155,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, Eye 
+  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload 
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
