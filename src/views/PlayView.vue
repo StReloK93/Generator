@@ -97,7 +97,7 @@
             <span class="text-[10px] text-amber-400 font-semibold">{{ availableMaps[selectedMapIndex]?.playersCount || 4 }} players</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
             <UiCard 
               v-for="(m, idx) in availableMaps"
               :key="m.id"
@@ -270,9 +270,6 @@ import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
-import burbenogMapData from '../maps/Burbenog.json'
-import twoLineMapData from '../maps/TwoLineMap.json'
-
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
@@ -297,24 +294,24 @@ const isCreatingRoom = ref(false)
 const isJoining = ref(false)
 const isRefreshing = ref(false)
 
-const availableMaps = [
-  {
-    id: 'burbenog-td',
-    name: 'Burbenog TD',
-    cols: 64,
-    rows: 64,
-    playersCount: 4,
-    raw: burbenogMapData,
-  },
-  {
-    id: 'two-line-td',
-    name: '2-Line Duo Map',
-    cols: 60,
-    rows: 60,
-    playersCount: 2,
-    raw: twoLineMapData,
-  },
-]
+// Avtomatik ravishda src/maps papkasidagi barcha .json xaritalarni yuklash
+const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
+
+const availableMaps = Object.entries(mapModules).map(([path, mod]) => {
+  const raw = (mod as any).default || mod
+  const project = raw.project || raw
+  const fileName = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
+  const id = fileName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+
+  return {
+    id,
+    name: project.name || fileName,
+    cols: project.cols || 60,
+    rows: project.rows || 60,
+    playersCount: project.playersCount || project.gameSettings?.maxPlayers || (project.cols >= 60 ? 4 : 2),
+    raw,
+  }
+})
 
 let pollTimer: any = null
 
