@@ -4761,29 +4761,6 @@
     "isSample": true
   },
   {
-    "id": "sprite-bookcaseEmpty_W",
-    "name": "Bookcase Empty (W)",
-    "baseName": "bookcaseEmpty_W",
-    "fileRelativePath": "bookcaseEmpty_W.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 168,
-    "trimHeight": 193,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 27,
-      "minY": 288,
-      "maxX": 194,
-      "maxY": 480
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
     "id": "sprite-bookcaseEmptyLadder_E",
     "name": "Bookcase Empty Ladder (E)",
     "baseName": "bookcaseEmptyLadder_E",
@@ -4846,29 +4823,6 @@
       "minY": 277,
       "maxX": 194,
       "maxY": 470
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-bookcaseEmptyLadder_W",
-    "name": "Bookcase Empty Ladder (W)",
-    "baseName": "bookcaseEmptyLadder_W",
-    "fileRelativePath": "bookcaseEmptyLadder_W.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 168,
-    "trimHeight": 193,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 27,
-      "minY": 288,
-      "maxX": 194,
-      "maxY": 480
     },
     "spanX": 1,
     "spanY": 1,
@@ -5720,29 +5674,6 @@
       "minY": 263,
       "maxX": 201,
       "maxY": 484
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-bookcaseWideEmpty_N",
-    "name": "Bookcase Wide Empty (N)",
-    "baseName": "bookcaseWideEmpty_N",
-    "fileRelativePath": "bookcaseWideEmpty_N.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 202,
-    "trimHeight": 222,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 274,
-      "maxX": 201,
-      "maxY": 495
     },
     "spanX": 1,
     "spanY": 1,
@@ -7261,98 +7192,6 @@
       "minY": 350,
       "maxX": 210,
       "maxY": 488
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-fenceHigh_E",
-    "name": "Fence High (E)",
-    "baseName": "fenceHigh_E",
-    "fileRelativePath": "fenceHigh_E.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 134,
-    "trimHeight": 174,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 277,
-      "maxX": 133,
-      "maxY": 450
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-fenceHigh_N",
-    "name": "Fence High (N)",
-    "baseName": "fenceHigh_N",
-    "fileRelativePath": "fenceHigh_N.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 134,
-    "trimHeight": 174,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 338,
-      "maxX": 133,
-      "maxY": 511
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-fenceHigh_S",
-    "name": "Fence High (S)",
-    "baseName": "fenceHigh_S",
-    "fileRelativePath": "fenceHigh_S.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 134,
-    "trimHeight": 174,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 122,
-      "minY": 277,
-      "maxX": 255,
-      "maxY": 450
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-fenceHigh_W",
-    "name": "Fence High (W)",
-    "baseName": "fenceHigh_W",
-    "fileRelativePath": "fenceHigh_W.png",
-    "category": "Props",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 134,
-    "trimHeight": 174,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 122,
-      "minY": 338,
-      "maxX": 255,
-      "maxY": 511
     },
     "spanX": 1,
     "spanY": 1,
@@ -12903,29 +12742,6 @@
     "isSample": true
   },
   {
-    "id": "sprite-tower_frost_crystal",
-    "name": "Frost Crystal Spire",
-    "baseName": "tower_frost_crystal",
-    "fileRelativePath": "tower_frost_crystal.png",
-    "category": "Towers",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 203,
-    "trimHeight": 295,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 27,
-      "minY": 175,
-      "maxX": 229,
-      "maxY": 469
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
     "id": "sprite-tower_siege_mortar",
     "name": "Heavy Mortar Tower",
     "baseName": "tower_siege_mortar",
@@ -13033,29 +12849,6 @@
       "minX": 31,
       "minY": 157,
       "maxX": 224,
-      "maxY": 469
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-tower_wood_archer",
-    "name": "Wooden Archer Tower",
-    "baseName": "tower_wood_archer",
-    "fileRelativePath": "tower_wood_archer.png",
-    "category": "Towers",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 185,
-    "trimHeight": 299,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 36,
-      "minY": 171,
-      "maxX": 220,
       "maxY": 469
     },
     "spanX": 1,
@@ -15985,29 +15778,6 @@
     "isSample": true
   },
   {
-    "id": "sprite-woodWall_N",
-    "name": "Wood Wall (N)",
-    "baseName": "woodWall_N",
-    "fileRelativePath": "woodWall_N.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 141,
-    "trimHeight": 234,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 278,
-      "maxX": 140,
-      "maxY": 511
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
     "id": "sprite-woodWall_S",
     "name": "Wood Wall (S)",
     "baseName": "woodWall_S",
@@ -16024,29 +15794,6 @@
       "minY": 220,
       "maxX": 255,
       "maxY": 454
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-woodWall_W",
-    "name": "Wood Wall (W)",
-    "baseName": "woodWall_W",
-    "fileRelativePath": "woodWall_W.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 141,
-    "trimHeight": 234,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 115,
-      "minY": 278,
-      "maxX": 255,
-      "maxY": 511
     },
     "spanX": 1,
     "spanY": 1,
@@ -16261,29 +16008,6 @@
     "isSample": true
   },
   {
-    "id": "sprite-woodWallDiagional_N",
-    "name": "Wood Wall Diagional (N)",
-    "baseName": "woodWallDiagional_N",
-    "fileRelativePath": "woodWallDiagional_N.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 141,
-    "trimHeight": 234,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 278,
-      "maxX": 140,
-      "maxY": 511
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
     "id": "sprite-woodWallDiagional_S",
     "name": "Wood Wall Diagional (S)",
     "baseName": "woodWallDiagional_S",
@@ -16300,29 +16024,6 @@
       "minY": 220,
       "maxX": 255,
       "maxY": 454
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-woodWallDiagional_W",
-    "name": "Wood Wall Diagional (W)",
-    "baseName": "woodWallDiagional_W",
-    "fileRelativePath": "woodWallDiagional_W.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 141,
-    "trimHeight": 234,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 115,
-      "minY": 278,
-      "maxX": 255,
-      "maxY": 511
     },
     "spanX": 1,
     "spanY": 1,

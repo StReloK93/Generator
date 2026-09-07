@@ -96,15 +96,25 @@
     </div>
 
     <!-- Floating Mobile Zoom & Map Navigation Widget -->
-    <div class="absolute right-3 top-3 z-20 flex gap-5 items-center pointer-events-none select-none">
+    <div class="absolute right-3 top-3 z-20 flex gap-2 items-center pointer-events-none select-none">
       <div
-        class="py-0.5 text-center font-mono text-[9px] text-slate-400 font-semibold select-none leading-none">
+        class="py-1 px-2.5 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl text-center font-mono text-[10px] text-slate-300 font-semibold select-none leading-none shadow-lg">
         {{ Math.round(camera.localZoom.value * 100) }}%
       </div>
-      <div class="pointer-events-auto flex items-center gap-1">
+      <div class="pointer-events-auto flex items-center gap-1.5">
+        <!-- Spawn Points Toggle Button (placed right next to Center) -->
+        <button 
+          @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
+          :class="characterStore.showSpawnPoints ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/60 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/30' : 'bg-slate-800/90 text-slate-400 border-slate-700 hover:text-slate-200'"
+          class="w-8 h-8 border rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95"
+          title="Chiqish nuqtalarini ko'rsatish / yashirish (Spawn Points)">
+          <MapPin class="w-4 h-4" />
+        </button>
+
+        <!-- Reset View to Center -->
         <button @click="camera.focusOnCenter(viewportContainerRef)"
-          class="w-8 h-8 border border-slate-700 rounded-xl bg-slate-800 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
-          title="Reset View to Center">
+          class="w-8 h-8 border border-slate-700 rounded-xl bg-slate-800/90 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95"
+          title="Markazga qo'yish (Center View)">
           <Crosshair class="w-4 h-4" />
         </button>
       </div>
@@ -165,6 +175,7 @@ function updateEngineState() {
     toolStore.showCenterMarker,
     toolStore.showSymmetryAxes
   )
+  engine.renderCharacter(characterStore, mapStore.project)
 }
 
 onMounted(async () => {
@@ -188,6 +199,9 @@ onMounted(async () => {
   }
 
   camera.focusOnCenter(viewportContainerRef.value)
+  if (!characterStore.detectedDoors || characterStore.detectedDoors.length === 0) {
+    characterStore.detectDoors()
+  }
   updateEngineState()
 
   if (typeof ResizeObserver !== 'undefined' && viewportContainerRef.value) {
@@ -261,9 +275,20 @@ watch(() => toolStore.selectedElement, (newSel) => {
   engine.renderSelection(newSel, mapStore.project, spanX, spanY)
 })
 
-watch(() => [characterStore.isEnabled, characterStore.showPathTrail, characterStore.isDrawingRoute, characterStore.drawingPath.length], () => {
+watch(() => [
+  characterStore.isEnabled,
+  characterStore.showSpawnPoints,
+  characterStore.showPathTrail,
+  characterStore.isDrawingRoute,
+  characterStore.drawingPath.length,
+  characterStore.detectedDoors.length,
+  characterStore.selectedDoorIndex,
+  characterStore.spawnMode,
+  characterStore.isSettingSpawnPoint,
+  characterStore.customRoutes,
+], () => {
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
-})
+}, { deep: true })
 
 // Track last drawn cell during mouse drag to prevent duplicate placement in the same cell
 const lastDrawnCell = ref<GridCoord | null>(null)

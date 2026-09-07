@@ -81,76 +81,42 @@
       <!-- Active Selected Blueprint Editor -->
       <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
         
-        <!-- Left Column: Visual Preview & Sprite Select -->
+        <!-- Left Column: Visual Live Preview & Sprite Select -->
         <UiCard variant="amber" padding="md" custom-class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-300 text-xs">Tower Appearance</span>
-            <UiBadge variant="amber" size="xs">{{ selectedBp.assetName || 'Custom' }}</UiBadge>
+            <span class="font-bold text-amber-300 text-xs truncate">Tower Appearance</span>
           </div>
 
-          <!-- Sprite Preview -->
-          <div class="h-32 rounded-2xl bg-slate-900 checker-pattern flex items-center justify-center p-3 border border-slate-800 shadow-inner overflow-hidden">
-            <img 
-              :src="assetStore.getAssetPreview(selectedBp.assetId || selectedBp.assetName) || selectedBp.assetPath" 
-              :alt="selectedBp.name" 
-              class="max-w-full max-h-full object-contain filter drop-shadow-lg scale-110"
-            />
-          </div>
+          <!-- Live Combat & Range Simulator (Tower sprite + centered firing animation) -->
+          <TowerLivePreview :blueprint="selectedBp" />
 
-          <!-- Quick Sprite Picker Grid -->
-          <div class="flex flex-col gap-1.5 grow">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] text-slate-400 font-semibold">Change Sprite:</span>
-              <span class="text-[9px] text-slate-500 font-mono">{{ towerAvailableAssets.length }} sprites</span>
-            </div>
-            <UiInput 
-              v-model="assetSearchQuery"
+          <!-- Action Buttons -->
+          <div class="flex flex-col gap-2 mt-auto">
+            <UiButton 
+              variant="game-amber"
               size="sm"
-              placeholder="Search assets..."
-              :leading-icon="Search"
-              clearable
-            />
-            <main class="grow min-h-0 overflow-y-auto custom-scrollbar relative">
-  <div
-    class="absolute inset-0 grid grid-cols-4 content-start auto-rows-max gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800"
-  >
-    <div
-      v-for="asset in towerAvailableAssets"
-      :key="asset.id"
-      @click="changeBlueprintAsset(selectedBp.id, asset)"
-      :class="
-        selectedBp.assetId === asset.id
-          ? 'ring-2 ring-amber-400 bg-amber-500/30'
-          : 'hover:bg-slate-800 border border-slate-800/80'
-      "
-      class="w-full aspect-square min-w-0 p-1 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden"
-      :title="asset.name"
-    >
-      <img
-        :src="assetStore.getAssetPreview(asset)"
-        :alt="asset.name"
-        class="w-full h-full object-contain pointer-events-none"
-      />
-    </div>
-  </div>
-</main>
-          </div>
+              block
+              :leading-icon="Image"
+              @click="openChangeSpriteModal()"
+            >
+              Change Sprite
+            </UiButton>
 
-          <!-- Delete Blueprint -->
-          <UiButton 
-            v-if="towerStore.blueprints.length > 1"
-            variant="danger"
-            size="sm"
-            block
-            :leading-icon="Trash2"
-            custom-class="mt-auto"
-            @click="handleRemoveSelectedBp()"
-          >
-            Delete Blueprint
-          </UiButton>
+            <!-- Delete Blueprint -->
+            <UiButton 
+              v-if="towerStore.blueprints.length > 1"
+              variant="danger"
+              size="sm"
+              block
+              :leading-icon="Trash2"
+              @click="handleRemoveSelectedBp()"
+            >
+              Delete Blueprint
+            </UiButton>
+          </div>
         </UiCard>
 
-        <!-- Middle & Right Columns: Attributes Configuration Form -->
+        <!-- Right Column: Attributes Configuration Form -->
         <UiCard variant="default" padding="md" custom-class="md:col-span-2 flex flex-col gap-3">
           <!-- Name & Cost Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -210,8 +176,8 @@
 
           <!-- Projectile Type & Color -->
           <div class="flex flex-col gap-1.5">
-            <span class="text-[11px] font-semibold text-slate-300">Projectile Type:</span>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <span class="text-[11px] font-semibold text-slate-300">Projectile Type & Animation:</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               <UiButton 
                 v-for="pType in projectileOptions" 
                 :key="pType.id"
@@ -278,6 +244,7 @@
             size="sm"
             @click="characterStore.selectWave(idx)"
           >
+            <span class="mr-1">{{ getModelEmoji(w.characterModel) }}</span>
             <span>{{ w.name }}</span>
             <UiBadge variant="brand" size="xs" custom-class="ml-1">{{ w.unitCount }}x</UiBadge>
           </UiButton>
@@ -306,7 +273,7 @@
         </div>
         <div class="flex flex-col gap-1 max-w-md">
           <span class="font-bold text-sm text-purple-300">No waves defined</span>
-          <span class="text-xs text-slate-400">Add a wave to customize enemy density, health and gold bounty.</span>
+          <span class="text-xs text-slate-400">Add a wave to customize enemy density, health, unit model and bounty.</span>
         </div>
         <UiButton 
           variant="primary"
@@ -318,99 +285,148 @@
         </UiButton>
       </UiCard>
 
-      <!-- Active Wave Editor Card -->
-      <UiCard v-else-if="selectedWave" variant="default" padding="md" custom-class="flex flex-col gap-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-purple-300 text-sm">{{ selectedWave.name }} Settings</span>
+      <!-- Active Selected Wave Editor Layout (Split Columns) -->
+      <div v-else-if="selectedWave" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
+        
+        <!-- Left Column (1 col): Character Model & Live Animation Preview -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-purple-300 text-xs truncate">Unit Appearance</span>
+            <UiBadge :variant="getUnitBadgeVariant(selectedWave.characterModel)" size="xs">
+              {{ getModelEmoji(selectedWave.characterModel) }} {{ getUnitModelDisplayName(selectedWave.characterModel) }}
+            </UiBadge>
           </div>
 
+          <!-- Live Character Animation Simulator -->
+          <CharacterLivePreview 
+            :model-value="selectedWave.characterModel || 'male'" 
+            :show-model-selector="false"
+          />
+
+          <!-- Action Button: Change Unit Appearance -->
           <UiButton 
-            v-if="characterStore.waveConfigs.length > 1"
-            variant="danger"
-            size="xs"
-            :leading-icon="Trash2"
-            @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
-          >
-            Delete Wave
-          </UiButton>
-        </div>
-
-        <!-- Parameters Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <!-- 1. Unit Count -->
-          <UiCard variant="subtle" padding="sm">
-            <UiSlider 
-              :model-value="selectedWave.unitCount"
-              label="👥 Enemies Count"
-              :min="1"
-              :max="100"
-              :step="1"
-              unit=" units"
-              @update:model-value="(val) => characterStore.setWaveUnitCount(val || 1)"
-            />
-            <span class="text-[10px] text-slate-500 block mt-1">Invaders spawned per wave</span>
-          </UiCard>
-
-          <!-- 2. HP (Health) -->
-          <UiCard variant="subtle" padding="sm">
-            <UiSlider 
-              :model-value="selectedWave.unitHp"
-              label="❤️ Health (HP)"
-              :min="20"
-              :max="5000"
-              :step="10"
-              unit=" HP"
-              @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
-            />
-            <span class="text-[10px] text-slate-500 block mt-1">Health durability per enemy unit</span>
-          </UiCard>
-
-          <!-- 3. Speed -->
-          <UiCard variant="subtle" padding="sm">
-            <UiSlider 
-              :model-value="selectedWave.unitSpeed"
-              label="⚡ Movement Speed"
-              :min="0.5"
-              :max="5.0"
-              :step="0.1"
-              unit=" cells/s"
-              @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
-            />
-            <span class="text-[10px] text-slate-500 block mt-1">Grid cells per second</span>
-          </UiCard>
-
-          <!-- 4. Gold Reward -->
-          <UiCard variant="subtle" padding="sm">
-            <UiSlider 
-              :model-value="selectedWave.goldReward"
-              label="🪙 Bounty Reward"
-              :min="10"
-              :max="1000"
-              :step="10"
-              unit=" gold"
-              @update:model-value="(val) => characterStore.setWaveGoldReward(val || 50)"
-            />
-            <span class="text-[10px] text-slate-500 block mt-1">Gold awarded upon wave clearance</span>
-          </UiCard>
-        </div>
-
-        <!-- Bottom Test Wave Action Button -->
-        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-          <span class="text-[11px] text-slate-400">
-            Simulate and test this specific wave on the map:
-          </span>
-
-          <UiButton 
-            variant="game-green"
+            variant="primary"
             size="sm"
-            :leading-icon="Play"
-            @click="handleTestWave(characterStore.currentWaveIndex)"
+            block
+            :leading-icon="Users"
+            custom-class="mt-auto shadow-md shadow-purple-900/30"
+            @click="openChangeUnitModal()"
           >
-            Test This Wave Only
+            Change Unit Appearance
           </UiButton>
-        </div>
-      </UiCard>
+        </UiCard>
+
+        <!-- Right Column (2 cols): Parameters & Wave Difficulty -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3 lg:col-span-2">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-purple-300 text-sm">{{ selectedWave.name }} Settings</span>
+              <UiBadge variant="emerald" size="xs">{{ selectedWave.unitCount }} Enemies</UiBadge>
+              <UiBadge :variant="getUnitBadgeVariant(selectedWave.characterModel)" size="xs">
+                {{ getModelEmoji(selectedWave.characterModel) }} {{ getUnitModelDisplayName(selectedWave.characterModel) }}
+              </UiBadge>
+            </div>
+
+            <UiButton 
+              v-if="characterStore.waveConfigs.length > 1"
+              variant="danger"
+              size="xs"
+              :leading-icon="Trash2"
+              @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
+            >
+              Delete Wave
+            </UiButton>
+          </div>
+
+          <!-- Parameters Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- 1. Unit Count -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.unitCount"
+                label="👥 Enemies Count"
+                :min="1"
+                :max="100"
+                :step="1"
+                unit=" units"
+                @update:model-value="(val) => characterStore.setWaveUnitCount(val || 1)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Invaders spawned per wave</span>
+            </UiCard>
+
+            <!-- 2. HP (Health) -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.unitHp"
+                label="❤️ Health (HP)"
+                :min="20"
+                :max="5000"
+                :step="10"
+                unit=" HP"
+                @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Health durability per enemy unit</span>
+            </UiCard>
+
+            <!-- 3. Speed -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.unitSpeed"
+                label="⚡ Movement Speed"
+                :min="0.5"
+                :max="5.0"
+                :step="0.1"
+                unit=" cells/s"
+                @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Grid cells per second</span>
+            </UiCard>
+
+            <!-- 4. Gold Reward -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.goldReward"
+                label="🪙 Bounty Reward"
+                :min="1"
+                :max="100"
+                :step="1"
+                unit=" gold"
+                @update:model-value="(val) => characterStore.setWaveGoldReward(val || 1)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Gold awarded upon wave clearance</span>
+            </UiCard>
+          </div>
+
+          <!-- Formation & March Settings -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800 mt-auto">
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] font-semibold text-slate-300">👥 March Formation:</span>
+              <UiTabs 
+                v-model="characterStore.formation"
+                :items="[
+                  { id: 'pairs', label: 'Pairs (2 abreast)', icon: Users },
+                  { id: 'single', label: 'Single File (1 by 1)', icon: User },
+                ]"
+                fill
+                size="sm"
+              />
+            </div>
+
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                v-model="characterStore.pairDistance"
+                label="📏 Unit Spacing"
+                :min="0.1"
+                :max="1.5"
+                :step="0.05"
+                unit="k"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Spatial interval between marching units</span>
+            </UiCard>
+          </div>
+        </UiCard>
+
+      </div>
 
     </div>
 
@@ -448,14 +464,14 @@
           </p>
           <UiSlider 
             v-model="characterStore.startingGold"
-            :min="50"
-            :max="2000"
-            :step="25"
+            :min="10"
+            :max="1000"
+            :step="10"
             unit=" gold"
           />
           <div class="flex items-center gap-1.5 flex-wrap">
             <UiButton 
-              v-for="preset in [100, 150, 250, 500, 1000]"
+              v-for="preset in [50, 100, 150, 250, 500, 1000]"
               :key="preset"
               :variant="characterStore.startingGold === preset ? 'game-amber' : 'secondary'"
               size="xs"
@@ -544,219 +560,138 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- TAB 4: PLACED TOWERS                                                      -->
+    <!-- TAB 4: SPAWN POINTS                                                       -->
     <!-- ========================================================================= -->
-    <div v-else-if="toolStore.gameConfigActiveTab === 'placed'" class="flex flex-col gap-3">
+    <div v-else-if="toolStore.gameConfigActiveTab === 'spawns'" class="flex flex-col gap-3">
       
-      <!-- Placed Towers Summary Row -->
-      <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-slate-200 text-xs">Towers Constructed on Map:</span>
-          <UiBadge variant="cyan" size="xs">
-            {{ towerStore.placedTowers.length }} towers
-          </UiBadge>
+      <!-- Top Overview Bar -->
+      <UiCard variant="emerald" padding="sm" custom-class="flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold shadow-inner">
+            <MapPin class="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Enemy Spawn Points & Routes</h3>
+            <p class="text-[11px] text-slate-400">Manage door entry coordinates, custom patrol paths and map visibility</p>
+          </div>
         </div>
 
-        <UiButton 
-          v-if="towerStore.placedTowers.length > 0"
-          variant="danger"
-          size="xs"
-          :leading-icon="Trash2"
-          @click="towerStore.clearAllTowers()"
-        >
-          Clear All Towers
-        </UiButton>
-      </div>
-
-      <!-- No Placed Towers State -->
-      <UiCard 
-        v-if="towerStore.placedTowers.length === 0" 
-        variant="subtle"
-        padding="lg"
-        custom-class="flex flex-col items-center text-center gap-3 my-4"
-      >
-        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
-          <TowerControl class="w-6 h-6" />
-        </div>
-        <div class="flex flex-col gap-1 max-w-md">
-          <span class="font-bold text-sm text-sky-300">No towers placed on the map</span>
-          <span class="text-xs text-slate-400">Select a tower blueprint to place defenses directly onto map cells or construct during battle.</span>
-        </div>
+        <UiBadge variant="emerald" size="sm">
+          {{ characterStore.detectedDoors.length }} doors
+        </UiBadge>
       </UiCard>
 
-      <!-- Placed Towers List Cards -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-        <UiCard 
-          v-for="tower in towerStore.placedTowers" 
-          :key="tower.id"
-          variant="default"
-          padding="sm"
-          custom-class="flex flex-col gap-2.5 hover:border-slate-700"
+      <!-- Empty State for Spawn Points -->
+      <UiCard 
+        v-if="characterStore.detectedDoors.length === 0" 
+        variant="subtle"
+        padding="lg"
+        custom-class="text-center flex flex-col items-center gap-3 my-2"
+      >
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <MapPin class="w-6 h-6" />
+        </div>
+        <div class="flex flex-col gap-1 max-w-md">
+          <span class="font-bold text-sm text-emerald-300">No spawn points placed</span>
+          <p class="text-xs text-slate-400 leading-tight">Place spawn doors directly onto map cells. Invaders will emerge from these coordinates during waves.</p>
+        </div>
+        <UiButton 
+          variant="game-green"
+          size="md"
+          :leading-icon="Plus"
+          @click="handleTriggerAddSpawnPoint"
         >
-          <!-- Card Top: Name & Level -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="font-bold text-white text-xs truncate">{{ tower.name }}</span>
-              <UiBadge variant="amber" size="xs">Lvl {{ tower.level }}</UiBadge>
-            </div>
-            <span class="text-[10px] font-mono text-emerald-400 font-semibold shrink-0">
-              ({{ tower.col }}, {{ tower.row }})
+          Place First Spawn Door
+        </UiButton>
+      </UiCard>
+
+      <!-- Active Spawn Points Section -->
+      <div v-else class="flex flex-col gap-3">
+        <!-- Spawn Doors Buttons List -->
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <MapPin class="w-4 h-4 text-emerald-400" />
+              <span>Select Spawn Door:</span>
             </span>
-          </div>
-
-          <!-- Stats -->
-          <div class="grid grid-cols-3 gap-1 p-1.5 rounded-xl bg-slate-900 text-[10px] text-center">
-            <div>
-              <span class="text-slate-500 block">💥 Damage</span>
-              <strong class="text-amber-300">{{ tower.damage }}</strong>
-            </div>
-            <div>
-              <span class="text-slate-500 block">🎯 Range</span>
-              <strong class="text-sky-300">{{ tower.range }}k</strong>
-            </div>
-            <div>
-              <span class="text-slate-500 block">☠️ Kills</span>
-              <strong class="text-rose-400">{{ tower.killsCount }}</strong>
-            </div>
-          </div>
-
-          <!-- Action Buttons: Focus, Upgrade, Sell -->
-          <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800/80">
-            <UiButton 
-              variant="secondary"
-              size="xs"
-              :leading-icon="Crosshair"
-              title="Focus on this tower in map view"
-              @click="handleFocusTower(tower)"
-            >
-              View
-            </UiButton>
 
             <UiButton 
               variant="game-amber"
               size="xs"
-              :leading-icon="Sparkles"
-              title="Upgrade tower level"
-              @click="towerStore.upgradePlacedTower(tower.id)"
-            >
-              +Lvl
-            </UiButton>
-
-            <UiButton 
-              variant="danger"
-              size="xs"
-              :leading-icon="Trash2"
-              title="Sell / Dismantle"
-              @click="towerStore.sellPlacedTower(tower.id)"
-            >
-              Sell
-            </UiButton>
-          </div>
-        </UiCard>
-      </div>
-
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- TAB 5: SPAWN POINTS & MOVEMENT                                            -->
-    <!-- ========================================================================= -->
-    <div v-else-if="toolStore.gameConfigActiveTab === 'spawns'" class="flex flex-col gap-3">
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        
-        <!-- LEFT CARD: SPAWN POINTS & ROUTE MANAGEMENT -->
-        <UiCard variant="emerald" padding="md" custom-class="flex flex-col gap-3">
-          <div class="flex items-center justify-between pb-1 border-b border-slate-800">
-            <span class="font-bold text-emerald-300 text-xs flex items-center gap-1.5">
-              <MapPin class="w-4 h-4" />
-              <span>Spawn Points</span>
-            </span>
-            <UiBadge variant="emerald" size="xs">
-              {{ characterStore.detectedDoors.length }} doors
-            </UiBadge>
-          </div>
-
-          <!-- Empty State for Spawn Points -->
-          <UiCard 
-            v-if="characterStore.detectedDoors.length === 0" 
-            variant="subtle"
-            padding="md"
-            custom-class="text-center flex flex-col items-center gap-2"
-          >
-            <span class="text-xs text-slate-300 font-semibold">🚩 No spawn points placed</span>
-            <p class="text-[10px] text-slate-400 leading-tight">New maps do not require default doors. You can place spawn doors whenever needed.</p>
-            <UiButton 
-              variant="game-green"
-              size="sm"
               :leading-icon="Plus"
-              custom-class="mt-1"
               @click="handleTriggerAddSpawnPoint"
             >
-              Place First Spawn Door
+              + Place New Door
             </UiButton>
-          </UiCard>
+          </div>
 
-          <!-- Active Spawn Points Section -->
-          <template v-else>
-            <!-- Spawn Mode Toggle -->
-            <UiTabs 
-              v-model="characterStore.spawnMode"
-              :items="[
-                { id: 'all_doors', label: 'All Spawn Doors', icon: Sparkles },
-                { id: 'single_door', label: 'Single Door Only', icon: MapPin },
-              ]"
-              fill
+          <!-- Door Buttons Grid -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <UiButton 
+              v-for="(door, idx) in characterStore.detectedDoors" 
+              :key="door.id || idx"
+              :variant="characterStore.selectedDoorIndex === idx ? 'game-amber' : 'secondary'"
               size="sm"
-            />
+              @click="characterStore.selectedDoorIndex = idx"
+            >
+              <span class="w-2 h-2 rounded-full mr-1.5" :class="characterStore.selectedDoorIndex === idx ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
+              <span>🚩 {{ door.name }} ({{ door.col }}, {{ door.row }})</span>
+            </UiButton>
+          </div>
 
-            <!-- Spawn Point Dropdown Selector -->
-            <div class="flex items-center gap-2">
-              <select 
-                v-model.number="characterStore.selectedDoorIndex"
-                class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
-              >
-                <option 
-                  v-for="(door, idx) in characterStore.detectedDoors" 
-                  :key="door.id" 
-                  :value="idx"
-                >
-                  🚩 {{ door.name }} (Cell: {{ door.col }}, {{ door.row }})
-                </option>
-              </select>
-
-              <UiIconButton 
-                :icon="Trash2"
-                size="md"
-                variant="danger"
-                title="Delete this spawn door"
-                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex)"
-              />
+          <!-- Selected Door Action Toolbar -->
+          <div 
+            v-if="characterStore.selectedDoor" 
+            class="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 flex-wrap"
+          >
+            <div class="flex items-center gap-2 text-xs">
+              <UiBadge variant="amber" size="xs">Active: {{ characterStore.selectedDoor.name }}</UiBadge>
+              <span class="text-slate-400 font-mono text-[11px]">Cell: [{{ characterStore.selectedDoor.col }}, {{ characterStore.selectedDoor.row }}]</span>
             </div>
 
-            <!-- Action Buttons: Add Spawn Point & Relocate -->
-            <div class="grid grid-cols-2 gap-2">
-              <UiButton 
-                variant="game-amber"
-                size="sm"
-                :leading-icon="Plus"
-                @click="handleTriggerAddSpawnPoint"
-              >
-                Place New Door
-              </UiButton>
-
+            <div class="flex items-center gap-1.5">
               <UiButton 
                 variant="secondary"
-                size="sm"
+                size="xs"
                 :leading-icon="MapPin"
                 @click="handleTriggerRelocateSpawnPoint"
               >
                 Relocate Door
               </UiButton>
-            </div>
-          </template>
 
-          <!-- Route Drawing Tools -->
-          <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2 mt-auto">
+              <UiButton 
+                variant="danger"
+                size="xs"
+                :leading-icon="Trash2"
+                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex)"
+              >
+                Delete Door
+              </UiButton>
+            </div>
+          </div>
+        </UiCard>
+
+        <!-- Spawn Mode & Custom Route Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Spawn Mode Selection -->
+          <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
+            <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
+              <Sparkles class="w-3.5 h-3.5 text-brand-400" />
+              <span>Spawn Distribution Mode:</span>
+            </span>
+            <UiTabs 
+              v-model="characterStore.spawnMode"
+              :items="[
+                { id: 'all_doors', label: 'All Doors Simultaneously', icon: Sparkles },
+                { id: 'single_door', label: 'Selected Door Only', icon: MapPin },
+              ]"
+              fill
+              size="sm"
+            />
+          </UiCard>
+
+          <!-- Custom Route Waypoints -->
+          <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
             <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
               <Navigation class="w-3.5 h-3.5 text-brand-400" />
               <span>Custom Route Waypoints:</span>
@@ -769,7 +704,7 @@
                 :leading-icon="PenTool"
                 @click="handleStartDrawingRoute"
               >
-                Draw Custom Route
+                Draw Route
               </UiButton>
 
               <UiButton 
@@ -782,122 +717,218 @@
               </UiButton>
             </div>
           </UiCard>
+        </div>
 
-        </UiCard>
+      </div>
 
-        <!-- RIGHT CARD: MOVEMENT & SIMULATION PARAMETERS -->
-        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
+    </div>
+  </UiModal>
+
+  <!-- SELECT TOWER SPRITE MODAL (Triggered by Pencil / Change Sprite) -->
+  <UiModal
+    :is-open="isChangeSpriteModalOpen"
+    title="Select Tower Sprite"
+    subtitle="Choose any sprite image from the library for this defense tower"
+    :icon="Image"
+    icon-color="amber"
+    size="4xl"
+    @close="isChangeSpriteModalOpen = false"
+  >
+    <div class="flex flex-col gap-3.5 select-none">
+      <!-- Search & Category Filters -->
+      <div class="flex items-center gap-2 flex-wrap justify-between">
+        <UiInput 
+          v-model="spriteModalSearchQuery"
+          size="sm"
+          placeholder="Search sprites (wall, tower, stone, column)..."
+          :leading-icon="Search"
+          clearable
+          custom-class="w-full sm:w-72"
+        />
+
+        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
+          <button
+            v-for="cat in spriteCategories"
+            :key="cat.id"
+            type="button"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer"
+            :class="selectedSpriteCategory === cat.id 
+              ? 'bg-amber-500 text-slate-950 font-black shadow-sm' 
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
+            @click="selectedSpriteCategory = cat.id"
+          >
+            {{ cat.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview & Sprites Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
+        <!-- Left: Selected Sprite Detail Preview Box -->
+        <div class="md:col-span-4 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 checker-pattern h-56 relative overflow-hidden shadow-inner">
+          <img
+            v-if="tempSelectedAsset"
+            :src="assetStore.getAssetPreview(tempSelectedAsset)"
+            :alt="tempSelectedAsset.name"
+            class="w-full h-full object-contain filter drop-shadow-xl"
+          />
+          <div v-else class="text-slate-500 text-xs font-mono text-center">
+            No sprite selected
+          </div>
+          <div v-if="tempSelectedAsset" class="absolute bottom-2 inset-x-2 px-2.5 py-1 rounded-xl bg-slate-900/95 border border-slate-700 text-center shadow-md">
+            <span class="text-xs font-bold text-amber-300 truncate block">{{ tempSelectedAsset.name }}</span>
+          </div>
+        </div>
+
+        <!-- Right: Spacious Sprites Grid -->
+        <div class="md:col-span-8 max-h-60 overflow-y-auto custom-scrollbar p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
+            <div
+              v-for="asset in filteredModalAssets"
+              :key="asset.id"
+              @click="tempSelectedAssetId = asset.id"
+              :class="tempSelectedAssetId === asset.id
+                ? 'ring-2 ring-amber-400 bg-amber-500/30 border-amber-400 scale-105'
+                : 'hover:bg-slate-800/80 bg-slate-950/80 border border-slate-800/80'"
+              class="aspect-square p-2.5 rounded-xl flex items-center justify-center cursor-pointer transition-all overflow-hidden group select-none"
+              :title="asset.name"
+            >
+              <img
+                :src="assetStore.getAssetPreview(asset)"
+                :alt="asset.name"
+                class="w-full h-full object-contain pointer-events-none group-hover:scale-110 transition-transform"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Actions Footer -->
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+        <UiButton
+          variant="secondary"
+          size="md"
+          @click="isChangeSpriteModalOpen = false"
+        >
+          Cancel
+        </UiButton>
+
+        <UiButton
+          variant="primary"
+          size="md"
+          :disabled="!tempSelectedAsset"
+          :leading-icon="Check"
+          @click="saveSpriteSelection()"
+        >
+          Save
+        </UiButton>
+      </div>
+    </div>
+  </UiModal>
+
+  <!-- SELECT WAVE UNIT MODEL GALLERY MODAL -->
+  <UiModal
+    :is-open="isChangeUnitModalOpen"
+    title="Select Wave Unit Appearance"
+    subtitle="Choose 3D isometric enemy character model and test animations for this wave"
+    :icon="Users"
+    icon-color="brand"
+    size="4xl"
+    @close="isChangeUnitModalOpen = false"
+  >
+    <div class="flex flex-col gap-3.5 select-none">
+      <!-- Top Info Bar -->
+      <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-300">Available Unit Characters:</span>
+          <UiBadge variant="brand" size="xs">{{ availableCharacterModels.length }} models</UiBadge>
+        </div>
+        <div class="text-[11px] text-slate-400">
+          Customizing: <strong class="text-purple-300 font-bold">{{ selectedWave?.name }}</strong>
+        </div>
+      </div>
+
+      <!-- Main Gallery Layout: Left Grid of Models + Right Live Test Simulator -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+        
+        <!-- Left: Character Models Cards (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-2.5 max-h-96 overflow-y-auto custom-scrollbar p-1">
+          <div
+            v-for="model in availableCharacterModels"
+            :key="model.id"
+            @click="tempSelectedUnitModel = model.id"
+            :class="tempSelectedUnitModel === model.id
+              ? 'ring-2 ring-purple-500 bg-purple-950/40 border-purple-500/80 shadow-lg shadow-purple-950/50 scale-[1.01]'
+              : 'bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800'"
+            class="p-3 rounded-2xl cursor-pointer transition-all flex items-center justify-between gap-3 group relative overflow-hidden"
+          >
+            <!-- Left Info & Emoji -->
+            <div class="flex items-center gap-3">
+              <div 
+                class="w-11 h-11 rounded-xl flex items-center justify-center text-xl transition-all"
+                :class="tempSelectedUnitModel === model.id ? 'bg-purple-600/30 border border-purple-500/50 shadow-inner' : 'bg-slate-950 border border-slate-800 group-hover:border-slate-700'"
+              >
+                {{ getModelEmoji(model.id) }}
+              </div>
+              
+              <div class="flex flex-col">
+                <span class="font-bold text-sm text-slate-100 capitalize flex items-center gap-1.5">
+                  {{ model.name }}
+                  <UiBadge v-if="selectedWave?.characterModel === model.id" variant="brand" size="xs">Current</UiBadge>
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  {{ Object.keys(model.actions || {}).length }} animations
+                </span>
+              </div>
+            </div>
+
+            <!-- Right Checkmark when selected -->
+            <div 
+              class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all"
+              :class="tempSelectedUnitModel === model.id ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-800 text-transparent'"
+            >
+              <Check class="w-3.5 h-3.5" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Interactive Animation Tester & Compass (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-2 bg-slate-900/60 rounded-2xl border border-slate-800 p-2.5">
           <div class="flex items-center justify-between pb-1 border-b border-slate-800">
-            <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-              <Activity class="w-4 h-4 text-brand-400" />
-              <span>Movement & Simulation Parameters</span>
+            <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+              <span>{{ getModelEmoji(tempSelectedUnitModel) }}</span>
+              <span>Live Test: {{ getUnitModelDisplayName(tempSelectedUnitModel) }}</span>
             </span>
+            <UiBadge variant="brand" size="xs">Interactive Test</UiBadge>
           </div>
 
-          <!-- Formation: Pairs vs Single -->
-          <div class="flex flex-col gap-1.5">
-            <span class="text-[11px] font-semibold text-slate-300">March Formation:</span>
-            <UiTabs 
-              v-model="characterStore.formation"
-              :items="[
-                { id: 'pairs', label: 'Pairs (2 abreast)', icon: Users },
-                { id: 'single', label: 'Single File', icon: User },
-              ]"
-              fill
-              size="sm"
-            />
-          </div>
+          <CharacterLivePreview
+            :model-value="tempSelectedUnitModel"
+            :show-model-selector="false"
+          />
+        </div>
 
-          <!-- Pair Distance & Unit Speed Sliders -->
-          <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-2 gap-3">
-            <UiSlider 
-              v-model="characterStore.pairDistance"
-              label="Pair Spacing"
-              :min="0.1"
-              :max="1.5"
-              :step="0.05"
-              unit="k"
-            />
+      </div>
 
-            <UiSlider 
-              v-model="characterStore.unitSpeed"
-              label="March Speed"
-              :min="0.5"
-              :max="6.0"
-              :step="0.1"
-              unit=" cells/s"
-            />
-          </UiCard>
+      <!-- Modal Footer Buttons -->
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+        <UiButton
+          variant="secondary"
+          size="md"
+          @click="isChangeUnitModalOpen = false"
+        >
+          Cancel
+        </UiButton>
 
-          <!-- Game Speed Slider -->
-          <UiCard variant="subtle" padding="sm">
-            <UiSlider 
-              v-model="characterStore.gameSpeed"
-              label="⚡ Simulation Multiplier"
-              :min="1.0"
-              :max="50.0"
-              :step="1.0"
-              unit="x"
-            />
-          </UiCard>
-
-          <!-- Follow Camera & Trail Toggles -->
-          <div class="grid grid-cols-2 gap-2">
-            <UiSwitch 
-              v-model="characterStore.followCamera"
-              label="Follow Camera"
-              variant="brand"
-            />
-            <UiSwitch 
-              v-model="characterStore.showPathTrail"
-              label="Waypoint Trail"
-              variant="brand"
-            />
-          </div>
-
-          <!-- Tour Playback Controls -->
-          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 mt-auto">
-            <UiButton 
-              v-if="!characterStore.isPlaying"
-              variant="game-green"
-              size="sm"
-              :leading-icon="Play"
-              @click="characterStore.startTour()"
-            >
-              Start Tour
-            </UiButton>
-
-            <UiButton 
-              v-else
-              variant="game-amber"
-              size="sm"
-              :leading-icon="Pause"
-              @click="characterStore.pauseTour()"
-            >
-              Pause
-            </UiButton>
-
-            <UiButton 
-              variant="secondary"
-              size="sm"
-              :leading-icon="RotateCcw"
-              @click="characterStore.resetTour()"
-            >
-              Reset
-            </UiButton>
-
-            <UiButton 
-              variant="game-green"
-              size="sm"
-              :leading-icon="Gamepad2"
-              @click="handleStartPlayModeFromModal"
-            >
-              To Game
-            </UiButton>
-          </div>
-
-        </UiCard>
-
+        <UiButton
+          variant="primary"
+          size="md"
+          :leading-icon="Check"
+          @click="saveUnitSelection()"
+        >
+          Save & Apply Unit
+        </UiButton>
       </div>
 
     </div>
@@ -911,7 +942,7 @@ import {
   Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
   Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
-  Search
+  Search, Pencil, Check, Image
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -927,12 +958,15 @@ import {
   TabItem 
 } from './ui'
 import { useToolStore } from '../stores/toolStore'
-import { useTowerStore, PlacedTower } from '../stores/towerStore'
+import { useTowerStore } from '../stores/towerStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
 import { AssetItem } from '../types/map'
 import { requestAppFullscreen } from '../utils/fullscreen'
+import TowerLivePreview from './game/TowerLivePreview.vue'
+import CharacterLivePreview from './game/CharacterLivePreview.vue'
+import characterManifest from '../assets/generated/characterManifest.json'
 
 const router = useRouter()
 const toolStore = useToolStore()
@@ -945,27 +979,142 @@ const configTabItems = computed<TabItem[]>(() => [
   { id: 'towers', label: 'Towers', icon: ShieldAlert, count: towerStore.blueprints.length },
   { id: 'waves', label: 'Waves', icon: Swords, count: characterStore.waveConfigs.length },
   { id: 'balance', label: 'Map Balance', icon: Coins },
-  { id: 'placed', label: 'Placed Defenses', icon: TowerControl, count: towerStore.placedTowers.length },
-  { id: 'spawns', label: 'Spawn & Movement', icon: Users },
+  { id: 'spawns', label: 'Spawn Points', icon: MapPin, count: characterStore.detectedDoors.length },
 ])
 
 const selectedBp = computed(() => towerStore.selectedBlueprint)
 const selectedWave = computed(() => characterStore.currentWaveConfig)
 
+// Change Unit Appearance Modal State
+const isChangeUnitModalOpen = ref(false)
+const tempSelectedUnitModel = ref('male')
+
+const availableCharacterModels = computed(() => {
+  const models = Object.values(characterManifest) as Array<{
+    id: string
+    name: string
+    cellWidth: number
+    cellHeight: number
+    actions: Record<string, { id: string; label: string; icon: string; frameCount: number }>
+  }>
+  return models.length > 0 ? models : [
+    { id: 'male', name: 'Male', cellWidth: 256, cellHeight: 512, actions: {} },
+    { id: 'warrior', name: 'Warrior', cellWidth: 256, cellHeight: 256, actions: {} },
+    { id: 'female', name: 'Female', cellWidth: 256, cellHeight: 256, actions: {} },
+  ]
+})
+
+function getModelEmoji(id?: string): string {
+  const lower = String(id || 'male').toLowerCase()
+  if (lower.includes('warrior') || lower.includes('knight')) return '⚔️'
+  if (lower.includes('archer') || lower.includes('hunter') || lower.includes('bow')) return '🏹'
+  if (lower.includes('mage') || lower.includes('wizard') || lower.includes('sorcerer')) return '🧙'
+  if (lower.includes('male') || lower.includes('peasant') || lower.includes('villager') || lower.includes('worker')) return '🧑'
+  if (lower.includes('female') || lower.includes('woman') || lower.includes('girl')) return '👩'
+  if (lower.includes('orc') || lower.includes('goblin') || lower.includes('monster') || lower.includes('ogre')) return '👹'
+  if (lower.includes('skeleton') || lower.includes('zombie') || lower.includes('undead')) return '💀'
+  if (lower.includes('dragon') || lower.includes('beast') || lower.includes('demon')) return '🐉'
+  return '👤'
+}
+
+function getUnitModelDisplayName(id?: string): string {
+  const lower = String(id || 'male').toLowerCase()
+  const found = (characterManifest as any)?.[lower]
+  if (found && found.name) return found.name
+  return lower.charAt(0).toUpperCase() + lower.slice(1)
+}
+
+function getUnitBadgeVariant(id?: string): 'brand' | 'amber' | 'rose' | 'emerald' {
+  const lower = String(id || 'male').toLowerCase()
+  if (lower.includes('warrior') || lower.includes('knight')) return 'amber'
+  if (lower.includes('female') || lower.includes('woman')) return 'rose'
+  if (lower.includes('orc') || lower.includes('goblin') || lower.includes('dragon')) return 'emerald'
+  return 'brand'
+}
+
+function openChangeUnitModal() {
+  tempSelectedUnitModel.value = selectedWave.value?.characterModel || 'male'
+  isChangeUnitModalOpen.value = true
+}
+
+function saveUnitSelection() {
+  if (tempSelectedUnitModel.value) {
+    characterStore.setWaveCharacterModel(tempSelectedUnitModel.value)
+  }
+  isChangeUnitModalOpen.value = false
+}
+
 const projectileOptions = [
-  { id: 'cannonball', name: 'Cannonball', icon: '💣' },
+  { id: 'fireball', name: 'Fireball', icon: '🔥' },
   { id: 'arrow', name: 'Arrow', icon: '🏹' },
   { id: 'magic_bolt', name: 'Magic Bolt', icon: '⚡' },
-  { id: 'fireball', name: 'Fireball', icon: '🔥' },
+  { id: 'cannonball', name: 'Cannonball', icon: '💣' },
+  { id: 'frost_bolt', name: 'Frost Bolt', icon: '❄️' },
+  { id: 'laser', name: 'Laser Beam', icon: '🔴' },
+  { id: 'missile', name: 'Missile', icon: '🚀' },
 ]
 
-const assetSearchQuery = ref('')
+// Change Sprite Modal State
+const isChangeSpriteModalOpen = ref(false)
+const spriteModalSearchQuery = ref('')
+const selectedSpriteCategory = ref('all')
+const tempSelectedAssetId = ref('')
 
-const towerAvailableAssets = computed(() => {
-  const query = assetSearchQuery.value.trim().toLowerCase()
-  if (!query) return assetStore.assets
-  return assetStore.assets.filter(a => (a.name || '').toLowerCase().includes(query))
+const spriteCategories = [
+  { id: 'all', label: 'All' },
+  { id: 'walls', label: 'Walls & Towers' },
+  { id: 'ground', label: 'Ground' },
+  { id: 'stairs', label: 'Stairs' },
+  { id: 'props', label: 'Props & Objects' },
+]
+
+const filteredModalAssets = computed(() => {
+  let list = assetStore.assets
+  if (selectedSpriteCategory.value !== 'all') {
+    list = list.filter(item => {
+      const lower = (item.name || item.id || '').toLowerCase()
+      if (selectedSpriteCategory.value === 'walls') {
+        return lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway') || lower.includes('column') || lower.includes('support')
+      }
+      if (selectedSpriteCategory.value === 'ground') {
+        return lower.includes('dirt') || lower.includes('planks') || (lower.includes('stone') && !lower.includes('wall') && !lower.includes('column'))
+      }
+      if (selectedSpriteCategory.value === 'stairs') {
+        return lower.includes('stairs') || lower.includes('bridge')
+      }
+      if (selectedSpriteCategory.value === 'props') {
+        return lower.includes('barrel') || lower.includes('chest') || lower.includes('crate') || lower.includes('table') || lower.includes('chair') || lower.includes('display') || lower.includes('bookcase')
+      }
+      return true
+    })
+  }
+  const query = spriteModalSearchQuery.value.trim().toLowerCase()
+  if (query) {
+    list = list.filter(item => (item.name || '').toLowerCase().includes(query))
+  }
+  return list
 })
+
+const tempSelectedAsset = computed(() => {
+  if (!tempSelectedAssetId.value) return null
+  return assetStore.assets.find(a => a.id === tempSelectedAssetId.value) || null
+})
+
+function openChangeSpriteModal() {
+  if (selectedBp.value) {
+    tempSelectedAssetId.value = selectedBp.value.assetId || ''
+  }
+  spriteModalSearchQuery.value = ''
+  selectedSpriteCategory.value = 'all'
+  isChangeSpriteModalOpen.value = true
+}
+
+function saveSpriteSelection() {
+  if (selectedBp.value && tempSelectedAsset.value) {
+    changeBlueprintAsset(selectedBp.value.id, tempSelectedAsset.value)
+  }
+  isChangeSpriteModalOpen.value = false
+}
 
 function updateSelectedBp(updates: any) {
   if (selectedBp.value) {
@@ -991,21 +1140,6 @@ function changeBlueprintAsset(bpId: string, asset: AssetItem) {
     assetId: asset.id,
     assetName: `${asset.name}.png`,
     assetPath: preview || asset.previewSrc || asset.src || '',
-  })
-}
-
-function handleTestWave(idx: number) {
-  toolStore.closeGameConfig()
-  characterStore.testWave(idx)
-}
-
-function handleFocusTower(tower: PlacedTower) {
-  toolStore.closeGameConfig()
-  toolStore.setSelectedElement({
-    col: tower.col,
-    row: tower.row,
-    layerId: 'layer-objects',
-    itemId: tower.id,
   })
 }
 

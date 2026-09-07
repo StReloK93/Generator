@@ -1,0 +1,77 @@
+{
+  "female": {
+    "id": "female",
+    "name": "Female",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.788,
+    "scale": 0.95,
+    "actions": {
+      "Idle_Sword": {
+        "id": "Idle_Sword",
+        "label": "Idle_Sword",
+        "icon": "🧘",
+        "frameCount": 16
+      },
+      "Run_Sword": {
+        "id": "Run_Sword",
+        "label": "Run_Sword",
+        "icon": "🏃",
+        "frameCount": 20
+      }
+    }
+  },
+  "male": {
+    "id": "male",
+    "name": "Male",
+    "cellWidth": 256,
+    "cellHeight": 512,
+    "anchorX": 0.5,
+    "anchorY": 0.884,
+    "scale": 0.52,
+    "actions": {
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 1
+      },
+      "Pickup": {
+        "id": "Pickup",
+        "label": "Pickup",
+        "icon": "💥",
+        "frameCount": 10
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 10
+      }
+    }
+  },
+  "warrior": {
+    "id": "warrior",
+    "name": "Warrior",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.66,
+    "scale": 1.48,
+    "actions": {
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 24
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 24
+      }
+    }
+  }
+}

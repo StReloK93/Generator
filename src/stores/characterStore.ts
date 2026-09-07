@@ -7,6 +7,7 @@ import { useTowerStore } from './towerStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { gridToScreen } from '../utils/isometric'
+import characterManifest from '../assets/generated/characterManifest.json'
 
 export interface DoorInfo {
   id: string
@@ -22,7 +23,8 @@ export interface DoorInfo {
   spawnRow: number
 }
 
-export type CharacterAction = 'Idle' | 'Run' | 'Pickup'
+export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
+export type CharacterModel = 'male' | 'warrior' | (string & {})
 
 export interface WaveConfig {
   waveNumber: number
@@ -32,6 +34,7 @@ export interface WaveConfig {
   unitCount: number
   isBoss: boolean
   goldReward: number
+  characterModel?: CharacterModel
 }
 
 export interface CharacterUnit {
@@ -47,6 +50,7 @@ export interface CharacterUnit {
   screenY: number
   direction: number // 0..7
   action: CharacterAction
+  characterModel?: CharacterModel
   frameIndex: number
   animTimer: number
   pathIndex: number
@@ -77,6 +81,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const pairDistance = ref(0.35) // Constant spatial distance in tiles between consecutive pairs (tight and dense!)
   const followCamera = ref(false)
   const showPathTrail = ref(true)
+  const showSpawnPoints = ref(true)
   const autoLoop = ref(true)
 
   // Game Mode & Economy State (Configured per map in mapStore.project.gameSettings)
@@ -579,9 +584,17 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function setWaveGoldReward(reward: number) {
     if (currentWaveConfig.value) {
-      currentWaveConfig.value.goldReward = reward
+      currentWaveConfig.value.goldReward = Math.min(100, Math.max(1, reward))
     }
     syncWavesToProject()
+  }
+
+  function setWaveCharacterModel(model: CharacterModel) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.characterModel = model
+    }
+    syncWavesToProject()
+    resetTour()
   }
 
   function updateWaveConfig(idx: number, updates: Partial<WaveConfig>) {
@@ -650,7 +663,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const p = mapStore.project as any
     const waves = p.waveConfigs || p.waveData?.waveConfigs || []
     if (waves && Array.isArray(waves) && waves.length > 0) {
-      waveConfigs.value = waves.map((w: any) => ({ ...w }))
+      waveConfigs.value = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
     restoreGameSettingsFromProject()
@@ -661,7 +674,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const prevWave = waveConfigs.value[waveConfigs.value.length - 1]
     const baseHp = prevWave ? Math.round(prevWave.unitHp * 1.5) : 200
     const baseCount = prevWave ? Math.min(50, prevWave.unitCount + 2) : 10
-    const baseReward = prevWave ? Math.round(prevWave.goldReward * 1.4) : 80
+    const baseReward = prevWave ? Math.min(100, Math.max(1, Math.round(prevWave.goldReward * 1.4))) : 50
 
     waveConfigs.value.push({
       waveNumber: nextNum,
@@ -671,6 +684,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       unitCount: baseCount,
       isBoss: nextNum % 5 === 0,
       goldReward: baseReward,
+      characterModel: prevWave?.characterModel || 'male',
     })
 
     syncWavesToProject()
@@ -686,6 +700,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
     })
     syncWavesToProject()
     selectWave(Math.max(0, idx - 1))
+  }
+
+  function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
+    const meta = (characterManifest as any)?.[String(model || 'male').toLowerCase()]
+    if (!meta || !meta.actions) {
+      return model === 'warrior' ? 24 : 10
+    }
+    const actions = Object.values(meta.actions) as any[]
+    const act = actions.find((a: any) => a.id.toLowerCase() === action.toLowerCase())
+      || actions.find((a: any) => action.toLowerCase() === 'run' && /run|walk|sprint|move/i.test(a.id))
+      || actions.find((a: any) => action.toLowerCase() === 'idle' && /idle|stand|wait/i.test(a.id))
+      || actions.find((a: any) => action.toLowerCase() === 'pickup' && /die|death|dead|pickup|hit|collapse/i.test(a.id))
+      || actions[0]
+    return act?.frameCount || (model === 'warrior' ? 24 : 10)
   }
 
   // --- MULTI-UNIT CROWD INITIALIZATION & SPAWNING ---
@@ -704,6 +732,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const waveCfg = currentWaveConfig.value
     const count = Math.max(1, Math.min(100, waveCfg ? waveCfg.unitCount : spawnCount.value))
     const isPairFormation = formation.value === 'pairs'
+    const model: CharacterModel = (waveCfg?.characterModel as CharacterModel) || 'male'
+    const initialMaxFrames = getModelActionFrameCount(model, 'Run')
 
     const activeDoorsToSpawn = (spawnMode.value === 'all_doors' && detectedDoors.value.length > 1)
       ? detectedDoors.value.map((_, idx) => idx)
@@ -737,7 +767,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
           screenY: startScreen.y,
           direction: 2,
           action: 'Idle',
-          frameIndex: (i * 2) % 10,
+          characterModel: model,
+          frameIndex: (i * 2) % initialMaxFrames,
           animTimer: 0,
           pathIndex: 0,
           pathInterpolation: 0,
@@ -852,7 +883,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
           unit.animTimer += deltaSec
           if (unit.animTimer >= 0.15) {
             unit.animTimer = 0
-            unit.frameIndex = (unit.frameIndex + 1) % 4
+            const maxIdle = getModelActionFrameCount(unit.characterModel, 'Idle')
+            unit.frameIndex = (unit.frameIndex + 1) % maxIdle
           }
         }
       }
@@ -885,7 +917,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
         unit.animTimer += deltaSec
         if (unit.animTimer >= 0.08) {
           unit.animTimer = 0
-          if (unit.frameIndex < 4) {
+          const maxDead = getModelActionFrameCount(unit.characterModel, 'Pickup')
+          if (unit.frameIndex < maxDead) {
             unit.frameIndex++
           }
         }
@@ -930,7 +963,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
         unit.animTimer += deltaSec
         if (unit.animTimer >= 0.1) {
           unit.animTimer = 0
-          unit.frameIndex = (unit.frameIndex + 1) % 10
+          const maxAction = getModelActionFrameCount(unit.characterModel, 'Pickup')
+          unit.frameIndex = (unit.frameIndex + 1) % maxAction
         }
         unit.currentCol = route[route.length - 1].col
         unit.currentRow = route[route.length - 1].row
@@ -985,10 +1019,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       // Animation frame duration
       unit.animTimer += deltaSec
-      const frameDuration = 0.07 / Math.min(5, unitBaseSpeed / 2.5)
+      const maxRun = getModelActionFrameCount(unit.characterModel, 'Run')
+      const frameDuration = (maxRun > 15 ? 0.04 : 0.07) / Math.min(5, unitBaseSpeed / 2.5)
       if (unit.animTimer >= frameDuration) {
         unit.animTimer = 0
-        unit.frameIndex = (unit.frameIndex + 1) % 10
+        unit.frameIndex = (unit.frameIndex + 1) % maxRun
       }
     }
 
@@ -1096,14 +1131,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     startTour()
   }
 
-  function testWave(idx?: number) {
-    towerStore.clearCombatEffects()
-    if (idx !== undefined) {
-      selectWave(idx)
-    }
-    spawnAtDoor(0)
-    startTour()
-  }
 
   function restartGame() {
     towerStore.restoreEditorTowersSnapshot()
@@ -1210,6 +1237,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     pairDistance,
     followCamera,
     showPathTrail,
+    showSpawnPoints,
     autoLoop,
     isDrawingRoute,
     drawingPath,
@@ -1248,6 +1276,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setWaveUnitHp,
     setWaveSpeed,
     setWaveGoldReward,
+    setWaveCharacterModel,
     updateWaveConfig,
     addNewWave,
     deleteWave,
@@ -1262,7 +1291,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     startPlayMode,
     exitPlayMode,
     startNextWaveInGame,
-    testWave,
     restartGame,
     deleteCurrentRoute,
     isWaveSaveFeedback,

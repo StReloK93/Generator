@@ -5,13 +5,13 @@
     subtitle="Choose any sprite from the library and configure its combat parameters"
     :icon="Plus"
     icon-color="amber"
-    size="3xl"
+    size="4xl"
     @close="closeModal"
   >
     <div class="flex flex-col gap-3.5 select-none">
       
       <!-- 1. Visual Asset Image Selector with Live Preview, Categories & Search -->
-      <UiCard variant="amber" padding="sm" custom-class="flex flex-col gap-2.5">
+      <UiCard variant="amber" padding="sm" custom-class="flex flex-col gap-3">
         <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-amber-500/20">
           <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold text-amber-300">1. Select Tower Appearance</span>
@@ -22,67 +22,69 @@
           </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+        <!-- Search & Category Filters (Full Width Row) -->
+        <div class="flex items-center gap-2 flex-wrap justify-between">
+          <UiInput
+            v-model="assetSearchQuery"
+            placeholder="Search sprites (wall, tower, stone)..."
+            :leading-icon="Search"
+            size="sm"
+            clearable
+            custom-class="w-full sm:w-72"
+          />
+
+          <!-- Category Pills -->
+          <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
+            <button
+              v-for="cat in categories"
+              :key="cat.id"
+              type="button"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer select-none"
+              :class="selectedCategory === cat.id 
+                ? 'bg-amber-500 text-slate-950 font-black shadow-sm' 
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
+              @click="selectedCategory = cat.id"
+            >
+              {{ cat.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview & Sprites Grid (Matched 1-to-1 with Select Tower Sprite modal) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
           <!-- Left: Big Live Preview Box -->
-          <div class="md:col-span-4 flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner h-36 relative overflow-hidden checker-pattern">
+          <div class="md:col-span-4 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 checker-pattern h-60 relative overflow-hidden shadow-inner">
             <img 
               v-if="selectedAssetPreview"
               :src="selectedAssetPreview" 
               :alt="selectedAsset?.name"
-              class="max-w-full max-h-full object-contain filter drop-shadow-xl scale-105"
+              class="w-full h-full object-contain filter drop-shadow-xl"
             />
             <div v-else class="text-slate-500 text-xs font-mono text-center">
               No sprite selected
             </div>
-            <div v-if="selectedAsset" class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/90 text-amber-300 font-mono text-[8px] border border-slate-700">
-              {{ selectedAsset.category || 'Sprite' }}
+            <div v-if="selectedAsset" class="absolute bottom-2 inset-x-2 px-2.5 py-1 rounded-xl bg-slate-900/95 border border-slate-700 text-center shadow-md">
+              <span class="text-xs font-bold text-amber-300 truncate block">{{ selectedAsset.name }}</span>
             </div>
           </div>
 
-          <!-- Right: Search, Category Tabs & Sprites Grid -->
-          <div class="md:col-span-8 flex flex-col gap-1.5">
-            <!-- Search & Categories -->
-            <div class="flex items-center gap-1.5">
-              <UiInput
-                v-model="assetSearchQuery"
-                placeholder="Search sprites..."
-                :leading-icon="Search"
-                size="sm"
-                clearable
-                custom-class="flex-1"
-              />
-            </div>
-
-            <!-- Category Pills -->
-            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-              <button
-                v-for="cat in categories"
-                :key="cat.id"
-                type="button"
-                class="px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer select-none"
-                :class="selectedCategory === cat.id 
-                  ? 'bg-amber-500 text-slate-950 font-black shadow-sm' 
-                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
-                @click="selectedCategory = cat.id"
-              >
-                {{ cat.label }}
-              </button>
-            </div>
-
-            <!-- Assets Grid -->
-            <div class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-24 overflow-y-auto custom-scrollbar p-1.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <!-- Right: Spacious Sprites Grid -->
+          <div class="md:col-span-8 max-h-60 overflow-y-auto custom-scrollbar p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
               <div 
                 v-for="asset in filteredAssets" 
                 :key="asset.id"
-                :class="selectedAsset?.id === asset.id ? 'ring-2 ring-amber-400 bg-amber-500/30 border-amber-400 scale-105' : 'bg-slate-950 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900'"
-                class="flex flex-col items-center justify-center p-1 rounded-lg border transition-all cursor-pointer group aspect-square select-none overflow-hidden"
+                :class="selectedAsset?.id === asset.id 
+                  ? 'ring-2 ring-amber-400 bg-amber-500/30 border-amber-400 scale-105' 
+                  : 'hover:bg-slate-800/80 bg-slate-950/80 border border-slate-800/80'"
+                class="aspect-square p-2.5 rounded-xl flex items-center justify-center cursor-pointer transition-all overflow-hidden group select-none"
                 :title="asset.name"
                 @click="selectAsset(asset)"
               >
                 <img 
                   :src="getAssetThumbnail(asset)" 
                   :alt="asset.name"
-                  class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform pointer-events-none" 
+                  class="w-full h-full object-contain pointer-events-none group-hover:scale-110 transition-transform" 
                   loading="lazy"
                 />
               </div>
@@ -256,9 +258,12 @@ const categories = [
 
 const projectileTypes = [
   { id: 'fireball', name: 'Fireball', icon: '🔥' },
+  { id: 'arrow', name: 'Arrow', icon: '🏹' },
   { id: 'magic_bolt', name: 'Magic Bolt', icon: '⚡' },
   { id: 'cannonball', name: 'Cannonball', icon: '💣' },
-  { id: 'arrow', name: 'Arrow', icon: '🏹' },
+  { id: 'frost_bolt', name: 'Frost Bolt', icon: '❄️' },
+  { id: 'laser', name: 'Laser Beam', icon: '🔴' },
+  { id: 'missile', name: 'Missile', icon: '🚀' },
 ]
 
 function getAssetThumbnail(asset: AssetItem | any): string {
@@ -330,7 +335,7 @@ function closeModal() {
 
 function handleCreateTower() {
   if (!form.value.name.trim()) {
-    notify.warning("Iltimos, minora nomini kiriting!", "Nom kiritilmadi")
+    notify.warning("Please enter a tower name!", "Name Required")
     return
   }
 
@@ -350,6 +355,15 @@ function handleCreateTower() {
   } else if (form.value.projectileType === 'arrow') {
     projColor = 0xd97706
     projSpeed = 18.0
+  } else if (form.value.projectileType === 'frost_bolt') {
+    projColor = 0x06b6d4
+    projSpeed = 14.0
+  } else if (form.value.projectileType === 'laser') {
+    projColor = 0xec4899
+    projSpeed = 26.0
+  } else if (form.value.projectileType === 'missile') {
+    projColor = 0xe11d48
+    projSpeed = 12.0
   }
 
   const newBlueprint = {
@@ -372,7 +386,7 @@ function handleCreateTower() {
   }
 
   towerStore.addNewBlueprint(newBlueprint)
-  notify.success(`"${newBlueprint.name}" minorasi muvaffaqiyatli yaratildi!`)
+  notify.success(`Tower "${newBlueprint.name}" created successfully!`)
   closeModal()
 }
 </script>

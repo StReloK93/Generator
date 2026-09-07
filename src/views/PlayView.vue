@@ -351,7 +351,7 @@ async function handleCreateRoom() {
       
       const waves = rawData.waveData?.waveConfigs || rawData.waveConfigs || proj.waveConfigs || []
       if (waves && waves.length > 0) {
-        characterStore.waveConfigs = waves.map((w: any) => ({ ...w }))
+        characterStore.waveConfigs = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
       }
       
       const towers = rawData.towerData?.towerBlueprints || rawData.towerBlueprints || proj.towerBlueprints || []

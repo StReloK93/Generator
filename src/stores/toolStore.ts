@@ -25,9 +25,9 @@ export const useToolStore = defineStore('toolStore', () => {
   const isExportModalOpen = ref<boolean>(false)
   const isShortcutsModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
-  const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'placed' | 'spawns'>('towers')
+  const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'spawns'>('towers')
 
-  function openGameConfig(tab?: 'towers' | 'waves' | 'balance' | 'placed' | 'spawns') {
+  function openGameConfig(tab?: 'towers' | 'waves' | 'balance' | 'spawns') {
     if (tab) gameConfigActiveTab.value = tab
     isGameConfigModalOpen.value = true
   }

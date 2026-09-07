@@ -203,7 +203,7 @@ import { useAssetStore } from '../stores/assetStore'
 import { useToolStore } from '../stores/toolStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
-import { importProjectFromJson } from '../utils/exportHelpers'
+import { importProjectFromJson, normalizeTileItem } from '../utils/exportHelpers'
 import { 
   getRecentProjects, 
   saveRecentProject, 
@@ -355,8 +355,22 @@ async function applyMapProject(rawData: any) {
     if (!clonedProject.id) {
       clonedProject.id = `proj-${Date.now()}`
     }
+
+    // Normalize all compact tile items to full TileItem model
+    if (clonedProject.layers) {
+      for (const layer of clonedProject.layers) {
+        if (layer.tiles) {
+          for (const [key, items] of Object.entries(layer.tiles)) {
+            const [col, row] = key.split(',').map(Number)
+            const itemArr = Array.isArray(items) ? items : [items]
+            layer.tiles[key] = itemArr.map((item: any) => normalizeTileItem(item, col, row))
+          }
+        }
+      }
+    }
+
     mapStore.project = clonedProject
-    mapStore.activeLayerId = project.layers[0]?.id || 'layer-ground'
+    mapStore.activeLayerId = clonedProject.layers?.[0]?.id || 'layer-ground'
 
     if (data.assets && data.assets.length > 0) {
       assetStore.reconcileImportedAssets(data.assets)
@@ -393,7 +407,7 @@ async function applyMapProject(rawData: any) {
       currentWaveIndex: (project as any).currentWaveIndex ?? 0,
     }
     if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
-      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({ ...w }))
+      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
       characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
       ;(mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
     }

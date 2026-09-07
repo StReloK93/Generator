@@ -384,7 +384,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w }))
+          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
         }
         if (msg.payload.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))

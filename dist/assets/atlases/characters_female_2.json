@@ -1,0 +1,5913 @@
+{
+  "frames": {
+    "Female_3_Idle14": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 79,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 79,
+        "w": 79,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword14": {
+      "frame": {
+        "x": 83,
+        "y": 2,
+        "w": 79,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 79,
+        "w": 79,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword15": {
+      "frame": {
+        "x": 164,
+        "y": 2,
+        "w": 79,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 79,
+        "w": 79,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle15": {
+      "frame": {
+        "x": 245,
+        "y": 2,
+        "w": 79,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 79,
+        "w": 79,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword15": {
+      "frame": {
+        "x": 326,
+        "y": 2,
+        "w": 79,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 79,
+        "w": 79,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword14": {
+      "frame": {
+        "x": 407,
+        "y": 2,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 63,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run14": {
+      "frame": {
+        "x": 490,
+        "y": 2,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 63,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Run_Sword14": {
+      "frame": {
+        "x": 573,
+        "y": 2,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 63,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword3": {
+      "frame": {
+        "x": 656,
+        "y": 2,
+        "w": 85,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 62,
+        "w": 85,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run3": {
+      "frame": {
+        "x": 743,
+        "y": 2,
+        "w": 85,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 62,
+        "w": 85,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Run_Sword3": {
+      "frame": {
+        "x": 830,
+        "y": 2,
+        "w": 85,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 62,
+        "w": 85,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword11": {
+      "frame": {
+        "x": 917,
+        "y": 2,
+        "w": 106,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 67,
+        "w": 106,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run11": {
+      "frame": {
+        "x": 1025,
+        "y": 2,
+        "w": 106,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 67,
+        "w": 106,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Run_Sword11": {
+      "frame": {
+        "x": 1133,
+        "y": 2,
+        "w": 106,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 67,
+        "w": 106,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword12": {
+      "frame": {
+        "x": 1241,
+        "y": 2,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 65,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run12": {
+      "frame": {
+        "x": 1350,
+        "y": 2,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 65,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Run_Sword12": {
+      "frame": {
+        "x": 1459,
+        "y": 2,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 65,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run_Sword13": {
+      "frame": {
+        "x": 1568,
+        "y": 2,
+        "w": 69,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 69,
+        "w": 69,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run13": {
+      "frame": {
+        "x": 1639,
+        "y": 2,
+        "w": 69,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 69,
+        "w": 69,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Run_Sword13": {
+      "frame": {
+        "x": 1710,
+        "y": 2,
+        "w": 69,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 69,
+        "w": 69,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run_Sword14": {
+      "frame": {
+        "x": 1781,
+        "y": 2,
+        "w": 67,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 70,
+        "w": 67,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run14": {
+      "frame": {
+        "x": 1850,
+        "y": 2,
+        "w": 67,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 70,
+        "w": 67,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Run_Sword14": {
+      "frame": {
+        "x": 1919,
+        "y": 2,
+        "w": 67,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 70,
+        "w": 67,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword7": {
+      "frame": {
+        "x": 2,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 55,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run7": {
+      "frame": {
+        "x": 79,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 55,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_247_Run_Sword7": {
+      "frame": {
+        "x": 156,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 55,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword0": {
+      "frame": {
+        "x": 342,
+        "y": 135,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 48,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run0": {
+      "frame": {
+        "x": 560,
+        "y": 135,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 48,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_270_Run_Sword0": {
+      "frame": {
+        "x": 778,
+        "y": 135,
+        "w": 107,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 48,
+        "w": 107,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword19": {
+      "frame": {
+        "x": 887,
+        "y": 135,
+        "w": 104,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 48,
+        "w": 104,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run19": {
+      "frame": {
+        "x": 993,
+        "y": 135,
+        "w": 104,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 48,
+        "w": 104,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_270_Run_Sword19": {
+      "frame": {
+        "x": 1099,
+        "y": 135,
+        "w": 104,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 48,
+        "w": 104,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword7": {
+      "frame": {
+        "x": 1205,
+        "y": 135,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 51,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run7": {
+      "frame": {
+        "x": 1288,
+        "y": 135,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 51,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Run_Sword7": {
+      "frame": {
+        "x": 1371,
+        "y": 135,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 51,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword18": {
+      "frame": {
+        "x": 1454,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 50,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run18": {
+      "frame": {
+        "x": 1531,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 50,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Run_Sword18": {
+      "frame": {
+        "x": 1608,
+        "y": 135,
+        "w": 75,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 50,
+        "w": 75,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run_Sword5": {
+      "frame": {
+        "x": 1975,
+        "y": 928,
+        "w": 62,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 57,
+        "w": 62,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run5": {
+      "frame": {
+        "x": 2,
+        "y": 1059,
+        "w": 62,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 57,
+        "w": 62,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Run_Sword5": {
+      "frame": {
+        "x": 1851,
+        "y": 135,
+        "w": 81,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 50,
+        "w": 81,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword0": {
+      "frame": {
+        "x": 1240,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle0": {
+      "frame": {
+        "x": 1483,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle": {
+      "frame": {
+        "x": 1402,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword0": {
+      "frame": {
+        "x": 402,
+        "y": 268,
+        "w": 78,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 78,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword1": {
+      "frame": {
+        "x": 1070,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle1": {
+      "frame": {
+        "x": 1151,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword1": {
+      "frame": {
+        "x": 642,
+        "y": 268,
+        "w": 78,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 78,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword2": {
+      "frame": {
+        "x": 1313,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle2": {
+      "frame": {
+        "x": 1394,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword2": {
+      "frame": {
+        "x": 880,
+        "y": 268,
+        "w": 77,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 77,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword3": {
+      "frame": {
+        "x": 1556,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle3": {
+      "frame": {
+        "x": 1637,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword3": {
+      "frame": {
+        "x": 1117,
+        "y": 268,
+        "w": 77,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 77,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword11": {
+      "frame": {
+        "x": 248,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle11": {
+      "frame": {
+        "x": 330,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword11": {
+      "frame": {
+        "x": 1354,
+        "y": 268,
+        "w": 77,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 77,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword12": {
+      "frame": {
+        "x": 494,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle12": {
+      "frame": {
+        "x": 575,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword12": {
+      "frame": {
+        "x": 1591,
+        "y": 268,
+        "w": 77,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 77,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword13": {
+      "frame": {
+        "x": 737,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle13": {
+      "frame": {
+        "x": 818,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword13": {
+      "frame": {
+        "x": 1828,
+        "y": 268,
+        "w": 77,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 77,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword14": {
+      "frame": {
+        "x": 980,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle14": {
+      "frame": {
+        "x": 1061,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword14": {
+      "frame": {
+        "x": 82,
+        "y": 400,
+        "w": 78,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 78,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword15": {
+      "frame": {
+        "x": 1726,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle15": {
+      "frame": {
+        "x": 1807,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Idle_Sword15": {
+      "frame": {
+        "x": 322,
+        "y": 400,
+        "w": 78,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 72,
+        "w": 78,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword0": {
+      "frame": {
+        "x": 1586,
+        "y": 1059,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle0": {
+      "frame": {
+        "x": 1805,
+        "y": 1059,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle": {
+      "frame": {
+        "x": 1732,
+        "y": 1059,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword0": {
+      "frame": {
+        "x": 888,
+        "y": 400,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 76,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword1": {
+      "frame": {
+        "x": 2,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle1": {
+      "frame": {
+        "x": 75,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword1": {
+      "frame": {
+        "x": 1131,
+        "y": 400,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 76,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword2": {
+      "frame": {
+        "x": 221,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle2": {
+      "frame": {
+        "x": 294,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword2": {
+      "frame": {
+        "x": 1376,
+        "y": 400,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword3": {
+      "frame": {
+        "x": 440,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle3": {
+      "frame": {
+        "x": 512,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword3": {
+      "frame": {
+        "x": 1620,
+        "y": 400,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword12": {
+      "frame": {
+        "x": 364,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle12": {
+      "frame": {
+        "x": 437,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword12": {
+      "frame": {
+        "x": 1865,
+        "y": 400,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword13": {
+      "frame": {
+        "x": 583,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle13": {
+      "frame": {
+        "x": 656,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword13": {
+      "frame": {
+        "x": 84,
+        "y": 532,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword14": {
+      "frame": {
+        "x": 802,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle14": {
+      "frame": {
+        "x": 875,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword14": {
+      "frame": {
+        "x": 328,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 76,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword15": {
+      "frame": {
+        "x": 1021,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle15": {
+      "frame": {
+        "x": 1094,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Idle_Sword15": {
+      "frame": {
+        "x": 571,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 76,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword2": {
+      "frame": {
+        "x": 652,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle2": {
+      "frame": {
+        "x": 733,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword2": {
+      "frame": {
+        "x": 814,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword3": {
+      "frame": {
+        "x": 895,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle3": {
+      "frame": {
+        "x": 976,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword3": {
+      "frame": {
+        "x": 1057,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword12": {
+      "frame": {
+        "x": 1138,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle12": {
+      "frame": {
+        "x": 1219,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword12": {
+      "frame": {
+        "x": 1300,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword13": {
+      "frame": {
+        "x": 1381,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle13": {
+      "frame": {
+        "x": 1462,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword13": {
+      "frame": {
+        "x": 1543,
+        "y": 532,
+        "w": 79,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 80,
+        "w": 79,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword6": {
+      "frame": {
+        "x": 884,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle6": {
+      "frame": {
+        "x": 977,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword6": {
+      "frame": {
+        "x": 1804,
+        "y": 532,
+        "w": 88,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 59,
+        "w": 88,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword7": {
+      "frame": {
+        "x": 1163,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle7": {
+      "frame": {
+        "x": 1256,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword7": {
+      "frame": {
+        "x": 93,
+        "y": 664,
+        "w": 89,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 59,
+        "w": 89,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword8": {
+      "frame": {
+        "x": 1442,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle8": {
+      "frame": {
+        "x": 1535,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword8": {
+      "frame": {
+        "x": 364,
+        "y": 664,
+        "w": 88,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 59,
+        "w": 88,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword6": {
+      "frame": {
+        "x": 454,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle6": {
+      "frame": {
+        "x": 537,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword6": {
+      "frame": {
+        "x": 620,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword7": {
+      "frame": {
+        "x": 703,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle7": {
+      "frame": {
+        "x": 786,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword7": {
+      "frame": {
+        "x": 869,
+        "y": 664,
+        "w": 81,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 81,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword8": {
+      "frame": {
+        "x": 952,
+        "y": 664,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle8": {
+      "frame": {
+        "x": 1034,
+        "y": 664,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword8": {
+      "frame": {
+        "x": 1116,
+        "y": 664,
+        "w": 80,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 80,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run_Sword19": {
+      "frame": {
+        "x": 1198,
+        "y": 664,
+        "w": 70,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 70,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run19": {
+      "frame": {
+        "x": 1270,
+        "y": 664,
+        "w": 70,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 70,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Run_Sword19": {
+      "frame": {
+        "x": 1342,
+        "y": 664,
+        "w": 70,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 70,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword4": {
+      "frame": {
+        "x": 1414,
+        "y": 664,
+        "w": 71,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 71,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run4": {
+      "frame": {
+        "x": 1487,
+        "y": 664,
+        "w": 71,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 71,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Run_Sword4": {
+      "frame": {
+        "x": 1560,
+        "y": 664,
+        "w": 71,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 71,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword9": {
+      "frame": {
+        "x": 1633,
+        "y": 664,
+        "w": 72,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 70,
+        "w": 72,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run9": {
+      "frame": {
+        "x": 1707,
+        "y": 664,
+        "w": 72,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 70,
+        "w": 72,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_022_Run_Sword9": {
+      "frame": {
+        "x": 1781,
+        "y": 664,
+        "w": 72,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 70,
+        "w": 72,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run_Sword15": {
+      "frame": {
+        "x": 1855,
+        "y": 664,
+        "w": 64,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 72,
+        "w": 64,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Run15": {
+      "frame": {
+        "x": 1921,
+        "y": 664,
+        "w": 64,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 72,
+        "w": 64,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Run_Sword15": {
+      "frame": {
+        "x": 2,
+        "y": 796,
+        "w": 64,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 72,
+        "w": 64,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword18": {
+      "frame": {
+        "x": 68,
+        "y": 796,
+        "w": 98,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 51,
+        "w": 98,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run18": {
+      "frame": {
+        "x": 168,
+        "y": 796,
+        "w": 98,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 51,
+        "w": 98,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_247_Run_Sword18": {
+      "frame": {
+        "x": 268,
+        "y": 796,
+        "w": 98,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 51,
+        "w": 98,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword16": {
+      "frame": {
+        "x": 368,
+        "y": 796,
+        "w": 123,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 45,
+        "w": 123,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run16": {
+      "frame": {
+        "x": 493,
+        "y": 796,
+        "w": 123,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 45,
+        "w": 123,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_270_Run_Sword16": {
+      "frame": {
+        "x": 618,
+        "y": 796,
+        "w": 123,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 45,
+        "w": 123,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword6": {
+      "frame": {
+        "x": 743,
+        "y": 796,
+        "w": 107,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 47,
+        "w": 107,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run6": {
+      "frame": {
+        "x": 852,
+        "y": 796,
+        "w": 107,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 47,
+        "w": 107,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Run_Sword6": {
+      "frame": {
+        "x": 961,
+        "y": 796,
+        "w": 107,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 47,
+        "w": 107,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword13": {
+      "frame": {
+        "x": 1070,
+        "y": 796,
+        "w": 104,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 47,
+        "w": 104,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run13": {
+      "frame": {
+        "x": 1176,
+        "y": 796,
+        "w": 104,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 47,
+        "w": 104,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Run_Sword13": {
+      "frame": {
+        "x": 1282,
+        "y": 796,
+        "w": 104,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 47,
+        "w": 104,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword17": {
+      "frame": {
+        "x": 1388,
+        "y": 796,
+        "w": 103,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 46,
+        "w": 103,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run17": {
+      "frame": {
+        "x": 1493,
+        "y": 796,
+        "w": 103,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 46,
+        "w": 103,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Run_Sword17": {
+      "frame": {
+        "x": 1598,
+        "y": 796,
+        "w": 103,
+        "h": 130
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 46,
+        "w": 103,
+        "h": 130
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword4": {
+      "frame": {
+        "x": 1703,
+        "y": 796,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle4": {
+      "frame": {
+        "x": 1785,
+        "y": 796,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword4": {
+      "frame": {
+        "x": 1867,
+        "y": 796,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword10": {
+      "frame": {
+        "x": 1949,
+        "y": 796,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle10": {
+      "frame": {
+        "x": 2,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword10": {
+      "frame": {
+        "x": 84,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword11": {
+      "frame": {
+        "x": 166,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle11": {
+      "frame": {
+        "x": 248,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword11": {
+      "frame": {
+        "x": 330,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 81,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword4": {
+      "frame": {
+        "x": 412,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle4": {
+      "frame": {
+        "x": 501,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword4": {
+      "frame": {
+        "x": 590,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword5": {
+      "frame": {
+        "x": 679,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle5": {
+      "frame": {
+        "x": 768,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword5": {
+      "frame": {
+        "x": 857,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword9": {
+      "frame": {
+        "x": 946,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle9": {
+      "frame": {
+        "x": 1035,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword9": {
+      "frame": {
+        "x": 1124,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword10": {
+      "frame": {
+        "x": 1213,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle10": {
+      "frame": {
+        "x": 1302,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword10": {
+      "frame": {
+        "x": 1391,
+        "y": 928,
+        "w": 87,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 60,
+        "w": 87,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword5": {
+      "frame": {
+        "x": 1480,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle5": {
+      "frame": {
+        "x": 1562,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword5": {
+      "frame": {
+        "x": 1644,
+        "y": 928,
+        "w": 80,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 80,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword9": {
+      "frame": {
+        "x": 1726,
+        "y": 928,
+        "w": 81,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 81,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle9": {
+      "frame": {
+        "x": 1809,
+        "y": 928,
+        "w": 81,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 81,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword9": {
+      "frame": {
+        "x": 1892,
+        "y": 928,
+        "w": 81,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 68,
+        "w": 81,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Run_Sword5": {
+      "frame": {
+        "x": 66,
+        "y": 1059,
+        "w": 62,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 57,
+        "w": 62,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run_Sword8": {
+      "frame": {
+        "x": 130,
+        "y": 1059,
+        "w": 69,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 65,
+        "w": 69,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run8": {
+      "frame": {
+        "x": 201,
+        "y": 1059,
+        "w": 69,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 65,
+        "w": 69,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_000_Run_Sword8": {
+      "frame": {
+        "x": 272,
+        "y": 1059,
+        "w": 69,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 65,
+        "w": 69,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_4_Run_Sword12": {
+      "frame": {
+        "x": 607,
+        "y": 1059,
+        "w": 107,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 51,
+        "w": 107,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_4_Run12": {
+      "frame": {
+        "x": 716,
+        "y": 1059,
+        "w": 107,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 51,
+        "w": 107,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_202_Run_Sword12": {
+      "frame": {
+        "x": 519,
+        "y": 1059,
+        "w": 86,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 56,
+        "w": 86,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_225_Run_Sword12": {
+      "frame": {
+        "x": 825,
+        "y": 1059,
+        "w": 107,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 51,
+        "w": 107,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run_Sword3": {
+      "frame": {
+        "x": 934,
+        "y": 1059,
+        "w": 124,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 42,
+        "w": 124,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Run3": {
+      "frame": {
+        "x": 1060,
+        "y": 1059,
+        "w": 124,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 42,
+        "w": 124,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Run_Sword3": {
+      "frame": {
+        "x": 1186,
+        "y": 1059,
+        "w": 124,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 42,
+        "w": 124,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run_Sword15": {
+      "frame": {
+        "x": 1312,
+        "y": 1059,
+        "w": 65,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 56,
+        "w": 65,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Run15": {
+      "frame": {
+        "x": 1379,
+        "y": 1059,
+        "w": 65,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 56,
+        "w": 65,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Run_Sword15": {
+      "frame": {
+        "x": 1446,
+        "y": 1059,
+        "w": 65,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 56,
+        "w": 65,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword0": {
+      "frame": {
+        "x": 1951,
+        "y": 1059,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword1": {
+      "frame": {
+        "x": 148,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword2": {
+      "frame": {
+        "x": 367,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword3": {
+      "frame": {
+        "x": 584,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword4": {
+      "frame": {
+        "x": 656,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle4": {
+      "frame": {
+        "x": 729,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword4": {
+      "frame": {
+        "x": 802,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword5": {
+      "frame": {
+        "x": 875,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle5": {
+      "frame": {
+        "x": 947,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword5": {
+      "frame": {
+        "x": 1019,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword6": {
+      "frame": {
+        "x": 1091,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle6": {
+      "frame": {
+        "x": 1162,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword6": {
+      "frame": {
+        "x": 1233,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword7": {
+      "frame": {
+        "x": 1304,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle7": {
+      "frame": {
+        "x": 1375,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword7": {
+      "frame": {
+        "x": 1446,
+        "y": 1190,
+        "w": 69,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 69,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword8": {
+      "frame": {
+        "x": 1517,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle8": {
+      "frame": {
+        "x": 1589,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword8": {
+      "frame": {
+        "x": 1661,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword9": {
+      "frame": {
+        "x": 1733,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle9": {
+      "frame": {
+        "x": 1805,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword9": {
+      "frame": {
+        "x": 1877,
+        "y": 1190,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword10": {
+      "frame": {
+        "x": 1949,
+        "y": 1190,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle10": {
+      "frame": {
+        "x": 2,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword10": {
+      "frame": {
+        "x": 75,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle_Sword11": {
+      "frame": {
+        "x": 148,
+        "y": 1320,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Idle11": {
+      "frame": {
+        "x": 220,
+        "y": 1320,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword11": {
+      "frame": {
+        "x": 292,
+        "y": 1320,
+        "w": 70,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 70,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword12": {
+      "frame": {
+        "x": 510,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword13": {
+      "frame": {
+        "x": 729,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword14": {
+      "frame": {
+        "x": 948,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Idle_Sword15": {
+      "frame": {
+        "x": 1167,
+        "y": 1320,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 80,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword5": {
+      "frame": {
+        "x": 1240,
+        "y": 1320,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 82,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle5": {
+      "frame": {
+        "x": 1322,
+        "y": 1320,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 82,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword5": {
+      "frame": {
+        "x": 1404,
+        "y": 1320,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 82,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword9": {
+      "frame": {
+        "x": 1486,
+        "y": 1320,
+        "w": 81,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 81,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle9": {
+      "frame": {
+        "x": 1569,
+        "y": 1320,
+        "w": 81,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 81,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword9": {
+      "frame": {
+        "x": 1652,
+        "y": 1320,
+        "w": 81,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 81,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword2": {
+      "frame": {
+        "x": 1735,
+        "y": 1320,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle2": {
+      "frame": {
+        "x": 1824,
+        "y": 1320,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword2": {
+      "frame": {
+        "x": 1913,
+        "y": 1320,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword3": {
+      "frame": {
+        "x": 2,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle3": {
+      "frame": {
+        "x": 91,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword3": {
+      "frame": {
+        "x": 180,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword11": {
+      "frame": {
+        "x": 269,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle11": {
+      "frame": {
+        "x": 358,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword11": {
+      "frame": {
+        "x": 447,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword12": {
+      "frame": {
+        "x": 536,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle12": {
+      "frame": {
+        "x": 625,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword12": {
+      "frame": {
+        "x": 714,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword13": {
+      "frame": {
+        "x": 803,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle13": {
+      "frame": {
+        "x": 892,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword13": {
+      "frame": {
+        "x": 981,
+        "y": 1450,
+        "w": 87,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 61,
+        "w": 87,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword1": {
+      "frame": {
+        "x": 1232,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword2": {
+      "frame": {
+        "x": 1475,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword3": {
+      "frame": {
+        "x": 1718,
+        "y": 1450,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword4": {
+      "frame": {
+        "x": 1799,
+        "y": 1450,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle4": {
+      "frame": {
+        "x": 1881,
+        "y": 1450,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword4": {
+      "frame": {
+        "x": 1963,
+        "y": 1450,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle_Sword10": {
+      "frame": {
+        "x": 2,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_7_Idle10": {
+      "frame": {
+        "x": 84,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword10": {
+      "frame": {
+        "x": 166,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword11": {
+      "frame": {
+        "x": 412,
+        "y": 1580,
+        "w": 80,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 80,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword12": {
+      "frame": {
+        "x": 656,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword13": {
+      "frame": {
+        "x": 899,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword14": {
+      "frame": {
+        "x": 1142,
+        "y": 1580,
+        "w": 79,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 69,
+        "w": 79,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword10": {
+      "frame": {
+        "x": 1223,
+        "y": 1580,
+        "w": 89,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 69,
+        "w": 89,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run10": {
+      "frame": {
+        "x": 1314,
+        "y": 1580,
+        "w": 89,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 69,
+        "w": 89,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_045_Run_Sword10": {
+      "frame": {
+        "x": 1405,
+        "y": 1580,
+        "w": 89,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 69,
+        "w": 89,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_4_Run_Sword6": {
+      "frame": {
+        "x": 1496,
+        "y": 1580,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 69,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_4_Run6": {
+      "frame": {
+        "x": 1569,
+        "y": 1580,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 69,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_202_Run_Sword6": {
+      "frame": {
+        "x": 1642,
+        "y": 1580,
+        "w": 71,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 69,
+        "w": 71,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword8": {
+      "frame": {
+        "x": 1715,
+        "y": 1580,
+        "w": 72,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 54,
+        "w": 72,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run8": {
+      "frame": {
+        "x": 1789,
+        "y": 1580,
+        "w": 72,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 54,
+        "w": 72,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_247_Run_Sword8": {
+      "frame": {
+        "x": 1863,
+        "y": 1580,
+        "w": 72,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 54,
+        "w": 72,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run_Sword15": {
+      "frame": {
+        "x": 2,
+        "y": 1710,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 44,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_5_Run15": {
+      "frame": {
+        "x": 132,
+        "y": 1710,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 44,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_270_Run_Sword15": {
+      "frame": {
+        "x": 262,
+        "y": 1710,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 44,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword6": {
+      "frame": {
+        "x": 392,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle6": {
+      "frame": {
+        "x": 474,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword6": {
+      "frame": {
+        "x": 556,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle_Sword8": {
+      "frame": {
+        "x": 638,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_3_Idle8": {
+      "frame": {
+        "x": 720,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_157_Idle_Sword8": {
+      "frame": {
+        "x": 802,
+        "y": 1710,
+        "w": 80,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 83,
+        "w": 80,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Idle_Sword6": {
+      "frame": {
+        "x": 1070,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Idle_Sword7": {
+      "frame": {
+        "x": 1349,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_292_Idle_Sword8": {
+      "frame": {
+        "x": 1628,
+        "y": 1710,
+        "w": 91,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 53,
+        "w": 91,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword0": {
+      "frame": {
+        "x": 1810,
+        "y": 1710,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle0": {
+      "frame": {
+        "x": 91,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle": {
+      "frame": {
+        "x": 2,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword0": {
+      "frame": {
+        "x": 269,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword1": {
+      "frame": {
+        "x": 358,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle1": {
+      "frame": {
+        "x": 447,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword1": {
+      "frame": {
+        "x": 536,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword14": {
+      "frame": {
+        "x": 625,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle14": {
+      "frame": {
+        "x": 714,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword14": {
+      "frame": {
+        "x": 803,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle_Sword15": {
+      "frame": {
+        "x": 892,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_6_Idle15": {
+      "frame": {
+        "x": 981,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_315_Idle_Sword15": {
+      "frame": {
+        "x": 1070,
+        "y": 1840,
+        "w": 87,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 62,
+        "w": 87,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword0": {
+      "frame": {
+        "x": 1645,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_angle_337_Idle_Sword15": {
+      "frame": {
+        "x": 1888,
+        "y": 1840,
+        "w": 79,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 70,
+        "w": 79,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Female_0_Run_Sword19": {
+      "frame": {
+        "x": 1969,
+        "y": 1840,
+        "w": 76,
+        "h": 127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 67,
+        "w": 76,
+        "h": 127
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    }
+  },
+  "meta": {
+    "image": "characters_female_2.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

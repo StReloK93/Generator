@@ -5,8 +5,9 @@ import { useToolStore } from './toolStore'
 import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
+import { IsoEngine } from '../engine/IsoEngine'
 
-export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball'
+export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
 export type SplashType = 'constant' | 'falloff'
 
 export interface TowerBlueprint {
@@ -157,6 +158,15 @@ export const useTowerStore = defineStore('towerStore', () => {
     } else if (bp.projectileType === 'arrow') {
       bp.projectileColor = 0xd97706
       if (!bp.projectileSpeed || bp.projectileSpeed < 15) bp.projectileSpeed = 18.0
+    } else if (bp.projectileType === 'frost_bolt') {
+      bp.projectileColor = 0x06b6d4
+      if (!bp.projectileSpeed || bp.projectileSpeed < 12) bp.projectileSpeed = 14.0
+    } else if (bp.projectileType === 'laser') {
+      bp.projectileColor = 0xec4899
+      if (!bp.projectileSpeed || bp.projectileSpeed < 20) bp.projectileSpeed = 26.0
+    } else if (bp.projectileType === 'missile') {
+      bp.projectileColor = 0xe11d48
+      if (!bp.projectileSpeed || bp.projectileSpeed > 14) bp.projectileSpeed = 12.0
     }
 
     // Instantly update all placed towers on the map of this blueprint type in real-time!
@@ -674,17 +684,24 @@ export const useTowerStore = defineStore('towerStore', () => {
       // --- SPLASH DAMAGE ---
       const splashRadiusPx = proj.splashRadius * tileWidth * 0.65
 
-      // Add Explosion Ring VFX
-      explosionRings.value.push({
-        id: `ring-${Date.now()}-${Math.random()}`,
-        x: proj.targetX,
-        y: proj.targetY,
-        radius: 4,
-        maxRadius: splashRadiusPx,
-        color: proj.color || 0xf59e0b,
-        alpha: 0.9,
-        lifeTimer: 0,
-      })
+      // Add Explosion Ring VFX (Except for Arrow)
+      if (proj.projectileType !== 'arrow') {
+        let ringColor = proj.color || 0xf97316
+        if (proj.projectileType === 'frost_bolt') ringColor = 0x06b6d4
+        else if (proj.projectileType === 'laser') ringColor = 0xf43f5e
+        else if (proj.projectileType === 'magic_bolt') ringColor = 0x38bdf8
+
+        explosionRings.value.push({
+          id: `ring-${Date.now()}-${Math.random()}`,
+          x: proj.targetX,
+          y: proj.targetY,
+          radius: 4,
+          maxRadius: splashRadiusPx,
+          color: ringColor,
+          alpha: 0.9,
+          lifeTimer: 0,
+        })
+      }
 
       if (multiplayerStore.roomId && multiplayerStore.isHost) {
         multiplayerStore.queueCombatEvent({
@@ -721,6 +738,32 @@ export const useTowerStore = defineStore('towerStore', () => {
       const targetUnit = unitsPool.find(u => u.id === proj.targetUnitId)
       if (targetUnit && !targetUnit.isDead) {
         applyDamageToUnit(targetUnit, proj.damage, tower)
+      }
+    }
+
+    // Spawn Impact Spark Particles into IsoEngine (100% matched with TowerLivePreview)
+    if (IsoEngine.instance) {
+      const isArrow = proj.projectileType === 'arrow'
+      const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
+      let sparkColor = 0xfbbf24
+      if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
+      else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
+      else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
+      else if (isArrow) sparkColor = 0xe2e8f0
+
+      for (let s = 0; s < sparkCount; s++) {
+        const ang = Math.random() * Math.PI * 2
+        const spd = isArrow ? (15 + Math.random() * 40) : (30 + Math.random() * 90)
+        IsoEngine.instance.combatSparks.push({
+          x: proj.targetX,
+          y: proj.targetY,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd * 0.7,
+          color: sparkColor,
+          alpha: 1.0,
+          size: isArrow ? (1.5 + Math.random() * 1.5) : (2 + Math.random() * 2.5),
+          life: 0.35 + Math.random() * 0.25,
+        })
       }
     }
   }

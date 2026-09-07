@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { AssetItem } from '../types/map'
 import spriteManifestRaw from '../assets/generated/spriteManifest.json'
 import atlasIndexRaw from '../assets/generated/atlasIndex.json'
+import characterManifest from '../assets/generated/characterManifest.json'
 
 export type AssetBundleName = 'core' | 'structures' | 'props' | 'characters' | 'editor' | 'game'
 
@@ -218,6 +219,21 @@ class AssetManagerService {
     this.atlasRevision.value++
   }
 
+  // Canonical aliases for deduped assets
+  private static readonly ALIASES: Record<string, string> = {
+    fenceHigh_E: 'fenceHighBroken_E',
+    fenceHigh_N: 'fenceHighBroken_N',
+    fenceHigh_S: 'fenceHighBroken_S',
+    fenceHigh_W: 'fenceHighBroken_W',
+    bookcaseEmptyLadder_W: 'bookcaseBooks_W',
+    bookcaseEmpty_W: 'bookcaseBooks_W',
+    bookcaseWideEmpty_N: 'bookcaseWideBooks_N',
+    woodWallDiagional_N: 'woodWallCross_N',
+    woodWallDiagional_W: 'woodWallCross_W',
+    woodWall_N: 'woodWallCross_N',
+    woodWall_W: 'woodWallCross_W',
+  }
+
   // Fast O(1) Texture Retrieval
   public getTexture(assetIdOrName: string): Texture | null {
     if (!assetIdOrName) return null
@@ -234,12 +250,26 @@ class AssetManagerService {
       return this.textureMap.get(`sprite-${clean}`)!
     }
 
+    // Check canonical alias
+    const alias = AssetManagerService.ALIASES[clean]
+    if (alias) {
+      const aliasedTex = this.textureMap.get(alias) || this.textureMap.get(`sprite-${alias}`)
+      if (aliasedTex) return aliasedTex
+    }
+
     // Try Pixi Assets cache directly as fallback
     try {
       if (Assets.cache.has(assetIdOrName)) {
         const tex = Assets.get(assetIdOrName)
         if (tex instanceof Texture) {
           this.indexTexture(assetIdOrName, tex)
+          return tex
+        }
+      }
+      if (alias && Assets.cache.has(alias)) {
+        const tex = Assets.get(alias)
+        if (tex instanceof Texture) {
+          this.indexTexture(alias, tex)
           return tex
         }
       }
@@ -288,25 +318,143 @@ class AssetManagerService {
     }
   }
 
-  // Fast Character Frame Texture Lookup
+  // Fast Multi-Model Character Frame Texture Lookup
   public getCharacterTexture(
     direction: number | string,
     action: string = 'Idle',
-    frame: number | string = 0
+    frame: number | string = 0,
+    model: string = 'male'
   ): Texture | null {
+    const modelStr = String(model || 'male').toLowerCase()
+    const prefix = modelStr.charAt(0).toUpperCase() + modelStr.slice(1)
     const actionPrefix = action || 'Idle'
     const frameIndex = actionPrefix === 'Idle' ? '0' : frame
-    const key = `Male_${direction}_${actionPrefix}${frameIndex}`
 
+    // 1. Direct match: e.g. Female_2_Run0 or Female_2_Run_Sword0
+    const key = `${prefix}_${direction}_${actionPrefix}${frameIndex}`
     let tex = this.textureMap.get(key)
     if (tex) return tex
 
-    // Fallbacks
-    tex = this.textureMap.get(`Male_${direction}_Idle0`) ||
-          this.textureMap.get('Male_2_Idle0') ||
-          this.textureMap.get('Male_0_Idle0')
+    // 2. Action alias matching from manifest
+    const modelInfo = (characterManifest as any)?.[modelStr]
+    if (modelInfo && modelInfo.actions) {
+      const actions = Object.values(modelInfo.actions) as any[]
+      let matchedAct: any = null
+      const actLower = actionPrefix.toLowerCase()
+      if (actLower.includes('run') || actLower.includes('walk') || actLower.includes('move')) {
+        matchedAct = actions.find((a) => /run|walk|sprint|move/i.test(a.id))
+      } else if (actLower.includes('idle') || actLower.includes('stand') || actLower.includes('wait')) {
+        matchedAct = actions.find((a) => /idle|stand|wait/i.test(a.id))
+      } else if (actLower.includes('pickup') || actLower.includes('die') || actLower.includes('hit')) {
+        matchedAct = actions.find((a) => /pickup|die|death|hit|collapse/i.test(a.id))
+      }
+
+      if (matchedAct && matchedAct.id !== actionPrefix) {
+        tex = this.textureMap.get(`${prefix}_${direction}_${matchedAct.id}${frameIndex}`)
+        if (tex) return tex
+        tex = this.textureMap.get(`${prefix}_${direction}_${matchedAct.id}0`)
+        if (tex) return tex
+      }
+
+      // First action in model manifest fallback
+      if (!tex && actions.length > 0) {
+        const firstAct = actions[0]
+        tex = this.textureMap.get(`${prefix}_${direction}_${firstAct.id}${frameIndex}`) ||
+              this.textureMap.get(`${prefix}_${direction}_${firstAct.id}0`)
+        if (tex) return tex
+      }
+    }
+
+    // 3. Fallbacks for this model:
+    tex = this.textureMap.get(`${prefix}_${direction}_Run${frameIndex}`) ||
+          this.textureMap.get(`${prefix}_${direction}_Run0`) ||
+          this.textureMap.get(`${prefix}_${direction}_Idle${frameIndex}`) ||
+          this.textureMap.get(`${prefix}_${direction}_Idle0`) ||
+          this.textureMap.get(`${prefix}_2_Idle0`) ||
+          this.textureMap.get(`${prefix}_0_Idle0`)
+    if (tex) return tex
+
+    // 4. Global Fallbacks
+    tex = this.textureMap.get(`Male_${direction}_${actionPrefix}${frameIndex}`) ||
+          this.textureMap.get(`Male_${direction}_Idle0`) ||
+          this.textureMap.get('Male_2_Idle0')
 
     return tex || null
+  }
+
+  // Fast Character Frame Data URL for 2D Canvas Previews
+  public getCharacterPreviewDataUrl(
+    model: string = 'male',
+    direction: number | string = 2,
+    action: string = 'Idle',
+    frame: number | string = 0
+  ): string {
+    const modelStr = String(model || 'male')
+    const prefix = modelStr.charAt(0).toUpperCase() + modelStr.slice(1)
+    const actionPrefix = action || 'Idle'
+    const frameIndex = actionPrefix === 'Idle' ? '0' : frame
+    const key = `${prefix}_${direction}_${actionPrefix}${frameIndex}`
+
+    const cached = this.previewCache.get(key)
+    if (cached) return cached
+
+    return this.getPreviewDataUrl(key) || this.getPreviewDataUrl(`${prefix}_${direction}_Idle0`) || this.getPreviewDataUrl(`${prefix}_2_Idle0`)
+  }
+
+  // Extract full untrimmed/stabilized positioned character frame for non-jumping preview
+  public getCharacterStabilizedPreview(
+    model: string = 'male',
+    direction: number | string = 2,
+    action: string = 'Idle',
+    frame: number | string = 0
+  ): { dataUrl: string; width: number; height: number; anchorX: number; anchorY: number } | null {
+    const modelStr = String(model || 'male')
+    const prefix = modelStr.charAt(0).toUpperCase() + modelStr.slice(1)
+    const actionPrefix = action || 'Idle'
+    const frameIndex = actionPrefix === 'Idle' ? '0' : frame
+    const key = `${prefix}_${direction}_${actionPrefix}${frameIndex}`
+    const fullKey = `stabilized_${key}`
+
+    const modelInfo = (characterManifest as any)?.[modelStr.toLowerCase()]
+    const defaultAnchorX = modelInfo?.anchorX ?? 0.5
+    const defaultAnchorY = modelInfo?.anchorY ?? (modelStr.toLowerCase() === 'male' ? 0.898 : 0.67)
+    const origW = modelInfo?.cellWidth ?? 256
+    const origH = modelInfo?.cellHeight ?? (modelStr.toLowerCase() === 'male' ? 512 : 256)
+
+    const cached = this.previewCache.get(fullKey)
+    if (cached) {
+      return { dataUrl: cached, width: origW, height: origH, anchorX: defaultAnchorX, anchorY: defaultAnchorY }
+    }
+
+    const tex = this.getCharacterTexture(direction, action, frame, model)
+    if (!tex || !tex.source) return null
+
+    const res = (tex.source as any)?.resource || (tex.source as any)?.source || (tex.source as any)?._source || (tex.source as any)
+    if (!res) return null
+
+    try {
+      const frameRect = tex.frame
+      const orig = (tex as any).orig || { width: origW, height: origH }
+      const trim = (tex as any).trim || { x: 0, y: 0, width: frameRect.width, height: frameRect.height }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, orig.width)
+      canvas.height = Math.max(1, orig.height)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return null
+
+      ctx.drawImage(
+        res,
+        frameRect.x, frameRect.y, frameRect.width, frameRect.height,
+        trim.x, trim.y, frameRect.width, frameRect.height
+      )
+
+      const dataUrl = canvas.toDataURL('image/png')
+      this.previewCache.set(fullKey, dataUrl)
+      return { dataUrl, width: orig.width, height: orig.height, anchorX: defaultAnchorX, anchorY: defaultAnchorY }
+    } catch (e) {
+      return null
+    }
   }
 
   public isBundleLoaded(bundleName: AssetBundleName): boolean {

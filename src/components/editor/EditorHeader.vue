@@ -81,6 +81,18 @@
         <span class="hidden md:inline text-[11px]">Coords</span>
       </UiButton>
 
+      <!-- Spawn Points Overlay Toggle -->
+      <UiButton
+        variant="tool"
+        size="xs"
+        :active="characterStore.showSpawnPoints"
+        :leading-icon="MapPin"
+        title="Toggle Spawn Points Overlay on Map"
+        @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
+      >
+        <span class="hidden md:inline text-[11px]">Spawns</span>
+      </UiButton>
+
       <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
       <!-- Undo -->
@@ -155,15 +167,17 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload 
+  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, MapPin
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
+import { useCharacterStore } from '../../stores/characterStore'
 
 const router = useRouter()
 const mapStore = useMapStore()
 const toolStore = useToolStore()
+const characterStore = useCharacterStore()
 
 const emit = defineEmits<{
   (e: 'open-welcome', mode?: 'new' | 'import', forced?: boolean): void

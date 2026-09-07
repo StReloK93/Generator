@@ -3,9 +3,96 @@ import path from 'path'
 import sharp from 'sharp'
 
 const SPRITES_DIR = path.resolve('src/assets/sprites')
-const CHARS_DIR = path.resolve('src/assets/characters/male')
+const CHARS_ROOT_DIR = path.resolve('src/assets/characters')
 const PUBLIC_ATLAS_DIR = path.resolve('public/assets/atlases')
 const SRC_GENERATED_DIR = path.resolve('src/assets/generated')
+
+function getActionIcon(action) {
+  const lower = String(action).toLowerCase()
+  if (lower.includes('idle') || lower.includes('stand') || lower.includes('wait')) return '🧘'
+  if (lower.includes('run') || lower.includes('sprint') || lower.includes('jog')) return '🏃'
+  if (lower.includes('walk') || lower.includes('move')) return '🚶'
+  if (lower.includes('attack') || lower.includes('slash') || lower.includes('strike') || lower.includes('swing') || lower.includes('shoot') || lower.includes('bow')) return '⚔️'
+  if (lower.includes('die') || lower.includes('death') || lower.includes('dead') || lower.includes('collapse')) return '💀'
+  if (lower.includes('hit') || lower.includes('hurt') || lower.includes('damage') || lower.includes('wound')) return '🩸'
+  if (lower.includes('block') || lower.includes('shield') || lower.includes('defend')) return '🛡️'
+  if (lower.includes('cast') || lower.includes('spell') || lower.includes('magic')) return '✨'
+  if (lower.includes('jump') || lower.includes('leap')) return '🦘'
+  if (lower.includes('taunt') || lower.includes('cheer') || lower.includes('victory') || lower.includes('dance')) return '🗣️'
+  if (lower.includes('pickup') || lower.includes('grab') || lower.includes('loot') || lower.includes('harvest')) return '💥'
+  return '⚡'
+}
+
+// Slice a grid-based sprite sheet (e.g. 1536x1024 -> 6 cols x 4 rows = 24 frames of 256x256)
+async function sliceAndAnalyzeSheet(filePath, baseFrameName, cols = 6, rows = 4) {
+  const img = sharp(filePath)
+  const meta = await img.metadata()
+  const sheetW = meta.width || 1536
+  const sheetH = meta.height || 1024
+  const cellW = Math.floor(sheetW / cols)
+  const cellH = Math.floor(sheetH / rows)
+
+  const frames = []
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const frameIdx = r * cols + c
+      const cellExtract = await sharp(filePath)
+        .extract({ left: c * cellW, top: r * cellH, width: cellW, height: cellH })
+        .raw()
+        .toBuffer()
+
+      let minX = cellW
+      let minY = cellH
+      let maxX = 0
+      let maxY = 0
+      let hasPixels = false
+
+      for (let y = 0; y < cellH; y++) {
+        for (let x = 0; x < cellW; x++) {
+          const alpha = cellExtract[(y * cellW + x) * 4 + 3]
+          if (alpha > 10) {
+            hasPixels = true
+            if (x < minX) minX = x
+            if (x > maxX) maxX = x
+            if (y < minY) minY = y
+            if (y > maxY) maxY = y
+          }
+        }
+      }
+
+      if (!hasPixels) {
+        minX = 0
+        minY = 0
+        maxX = cellW - 1
+        maxY = cellH - 1
+      }
+
+      const trimW = Math.max(1, maxX - minX + 1)
+      const trimH = Math.max(1, maxY - minY + 1)
+
+      const trimmedBuffer = await sharp(filePath)
+        .extract({ left: c * cellW + minX, top: r * cellH + minY, width: trimW, height: trimH })
+        .toBuffer()
+
+      frames.push({
+        file: path.basename(filePath),
+        name: `${baseFrameName}${frameIdx}`,
+        origW: cellW,
+        origH: cellH,
+        minX,
+        minY,
+        maxX,
+        maxY,
+        trimW,
+        trimH,
+        buffer: trimmedBuffer,
+      })
+    }
+  }
+
+  return frames
+}
 
 // Ensure target directories exist
 fs.mkdirSync(PUBLIC_ATLAS_DIR, { recursive: true })
@@ -177,11 +264,13 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
     const pngPath = path.join(PUBLIC_ATLAS_DIR, `${sheetName}.png`)
 
     // Save high quality WebP (with 100% alpha fidelity) and fallback PNG
-    await baseImage.clone().webp({ quality: 90, alphaQuality: 100 }).toFile(webpPath)
-    await baseImage.clone().png({ compressionLevel: 9 }).toFile(pngPath)
+    const webpBuf = await baseImage.clone().webp({ quality: 90, alphaQuality: 100 }).toBuffer()
+    const pngBuf = await baseImage.clone().png({ compressionLevel: 9 }).toBuffer()
+    fs.writeFileSync(webpPath, webpBuf)
+    fs.writeFileSync(pngPath, pngBuf)
 
-    const webpSize = fs.statSync(webpPath).size
-    const pngSize = fs.statSync(pngPath).size
+    const webpSize = webpBuf.length
+    const pngSize = pngBuf.length
     totalWebpSize += webpSize
     totalPngSize += pngSize
 
@@ -219,14 +308,292 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
 async function run() {
   console.log('🚀 Generating 100% Non-Clipping PixiJS WebP Atlases & Precomputed Manifests...')
 
-  // 1. Pack Characters Male (168 animation frames)
-  console.log('📦 Processing character animations (168 frames)...')
-  const charFiles = fs.readdirSync(CHARS_DIR).filter((f) => f.endsWith('.png'))
-  const charFrames = []
-  for (const f of charFiles) {
-    charFrames.push(await analyzeAndTrim(path.join(CHARS_DIR, f)))
+  // 1. Automatically scan, process, slice and pack ALL character folders in src/assets/characters/
+  console.log('📦 Dynamically scanning all character folders in src/assets/characters/...')
+  const characterManifest = {}
+  const allCharacterSheets = []
+  let totalCharacterWebpSize = 0
+
+  const angleToDirMap = {
+    '045': 0, // North-East (Up-Right)
+    '067': 1,
+    '090': 1, // East (Right)
+    '112': 2,
+    '135': 2, // South-East (Down-Right)
+    '157': 3,
+    '180': 3, // South (Down)
+    '202': 4,
+    '225': 4, // South-West (Down-Left)
+    '247': 5,
+    '270': 5, // West (Left)
+    '292': 6,
+    '315': 6, // North-West (Up-Left)
+    '337': 7,
+    '000': 7, // North (Up)
+    '022': 0,
   }
-  const charRes = await buildMultiPageAtlas('characters_male', charFrames, 2048, 2048)
+
+  if (fs.existsSync(CHARS_ROOT_DIR)) {
+    const entries = fs.readdirSync(CHARS_ROOT_DIR, { withFileTypes: true })
+    const charFolders = entries.filter((e) => e.isDirectory()).map((e) => e.name)
+
+    for (const folder of charFolders) {
+      const charId = folder.toLowerCase()
+      const charTitle = folder.charAt(0).toUpperCase() + folder.slice(1)
+      const charPrefix = charTitle
+      const charDir = path.join(CHARS_ROOT_DIR, folder)
+
+      console.log(`  🔍 Scanning character folder: ${folder} (ID: ${charId})...`)
+      const files = fs.readdirSync(charDir).filter((f) => f.endsWith('.png'))
+      if (files.length === 0) continue
+
+      const charFrames = []
+      const actionsMap = {}
+      const sampleFeetYList = []
+      const sampleHeightList = []
+      let detectedCellW = 256
+      let detectedCellH = 256
+
+      for (const file of files) {
+        const filePath = path.join(charDir, file)
+        const baseName = file.replace(/\.[^/.]+$/, '')
+        const meta = await sharp(filePath).metadata()
+        const imgW = meta.width || 256
+        const imgH = meta.height || 256
+
+        // Check if this file is a sprite sheet (e.g. 1536x1024, or contains multiple frames / angles)
+        const hasAnglePattern = /_\d{2,3}$/.test(baseName) || /_Body_/i.test(baseName)
+        const isSpriteSheet = imgW > 256 || imgH > 512 || (hasAnglePattern && imgW >= 256)
+
+        if (isSpriteSheet && (imgW > 256 || imgH > 256 || hasAnglePattern)) {
+          // Parse action name and angle
+          let angle = '135'
+          const angleMatch = baseName.match(/_?(\d{2,3})$/)
+          let nameWithoutAngle = baseName
+          if (angleMatch) {
+            angle = angleMatch[1].padStart(3, '0')
+            nameWithoutAngle = baseName.substring(0, angleMatch.index).replace(/_$/, '')
+          }
+
+          let actionClean = nameWithoutAngle
+            .replace(new RegExp(`^(${folder}|character|unit|model)_?`, 'i'), '')
+            .replace(/_?(body|sheet|anim|action|frames?)$/i, '')
+            .replace(/^(\d+)_?/, '')
+
+          const action = actionClean ? (actionClean.charAt(0).toUpperCase() + actionClean.slice(1)) : 'Action'
+
+          const cols = Math.max(1, Math.round(imgW / 256))
+          const rows = Math.max(1, Math.round(imgH / 256))
+          const cellW = Math.floor(imgW / cols)
+          const cellH = Math.floor(imgH / rows)
+          detectedCellW = cellW
+          detectedCellH = cellH
+          const totalSheetFrames = cols * rows
+
+          if (!actionsMap[action]) {
+            actionsMap[action] = {
+              id: action,
+              label: action,
+              icon: getActionIcon(action),
+              frameCount: totalSheetFrames,
+            }
+          } else {
+            actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, totalSheetFrames)
+          }
+
+          const sliced = await sliceAndAnalyzeSheet(filePath, `temp_${charPrefix}_${action}_${angle}_`, cols, rows)
+          const dir = angleToDirMap[angle]
+
+          for (let idx = 0; idx < sliced.length; idx++) {
+            const frame = sliced[idx]
+            if (sampleFeetYList.length < 20 && frame.maxY > 0) {
+              sampleFeetYList.push(frame.maxY)
+              sampleHeightList.push(frame.trimH)
+            }
+
+            if (dir !== undefined) {
+              charFrames.push({
+                ...frame,
+                name: `${charPrefix}_${dir}_${action}${idx}`,
+              })
+              if (idx === 0) {
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_${action}0`,
+                })
+              }
+              const lowerAct = action.toLowerCase()
+              if (lowerAct.includes('idle') || lowerAct.includes('stand') || lowerAct.includes('wait')) {
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Idle${idx}`,
+                })
+                if (idx === 0) {
+                  charFrames.push({
+                    ...frame,
+                    name: `${charPrefix}_${dir}_Idle`,
+                  })
+                  charFrames.push({
+                    ...frame,
+                    name: `${charPrefix}_${dir}_Idle0`,
+                  })
+                }
+              }
+              if (lowerAct.includes('run') || lowerAct.includes('walk') || lowerAct.includes('sprint') || lowerAct.includes('jog') || lowerAct.includes('move')) {
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Run${idx}`,
+                })
+                if (idx === 0) {
+                  charFrames.push({
+                    ...frame,
+                    name: `${charPrefix}_${dir}_Run0`,
+                  })
+                }
+              }
+              if (lowerAct.includes('die') || lowerAct.includes('death') || lowerAct.includes('dead') || lowerAct.includes('pickup') || lowerAct.includes('hit') || lowerAct.includes('collapse')) {
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Pickup${idx}`,
+                })
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Die${idx}`,
+                })
+              }
+            }
+
+            // Full angle key
+            charFrames.push({
+              ...frame,
+              name: `${charPrefix}_angle_${angle}_${action}${idx}`,
+            })
+            if (idx === 0) {
+              charFrames.push({
+                ...frame,
+                name: `${charPrefix}_angle_${angle}_${action}0`,
+              })
+            }
+          }
+        } else {
+          // Discrete Single Frame PNG (e.g. Male_0_Idle0.png or 0_Idle_0.png)
+          const trimmed = await analyzeAndTrim(filePath)
+          detectedCellW = trimmed.origW
+          detectedCellH = trimmed.origH
+          if (sampleFeetYList.length < 20 && trimmed.maxY > 0) {
+            sampleFeetYList.push(trimmed.maxY)
+            sampleHeightList.push(trimmed.trimH)
+          }
+
+          const nameMatch = baseName.match(/^(?:[A-Za-z0-9]+_)?(\d)_([A-Za-z]+)(\d*)$/)
+          if (nameMatch) {
+            const dir = parseInt(nameMatch[1], 10)
+            const actionRaw = nameMatch[2]
+            const action = actionRaw.charAt(0).toUpperCase() + actionRaw.slice(1)
+            const frameIdx = nameMatch[3] ? parseInt(nameMatch[3], 10) : 0
+
+            if (!actionsMap[action]) {
+              actionsMap[action] = {
+                id: action,
+                label: action,
+                icon: getActionIcon(action),
+                frameCount: 1,
+              }
+            }
+            actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, frameIdx + 1)
+
+            charFrames.push({
+              ...trimmed,
+              name: `${charPrefix}_${dir}_${action}${frameIdx}`,
+            })
+            if (frameIdx === 0) {
+              charFrames.push({
+                ...trimmed,
+                name: `${charPrefix}_${dir}_${action}0`,
+              })
+            }
+            const lowerAct = action.toLowerCase()
+            if (lowerAct.includes('idle') || lowerAct.includes('stand') || lowerAct.includes('wait')) {
+              charFrames.push({
+                ...trimmed,
+                name: `${charPrefix}_${dir}_Idle${frameIdx}`,
+              })
+              if (frameIdx === 0) {
+                charFrames.push({
+                  ...trimmed,
+                  name: `${charPrefix}_${dir}_Idle`,
+                })
+                charFrames.push({
+                  ...trimmed,
+                  name: `${charPrefix}_${dir}_Idle0`,
+                })
+              }
+            }
+            if (lowerAct.includes('run') || lowerAct.includes('walk') || lowerAct.includes('sprint') || lowerAct.includes('jog') || lowerAct.includes('move')) {
+              charFrames.push({
+                ...trimmed,
+                name: `${charPrefix}_${dir}_Run${frameIdx}`,
+              })
+              if (frameIdx === 0) {
+                charFrames.push({
+                  ...trimmed,
+                  name: `${charPrefix}_${dir}_Run0`,
+                })
+              }
+            }
+            if (lowerAct.includes('die') || lowerAct.includes('death') || lowerAct.includes('dead') || lowerAct.includes('pickup') || lowerAct.includes('hit') || lowerAct.includes('collapse')) {
+              charFrames.push({
+                ...trimmed,
+                name: `${charPrefix}_${dir}_Pickup${frameIdx}`,
+              })
+              charFrames.push({
+                ...trimmed,
+                name: `${charPrefix}_${dir}_Die${frameIdx}`,
+              })
+            }
+          } else {
+            charFrames.push(trimmed)
+          }
+        }
+      }
+
+      // Smart Anchor & Scale calculation
+      const avgFeetY = sampleFeetYList.length > 0 ? (sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length) : (detectedCellH * 0.75)
+      const avgHeight = sampleHeightList.length > 0 ? (sampleHeightList.reduce((a, b) => a + b, 0) / sampleHeightList.length) : 100
+      const anchorY = Math.round((avgFeetY / detectedCellH) * 1000) / 1000
+
+      let scale = 1.0
+      if (charId === 'male') scale = 0.52
+      else if (charId === 'warrior') scale = 1.48
+      else {
+        scale = Math.round((130 / Math.max(40, avgHeight)) * 0.95 * 100) / 100
+      }
+
+      if (Object.keys(actionsMap).length === 0) {
+        actionsMap['Idle'] = { id: 'Idle', label: 'Idle', icon: '🧘', frameCount: 1 }
+      }
+
+      const charAtlasRes = await buildMultiPageAtlas(`characters_${charId}`, charFrames, 2048, 2048)
+      allCharacterSheets.push(...charAtlasRes.generatedSheetNames)
+      totalCharacterWebpSize += charAtlasRes.totalWebpSize
+
+      characterManifest[charId] = {
+        id: charId,
+        name: charTitle,
+        cellWidth: detectedCellW,
+        cellHeight: detectedCellH,
+        anchorX: 0.5,
+        anchorY: anchorY,
+        scale: scale,
+        actions: actionsMap,
+      }
+      console.log(`  ✅ Registered character "${charTitle}" with actions: ${Object.keys(actionsMap).join(', ')}`)
+    }
+  }
+
+  const charManifestPath = path.join(SRC_GENERATED_DIR, 'characterManifest.json')
+  fs.writeFileSync(charManifestPath, JSON.stringify(characterManifest, null, 2))
+  console.log(`  ✅ Character manifest written (${Object.keys(characterManifest).length} models: ${Object.keys(characterManifest).join(', ')})`)
 
   // 2. Separate environment sprites into 3 logical categories
   console.log('📦 Processing environment sprites (790 sprites)...')
@@ -326,14 +693,14 @@ async function run() {
     core: [...terrainRes.generatedSheetNames],
     structures: [...structRes.generatedSheetNames],
     props: [...propsRes.generatedSheetNames],
-    characters: [...charRes.generatedSheetNames],
+    characters: allCharacterSheets,
   }
 
   const atlasIndexPath = path.join(SRC_GENERATED_DIR, 'atlasIndex.json')
   fs.writeFileSync(atlasIndexPath, JSON.stringify(atlasIndex, null, 2))
   console.log(`  ✅ Atlas index bundle manifest written:`, atlasIndex)
 
-  const totalWebp = (charRes.totalWebpSize + terrainRes.totalWebpSize + structRes.totalWebpSize + propsRes.totalWebpSize) / 1024 / 1024
+  const totalWebp = (totalCharacterWebpSize + terrainRes.totalWebpSize + structRes.totalWebpSize + propsRes.totalWebpSize) / 1024 / 1024
   console.log(`\n🎉 Total Atlas Size: ${totalWebp.toFixed(2)} MB across all WebP sheets (Zero cutoffs, 100% full quality)!`)
 }
 
