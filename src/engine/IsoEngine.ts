@@ -1632,8 +1632,9 @@ export class IsoEngine {
       shadow.visible = false
       shadow.alpha = 0
 
-      // Position
-      container.position.set(unit.screenX, unit.screenY)
+      // Position (with customizable vertical height elevation offset)
+      const unitOffsetY = unit.offsetY ?? 0
+      container.position.set(unit.screenX, unit.screenY - unitOffsetY)
 
       // Depth sort tracking
       const charFloorCol = Math.floor(unit.currentCol)

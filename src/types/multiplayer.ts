@@ -121,6 +121,9 @@ export interface CompactUnitSnapshot {
   f: number // frameIndex
   hp: number
   mhp?: number
+  m?: string // characterModel ('male' | 'female' | 'warrior')
+  oy?: number // vertical elevation offsetY
+  as?: number // animation speed multiplier
   fl: number // bitflags: 1: isSpawned, 2: hasReachedEnd, 4: isDead
   df?: number // deathFade (0..1)
 }

@@ -148,19 +148,19 @@ async function process() {
       }
     }
 
-    // Convert raw processed buffer to PNG image
-    const croppedPng = await sharp(outData, {
+    // Convert raw processed buffer to WebP image
+    const croppedWebp = await sharp(outData, {
       raw: {
         width,
         height,
         channels: 4
       }
     })
-    .png()
+    .webp({ lossless: true, alphaQuality: 100 })
     .toBuffer()
 
-    // Now analyze trimmed bounding box from this clean PNG
-    const trimmed = await sharp(croppedPng)
+    // Now analyze trimmed bounding box from this clean WebP
+    const trimmed = await sharp(croppedWebp)
       .trim()
       .toBuffer({ resolveWithObject: true })
 
@@ -180,7 +180,7 @@ async function process() {
 
     const resizedSprite = await sharp(trimmed.data)
       .resize(scaledW, scaledH, { fit: 'inside' })
-      .png()
+      .webp({ lossless: true, alphaQuality: 100 })
       .toBuffer()
 
     const posX = Math.round((targetW - scaledW) / 2)
@@ -198,10 +198,10 @@ async function process() {
     .composite([
       { input: resizedSprite, left: posX, top: posY }
     ])
-    .png()
+    .webp({ lossless: true, alphaQuality: 100 })
     .toBuffer()
 
-    const outFilePath = path.join(outputDir, `${item.name}.png`)
+    const outFilePath = path.join(outputDir, `${item.name}.webp`)
     fs.writeFileSync(outFilePath, finalImage)
     console.log(`Saved ${outFilePath} (${targetW}x${targetH})`)
   }

@@ -1,0 +1,6382 @@
+{
+  "version": "2.1.0",
+  "type": "isocraft-map-project",
+  "project": {
+    "id": "proj-1788428582067",
+    "name": "BalanceTest",
+    "cols": 30,
+    "rows": 30,
+    "tileWidth": 128,
+    "tileHeight": 64,
+    "bgColor": "#0d1322",
+    "showGrid": true,
+    "gridColor": "#38bdf8",
+    "layers": [
+      {
+        "id": "layer-ground-1788428582067",
+        "name": "Ground",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "tiles": {
+          "0,24": [
+            {
+              "id": "item-1788433717622-43gbd2f",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,24": 1
+              }
+            },
+            {
+              "id": "item-1788433732823-okbclg4",
+              "assetId": "sprite-stoneWallArchway_E",
+              "zIndex": 2,
+              "depthOffset": 1,
+              "cellZIndex": {
+                "0,24": 2
+              }
+            }
+          ],
+          "0,21": [
+            {
+              "id": "item-1788428621544-5yl0fem",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 1,
+              "depthOffset": 2
+            },
+            {
+              "id": "item-1788437754743-72g2rzj",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 2,
+              "cellZIndex": {
+                "0,21": 2
+              }
+            }
+          ],
+          "0,20": [
+            {
+              "id": "item-1788428622041-kpe7jqz",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437754097-td69xno",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 2,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,20": 2
+              }
+            }
+          ],
+          "0,19": [
+            {
+              "id": "item-1788428622569-pu9x4ob",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437753506-u1os2e6",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,19": 1
+              }
+            }
+          ],
+          "0,18": [
+            {
+              "id": "item-1788428623065-1esjkoq",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437752946-uv4l4td",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,18": 1
+              }
+            }
+          ],
+          "0,17": [
+            {
+              "id": "item-1788428623553-q0eu5h6",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437752290-rcg18lk",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,17": 1
+              }
+            }
+          ],
+          "0,16": [
+            {
+              "id": "item-1788428624104-ihqeae7",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437751641-rl02iu1",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,16": 1
+              }
+            }
+          ],
+          "0,15": [
+            {
+              "id": "item-1788428624682-wewgfp9",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437749009-isbu0a9",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,15": 1
+              }
+            }
+          ],
+          "0,14": [
+            {
+              "id": "item-1788428625249-3lahfd2",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437748401-envan9s",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,14": 1
+              }
+            }
+          ],
+          "0,13": [
+            {
+              "id": "item-1788428625776-x7486py",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437747738-6zlwaln",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,13": 1
+              }
+            }
+          ],
+          "0,12": [
+            {
+              "id": "item-1788428626321-vtgh4xn",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437747090-bmqfu8w",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,12": 1
+              }
+            }
+          ],
+          "0,10": [
+            {
+              "id": "item-1788429092982-v3o7z4b",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,10": 1
+              }
+            },
+            {
+              "id": "item-1788437745729-kr8bq4s",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 2,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,10": 2
+              }
+            }
+          ],
+          "0,9": [
+            {
+              "id": "item-1788429093140-b053vt7",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,9": 1
+              }
+            },
+            {
+              "id": "item-1788437737663-b4vjveh",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 2,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,9": 2
+              }
+            }
+          ],
+          "0,11": [
+            {
+              "id": "item-1788429184325-8244dzj",
+              "assetId": "sprite-stoneWall_E"
+            },
+            {
+              "id": "item-1788437746425-rl68h7b",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,11": 1
+              }
+            }
+          ],
+          "0,5": [
+            {
+              "id": "item-1788429189668-4a428el",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 2,
+              "depthOffset": 1,
+              "cellZIndex": {
+                "0,5": 2
+              }
+            },
+            {
+              "id": "item-1788429821373-0t1t1kv",
+              "assetId": "sprite-planks_E",
+              "zIndex": 4,
+              "cellZIndex": {
+                "0,5": 1
+              }
+            }
+          ],
+          "0,8": [
+            {
+              "id": "item-1788429193173-kbfcpq8",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 2,
+              "cellZIndex": {
+                "0,8": 2
+              }
+            },
+            {
+              "id": "item-1788774464839-bm9y09g",
+              "assetId": "sprite-planks_E",
+              "zIndex": 2,
+              "depthOffset": -1,
+              "cellZIndex": {
+                "0,8": 2
+              }
+            }
+          ],
+          "0,7": [
+            {
+              "id": "item-1788429193732-ravm8f5",
+              "assetId": "sprite-stoneWall_E",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788429818805-qcyfkvz",
+              "assetId": "sprite-planks_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,7": 1
+              }
+            }
+          ],
+          "0,6": [
+            {
+              "id": "item-1788429234161-q6onem4",
+              "assetId": "sprite-stoneWallArchway_E",
+              "zIndex": 2,
+              "depthOffset": 1,
+              "cellZIndex": {
+                "0,6": 2
+              }
+            },
+            {
+              "id": "item-1788429423323-3k7ng7o",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,6": 1
+              }
+            }
+          ],
+          "0,4": [
+            {
+              "id": "item-1788429248624-qit12by",
+              "assetId": "sprite-stoneWallCorner_S",
+              "depthOffset": 2
+            },
+            {
+              "id": "item-1788774571834-wwbhbde",
+              "assetId": "sprite-planks_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,4": 1
+              }
+            }
+          ],
+          "1,6": [
+            {
+              "id": "item-1788429427165-cl4xi1k",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "2,6": [
+            {
+              "id": "item-1788429428029-t3mu7km",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "3,6": [
+            {
+              "id": "item-1788429428709-n7tv8gf",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "3,5": [
+            {
+              "id": "item-1788429429277-3o7zkz2",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "4,5": [
+            {
+              "id": "item-1788429429765-29xfws6",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "5,5": [
+            {
+              "id": "item-1788429430261-j9kpcac",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "5,6": [
+            {
+              "id": "item-1788429430805-qm4kpvc",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "5,7": [
+            {
+              "id": "item-1788429431277-kgcv03h",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "6,7": [
+            {
+              "id": "item-1788429431733-t9bjh3u",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,7": [
+            {
+              "id": "item-1788429432244-02t1gpq",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,6": [
+            {
+              "id": "item-1788429432765-5rs49l5",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,5": [
+            {
+              "id": "item-1788429433348-ynopmtk",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "7,5": 1
+              }
+            }
+          ],
+          "8,5": [
+            {
+              "id": "item-1788429434293-obn8krr",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,5": [
+            {
+              "id": "item-1788429434813-zoy4uw8",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,6": [
+            {
+              "id": "item-1788429435349-5xx9x4x",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,7": [
+            {
+              "id": "item-1788429435773-8a3g7xg",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "10,7": [
+            {
+              "id": "item-1788429436245-zjdzlng",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,7": [
+            {
+              "id": "item-1788429436725-c8p9ilh",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,6": [
+            {
+              "id": "item-1788429437325-91ruaae",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,5": [
+            {
+              "id": "item-1788429437933-9afblav",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "12,5": [
+            {
+              "id": "item-1788429438572-jt01fsr",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "12,5": 1
+              }
+            }
+          ],
+          "13,5": [
+            {
+              "id": "item-1788429439101-stlm6ns",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "13,6": [
+            {
+              "id": "item-1788429439949-vj8jawp",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "13,7": [
+            {
+              "id": "item-1788429440445-ljfwn0t",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "14,7": [
+            {
+              "id": "item-1788429440877-8e80uy6",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,7": [
+            {
+              "id": "item-1788429441309-x8g6wu5",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,6": [
+            {
+              "id": "item-1788429441845-ahhfb1a",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,5": [
+            {
+              "id": "item-1788429442325-segynw3",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "16,5": [
+            {
+              "id": "item-1788429442828-f8n9ngu",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,5": [
+            {
+              "id": "item-1788429443357-81cqqsg",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,6": [
+            {
+              "id": "item-1788429443821-prazmur",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,7": [
+            {
+              "id": "item-1788429444325-xg39hqv",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,7": [
+            {
+              "id": "item-1788429444797-468dvub",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "18,7": [
+            {
+              "id": "item-1788429445453-0bxxai8",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,6": [
+            {
+              "id": "item-1788429446061-gwcbmgw",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,5": [
+            {
+              "id": "item-1788429446653-aa0fns5",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "20,5": [
+            {
+              "id": "item-1788429448110-s8c7ovn",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,5": [
+            {
+              "id": "item-1788429448758-hehh8lf",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,6": [
+            {
+              "id": "item-1788429449271-cej8hu3",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,7": [
+            {
+              "id": "item-1788429449729-au11a3n",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,8": [
+            {
+              "id": "item-1788429450288-zyf0qz2",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,9": [
+            {
+              "id": "item-1788429450736-vinsrrs",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,10": [
+            {
+              "id": "item-1788429451199-6usu601",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,11": [
+            {
+              "id": "item-1788429451665-plsrzib",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,12": [
+            {
+              "id": "item-1788429452144-wlzjbmo",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,13": [
+            {
+              "id": "item-1788429452552-zrcrly3",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,14": [
+            {
+              "id": "item-1788429453175-pk56vv9",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "23,14": [
+            {
+              "id": "item-1788429453624-y91woob",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "24,14": [
+            {
+              "id": "item-1788429454112-nvcaqec",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "22,14": [
+            {
+              "id": "item-1788429454905-724mkj4",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "25,14": [
+            {
+              "id": "item-1788429455416-gchgmyz",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "26,14": [
+            {
+              "id": "item-1788429455920-ndb8cdk",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "27,14": [
+            {
+              "id": "item-1788429456400-3bph752",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "28,14": [
+            {
+              "id": "item-1788429457009-bknyv3j",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "29,14": [
+            {
+              "id": "item-1788429457712-09bocez",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,23": [
+            {
+              "id": "item-1788429508321-ld4a6ti",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,22": [
+            {
+              "id": "item-1788429508928-qcbwl9x",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,21": [
+            {
+              "id": "item-1788429509449-uqa4yed",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,20": [
+            {
+              "id": "item-1788429509905-6wk6n4v",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,19": [
+            {
+              "id": "item-1788429510353-px2b8xc",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,18": [
+            {
+              "id": "item-1788429513648-d5ojnx2",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,17": [
+            {
+              "id": "item-1788429514273-p40lla2",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,16": [
+            {
+              "id": "item-1788429522745-mdljpo6",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "22,16": [
+            {
+              "id": "item-1788429523387-j90m783",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "22,16": 1
+              }
+            }
+          ],
+          "23,16": [
+            {
+              "id": "item-1788429524001-80oparb",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "24,16": [
+            {
+              "id": "item-1788429524784-duc35ze",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "25,16": [
+            {
+              "id": "item-1788429525401-mtmkf35",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "26,16": [
+            {
+              "id": "item-1788429525905-soijnts",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "27,16": [
+            {
+              "id": "item-1788429526368-rfokq8f",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "28,16": [
+            {
+              "id": "item-1788429526897-67qoue0",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "28,16": 1
+              }
+            }
+          ],
+          "29,16": [
+            {
+              "id": "item-1788429527346-eqjxx9u",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,15": [
+            {
+              "id": "item-1788429798651-j4gfwmh",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "22,15": [
+            {
+              "id": "item-1788429799195-xywxoo9",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "23,15": [
+            {
+              "id": "item-1788429799883-b1bq2ha",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "24,15": [
+            {
+              "id": "item-1788429800539-wu33uie",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "25,15": [
+            {
+              "id": "item-1788429801227-jez7ed9",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "26,15": [
+            {
+              "id": "item-1788429801899-wvk7j7d",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "27,15": [
+            {
+              "id": "item-1788429802475-satis6d",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "28,15": [
+            {
+              "id": "item-1788429803027-kbushfx",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "29,15": [
+            {
+              "id": "item-1788429803603-6i0p23t",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,7": [
+            {
+              "id": "item-1788429804603-63mntgr",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,6": [
+            {
+              "id": "item-1788429805155-fp1kr2j",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,6": [
+            {
+              "id": "item-1788429806460-42bki9u",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,5": [
+            {
+              "id": "item-1788429806923-uxgqsnd",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,6": [
+            {
+              "id": "item-1788429807580-v9zz1qc",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,7": [
+            {
+              "id": "item-1788429808091-y59qo26",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,6": [
+            {
+              "id": "item-1788429808803-d4jfz5i",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,5": [
+            {
+              "id": "item-1788429809277-gid3aoy",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,6": [
+            {
+              "id": "item-1788429810005-uvh8274",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,7": [
+            {
+              "id": "item-1788429810533-wkc8cpm",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,6": [
+            {
+              "id": "item-1788429811140-y7j0brg",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,5": [
+            {
+              "id": "item-1788429811622-gimogb8",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,6": [
+            {
+              "id": "item-1788429812245-ohz6xzj",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,7": [
+            {
+              "id": "item-1788429812692-iol6nhl",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,6": [
+            {
+              "id": "item-1788429813165-4dnxre7",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,5": [
+            {
+              "id": "item-1788429813630-apaz36g",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,6": [
+            {
+              "id": "item-1788429814237-nm9cpvp",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,7": [
+            {
+              "id": "item-1788429814821-q0irgut",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,7": [
+            {
+              "id": "item-1788429819333-tohenod",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,7": [
+            {
+              "id": "item-1788429819837-9vu4dq0",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "3,7": [
+            {
+              "id": "item-1788429820437-knw1gjx",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,5": [
+            {
+              "id": "item-1788429821909-yl7o2bj",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,5": [
+            {
+              "id": "item-1788429822493-cjht9z9",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,16": [
+            {
+              "id": "item-1788430567040-sw3ejuj",
+              "assetId": "sprite-stoneCorner_E"
+            }
+          ],
+          "16,14": [
+            {
+              "id": "item-1788430572673-71r1i3e",
+              "assetId": "sprite-stoneCorner_N"
+            }
+          ],
+          "15,15": [
+            {
+              "id": "item-1788430575304-a84iebf",
+              "assetId": "sprite-stone_W"
+            }
+          ],
+          "14,16": [
+            {
+              "id": "item-1788430578056-ndshuqk",
+              "assetId": "sprite-stoneCorner_S"
+            }
+          ],
+          "14,14": [
+            {
+              "id": "item-1788430590744-qcubdfo",
+              "assetId": "sprite-stoneCorner_W"
+            }
+          ],
+          "15,14": [
+            {
+              "id": "item-1788430595096-qyatnrm",
+              "assetId": "sprite-stone_N"
+            },
+            {
+              "id": "item-1788434088246-j5qvwju",
+              "assetId": "sprite-tableShortChairs_W",
+              "zIndex": 1,
+              "cellZIndex": {
+                "15,14": 1
+              }
+            }
+          ],
+          "14,15": [
+            {
+              "id": "item-1788430597456-vvf3kha",
+              "assetId": "sprite-stone_E"
+            },
+            {
+              "id": "item-1788434084334-lmefhca",
+              "assetId": "sprite-tableShortChairs_N",
+              "zIndex": 1,
+              "cellZIndex": {
+                "14,15": 1
+              }
+            }
+          ],
+          "15,16": [
+            {
+              "id": "item-1788430599544-f4fs1vi",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "16,15": [
+            {
+              "id": "item-1788430600105-sx4vfxu",
+              "assetId": "sprite-stone_E"
+            },
+            {
+              "id": "item-1788434094294-ihjxj0x",
+              "assetId": "sprite-tableRoundItemsChairs_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "16,15": 1
+              }
+            }
+          ],
+          "19,15": [
+            {
+              "id": "item-1788430607537-85hrjso",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,16": [
+            {
+              "id": "item-1788430608096-h95d38x",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,17": [
+            {
+              "id": "item-1788430608623-gotnk9o",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,14": [
+            {
+              "id": "item-1788430609767-7kfh9gi",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,13": [
+            {
+              "id": "item-1788430610824-myaep1s",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,18": [
+            {
+              "id": "item-1788430613128-yfha2uo",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "19,12": [
+            {
+              "id": "item-1788430617849-zvl9c25",
+              "assetId": "sprite-stoneInset_E"
+            }
+          ],
+          "16,17": [
+            {
+              "id": "item-1788433041566-pt1epti",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "15,17": [
+            {
+              "id": "item-1788433042221-z6mlx9s",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "14,17": [
+            {
+              "id": "item-1788433042660-lxz9gh7",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "13,17": [
+            {
+              "id": "item-1788433043269-26f3o4w",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "13,16": [
+            {
+              "id": "item-1788433043700-ud9dv4m",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "13,15": [
+            {
+              "id": "item-1788433044245-0aci826",
+              "assetId": "sprite-dirt_W"
+            },
+            {
+              "id": "item-1788434055838-qjidv84",
+              "assetId": "sprite-woodenCrate_W",
+              "zIndex": 1,
+              "cellZIndex": {
+                "13,15": 1
+              }
+            }
+          ],
+          "13,14": [
+            {
+              "id": "item-1788433044940-3tkwnsi",
+              "assetId": "sprite-dirt_W"
+            },
+            {
+              "id": "item-1788434070214-1m9l65r",
+              "assetId": "sprite-woodenPile_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "13,14": 1
+              }
+            }
+          ],
+          "13,13": [
+            {
+              "id": "item-1788433045572-p4caiz1",
+              "assetId": "sprite-dirt_W"
+            },
+            {
+              "id": "item-1788434052557-6o0ofi4",
+              "assetId": "sprite-woodenCrate_W",
+              "zIndex": 1,
+              "cellZIndex": {
+                "13,13": 1
+              }
+            }
+          ],
+          "14,13": [
+            {
+              "id": "item-1788433046205-cnzxx3a",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "15,13": [
+            {
+              "id": "item-1788433046860-iy8l94b",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "16,13": [
+            {
+              "id": "item-1788433047372-aieo9oy",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,13": [
+            {
+              "id": "item-1788433047956-v0vjlcw",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,13": [
+            {
+              "id": "item-1788433048708-u6an8hl",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,14": [
+            {
+              "id": "item-1788433049229-ue9an9x",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,14": [
+            {
+              "id": "item-1788433049740-srw6ztw",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,15": [
+            {
+              "id": "item-1788433050253-w9uooz8",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,15": [
+            {
+              "id": "item-1788433050652-32wynkc",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,16": [
+            {
+              "id": "item-1788433051099-7xnz912",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,16": [
+            {
+              "id": "item-1788433051772-zzfkb5b",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,17": [
+            {
+              "id": "item-1788433052293-ctl1dhr",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,17": [
+            {
+              "id": "item-1788433052676-7086o8f",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,18": [
+            {
+              "id": "item-1788433054493-mjklvnc",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,18": [
+            {
+              "id": "item-1788433054883-i86pgmc",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "16,18": [
+            {
+              "id": "item-1788433055309-yvqxqe3",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "15,18": [
+            {
+              "id": "item-1788433059036-x7rv88e",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "14,18": [
+            {
+              "id": "item-1788433059517-v853e09",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "13,18": [
+            {
+              "id": "item-1788433060373-aa7qk72",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "18,12": [
+            {
+              "id": "item-1788433062349-ev08zm8",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "17,12": [
+            {
+              "id": "item-1788433062827-54ezmbj",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "16,12": [
+            {
+              "id": "item-1788433063340-0mxxrtp",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "15,12": [
+            {
+              "id": "item-1788433063844-mwt7f35",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "14,12": [
+            {
+              "id": "item-1788433064365-xmhlh55",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "13,12": [
+            {
+              "id": "item-1788433064883-6ytvs17",
+              "assetId": "sprite-dirt_W"
+            }
+          ],
+          "12,18": [
+            {
+              "id": "item-1788433083877-n4qa57x",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "12,17": [
+            {
+              "id": "item-1788433084461-971kpd7",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "12,16": [
+            {
+              "id": "item-1788433085003-0blacez",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "12,15": [
+            {
+              "id": "item-1788433085660-pktkvkb",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "12,14": [
+            {
+              "id": "item-1788433086172-pjha91b",
+              "assetId": "sprite-stoneSide_E"
+            },
+            {
+              "id": "item-1788434061590-49hubbn",
+              "assetId": "sprite-woodenCrates_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "12,14": 1
+              }
+            }
+          ],
+          "12,13": [
+            {
+              "id": "item-1788433086659-fdsv3ml",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "12,12": [
+            {
+              "id": "item-1788433087171-kxpcke5",
+              "assetId": "sprite-stoneSide_E"
+            }
+          ],
+          "21,24": [
+            {
+              "id": "item-1788433507815-qsjij6x",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "21,25": [
+            {
+              "id": "item-1788433509175-d8xn5lf",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "20,25": [
+            {
+              "id": "item-1788433521994-gb1nfer",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,25": [
+            {
+              "id": "item-1788433522562-1vktts7",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,24": [
+            {
+              "id": "item-1788433526690-zasdzua",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,25": [
+            {
+              "id": "item-1788433530610-hmvqdhd",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,24": [
+            {
+              "id": "item-1788433531210-3djkvco",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "16,25": [
+            {
+              "id": "item-1788433531890-uozsim6",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,25": [
+            {
+              "id": "item-1788433532706-skf384u",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,24": [
+            {
+              "id": "item-1788433540538-d0m0rec",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "13,24": [
+            {
+              "id": "item-1788433543770-bpad7c5",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "13,25": [
+            {
+              "id": "item-1788433544538-2qk4tm6",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "12,25": [
+            {
+              "id": "item-1788433545130-we2t48r",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,25": [
+            {
+              "id": "item-1788433547810-3trj22q",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,24": [
+            {
+              "id": "item-1788433548258-cfh52ez",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,24": [
+            {
+              "id": "item-1788433551466-vx0x2ky",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,25": [
+            {
+              "id": "item-1788433552114-avxrs66",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "8,25": [
+            {
+              "id": "item-1788433555106-yi6kdnc",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,25": [
+            {
+              "id": "item-1788433556522-a4un06s",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,24": [
+            {
+              "id": "item-1788433557003-lkjy5ts",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "5,24": [
+            {
+              "id": "item-1788433560419-tun0f5u",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "5,25": [
+            {
+              "id": "item-1788433560938-tmv3q9f",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "4,25": [
+            {
+              "id": "item-1788433562042-y43qr28",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "3,25": [
+            {
+              "id": "item-1788433563075-oyphzlm",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "3,24": [
+            {
+              "id": "item-1788433563690-qbqip4h",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "2,24": [
+            {
+              "id": "item-1788433715167-0l4me1n",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "1,24": [
+            {
+              "id": "item-1788433715783-ljqz92p",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "0,23": [
+            {
+              "id": "item-1788433727528-wwfxioi",
+              "assetId": "sprite-stoneWall_E",
+              "depthOffset": 2
+            },
+            {
+              "id": "item-1788433792883-tlocary",
+              "assetId": "sprite-planks_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,23": 1
+              }
+            }
+          ],
+          "20,23": [
+            {
+              "id": "item-1788433776820-pxbm4tb",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,24": [
+            {
+              "id": "item-1788433777388-l0nv3w4",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,24": [
+            {
+              "id": "item-1788433778156-7lvge56",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,25": [
+            {
+              "id": "item-1788433778780-qcunv7b",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,24": [
+            {
+              "id": "item-1788433780036-jibq3rq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,24": [
+            {
+              "id": "item-1788433780900-359mzf0",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,25": [
+            {
+              "id": "item-1788433781324-31gmpj5",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,24": [
+            {
+              "id": "item-1788433782004-2zxy12n",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,24": [
+            {
+              "id": "item-1788433784340-88pegw0",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,25": [
+            {
+              "id": "item-1788433784740-j9ky5wq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,24": [
+            {
+              "id": "item-1788433785356-jno54y6",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,24": [
+            {
+              "id": "item-1788433786516-m4p66ao",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,25": [
+            {
+              "id": "item-1788433786932-65nowa2",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,24": [
+            {
+              "id": "item-1788433787452-wptdyfz",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,23": [
+            {
+              "id": "item-1788433790324-oqa214c",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,23": [
+            {
+              "id": "item-1788433790788-30y1pcq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "0,26": [
+            {
+              "id": "item-1788429245968-5xk60b4",
+              "assetId": "sprite-stoneWallCorner_E",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788752276335-zaedea7",
+              "assetId": "sprite-planks_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,26": 1
+              }
+            }
+          ],
+          "0,25": [
+            {
+              "id": "item-1788433814976-355f64a",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 5,
+              "depthOffset": 1,
+              "cellZIndex": {
+                "0,25": 5
+              }
+            },
+            {
+              "id": "item-1788433835510-w88fuf3",
+              "assetId": "sprite-planks_E",
+              "zIndex": 5,
+              "cellZIndex": {
+                "0,25": 5
+              }
+            }
+          ],
+          "2,25": [
+            {
+              "id": "item-1788433833455-6gjzfyf",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,25": [
+            {
+              "id": "item-1788433834007-yghemz0",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "11,12": [
+            {
+              "id": "item-1788433925602-06mdmqj",
+              "assetId": "sprite-stone_E"
+            },
+            {
+              "id": "item-1788434678707-0cptvef",
+              "assetId": "sprite-stoneColumn_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "11,12": 1
+              }
+            }
+          ],
+          "11,18": [
+            {
+              "id": "item-1788433926554-mluwtdm",
+              "assetId": "sprite-stone_E"
+            },
+            {
+              "id": "item-1788434675283-hijc40p",
+              "assetId": "sprite-stoneColumn_W",
+              "zIndex": 1,
+              "cellZIndex": {
+                "11,18": 1
+              }
+            }
+          ],
+          "11,15": [
+            {
+              "id": "item-1788752634609-fid1gwg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,16": [
+            {
+              "id": "item-1788752631713-dck154b",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,14": [
+            {
+              "id": "item-1788752637121-kaw76bt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,13": [
+            {
+              "id": "item-1788752640105-s8h20ca",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,17": [
+            {
+              "id": "item-1788752626753-bhwivzu",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,20": [
+            {
+              "id": "item-1788434131833-gsc434v",
+              "assetId": "sprite-stoneWallAgedRight_N",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788434318140-dltjiko",
+              "assetId": "sprite-stone_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "18,20": 1
+              }
+            }
+          ],
+          "17,20": [
+            {
+              "id": "item-1788434145264-zr4oi54",
+              "assetId": "sprite-stoneWallBroken_N",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788752615233-tu8ugbd",
+              "assetId": "sprite-dirt_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "17,20": 1
+              }
+            }
+          ],
+          "16,20": [
+            {
+              "id": "item-1788434154624-yauouks",
+              "assetId": "sprite-stoneWallColumnIn_N",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788752602841-2j4a4n9",
+              "assetId": "sprite-dirt_N",
+              "zIndex": 1,
+              "cellZIndex": {
+                "16,20": 1
+              }
+            }
+          ],
+          "19,20": [
+            {
+              "id": "item-1788434211025-w9z0vmf",
+              "assetId": "sprite-stoneWallRoundBroken_W",
+              "depthOffset": 1
+            },
+            {
+              "id": "item-1788434295484-a3vx8vz",
+              "assetId": "sprite-stoneCorner_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "19,20": 1
+              }
+            }
+          ],
+          "11,19": [
+            {
+              "id": "item-1788434228961-f9g518r",
+              "assetId": "sprite-stoneUneven_S"
+            }
+          ],
+          "14,19": [
+            {
+              "id": "item-1788434233689-cp0q944",
+              "assetId": "sprite-stoneUneven_S"
+            }
+          ],
+          "13,19": [
+            {
+              "id": "item-1788434236486-d8y7u0q",
+              "assetId": "sprite-stoneTile_E"
+            }
+          ],
+          "12,19": [
+            {
+              "id": "item-1788434239550-y3gscve",
+              "assetId": "sprite-stoneTile_S"
+            }
+          ],
+          "15,19": [
+            {
+              "id": "item-1788434312221-yw5mszv",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "16,19": [
+            {
+              "id": "item-1788434312973-yztdxi8",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,19": [
+            {
+              "id": "item-1788434313565-slrzlr1",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "18,19": [
+            {
+              "id": "item-1788434314261-xc3tbut",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "12,11": [
+            {
+              "id": "item-1788434587809-je5q37w",
+              "assetId": "sprite-stoneMissingTiles_E"
+            }
+          ],
+          "13,11": [
+            {
+              "id": "item-1788434590001-guiw4of",
+              "assetId": "sprite-stoneMissingTiles_N"
+            }
+          ],
+          "14,11": [
+            {
+              "id": "item-1788434591992-4y6dggu",
+              "assetId": "sprite-stoneMissingTiles_W"
+            }
+          ],
+          "15,11": [
+            {
+              "id": "item-1788434597647-cz6s7uw",
+              "assetId": "sprite-stoneTile_E"
+            }
+          ],
+          "16,11": [
+            {
+              "id": "item-1788434600591-xmotaa7",
+              "assetId": "sprite-stoneUneven_W"
+            }
+          ],
+          "18,11": [
+            {
+              "id": "item-1788434625750-qgjbijn",
+              "assetId": "sprite-stoneUneven_W"
+            }
+          ],
+          "17,11": [
+            {
+              "id": "item-1788434632367-0qm174b",
+              "assetId": "sprite-stoneTile_N"
+            }
+          ],
+          "19,19": [
+            {
+              "id": "item-1788434989133-hvk5ch7",
+              "assetId": "sprite-stoneRight_E"
+            }
+          ],
+          "20,21": [
+            {
+              "id": "item-1788437692548-flxl6ft",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,20": [
+            {
+              "id": "item-1788437693130-9iekovk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,19": [
+            {
+              "id": "item-1788437694137-dhz3mo9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,18": [
+            {
+              "id": "item-1788437699826-f4gv9gq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,17": [
+            {
+              "id": "item-1788437700338-vkn39im",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,16": [
+            {
+              "id": "item-1788437700890-gurqqg4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,15": [
+            {
+              "id": "item-1788437701362-kor0dpw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,14": [
+            {
+              "id": "item-1788437702042-3z7kwwp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,13": [
+            {
+              "id": "item-1788437702618-hu8t7cl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,12": [
+            {
+              "id": "item-1788437703130-hyrwxob",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,11": [
+            {
+              "id": "item-1788437703578-x8j7z28",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,10": [
+            {
+              "id": "item-1788437705162-soulpqm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,9": [
+            {
+              "id": "item-1788437705818-o0jk3x6",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,9": [
+            {
+              "id": "item-1788437706484-ypv6e68",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,10": [
+            {
+              "id": "item-1788437707298-dz0v8ci",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,10": [
+            {
+              "id": "item-1788437707866-j2gdae5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,9": [
+            {
+              "id": "item-1788437708273-eg2aqz0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,21": [
+            {
+              "id": "item-1788437710098-rirznwx",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,21": [
+            {
+              "id": "item-1788437710743-685adnl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,21": [
+            {
+              "id": "item-1788437711426-g5r87m1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,21": [
+            {
+              "id": "item-1788437712306-yo4ia44",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,21": [
+            {
+              "id": "item-1788437712860-s9m68jw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,21": [
+            {
+              "id": "item-1788437713723-iwy4nho",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,21": [
+            {
+              "id": "item-1788437714346-xxw4lsv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,21": [
+            {
+              "id": "item-1788437715051-y1az0dw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,21": [
+            {
+              "id": "item-1788437715682-q1zf6ls",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,11": [
+            {
+              "id": "item-1788437719698-166t5gu",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,9": [
+            {
+              "id": "item-1788437721482-udhsjrw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,10": [
+            {
+              "id": "item-1788437723266-pjus64h",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,10": [
+            {
+              "id": "item-1788437723963-nk7zws0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,9": [
+            {
+              "id": "item-1788437724483-slrqpwk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,9": [
+            {
+              "id": "item-1788437725017-gtncz74",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,10": [
+            {
+              "id": "item-1788437725506-ane57xe",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,10": [
+            {
+              "id": "item-1788437725953-ber0tnp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,9": [
+            {
+              "id": "item-1788437726417-0ac2vd5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,9": [
+            {
+              "id": "item-1788437726857-m6hkpy6",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,10": [
+            {
+              "id": "item-1788437727289-aln84on",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,10": [
+            {
+              "id": "item-1788437727697-wwiygn3",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,9": [
+            {
+              "id": "item-1788437728065-9ylmxkz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,9": [
+            {
+              "id": "item-1788437728481-9qpaf5j",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,9": [
+            {
+              "id": "item-1788437728889-oxeau78",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,9": [
+            {
+              "id": "item-1788437729313-3mvwm4c",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,9": [
+            {
+              "id": "item-1788437729697-pvzv8r0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,9": [
+            {
+              "id": "item-1788437730153-5hpgo6u",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,9": [
+            {
+              "id": "item-1788437731753-lfvjr9i",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,9": [
+            {
+              "id": "item-1788437732561-1x306t0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,9": [
+            {
+              "id": "item-1788437733242-6m0aj7h",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,9": [
+            {
+              "id": "item-1788437733945-7sqoaw5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,9": [
+            {
+              "id": "item-1788437734433-6klo3tz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,9": [
+            {
+              "id": "item-1788437734921-nvnxxl5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,21": [
+            {
+              "id": "item-1788437824005-lsl5pq5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,21": [
+            {
+              "id": "item-1788437824589-4js5jmh",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,21": [
+            {
+              "id": "item-1788437825148-7roz4mf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,21": [
+            {
+              "id": "item-1788437825757-y82ppla",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,21": [
+            {
+              "id": "item-1788437826669-ds5kzbm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,21": [
+            {
+              "id": "item-1788437827365-6w0dy56",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,21": [
+            {
+              "id": "item-1788437828621-ocivzl5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,21": [
+            {
+              "id": "item-1788437829317-4qu2j17",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,21": [
+            {
+              "id": "item-1788437829805-h1voxz9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,21": [
+            {
+              "id": "item-1788437830573-agddd5s",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,23": [
+            {
+              "id": "item-1788752212221-i9xo2vg",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,23": [
+            {
+              "id": "item-1788752212998-n4ir8mg",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,23": [
+            {
+              "id": "item-1788752219430-2hf3x9g",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,23": [
+            {
+              "id": "item-1788752228590-tmo2l89",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,23": [
+            {
+              "id": "item-1788752231105-5q8oo01",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,26": [
+            {
+              "id": "item-1788752280172-v62f2dd",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,26": [
+            {
+              "id": "item-1788752280403-1h2ce7c",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "3,26": [
+            {
+              "id": "item-1788752280624-l4091gq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,26": [
+            {
+              "id": "item-1788752280841-gw241tz",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "5,26": [
+            {
+              "id": "item-1788752281060-hisdhae",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,26": [
+            {
+              "id": "item-1788752281405-osuaobq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "7,26": [
+            {
+              "id": "item-1788752281671-icpy9lh",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,26": [
+            {
+              "id": "item-1788752281886-w1euuvy",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "9,26": [
+            {
+              "id": "item-1788752282097-qmy6cp4",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,26": [
+            {
+              "id": "item-1788752282335-g6e9127",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,26": [
+            {
+              "id": "item-1788752282551-lewicbn",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "13,26": [
+            {
+              "id": "item-1788752282778-9otd2is",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "15,26": [
+            {
+              "id": "item-1788752282997-7kn4rgq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,26": [
+            {
+              "id": "item-1788752283405-zpv8rj3",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "17,26": [
+            {
+              "id": "item-1788752283787-ghcou85",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,26": [
+            {
+              "id": "item-1788752284003-d0hhkxb",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "19,26": [
+            {
+              "id": "item-1788752284217-5eob29p",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,26": [
+            {
+              "id": "item-1788752284430-nasbb72",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "21,26": [
+            {
+              "id": "item-1788752284804-0lhhott",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "11,26": [
+            {
+              "id": "item-1788752287100-8k40612",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,26": [
+            {
+              "id": "item-1788752288127-mxx96c8",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "5,23": [
+            {
+              "id": "item-1788752295475-fps01yd",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "6,23": [
+            {
+              "id": "item-1788752296149-asgvek4",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "7,23": [
+            {
+              "id": "item-1788752296651-jzt2ren",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "9,23": [
+            {
+              "id": "item-1788752297491-5thn903",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "10,23": [
+            {
+              "id": "item-1788752298014-lhsz76c",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "11,23": [
+            {
+              "id": "item-1788752298499-c7al9b9",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "13,23": [
+            {
+              "id": "item-1788752299339-9w7wn33",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "14,23": [
+            {
+              "id": "item-1788752299883-u59zgl5",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "15,23": [
+            {
+              "id": "item-1788752300379-a1xm4rz",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "17,23": [
+            {
+              "id": "item-1788752301207-3r3rvr2",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "18,23": [
+            {
+              "id": "item-1788752301811-8s8ezcl",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "19,23": [
+            {
+              "id": "item-1788752302283-5uxr10n",
+              "assetId": "sprite-stone_E"
+            }
+          ],
+          "0,22": [
+            {
+              "id": "item-1788752419428-wdtcvee",
+              "assetId": "sprite-planks_E"
+            },
+            {
+              "id": "item-1788752449578-91bw4sd",
+              "assetId": "sprite-stoneWall_E",
+              "zIndex": 1,
+              "depthOffset": 2,
+              "cellZIndex": {
+                "0,22": 1
+              }
+            }
+          ],
+          "1,22": [
+            {
+              "id": "item-1788752419725-6haapmt",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,22": [
+            {
+              "id": "item-1788752419958-oc45yxa",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "3,22": [
+            {
+              "id": "item-1788752420292-2571gt4",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,22": [
+            {
+              "id": "item-1788752420542-qr5rssn",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "5,22": [
+            {
+              "id": "item-1788752420722-2msppxm",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,22": [
+            {
+              "id": "item-1788752420975-vf6u16s",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "7,22": [
+            {
+              "id": "item-1788752421155-k4nf00p",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,22": [
+            {
+              "id": "item-1788752421375-w1hos56",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "9,22": [
+            {
+              "id": "item-1788752421561-kqhpdp0",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,22": [
+            {
+              "id": "item-1788752421758-5134isl",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "11,22": [
+            {
+              "id": "item-1788752421940-i1fs3co",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,22": [
+            {
+              "id": "item-1788752422124-92cqb4s",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "13,22": [
+            {
+              "id": "item-1788752422310-spsf8ag",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,22": [
+            {
+              "id": "item-1788752422495-51q4z6z",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "15,22": [
+            {
+              "id": "item-1788752422685-klk690m",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,22": [
+            {
+              "id": "item-1788752422874-pl8kpob",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "17,22": [
+            {
+              "id": "item-1788752423060-mfesl2z",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,22": [
+            {
+              "id": "item-1788752423247-lgxlmh6",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "19,22": [
+            {
+              "id": "item-1788752423592-xm0eqbo",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,10": [
+            {
+              "id": "item-1788752541204-okm1fr8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,11": [
+            {
+              "id": "item-1788752541549-mondpav",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,12": [
+            {
+              "id": "item-1788752541897-toe8jtl",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,13": [
+            {
+              "id": "item-1788752542258-58wckzw",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,14": [
+            {
+              "id": "item-1788752542711-k23ludk",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,15": [
+            {
+              "id": "item-1788752543145-pn5tqo7",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,16": [
+            {
+              "id": "item-1788752543489-jyhe4xx",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,17": [
+            {
+              "id": "item-1788752543832-6hzo038",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,18": [
+            {
+              "id": "item-1788752544186-6n6x2vs",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,19": [
+            {
+              "id": "item-1788752544527-w1q5y6z",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "1,20": [
+            {
+              "id": "item-1788752544868-fz7vgjw",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,20": [
+            {
+              "id": "item-1788752545645-3p4rbs5",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,20": [
+            {
+              "id": "item-1788752545995-8fjrzsx",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,20": [
+            {
+              "id": "item-1788752546348-0d16qiq",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,20": [
+            {
+              "id": "item-1788752546698-ciiccqo",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,20": [
+            {
+              "id": "item-1788752547040-gx1hp6o",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,20": [
+            {
+              "id": "item-1788752547380-a0am8pc",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,20": [
+            {
+              "id": "item-1788752547728-2kopb9v",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,20": [
+            {
+              "id": "item-1788752548077-qg5u7cx",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "11,20": [
+            {
+              "id": "item-1788752548427-2jdmo09",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "12,20": [
+            {
+              "id": "item-1788752548771-b7530hf",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,20": [
+            {
+              "id": "item-1788752550021-rghxkyc",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,19": [
+            {
+              "id": "item-1788752551157-ahnkr9e",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,18": [
+            {
+              "id": "item-1788752551494-m7ydqpn",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,17": [
+            {
+              "id": "item-1788752551829-xpjyfy3",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,16": [
+            {
+              "id": "item-1788752552169-6zjdks7",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,15": [
+            {
+              "id": "item-1788752552513-z4euelm",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,14": [
+            {
+              "id": "item-1788752553095-apybrpk",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,13": [
+            {
+              "id": "item-1788752553430-8key3pc",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,12": [
+            {
+              "id": "item-1788752553812-dxt5lks",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,11": [
+            {
+              "id": "item-1788752554148-q2ljbz3",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "2,10": [
+            {
+              "id": "item-1788752554612-tyduxwp",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,10": [
+            {
+              "id": "item-1788752555290-yf3p6hm",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,10": [
+            {
+              "id": "item-1788752555679-cmdmn6r",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,10": [
+            {
+              "id": "item-1788752556013-4w9y8ej",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,10": [
+            {
+              "id": "item-1788752556352-8j87sci",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,10": [
+            {
+              "id": "item-1788752556687-avib1yo",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,10": [
+            {
+              "id": "item-1788752557024-kw6judy",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,10": [
+            {
+              "id": "item-1788752557364-eb5v5be",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,10": [
+            {
+              "id": "item-1788752557698-8anlzfm",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "11,10": [
+            {
+              "id": "item-1788752558035-8rtz0yv",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "11,11": [
+            {
+              "id": "item-1788752558779-uf79p8z",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,11": [
+            {
+              "id": "item-1788752559546-wd9od0w",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,11": [
+            {
+              "id": "item-1788752559903-01hz21v",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,11": [
+            {
+              "id": "item-1788752560262-tnt7q41",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,11": [
+            {
+              "id": "item-1788752560618-7oqe5sj",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,11": [
+            {
+              "id": "item-1788752561063-0irk8uk",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,11": [
+            {
+              "id": "item-1788752561429-jcjr1p8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,11": [
+            {
+              "id": "item-1788752561812-evguhot",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,11": [
+            {
+              "id": "item-1788752562246-sg4ot9x",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,12": [
+            {
+              "id": "item-1788752562829-1f8ly5a",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,13": [
+            {
+              "id": "item-1788752563183-bbi7tz1",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,14": [
+            {
+              "id": "item-1788752563663-j16tjid",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,15": [
+            {
+              "id": "item-1788752564079-dgnvat5",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,16": [
+            {
+              "id": "item-1788752564429-90p1cw8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,17": [
+            {
+              "id": "item-1788752564780-3t8zbv8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,18": [
+            {
+              "id": "item-1788752565123-xs3lnua",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "3,19": [
+            {
+              "id": "item-1788752565546-ahpc9p8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,19": [
+            {
+              "id": "item-1788752566246-4hfgboh",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,19": [
+            {
+              "id": "item-1788752566608-hnetc8e",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,19": [
+            {
+              "id": "item-1788752566959-lg83eau",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,19": [
+            {
+              "id": "item-1788752567323-egz7uy3",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,19": [
+            {
+              "id": "item-1788752567675-vl8oest",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,19": [
+            {
+              "id": "item-1788752568563-2zr93u6",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,19": [
+            {
+              "id": "item-1788752569413-1zattad",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,18": [
+            {
+              "id": "item-1788752570280-0ff63q5",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,17": [
+            {
+              "id": "item-1788752571030-1fnv7ul",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,16": [
+            {
+              "id": "item-1788752571531-7d9nrde",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,15": [
+            {
+              "id": "item-1788752572063-nsfinp7",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,14": [
+            {
+              "id": "item-1788752572513-iahbtn6",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,13": [
+            {
+              "id": "item-1788752572980-x41znen",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "4,12": [
+            {
+              "id": "item-1788752573430-x7p8953",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,12": [
+            {
+              "id": "item-1788752574114-22mmojs",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,12": [
+            {
+              "id": "item-1788752574456-otmkwxv",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,12": [
+            {
+              "id": "item-1788752574797-qb3to7k",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,12": [
+            {
+              "id": "item-1788752575143-nsjaocf",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,12": [
+            {
+              "id": "item-1788752575485-ls38i7n",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,12": [
+            {
+              "id": "item-1788752576613-pkajsh8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,13": [
+            {
+              "id": "item-1788752577497-a7kewbl",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,13": [
+            {
+              "id": "item-1788752577836-pbpow38",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,13": [
+            {
+              "id": "item-1788752578185-2cnst68",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,13": [
+            {
+              "id": "item-1788752578530-af3frp8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,14": [
+            {
+              "id": "item-1788752579314-wzpn9w8",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,15": [
+            {
+              "id": "item-1788752579653-1aer8ss",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,16": [
+            {
+              "id": "item-1788752580080-axn9l86",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,17": [
+            {
+              "id": "item-1788752580424-cwbc3kn",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "5,18": [
+            {
+              "id": "item-1788752580847-wl5wqxh",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,18": [
+            {
+              "id": "item-1788752581526-i1gv4v7",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,18": [
+            {
+              "id": "item-1788752581867-3arp0eb",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,18": [
+            {
+              "id": "item-1788752582213-eac1uuc",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,18": [
+            {
+              "id": "item-1788752582562-ac25sq3",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,18": [
+            {
+              "id": "item-1788752582903-l2mnf17",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,17": [
+            {
+              "id": "item-1788752583647-zzqpvb1",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,16": [
+            {
+              "id": "item-1788752584064-vi4eo5r",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,15": [
+            {
+              "id": "item-1788752584631-5578v94",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,14": [
+            {
+              "id": "item-1788752585131-t1j6hxq",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "10,13": [
+            {
+              "id": "item-1788752585614-fz9zfsc",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,13": [
+            {
+              "id": "item-1788752586381-orm8e0y",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,14": [
+            {
+              "id": "item-1788752586864-x6eksku",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,15": [
+            {
+              "id": "item-1788752587331-o9rqrxg",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,16": [
+            {
+              "id": "item-1788752587731-9eykxls",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "9,17": [
+            {
+              "id": "item-1788752588230-9szfp2h",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,17": [
+            {
+              "id": "item-1788752588814-7nls890",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,17": [
+            {
+              "id": "item-1788752589197-kbpjuef",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,17": [
+            {
+              "id": "item-1788752589764-i69ve82",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,16": [
+            {
+              "id": "item-1788752590444-ij5feiz",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,15": [
+            {
+              "id": "item-1788752590795-w808z81",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "6,14": [
+            {
+              "id": "item-1788752591230-d9wok48",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,14": [
+            {
+              "id": "item-1788752591797-a6fjrat",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,14": [
+            {
+              "id": "item-1788752592152-z559ujv",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,15": [
+            {
+              "id": "item-1788752592630-1wteif7",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "8,16": [
+            {
+              "id": "item-1788752593130-c9wqmlp",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,16": [
+            {
+              "id": "item-1788752593481-vgdevjb",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "7,15": [
+            {
+              "id": "item-1788752593997-wdllltq",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "13,20": [
+            {
+              "id": "item-1788752596094-9ok086o",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "14,20": [
+            {
+              "id": "item-1788752596813-g49gxmv",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "15,20": [
+            {
+              "id": "item-1788752598615-r44140b",
+              "assetId": "sprite-dirt_N"
+            }
+          ],
+          "0,27": [
+            {
+              "id": "item-1788752657028-8zdolqs",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,27": [
+            {
+              "id": "item-1788752657392-gk634iw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,27": [
+            {
+              "id": "item-1788752657749-rojvwej",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,27": [
+            {
+              "id": "item-1788752658567-e2r2wxp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,27": [
+            {
+              "id": "item-1788752658931-kdplr3c",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,27": [
+            {
+              "id": "item-1788752659290-4zllkgd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,27": [
+            {
+              "id": "item-1788752659643-ykff167",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,27": [
+            {
+              "id": "item-1788752660001-k8p72iu",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,27": [
+            {
+              "id": "item-1788752660362-ip6751i",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,27": [
+            {
+              "id": "item-1788752660711-dghgb9l",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,27": [
+            {
+              "id": "item-1788752661072-4jgbo20",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,27": [
+            {
+              "id": "item-1788752661437-cyp0myn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,27": [
+            {
+              "id": "item-1788752661802-g8qec8o",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,27": [
+            {
+              "id": "item-1788752662284-ol5cga1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,27": [
+            {
+              "id": "item-1788752662632-4ypbtwb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,27": [
+            {
+              "id": "item-1788752663005-cv4nkiy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,27": [
+            {
+              "id": "item-1788752663373-umc5nj5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,27": [
+            {
+              "id": "item-1788752664384-6wc5vrt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,27": [
+            {
+              "id": "item-1788752665484-0x11vt4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,27": [
+            {
+              "id": "item-1788752666317-hac6bqf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,28": [
+            {
+              "id": "item-1788752667184-gt25en2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,27": [
+            {
+              "id": "item-1788752667934-ol0j1wl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,27": [
+            {
+              "id": "item-1788752669001-uiaff2g",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,28": [
+            {
+              "id": "item-1788752669934-63yimlx",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,28": [
+            {
+              "id": "item-1788752670297-e5v9yxp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,29": [
+            {
+              "id": "item-1788752670662-oobvvag",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,29": [
+            {
+              "id": "item-1788752671355-es1jttw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,29": [
+            {
+              "id": "item-1788752671700-v6jycaa",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,29": [
+            {
+              "id": "item-1788752672101-yr6qzwl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,29": [
+            {
+              "id": "item-1788752672551-ql3wlcy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,29": [
+            {
+              "id": "item-1788752673018-a0tejjy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,29": [
+            {
+              "id": "item-1788752673451-64bl7au",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,29": [
+            {
+              "id": "item-1788752673934-9dami9h",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,29": [
+            {
+              "id": "item-1788752674434-cmhhqad",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,29": [
+            {
+              "id": "item-1788752674935-esc9jrw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,29": [
+            {
+              "id": "item-1788752675335-0rmot3x",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,29": [
+            {
+              "id": "item-1788752675835-odrlzid",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,29": [
+            {
+              "id": "item-1788752676180-o9b9poz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,29": [
+            {
+              "id": "item-1788752676551-mjxw7x1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,29": [
+            {
+              "id": "item-1788752676926-d719cms",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,29": [
+            {
+              "id": "item-1788752677301-lfkte98",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,29": [
+            {
+              "id": "item-1788752677685-n9i5xrz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,29": [
+            {
+              "id": "item-1788752678034-9i1wnqj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,29": [
+            {
+              "id": "item-1788752678386-h46gzw9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,29": [
+            {
+              "id": "item-1788752678736-xd9wz52",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,29": [
+            {
+              "id": "item-1788752679090-xxc8xaj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,29": [
+            {
+              "id": "item-1788752679668-7cbdjqj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,28": [
+            {
+              "id": "item-1788752680618-3nbuchb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,28": [
+            {
+              "id": "item-1788752681435-3pxwp73",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,28": [
+            {
+              "id": "item-1788752681783-5btimz8",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,28": [
+            {
+              "id": "item-1788752682138-9y7ulg9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,28": [
+            {
+              "id": "item-1788752682488-dooqqii",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,28": [
+            {
+              "id": "item-1788752682840-gpr6xwg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,28": [
+            {
+              "id": "item-1788752683196-9pqg17g",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,28": [
+            {
+              "id": "item-1788752683548-io7zl5v",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,28": [
+            {
+              "id": "item-1788752683935-3rwhdlb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,28": [
+            {
+              "id": "item-1788752684285-liwlexs",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,28": [
+            {
+              "id": "item-1788752684668-3w2ff0x",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,28": [
+            {
+              "id": "item-1788752685016-z1x754t",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,28": [
+            {
+              "id": "item-1788752685369-gugoqty",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,28": [
+            {
+              "id": "item-1788752685902-s3obz6e",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,28": [
+            {
+              "id": "item-1788752686652-ie7ah21",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,28": [
+            {
+              "id": "item-1788752687000-tjfgrix",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,28": [
+            {
+              "id": "item-1788752687385-w4z9d0w",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,28": [
+            {
+              "id": "item-1788752687733-hc102um",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,28": [
+            {
+              "id": "item-1788752688081-ppxgyyj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,0": [
+            {
+              "id": "item-1788752692526-4o7ujnn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,0": [
+            {
+              "id": "item-1788752692882-ukhsn7u",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,0": [
+            {
+              "id": "item-1788752693256-zs820rv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,0": [
+            {
+              "id": "item-1788752693686-1pgdpsk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,0": [
+            {
+              "id": "item-1788752694054-zi7qe1h",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,0": [
+            {
+              "id": "item-1788752694439-h7dvv9e",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,0": [
+            {
+              "id": "item-1788752694814-k6q9fy5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,0": [
+            {
+              "id": "item-1788752695236-l2qchdg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,0": [
+            {
+              "id": "item-1788752695619-cbmoyio",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,0": [
+            {
+              "id": "item-1788752695985-txvwql9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,0": [
+            {
+              "id": "item-1788752696345-6ko3rja",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,0": [
+            {
+              "id": "item-1788752696729-ou10w1m",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,0": [
+            {
+              "id": "item-1788752697106-juxtszm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,0": [
+            {
+              "id": "item-1788752697475-oe6t4ox",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,0": [
+            {
+              "id": "item-1788752697843-xiiy9j4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,0": [
+            {
+              "id": "item-1788752698215-z0fvrsj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,0": [
+            {
+              "id": "item-1788752698575-sn2kder",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,0": [
+            {
+              "id": "item-1788752698942-kusnetq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,0": [
+            {
+              "id": "item-1788752699314-xjkynbn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,0": [
+            {
+              "id": "item-1788752699683-4fpz1zv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,0": [
+            {
+              "id": "item-1788752700039-n7uyx1l",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,0": [
+            {
+              "id": "item-1788752700469-lbuo0ib",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,1": [
+            {
+              "id": "item-1788752701686-oa1i5qv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,2": [
+            {
+              "id": "item-1788752702103-76w4lgn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "21,3": [
+            {
+              "id": "item-1788752702570-a0gwf7v",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,3": [
+            {
+              "id": "item-1788752703262-qx8z07w",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,3": [
+            {
+              "id": "item-1788752703622-whh6lu1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,3": [
+            {
+              "id": "item-1788752703979-a9xsl8x",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,3": [
+            {
+              "id": "item-1788752704349-2tytj7w",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,3": [
+            {
+              "id": "item-1788752704709-me4inmu",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,3": [
+            {
+              "id": "item-1788752718008-fb632kn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,3": [
+            {
+              "id": "item-1788752719233-bkgjago",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,2": [
+            {
+              "id": "item-1788752719595-yl8prvo",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,3": [
+            {
+              "id": "item-1788752719953-a5m3n3r",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,3": [
+            {
+              "id": "item-1788752720981-5xy7u7s",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,3": [
+            {
+              "id": "item-1788752721565-y9f5ps1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,3": [
+            {
+              "id": "item-1788752721998-axl64pd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,3": [
+            {
+              "id": "item-1788752722465-dd0zkn1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,3": [
+            {
+              "id": "item-1788752722915-90aipjd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,3": [
+            {
+              "id": "item-1788752723298-63e2e69",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,3": [
+            {
+              "id": "item-1788752723748-cnx1wr5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,3": [
+            {
+              "id": "item-1788752724129-bsu3eyp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,3": [
+            {
+              "id": "item-1788752724565-i7idwve",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,3": [
+            {
+              "id": "item-1788752724925-13fbdju",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,3": [
+            {
+              "id": "item-1788752725398-wxkm8ps",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,3": [
+            {
+              "id": "item-1788752728120-36aiytd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,2": [
+            {
+              "id": "item-1788752728809-kyykwzx",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "0,1": [
+            {
+              "id": "item-1788752729294-4rr75gn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,3": [
+            {
+              "id": "item-1788752730542-emfb9dg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,2": [
+            {
+              "id": "item-1788752731614-otnypdg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,2": [
+            {
+              "id": "item-1788752731966-269u777",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,2": [
+            {
+              "id": "item-1788752732331-ghl1a10",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,2": [
+            {
+              "id": "item-1788752733023-br5gl0a",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,2": [
+            {
+              "id": "item-1788752733385-x2vq7uv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,2": [
+            {
+              "id": "item-1788752733748-d1df990",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,2": [
+            {
+              "id": "item-1788752734117-t50h6l1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,2": [
+            {
+              "id": "item-1788752734482-rk4lbpk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,2": [
+            {
+              "id": "item-1788752734915-vew38rm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,2": [
+            {
+              "id": "item-1788752735366-l89uuvq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,2": [
+            {
+              "id": "item-1788752735765-s28b3kc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,2": [
+            {
+              "id": "item-1788752737367-pddv4ry",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,1": [
+            {
+              "id": "item-1788752739017-xxuaci1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "3,1": [
+            {
+              "id": "item-1788752739376-aom4h99",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "4,1": [
+            {
+              "id": "item-1788752739759-5edqblk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "2,1": [
+            {
+              "id": "item-1788752740483-82kry3u",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "5,1": [
+            {
+              "id": "item-1788752741432-9h3woye",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "6,1": [
+            {
+              "id": "item-1788752741833-1urs6tf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "7,1": [
+            {
+              "id": "item-1788752742282-7zl9g5z",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "8,1": [
+            {
+              "id": "item-1788752742653-86xch3z",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "9,1": [
+            {
+              "id": "item-1788752743020-684h4zi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "10,1": [
+            {
+              "id": "item-1788752743395-sqtua3l",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "11,1": [
+            {
+              "id": "item-1788752743764-2lncatb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "12,1": [
+            {
+              "id": "item-1788752744127-zo6lqes",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "13,1": [
+            {
+              "id": "item-1788752744507-upxwt93",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,1": [
+            {
+              "id": "item-1788752744874-w68opvv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "14,2": [
+            {
+              "id": "item-1788752745582-63b8954",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,2": [
+            {
+              "id": "item-1788752746271-tg9me1i",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,2": [
+            {
+              "id": "item-1788752746716-ao7obxb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,2": [
+            {
+              "id": "item-1788752750190-ariu3lx",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,2": [
+            {
+              "id": "item-1788752750569-kw4gxxy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,2": [
+            {
+              "id": "item-1788752750961-7j6nr0s",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,2": [
+            {
+              "id": "item-1788752751400-tmx63qq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,1": [
+            {
+              "id": "item-1788752752150-deupjk6",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "19,1": [
+            {
+              "id": "item-1788752752900-rxlk0a5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "18,1": [
+            {
+              "id": "item-1788752753266-mgy9w1z",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "17,1": [
+            {
+              "id": "item-1788752753817-49mue4j",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "16,1": [
+            {
+              "id": "item-1788752754172-erdyg8k",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "15,1": [
+            {
+              "id": "item-1788752754567-e4dq9jq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "1,4": [
+            {
+              "id": "item-1788774575123-lqmjxrf",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,4": [
+            {
+              "id": "item-1788774575389-50n3f54",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "3,4": [
+            {
+              "id": "item-1788774575605-scphtpo",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,4": [
+            {
+              "id": "item-1788774575955-swrwah9",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "5,4": [
+            {
+              "id": "item-1788774576155-ezydyd3",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,4": [
+            {
+              "id": "item-1788774576405-as9xnut",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "7,4": [
+            {
+              "id": "item-1788774576639-bo43agi",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,4": [
+            {
+              "id": "item-1788774576890-g6p6gkg",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "9,4": [
+            {
+              "id": "item-1788774577155-4gd2ihz",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,4": [
+            {
+              "id": "item-1788774577356-cymdrdx",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "11,4": [
+            {
+              "id": "item-1788774577539-ilzbjrs",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,4": [
+            {
+              "id": "item-1788774577806-q58d6ng",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "13,4": [
+            {
+              "id": "item-1788774578006-oedflm7",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,4": [
+            {
+              "id": "item-1788774578177-647maxv",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "15,4": [
+            {
+              "id": "item-1788774578372-7xil1p1",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,4": [
+            {
+              "id": "item-1788774578572-h5w9xin",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "17,4": [
+            {
+              "id": "item-1788774578739-raa8dct",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,4": [
+            {
+              "id": "item-1788774578906-ml54hkn",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "19,4": [
+            {
+              "id": "item-1788774579074-olh0mwe",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,4": [
+            {
+              "id": "item-1788774579262-kmyd7er",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "21,4": [
+            {
+              "id": "item-1788774579622-emiji4w",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "1,8": [
+            {
+              "id": "item-1788774581519-ut0kwwf",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "2,8": [
+            {
+              "id": "item-1788774581723-sfyihq7",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "3,8": [
+            {
+              "id": "item-1788774581972-3owzuh5",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "4,8": [
+            {
+              "id": "item-1788774582189-l8khfq1",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "5,8": [
+            {
+              "id": "item-1788774582389-hx139ub",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "6,8": [
+            {
+              "id": "item-1788774582559-oxxkvhw",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "7,8": [
+            {
+              "id": "item-1788774582731-93dmzq1",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "8,8": [
+            {
+              "id": "item-1788774582956-cmqg5kq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "9,8": [
+            {
+              "id": "item-1788774583222-dmrk5qy",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "10,8": [
+            {
+              "id": "item-1788774583394-8vck4bj",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "11,8": [
+            {
+              "id": "item-1788774583566-ylk68xf",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "12,8": [
+            {
+              "id": "item-1788774583789-8uh8y2l",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "13,8": [
+            {
+              "id": "item-1788774583972-wdktsyf",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "14,8": [
+            {
+              "id": "item-1788774584173-r1658bg",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "15,8": [
+            {
+              "id": "item-1788774584338-3u5wxfy",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "16,8": [
+            {
+              "id": "item-1788774584517-i9wxy0d",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "17,8": [
+            {
+              "id": "item-1788774584691-i36h1be",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "18,8": [
+            {
+              "id": "item-1788774584864-qj3m4gy",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "19,8": [
+            {
+              "id": "item-1788774585056-x14coyq",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "20,8": [
+            {
+              "id": "item-1788774585256-bwe1qep",
+              "assetId": "sprite-planks_E"
+            }
+          ],
+          "22,29": [
+            {
+              "id": "item-1788774601047-tybothi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,28": [
+            {
+              "id": "item-1788774601215-9yjfvoi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,27": [
+            {
+              "id": "item-1788774601507-v9t4wbf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,26": [
+            {
+              "id": "item-1788774601757-mlhloka",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,25": [
+            {
+              "id": "item-1788774601974-n319qpb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,24": [
+            {
+              "id": "item-1788774602223-2dwk4pq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,23": [
+            {
+              "id": "item-1788774602474-gea5kye",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,22": [
+            {
+              "id": "item-1788774602740-omzdwz0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,21": [
+            {
+              "id": "item-1788774602957-z8fzfby",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,20": [
+            {
+              "id": "item-1788774603174-ct38waz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,19": [
+            {
+              "id": "item-1788774603349-tpnu9od",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,18": [
+            {
+              "id": "item-1788774603574-vwei4wt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,17": [
+            {
+              "id": "item-1788774603807-e61w1bv",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,17": [
+            {
+              "id": "item-1788774604240-xd1vzhw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,17": [
+            {
+              "id": "item-1788774604507-443isma",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,17": [
+            {
+              "id": "item-1788774604841-20o7f7z",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,17": [
+            {
+              "id": "item-1788774605107-brkjprm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,17": [
+            {
+              "id": "item-1788774605278-9ct0o49",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,17": [
+            {
+              "id": "item-1788774605458-1t6uhsi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,17": [
+            {
+              "id": "item-1788774605790-3s1aanm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,18": [
+            {
+              "id": "item-1788774606291-0ycijvt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,19": [
+            {
+              "id": "item-1788774606458-odc3cbz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,20": [
+            {
+              "id": "item-1788774606641-dinp79c",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,21": [
+            {
+              "id": "item-1788774606818-vccxbxc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,22": [
+            {
+              "id": "item-1788774606992-b9o38ag",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,23": [
+            {
+              "id": "item-1788774607257-22b8ibt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,24": [
+            {
+              "id": "item-1788774607424-hmdchox",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,25": [
+            {
+              "id": "item-1788774607605-0bybrp4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,26": [
+            {
+              "id": "item-1788774607777-krxc8ey",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,27": [
+            {
+              "id": "item-1788774607957-10o793c",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,28": [
+            {
+              "id": "item-1788774610382-jnne3sc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,29": [
+            {
+              "id": "item-1788774610736-9s3q118",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,29": [
+            {
+              "id": "item-1788774611303-63tcble",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,29": [
+            {
+              "id": "item-1788774611553-n6bearl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,29": [
+            {
+              "id": "item-1788774611725-ewbwuij",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,29": [
+            {
+              "id": "item-1788774611970-3rpp1dg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,29": [
+            {
+              "id": "item-1788774612253-0krv65q",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,29": [
+            {
+              "id": "item-1788774612570-lrujy7i",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,28": [
+            {
+              "id": "item-1788774613170-m335mpk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,27": [
+            {
+              "id": "item-1788774613403-vw67e4t",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,26": [
+            {
+              "id": "item-1788774613670-wyhtwju",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,25": [
+            {
+              "id": "item-1788774613838-eyt9cw7",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,24": [
+            {
+              "id": "item-1788774614025-cnsh5vm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,23": [
+            {
+              "id": "item-1788774614206-ur1v5fr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,22": [
+            {
+              "id": "item-1788774614383-l81rve2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,21": [
+            {
+              "id": "item-1788774614587-gnhbw6k",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,20": [
+            {
+              "id": "item-1788774614803-oqt7i00",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,19": [
+            {
+              "id": "item-1788774615086-rv46y59",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,18": [
+            {
+              "id": "item-1788774615370-81inckw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,18": [
+            {
+              "id": "item-1788774615736-r4h517s",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,18": [
+            {
+              "id": "item-1788774616054-a06ic7f",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,18": [
+            {
+              "id": "item-1788774616337-z66y9c6",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,18": [
+            {
+              "id": "item-1788774616549-fpkav6m",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,18": [
+            {
+              "id": "item-1788774616887-be0digi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,19": [
+            {
+              "id": "item-1788774617353-of1rqwr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,20": [
+            {
+              "id": "item-1788774617562-aj2s7cy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,21": [
+            {
+              "id": "item-1788774617753-pcv1hpa",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,22": [
+            {
+              "id": "item-1788774617937-u3zj2xf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,23": [
+            {
+              "id": "item-1788774618146-qkcy84m",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,24": [
+            {
+              "id": "item-1788774618332-33yqi6n",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,25": [
+            {
+              "id": "item-1788774618570-s9w23k9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,26": [
+            {
+              "id": "item-1788774618903-wwzs4pj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,27": [
+            {
+              "id": "item-1788774619092-1piojuw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,28": [
+            {
+              "id": "item-1788774619312-566fyj2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,28": [
+            {
+              "id": "item-1788774619937-443ku0e",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,28": [
+            {
+              "id": "item-1788774620114-44uzsxa",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,28": [
+            {
+              "id": "item-1788774620370-8wzbgct",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,28": [
+            {
+              "id": "item-1788774620620-322jzn1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,27": [
+            {
+              "id": "item-1788774621020-aqjef63",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,26": [
+            {
+              "id": "item-1788774621270-q3lmptk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,25": [
+            {
+              "id": "item-1788774621670-g9j5olw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,24": [
+            {
+              "id": "item-1788774624107-3aa42rc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,23": [
+            {
+              "id": "item-1788774624278-q2imtol",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,22": [
+            {
+              "id": "item-1788774624462-qedio9v",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,21": [
+            {
+              "id": "item-1788774624771-n0wb8tc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,20": [
+            {
+              "id": "item-1788774625004-1so0qj5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,19": [
+            {
+              "id": "item-1788774625370-fali3ax",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,19": [
+            {
+              "id": "item-1788774625887-6gbovo9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,19": [
+            {
+              "id": "item-1788774626187-wdo473u",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,19": [
+            {
+              "id": "item-1788774626488-hgggdhi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,20": [
+            {
+              "id": "item-1788774626871-3c1wwks",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,21": [
+            {
+              "id": "item-1788774627055-wn8dxhr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,22": [
+            {
+              "id": "item-1788774627245-wksds8b",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,23": [
+            {
+              "id": "item-1788774627424-aivsm7g",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,24": [
+            {
+              "id": "item-1788774627609-1j2cnav",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,25": [
+            {
+              "id": "item-1788774627804-xosgrti",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,26": [
+            {
+              "id": "item-1788774628021-m30fsy7",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,27": [
+            {
+              "id": "item-1788774628337-n5y03ru",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,27": [
+            {
+              "id": "item-1788774628704-las62a1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,27": [
+            {
+              "id": "item-1788774628988-f7cvzja",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,26": [
+            {
+              "id": "item-1788774629338-ex174z8",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,25": [
+            {
+              "id": "item-1788774629554-elqe45p",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,24": [
+            {
+              "id": "item-1788774629734-5ohztk2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,23": [
+            {
+              "id": "item-1788774629952-xtuhw8y",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,22": [
+            {
+              "id": "item-1788774630133-avoxjo1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,21": [
+            {
+              "id": "item-1788774630313-5c9x4wl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,20": [
+            {
+              "id": "item-1788774630554-vw3v84i",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,20": [
+            {
+              "id": "item-1788774631071-2v60eab",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,21": [
+            {
+              "id": "item-1788774631555-8ww64zd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,22": [
+            {
+              "id": "item-1788774631736-6s3mfik",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,23": [
+            {
+              "id": "item-1788774631949-aetlm6v",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,24": [
+            {
+              "id": "item-1788774632142-5dk5vlg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,25": [
+            {
+              "id": "item-1788774632322-ywdmhfa",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,26": [
+            {
+              "id": "item-1788774632588-11scjew",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,13": [
+            {
+              "id": "item-1788774634198-25qbg0e",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,12": [
+            {
+              "id": "item-1788774634375-i6vadt5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,11": [
+            {
+              "id": "item-1788774634579-b6iqnyb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,10": [
+            {
+              "id": "item-1788774634871-l09euvi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,9": [
+            {
+              "id": "item-1788774635238-r239up2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,8": [
+            {
+              "id": "item-1788774635488-37i9js0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,7": [
+            {
+              "id": "item-1788774635938-cj72jz5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,6": [
+            {
+              "id": "item-1788774636288-pf9qs33",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,5": [
+            {
+              "id": "item-1788774636521-6qbblvu",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,4": [
+            {
+              "id": "item-1788774636773-yq1ftot",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,3": [
+            {
+              "id": "item-1788774637006-qi1srde",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,2": [
+            {
+              "id": "item-1788774637221-oclka1o",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,1": [
+            {
+              "id": "item-1788774637471-xkawx9t",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "22,0": [
+            {
+              "id": "item-1788774637721-lwampv1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,0": [
+            {
+              "id": "item-1788774638255-3yhqbob",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,0": [
+            {
+              "id": "item-1788774638433-s35f2ii",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,0": [
+            {
+              "id": "item-1788774638788-z1lizxr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,0": [
+            {
+              "id": "item-1788774638968-elc7ddt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,0": [
+            {
+              "id": "item-1788774639206-0dn5jya",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,0": [
+            {
+              "id": "item-1788774639438-9f2533t",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,0": [
+            {
+              "id": "item-1788774639705-6oeyce4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,1": [
+            {
+              "id": "item-1788774640208-1hmzm8p",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,2": [
+            {
+              "id": "item-1788774640397-j23v3m6",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,3": [
+            {
+              "id": "item-1788774640605-ff1jyg8",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,4": [
+            {
+              "id": "item-1788774640786-w1o8ggt",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,5": [
+            {
+              "id": "item-1788774641009-tlpat8t",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,6": [
+            {
+              "id": "item-1788774641209-fgl7l1o",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,7": [
+            {
+              "id": "item-1788774641397-rdmbkn2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,8": [
+            {
+              "id": "item-1788774641585-br58714",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,9": [
+            {
+              "id": "item-1788774641775-znek2go",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,10": [
+            {
+              "id": "item-1788774641968-axwjp7f",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,11": [
+            {
+              "id": "item-1788774642178-weyunmy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,12": [
+            {
+              "id": "item-1788774642377-6qfi1zl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "29,13": [
+            {
+              "id": "item-1788774642573-34ga87m",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,13": [
+            {
+              "id": "item-1788774643138-l54kyeh",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,13": [
+            {
+              "id": "item-1788774643372-9m5d8fd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,13": [
+            {
+              "id": "item-1788774643705-rw93xqp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,13": [
+            {
+              "id": "item-1788774643887-sqiz9bf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,13": [
+            {
+              "id": "item-1788774644155-lcsgbdz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,13": [
+            {
+              "id": "item-1788774644588-43hqusw",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,12": [
+            {
+              "id": "item-1788774645122-99gc6gc",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,11": [
+            {
+              "id": "item-1788774645339-blel7e2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,10": [
+            {
+              "id": "item-1788774645555-v4kjq87",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,9": [
+            {
+              "id": "item-1788774645805-xm9v294",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,8": [
+            {
+              "id": "item-1788774645992-rzsbbcm",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,7": [
+            {
+              "id": "item-1788774646193-odyvonz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,5": [
+            {
+              "id": "item-1788774646383-w70hhry",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,1": [
+            {
+              "id": "item-1788774646972-aujz3mh",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,6": [
+            {
+              "id": "item-1788774648763-ji95au4",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,4": [
+            {
+              "id": "item-1788774648944-bemrk1k",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,3": [
+            {
+              "id": "item-1788774649151-of4o43l",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "23,2": [
+            {
+              "id": "item-1788774649337-nhsl0w7",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,1": [
+            {
+              "id": "item-1788774649805-0vax603",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,1": [
+            {
+              "id": "item-1788774650039-werldii",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,1": [
+            {
+              "id": "item-1788774650306-p9tkxvh",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,1": [
+            {
+              "id": "item-1788774650499-vgh0jk5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,1": [
+            {
+              "id": "item-1788774650700-a0ph9ph",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,2": [
+            {
+              "id": "item-1788774651122-13w87dl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,3": [
+            {
+              "id": "item-1788774651316-t9oy9cj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,4": [
+            {
+              "id": "item-1788774651510-g1tt53y",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,5": [
+            {
+              "id": "item-1788774651700-v6g9ont",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,6": [
+            {
+              "id": "item-1788774651897-4251xbp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,7": [
+            {
+              "id": "item-1788774652087-oz8bszr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,8": [
+            {
+              "id": "item-1788774652280-5ixe0rb",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,9": [
+            {
+              "id": "item-1788774652489-ubmhkvr",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,10": [
+            {
+              "id": "item-1788774652675-wj88gmp",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,12": [
+            {
+              "id": "item-1788774653274-iezm3lz",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "28,11": [
+            {
+              "id": "item-1788774653822-g9ynrxy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,12": [
+            {
+              "id": "item-1788774654423-47y3n4r",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,12": [
+            {
+              "id": "item-1788774654939-e3t43fy",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,12": [
+            {
+              "id": "item-1788774655124-u2q50dd",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,12": [
+            {
+              "id": "item-1788774655326-gp843dl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,11": [
+            {
+              "id": "item-1788774655889-u10pape",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,10": [
+            {
+              "id": "item-1788774656076-89i9391",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,9": [
+            {
+              "id": "item-1788774656271-3iad0fj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,8": [
+            {
+              "id": "item-1788774656463-gviivi2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,7": [
+            {
+              "id": "item-1788774656663-axv3hpn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,6": [
+            {
+              "id": "item-1788774656857-2m8ah1j",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,5": [
+            {
+              "id": "item-1788774657051-vd94th5",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,4": [
+            {
+              "id": "item-1788774657242-4kq9jdg",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,3": [
+            {
+              "id": "item-1788774657436-867ehh7",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "24,2": [
+            {
+              "id": "item-1788774657637-ucic0w9",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,2": [
+            {
+              "id": "item-1788774658106-kcmg4iq",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,2": [
+            {
+              "id": "item-1788774658302-d01jf4n",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,2": [
+            {
+              "id": "item-1788774658606-xkbqvhh",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,3": [
+            {
+              "id": "item-1788774658906-cpdd77j",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,4": [
+            {
+              "id": "item-1788774659096-jvt4ud8",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,5": [
+            {
+              "id": "item-1788774659299-yln33i1",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,7": [
+            {
+              "id": "item-1788774659493-191yuwa",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,9": [
+            {
+              "id": "item-1788774659789-j00e4ym",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,10": [
+            {
+              "id": "item-1788774660023-fq0ygpi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,11": [
+            {
+              "id": "item-1788774660356-esta5fs",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,11": [
+            {
+              "id": "item-1788774660756-epic9c0",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,10": [
+            {
+              "id": "item-1788774660991-3yhu9qx",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,11": [
+            {
+              "id": "item-1788774663515-4k7oygs",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,10": [
+            {
+              "id": "item-1788774664056-3w26k9u",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,9": [
+            {
+              "id": "item-1788774664244-c7n4jhi",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,7": [
+            {
+              "id": "item-1788774664460-7fltsmn",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,6": [
+            {
+              "id": "item-1788774664790-dut4wsl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,5": [
+            {
+              "id": "item-1788774664983-tdb515l",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,4": [
+            {
+              "id": "item-1788774665223-dmlqtkl",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,3": [
+            {
+              "id": "item-1788774665490-nd6fx06",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,3": [
+            {
+              "id": "item-1788774666350-pbg2m00",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,4": [
+            {
+              "id": "item-1788774666534-vli8t78",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,5": [
+            {
+              "id": "item-1788774666738-sq2d7g2",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,6": [
+            {
+              "id": "item-1788774666937-hsqg0kf",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,7": [
+            {
+              "id": "item-1788774667137-dekx0oj",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,8": [
+            {
+              "id": "item-1788774667342-22659sk",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "25,9": [
+            {
+              "id": "item-1788774668392-n44qo4y",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "26,8": [
+            {
+              "id": "item-1788774668889-t5v7zel",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,8": [
+            {
+              "id": "item-1788774669379-bbwa736",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "27,6": [
+            {
+              "id": "item-1788774669895-bg779m7",
+              "assetId": "sprite-dirt_E"
+            }
+          ],
+          "20,22": [
+            {
+              "id": "item-1788779669065-lk5ndqb",
+              "assetId": "sprite-planks_W"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer-objects-1788428582067",
+        "name": "Objects",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "tiles": {}
+      },
+      {
+        "id": "layer-deco-1788428582067",
+        "name": "Decoration",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "tiles": {}
+      }
+    ],
+    "gameSettings": {
+      "startingGold": 30,
+      "startingLives": 20,
+      "wavePrepTime": 30
+    },
+    "customRoutes": {
+      "spawn-1788429285151-rvr4": [
+        {
+          "col": 0,
+          "row": 6
+        },
+        {
+          "col": 1,
+          "row": 6
+        },
+        {
+          "col": 2,
+          "row": 6
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 3,
+          "row": 5
+        },
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 10,
+          "row": 7
+        },
+        {
+          "col": 11,
+          "row": 7
+        },
+        {
+          "col": 11,
+          "row": 6
+        },
+        {
+          "col": 11,
+          "row": 5
+        },
+        {
+          "col": 12,
+          "row": 5
+        },
+        {
+          "col": 13,
+          "row": 5
+        },
+        {
+          "col": 13,
+          "row": 6
+        },
+        {
+          "col": 13,
+          "row": 7
+        },
+        {
+          "col": 14,
+          "row": 7
+        },
+        {
+          "col": 15,
+          "row": 7
+        },
+        {
+          "col": 15,
+          "row": 6
+        },
+        {
+          "col": 15,
+          "row": 5
+        },
+        {
+          "col": 16,
+          "row": 5
+        },
+        {
+          "col": 17,
+          "row": 5
+        },
+        {
+          "col": 17,
+          "row": 6
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 7
+        },
+        {
+          "col": 19,
+          "row": 7
+        },
+        {
+          "col": 19,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 5
+        },
+        {
+          "col": 20,
+          "row": 5
+        },
+        {
+          "col": 21,
+          "row": 5
+        },
+        {
+          "col": 21,
+          "row": 6
+        },
+        {
+          "col": 21,
+          "row": 7
+        },
+        {
+          "col": 21,
+          "row": 8
+        },
+        {
+          "col": 21,
+          "row": 9
+        },
+        {
+          "col": 21,
+          "row": 10
+        },
+        {
+          "col": 21,
+          "row": 11
+        },
+        {
+          "col": 21,
+          "row": 12
+        },
+        {
+          "col": 21,
+          "row": 13
+        },
+        {
+          "col": 21,
+          "row": 14
+        },
+        {
+          "col": 22,
+          "row": 14
+        },
+        {
+          "col": 23,
+          "row": 14
+        },
+        {
+          "col": 24,
+          "row": 14
+        },
+        {
+          "col": 25,
+          "row": 14
+        },
+        {
+          "col": 26,
+          "row": 14
+        },
+        {
+          "col": 27,
+          "row": 14
+        },
+        {
+          "col": 28,
+          "row": 14
+        },
+        {
+          "col": 29,
+          "row": 14
+        }
+      ],
+      "spawn-1788429300398-ae3f": [
+        {
+          "col": 0,
+          "row": 24
+        },
+        {
+          "col": 1,
+          "row": 24
+        },
+        {
+          "col": 2,
+          "row": 24
+        },
+        {
+          "col": 3,
+          "row": 24
+        },
+        {
+          "col": 3,
+          "row": 25
+        },
+        {
+          "col": 4,
+          "row": 25
+        },
+        {
+          "col": 5,
+          "row": 25
+        },
+        {
+          "col": 5,
+          "row": 24
+        },
+        {
+          "col": 5,
+          "row": 23
+        },
+        {
+          "col": 6,
+          "row": 23
+        },
+        {
+          "col": 7,
+          "row": 23
+        },
+        {
+          "col": 7,
+          "row": 24
+        },
+        {
+          "col": 7,
+          "row": 25
+        },
+        {
+          "col": 8,
+          "row": 25
+        },
+        {
+          "col": 9,
+          "row": 25
+        },
+        {
+          "col": 9,
+          "row": 24
+        },
+        {
+          "col": 9,
+          "row": 23
+        },
+        {
+          "col": 10,
+          "row": 23
+        },
+        {
+          "col": 11,
+          "row": 23
+        },
+        {
+          "col": 11,
+          "row": 24
+        },
+        {
+          "col": 11,
+          "row": 25
+        },
+        {
+          "col": 12,
+          "row": 25
+        },
+        {
+          "col": 13,
+          "row": 25
+        },
+        {
+          "col": 13,
+          "row": 24
+        },
+        {
+          "col": 13,
+          "row": 23
+        },
+        {
+          "col": 14,
+          "row": 23
+        },
+        {
+          "col": 15,
+          "row": 23
+        },
+        {
+          "col": 15,
+          "row": 24
+        },
+        {
+          "col": 15,
+          "row": 25
+        },
+        {
+          "col": 16,
+          "row": 25
+        },
+        {
+          "col": 17,
+          "row": 25
+        },
+        {
+          "col": 17,
+          "row": 24
+        },
+        {
+          "col": 17,
+          "row": 23
+        },
+        {
+          "col": 18,
+          "row": 23
+        },
+        {
+          "col": 19,
+          "row": 23
+        },
+        {
+          "col": 19,
+          "row": 24
+        },
+        {
+          "col": 19,
+          "row": 25
+        },
+        {
+          "col": 20,
+          "row": 25
+        },
+        {
+          "col": 21,
+          "row": 25
+        },
+        {
+          "col": 21,
+          "row": 24
+        },
+        {
+          "col": 21,
+          "row": 23
+        },
+        {
+          "col": 21,
+          "row": 22
+        },
+        {
+          "col": 21,
+          "row": 21
+        },
+        {
+          "col": 21,
+          "row": 20
+        },
+        {
+          "col": 21,
+          "row": 19
+        },
+        {
+          "col": 21,
+          "row": 18
+        },
+        {
+          "col": 21,
+          "row": 17
+        },
+        {
+          "col": 21,
+          "row": 16
+        },
+        {
+          "col": 22,
+          "row": 16
+        },
+        {
+          "col": 23,
+          "row": 16
+        },
+        {
+          "col": 24,
+          "row": 16
+        },
+        {
+          "col": 25,
+          "row": 16
+        },
+        {
+          "col": 26,
+          "row": 16
+        },
+        {
+          "col": 27,
+          "row": 16
+        },
+        {
+          "col": 28,
+          "row": 16
+        },
+        {
+          "col": 29,
+          "row": 16
+        }
+      ]
+    },
+    "spawnPoints": [
+      {
+        "id": "spawn-1788429285151-rvr4",
+        "col": 0,
+        "row": 6,
+        "spawnCol": 0,
+        "spawnRow": 6,
+        "assetId": "",
+        "name": "Spawn Point 1 (0, 6)",
+        "layerId": "layer-ground",
+        "quadrant": 0,
+        "isCorner": true,
+        "cornerName": "Circle 1 (North)"
+      },
+      {
+        "id": "spawn-1788429300398-ae3f",
+        "col": 0,
+        "row": 24,
+        "spawnCol": 0,
+        "spawnRow": 24,
+        "assetId": "",
+        "name": "Spawn Point 2 (0, 24)",
+        "layerId": "layer-ground",
+        "quadrant": 3,
+        "isCorner": true,
+        "cornerName": "Circle 4 (West)"
+      }
+    ],
+    "characterConfig": {
+      "spawnCount": 10,
+      "spawnMode": "all_doors",
+      "formation": "pairs",
+      "pairDistance": 0.35,
+      "speed": 2.5,
+      "selectedDoorIndex": 0,
+      "followCamera": false,
+      "showPathTrail": true,
+      "autoLoop": true
+    },
+    "placedTowers": [],
+    "towerBlueprints": [
+      {
+        "id": "tower-1788434699819-c2c2",
+        "name": "Fire Tower",
+        "assetId": "sprite-tower_ballista_siege",
+        "assetName": "Stone Ballista Tower.png",
+        "assetPath": "",
+        "description": "Custom Tower: Fire Tower",
+        "damage": 35,
+        "attackSpeed": 0.5,
+        "range": 5,
+        "projectileType": "arrow",
+        "projectileSpeed": 18,
+        "projectileColor": 14251782,
+        "isSplash": false,
+        "splashRadius": 1.5,
+        "splashType": "falloff",
+        "cost": 10
+      },
+      {
+        "id": "tower-1788715156303-lg8x",
+        "name": "Wooden Archer Tower",
+        "assetId": "sprite-tower_red_cannon",
+        "assetName": "Red Fortress Cannon Tower.png",
+        "assetPath": "",
+        "description": "Custom defense tower: Wooden Archer Tower",
+        "damage": 80,
+        "attackSpeed": 1,
+        "range": 3,
+        "projectileType": "cannonball",
+        "projectileSpeed": 10.5,
+        "projectileColor": 3359061,
+        "isSplash": true,
+        "splashRadius": 1.5,
+        "splashType": "falloff",
+        "cost": 20
+      }
+    ],
+    "waveConfigs": [
+      {
+        "waveNumber": 1,
+        "name": "Wave 1 (Peasant Invaders)",
+        "unitHp": 100,
+        "unitSpeed": 2,
+        "unitCount": 15,
+        "isBoss": false,
+        "goldReward": 1,
+        "characterModel": "male",
+        "animSpeed": 1,
+        "offsetY": 4
+      },
+      {
+        "waveNumber": 2,
+        "name": "Wave 2 (Warrior Vanguard)",
+        "unitHp": 200,
+        "unitSpeed": 2,
+        "unitCount": 15,
+        "isBoss": false,
+        "goldReward": 1,
+        "characterModel": "female",
+        "animSpeed": 2,
+        "offsetY": 2
+      },
+      {
+        "waveNumber": 3,
+        "name": "Wave 3 (Elite Knights)",
+        "unitHp": 400,
+        "unitSpeed": 2.3,
+        "unitCount": 15,
+        "isBoss": true,
+        "goldReward": 2,
+        "characterModel": "warrior",
+        "animSpeed": 2.4,
+        "offsetY": 4
+      }
+    ],
+    "currentWaveIndex": 1,
+    "createdAt": 1788428582067,
+    "updatedAt": 1788843012491
+  },
+  "assets": [],
+  "savedAt": "2026-09-08T04:50:12.491Z"
+}

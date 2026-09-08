@@ -230,7 +230,7 @@ async function handleSaveToProject() {
     assetStore.addCustomAsset({
       id: assetId,
       name: cleanName,
-      fileRelativePath: `${assetId}.png`,
+      fileRelativePath: `${assetId}.webp`,
       category: 'Custom',
       src: dataUrl,
       previewSrc: dataUrl,

@@ -210,7 +210,9 @@ class AssetManagerService {
     this.textureMap.set(cleanKey, texture)
     this.textureMap.set(baseName, texture)
     this.textureMap.set(`sprite-${baseName}`, texture)
+    this.textureMap.set(`${baseName}.webp`, texture)
     this.textureMap.set(`${baseName}.png`, texture)
+    this.textureMap.set(`sprite-${baseName}.webp`, texture)
   }
 
   // Register custom uploaded user texture

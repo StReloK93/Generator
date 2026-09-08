@@ -130,7 +130,7 @@ export function buildFullProjectJsonPayload(
     return {
       ...bp,
       assetId: bp.assetId || fallbackId,
-      assetName: bp.assetName || (rawName ? `${rawName}.png` : 'stoneColumn_W.png'),
+      assetName: bp.assetName || (rawName ? `${rawName}.webp` : 'stoneColumn_W.webp'),
       assetPath: bp.assetPath && (bp.assetPath.startsWith('http://') || bp.assetPath.startsWith('https://')) ? bp.assetPath : '',
     }
   })
@@ -144,6 +144,8 @@ export function buildFullProjectJsonPayload(
     isBoss: !!w.isBoss,
     goldReward: Number(w.goldReward) || 25,
     characterModel: w.characterModel || 'male',
+    animSpeed: Number(w.animSpeed) || 1.0,
+    offsetY: Number(w.offsetY) || 0,
   }))
   const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
 

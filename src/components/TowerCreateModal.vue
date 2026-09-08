@@ -325,7 +325,7 @@ const form = ref({
 function selectAsset(asset: AssetItem) {
   selectedAsset.value = asset
   if (form.value.name === 'Flame Cannon' || !form.value.name.trim()) {
-    form.value.name = asset.name.replace(/_W|_N|_E|_S|\.png/g, '').trim()
+    form.value.name = asset.name.replace(/_W|_N|_E|_S|\.png|\.webp/g, '').trim()
   }
 }
 
@@ -341,7 +341,7 @@ function handleCreateTower() {
 
   const asset = selectedAsset.value || assetStore.assets[0]
   const assetId = asset ? asset.id : 'sprite-stoneColumn_W'
-  const assetName = asset ? `${asset.name}.png` : 'stoneColumn_W.png'
+  const assetName = asset ? `${asset.name}.webp` : 'stoneColumn_W.webp'
   const preview = asset ? assetStore.getAssetPreview(asset) : ''
 
   let projColor = 0xf97316

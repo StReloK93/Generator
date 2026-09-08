@@ -1,4 +1,19 @@
 import { CompactUnitSnapshot, WorldSnapshotPayload, CompactCombatEvent } from '../types/multiplayer'
+import characterManifest from '../assets/generated/characterManifest.json'
+
+function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
+  const meta = (characterManifest as any)?.[String(model || 'male').toLowerCase()]
+  if (!meta || !meta.actions) {
+    return model === 'warrior' ? 24 : 10
+  }
+  const actions = Object.values(meta.actions) as any[]
+  const act = actions.find((a: any) => a.id.toLowerCase() === action.toLowerCase())
+    || actions.find((a: any) => action.toLowerCase() === 'run' && /run|walk|sprint|move/i.test(a.id))
+    || actions.find((a: any) => action.toLowerCase() === 'idle' && /idle|stand|wait/i.test(a.id))
+    || actions.find((a: any) => action.toLowerCase() === 'pickup' && /die|death|dead|pickup|hit|collapse/i.test(a.id))
+    || actions[0]
+  return act?.frameCount || (model === 'warrior' ? 24 : 10)
+}
 
 export interface InterpolatedUnit {
   id: string
@@ -9,12 +24,16 @@ export interface InterpolatedUnit {
   direction: number
   action: string
   frameIndex: number
+  animTimer: number
   currentHp: number
   maxHp: number
   isSpawned: boolean
   isDead: boolean
   hasReachedEnd: boolean
   deathFade: number
+  characterModel?: string
+  offsetY?: number
+  animSpeed?: number
 }
 
 export interface ClientVisualProjectile {
@@ -206,6 +225,7 @@ class NetworkSyncBuffer {
 
     const now = performance.now()
     const snapshotInterval = Math.max(15, this.currentTime - this.previousTime)
+    const totalElapsed = now - this.previousTime
 
     const currentIds = new Set<string>()
 
@@ -223,25 +243,59 @@ class NetworkSyncBuffer {
           direction: curr.d,
           action: curr.a || 'Run',
           frameIndex: curr.f || 0,
+          animTimer: 0,
           currentHp: curr.hp,
           maxHp: curr.mhp || curr.hp || 100,
           isSpawned: (curr.fl & 1) !== 0,
           hasReachedEnd: (curr.fl & 2) !== 0,
           isDead: (curr.fl & 4) !== 0,
           deathFade: curr.df ?? 1.0,
+          characterModel: curr.m || 'male',
+          offsetY: curr.oy || 0,
+          animSpeed: curr.as || 1.0,
         }
         this.renderUnitsMap.set(id, renderUnit)
       }
 
+      // Check for major lag or telephone sleep/wake-up jump (> 100px)
+      const distSq = (curr.x - renderUnit.screenX) ** 2 + (curr.y - renderUnit.screenY) ** 2
+      const isTeleportOrLagJump = distSq > 10000
+
       const prev = this.previousSnapshot ? this.previousSnapshot.get(id) : null
 
-      if (prev && !renderUnit.isDead) {
-        // True lerp between network snapshots
-        const blend = Math.min(1.0, Math.max(0.0, (now - this.previousTime) / snapshotInterval))
-        renderUnit.screenX = prev.x + (curr.x - prev.x) * blend
-        renderUnit.screenY = prev.y + (curr.y - prev.y) * blend
-        renderUnit.currentCol = prev.col + (curr.col - prev.col) * blend
-        renderUnit.currentRow = prev.row + (curr.row - prev.row) * blend
+      if (isTeleportOrLagJump) {
+        // Snap immediately to host authoritative position after lag/stutter
+        renderUnit.screenX = curr.x
+        renderUnit.screenY = curr.y
+        renderUnit.currentCol = curr.col
+        renderUnit.currentRow = curr.row
+      } else if (prev && !renderUnit.isDead) {
+        let targetX = curr.x
+        let targetY = curr.y
+        let targetCol = curr.col
+        let targetRow = curr.row
+
+        if (totalElapsed <= snapshotInterval) {
+          const blend = Math.max(0.0, Math.min(1.0, totalElapsed / snapshotInterval))
+          targetX = prev.x + (curr.x - prev.x) * blend
+          targetY = prev.y + (curr.y - prev.y) * blend
+          targetCol = prev.col + (curr.col - prev.col) * blend
+          targetRow = prev.row + (curr.row - prev.row) * blend
+        } else {
+          // Velocity extrapolation up to 120ms to prevent dead-stops between late packets
+          const extraTime = Math.min(120, totalElapsed - snapshotInterval)
+          const extraBlend = extraTime / snapshotInterval
+          targetX = curr.x + (curr.x - prev.x) * extraBlend * 0.95
+          targetY = curr.y + (curr.y - prev.y) * extraBlend * 0.95
+          targetCol = curr.col + (curr.col - prev.col) * extraBlend * 0.95
+          targetRow = curr.row + (curr.row - prev.row) * extraBlend * 0.95
+        }
+
+        const followRate = Math.min(1.0, deltaSec * 35)
+        renderUnit.screenX += (targetX - renderUnit.screenX) * followRate
+        renderUnit.screenY += (targetY - renderUnit.screenY) * followRate
+        renderUnit.currentCol += (targetCol - renderUnit.currentCol) * followRate
+        renderUnit.currentRow += (targetRow - renderUnit.currentRow) * followRate
       } else {
         renderUnit.screenX += (curr.x - renderUnit.screenX) * Math.min(1.0, deltaSec * 25)
         renderUnit.screenY += (curr.y - renderUnit.screenY) * Math.min(1.0, deltaSec * 25)
@@ -250,14 +304,42 @@ class NetworkSyncBuffer {
       }
 
       renderUnit.direction = curr.d
-      renderUnit.action = curr.a
-      renderUnit.frameIndex = curr.f
+      if (curr.m) renderUnit.characterModel = curr.m
+      if (curr.oy !== undefined) renderUnit.offsetY = curr.oy
+      if (curr.as !== undefined) renderUnit.animSpeed = curr.as
       renderUnit.currentHp = curr.hp
       if (curr.mhp) renderUnit.maxHp = curr.mhp
       renderUnit.isSpawned = (curr.fl & 1) !== 0
       renderUnit.hasReachedEnd = (curr.fl & 2) !== 0
       renderUnit.isDead = (curr.fl & 4) !== 0
-      if (curr.df !== undefined) renderUnit.deathFade = curr.df
+
+      // Action and Animation Frame Cycle at 60 FPS
+      if (renderUnit.action !== curr.a) {
+        renderUnit.action = curr.a
+        renderUnit.frameIndex = curr.f || 0
+        renderUnit.animTimer = 0
+      } else if (Math.abs(renderUnit.frameIndex - curr.f) > 5) {
+        renderUnit.frameIndex = curr.f
+      }
+
+      if (renderUnit.isDead) {
+        if (curr.df !== undefined) {
+          renderUnit.deathFade = curr.df
+        } else if (renderUnit.deathFade > 0) {
+          renderUnit.deathFade = Math.max(0, renderUnit.deathFade - deltaSec * 0.9)
+        }
+      } else {
+        // Local 60 FPS smooth animation frame progression
+        const maxFrames = getModelActionFrameCount(renderUnit.characterModel, renderUnit.action)
+        const animMultiplier = Math.max(0.1, renderUnit.animSpeed || 1.0)
+        const frameDuration = ((maxFrames > 15 ? 0.04 : 0.07) / 1.0) / animMultiplier
+
+        renderUnit.animTimer = (renderUnit.animTimer || 0) + deltaSec
+        if (renderUnit.animTimer >= frameDuration) {
+          renderUnit.animTimer = 0
+          renderUnit.frameIndex = (renderUnit.frameIndex + 1) % maxFrames
+        }
+      }
     }
 
     // Clean up units that are removed from snapshot
@@ -332,6 +414,24 @@ class NetworkSyncBuffer {
           ring.color = event.projType === 'fireball' ? 0xef4444 : (event.projType === 'magic_bolt' ? 0x38bdf8 : 0xf59e0b)
           ring.alpha = 0.95
           ring.active = true
+        }
+      }
+    } else if (event.type === 'UNIT_DIED') {
+      const hitX = event.targetX || 0
+      const hitY = event.targetY || 0
+      const goldReward = event.goldReward || 0
+      if (goldReward > 0) {
+        const df = this.damageFloatersPool.find(f => !f.active) || this.damageFloatersPool[0]
+        if (df) {
+          df.id = `gold-${Date.now()}-${Math.random()}`
+          df.x = hitX + (Math.random() * 12 - 6)
+          df.y = hitY - 24
+          df.startY = df.y
+          df.text = `+${goldReward} 💰`
+          df.color = 0xfacc15
+          df.alpha = 1.0
+          df.isCrit = true
+          df.active = true
         }
       }
     }

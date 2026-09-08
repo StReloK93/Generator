@@ -29,7 +29,6 @@
 
       <!-- Action State Badge -->
       <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-[11px] font-mono text-purple-300 ml-auto">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="font-semibold capitalize">{{ currentAction }}</span>
         <span class="text-slate-500">({{ currentFrameIndex + 1 }}/{{ totalFramesForAction }})</span>
       </div>
@@ -41,9 +40,11 @@
 
       <!-- Absolute Top-Left Asset Badge -->
       <div class="absolute top-2.5 left-2.5 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-slate-200">
-        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
         <span class="text-[11px] font-mono font-bold truncate max-w-40 sm:max-w-48 text-purple-300 capitalize">
           {{ currentModel }}
+        </span>
+        <span v-if="offsetY" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1 py-0.2 rounded border border-cyan-800/60">
+          +{{ offsetY }}px
         </span>
       </div>
 
@@ -143,7 +144,7 @@
     <!-- Bottom Dynamic Animation Action Tester Buttons -->
     <div class="flex items-center justify-between gap-2 p-2.5 bg-slate-900/90 border-t border-slate-800/80 flex-wrap">
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-[11px] font-semibold text-slate-400 mr-1">Test Animation:</span>
+        <span class="text-[11px] font-semibold text-slate-400 mr-1">Animation:</span>
 
         <button
           v-for="act in currentModelActions"
@@ -202,11 +203,15 @@ const props = withDefaults(
     modelValue?: CharacterModel
     initialAction?: CharacterAction
     showModelSelector?: boolean
+    animSpeed?: number
+    offsetY?: number
   }>(),
   {
     modelValue: 'male',
     initialAction: 'Run',
     showModelSelector: true,
+    animSpeed: 1.0,
+    offsetY: 0,
   }
 )
 
@@ -294,6 +299,7 @@ let autoRotateTimer = 0
 
 // Image Cache for 2D Canvas Drawing
 const imageCache = new Map<string, { img: HTMLImageElement; width: number; height: number; anchorX: number; anchorY: number }>()
+let lastRenderedEntry: { img: HTMLImageElement; width: number; height: number; anchorX: number; anchorY: number } | null = null
 
 watch(() => props.modelValue, (newVal) => {
   if (newVal && newVal !== currentModel.value) {
@@ -352,7 +358,8 @@ function getStabilizedImageForFrame(model: CharacterModel, direction: number, ac
 
 function renderFrame(timestamp: number) {
   if (!lastTimestamp) lastTimestamp = timestamp
-  const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000) * playbackSpeed.value
+  const speedMult = Math.max(0.1, (props.animSpeed || 1.0) * playbackSpeed.value)
+  const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000) * speedMult
   lastTimestamp = timestamp
 
   const canvas = canvasRef.value
@@ -400,66 +407,99 @@ function renderFrame(timestamp: number) {
   // --- DRAW CANVAS SCENE ---
   ctx.clearRect(0, 0, width, height)
 
-  // 1. Isometric Grid Background Platform
+  // 1. Authentic Isometric Grid Tile Platform (Katak)
   const centerX = width / 2
-  const centerY = height * 0.65
+  const centerY = height * 0.70
+  const tileRadiusX = 64
+  const tileRadiusY = 32
+  const slabDepth = 7
 
-  // Isometric Ground Diamond
   ctx.save()
+
+  // 1A. Bottom 3D slab thickness (Left & Right isometric faces)
+  // Left 3D Face
   ctx.beginPath()
-  ctx.moveTo(centerX, centerY - 32)
-  ctx.lineTo(centerX + 64, centerY)
-  ctx.lineTo(centerX, centerY + 32)
-  ctx.lineTo(centerX - 64, centerY)
+  ctx.moveTo(centerX - tileRadiusX, centerY)
+  ctx.lineTo(centerX, centerY + tileRadiusY)
+  ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
+  ctx.lineTo(centerX - tileRadiusX, centerY + slabDepth)
+  ctx.closePath()
+  ctx.fillStyle = '#1e293b'
+  ctx.fill()
+  ctx.strokeStyle = '#334155'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // Right 3D Face
+  ctx.beginPath()
+  ctx.moveTo(centerX, centerY + tileRadiusY)
+  ctx.lineTo(centerX + tileRadiusX, centerY)
+  ctx.lineTo(centerX + tileRadiusX, centerY + slabDepth)
+  ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
+  ctx.closePath()
+  ctx.fillStyle = '#0f172a'
+  ctx.fill()
+  ctx.strokeStyle = '#334155'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // 1B. Top Isometric Diamond Tile (Katak yuzasi)
+  ctx.beginPath()
+  ctx.moveTo(centerX, centerY - tileRadiusY)
+  ctx.lineTo(centerX + tileRadiusX, centerY)
+  ctx.lineTo(centerX, centerY + tileRadiusY)
+  ctx.lineTo(centerX - tileRadiusX, centerY)
   ctx.closePath()
 
-  const floorGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 70)
-  if (isWarrior) {
-    floorGrad.addColorStop(0, 'rgba(245, 158, 11, 0.15)')
-    floorGrad.addColorStop(1, 'rgba(245, 158, 11, 0.02)')
-  } else {
-    floorGrad.addColorStop(0, 'rgba(168, 85, 247, 0.15)')
-    floorGrad.addColorStop(1, 'rgba(168, 85, 247, 0.02)')
-  }
-  ctx.fillStyle = floorGrad
+  // Clean tile fill gradient
+  const tileGrad = ctx.createLinearGradient(centerX - tileRadiusX, centerY - tileRadiusY, centerX + tileRadiusX, centerY + tileRadiusY)
+  tileGrad.addColorStop(0, '#1e293b')
+  tileGrad.addColorStop(1, '#0f172a')
+  ctx.fillStyle = tileGrad
   ctx.fill()
 
-  ctx.strokeStyle = isWarrior ? 'rgba(245, 158, 11, 0.3)' : 'rgba(168, 85, 247, 0.3)'
-  ctx.lineWidth = 1.2
+  // Inner grid lines dividing the tile into 4 sub-quadrants
+  ctx.beginPath()
+  // North-to-South axis line
+  ctx.moveTo(centerX, centerY - tileRadiusY)
+  ctx.lineTo(centerX, centerY + tileRadiusY)
+  // West-to-East axis line
+  ctx.moveTo(centerX - tileRadiusX, centerY)
+  ctx.lineTo(centerX + tileRadiusX, centerY)
+  ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)'
+  ctx.lineWidth = 1
   ctx.stroke()
 
-  // Inner decorative circles
+  // Outer isometric border of the katak
   ctx.beginPath()
-  ctx.ellipse(centerX, centerY, 36, 18, 0, 0, Math.PI * 2)
-  ctx.strokeStyle = isWarrior ? 'rgba(245, 158, 11, 0.15)' : 'rgba(168, 85, 247, 0.15)'
+  ctx.moveTo(centerX, centerY - tileRadiusY)
+  ctx.lineTo(centerX + tileRadiusX, centerY)
+  ctx.lineTo(centerX, centerY + tileRadiusY)
+  ctx.lineTo(centerX - tileRadiusX, centerY)
+  ctx.closePath()
+  ctx.strokeStyle = 'rgba(100, 116, 139, 0.8)'
+  ctx.lineWidth = 1.5
   ctx.stroke()
+
   ctx.restore()
 
-  // 2. Draw Character Sprite (Fixed, steady, non-jumping stabilized frame)
+  // 2. Draw Character Sprite (With smooth flicker-free cache & height elevation offset)
   const entry = getStabilizedImageForFrame(currentModel.value, currentDirection.value, currentAction.value, currentFrameIndex.value)
+  const activeEntry = (entry && entry.img.complete && entry.img.naturalWidth > 0) ? entry : lastRenderedEntry
 
-  if (entry && entry.img.complete && entry.img.naturalWidth > 0) {
+  if (activeEntry && activeEntry.img.complete && activeEntry.img.naturalWidth > 0) {
+    lastRenderedEntry = activeEntry
     const isW = currentModel.value === 'warrior'
-    // Draw at exact constant display scale
     const drawScale = isW ? 0.88 : 0.52
-    const drawW = entry.width * drawScale
-    const drawH = entry.height * drawScale
+    const drawW = activeEntry.width * drawScale
+    const drawH = activeEntry.height * drawScale
 
-    const drawX = centerX - drawW * entry.anchorX
-    const drawY = centerY - drawH * entry.anchorY
+    const drawX = centerX - drawW * activeEntry.anchorX
+    // Apply vertical height elevation offset (props.offsetY lifts the unit above the katak)
+    const heightElevation = Number(props.offsetY) || 0
+    const drawY = centerY - drawH * activeEntry.anchorY - heightElevation
 
-    ctx.drawImage(entry.img, drawX, drawY, drawW, drawH)
-  } else {
-    // Loading / Fallback Silhouette
-    ctx.beginPath()
-    ctx.arc(centerX, centerY - 35, 14, 0, Math.PI * 2)
-    ctx.fillStyle = isWarrior ? '#d97706' : '#9333ea'
-    ctx.fill()
-
-    ctx.beginPath()
-    ctx.ellipse(centerX, centerY - 12, 16, 20, 0, 0, Math.PI * 2)
-    ctx.fillStyle = isWarrior ? '#b45309' : '#7e22ce'
-    ctx.fill()
+    ctx.drawImage(activeEntry.img, drawX, drawY, drawW, drawH)
   }
 
   animationFrameId = requestAnimationFrame(renderFrame)
@@ -476,3 +516,4 @@ onUnmounted(() => {
   }
 })
 </script>
+

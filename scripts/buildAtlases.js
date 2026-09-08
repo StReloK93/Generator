@@ -237,8 +237,6 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
   const isMulti = pages.length > 1
   const generatedSheetNames = []
   let totalWebpSize = 0
-  let totalPngSize = 0
-
   for (let pageIdx = 0; pageIdx < pages.length; pageIdx++) {
     const page = pages[pageIdx]
     const sheetName = isMulti ? `${baseName}_${pageIdx}` : baseName
@@ -261,18 +259,13 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
     }).composite(composites)
 
     const webpPath = path.join(PUBLIC_ATLAS_DIR, `${sheetName}.webp`)
-    const pngPath = path.join(PUBLIC_ATLAS_DIR, `${sheetName}.png`)
 
-    // Save high quality WebP (with 100% alpha fidelity) and fallback PNG
-    const webpBuf = await baseImage.clone().webp({ quality: 90, alphaQuality: 100 }).toBuffer()
-    const pngBuf = await baseImage.clone().png({ compressionLevel: 9 }).toBuffer()
+    // Save high quality WebP (with 100% alpha fidelity)
+    const webpBuf = await baseImage.webp({ quality: 90, alphaQuality: 100 }).toBuffer()
     fs.writeFileSync(webpPath, webpBuf)
-    fs.writeFileSync(pngPath, pngBuf)
 
     const webpSize = webpBuf.length
-    const pngSize = pngBuf.length
     totalWebpSize += webpSize
-    totalPngSize += pngSize
 
     // Generate PixiJS 8 Spritesheet JSON
     const framesObj = {}
@@ -302,11 +295,21 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
     console.log(`  ✅ ${sheetName} (${page.packed.length} sprites, ${page.atlasW}x${page.atlasH}): ${(webpSize / 1024).toFixed(1)} KB WebP`)
   }
 
-  return { generatedSheetNames, totalWebpSize, totalPngSize }
+  return { generatedSheetNames, totalWebpSize, totalPngSize: 0 }
 }
 
 async function run() {
-  console.log('🚀 Generating 100% Non-Clipping PixiJS WebP Atlases & Precomputed Manifests...')
+  console.log('🚀 Generating 100% Non-Clipping PixiJS Pure-WebP Atlases & Precomputed Manifests...')
+
+  // Clean legacy PNG files from atlases directory if any
+  if (fs.existsSync(PUBLIC_ATLAS_DIR)) {
+    const existing = fs.readdirSync(PUBLIC_ATLAS_DIR)
+    for (const f of existing) {
+      if (f.endsWith('.png')) {
+        try { fs.unlinkSync(path.join(PUBLIC_ATLAS_DIR, f)) } catch {}
+      }
+    }
+  }
 
   // 1. Automatically scan, process, slice and pack ALL character folders in src/assets/characters/
   console.log('📦 Dynamically scanning all character folders in src/assets/characters/...')
@@ -316,21 +319,14 @@ async function run() {
 
   const angleToDirMap = {
     '045': 0, // North-East (Up-Right)
-    '067': 1,
     '090': 1, // East (Right)
-    '112': 2,
     '135': 2, // South-East (Down-Right)
-    '157': 3,
     '180': 3, // South (Down)
-    '202': 4,
     '225': 4, // South-West (Down-Left)
-    '247': 5,
     '270': 5, // West (Left)
-    '292': 6,
     '315': 6, // North-West (Up-Left)
-    '337': 7,
     '000': 7, // North (Up)
-    '022': 0,
+    '360': 7,
   }
 
   if (fs.existsSync(CHARS_ROOT_DIR)) {
@@ -344,7 +340,7 @@ async function run() {
       const charDir = path.join(CHARS_ROOT_DIR, folder)
 
       console.log(`  🔍 Scanning character folder: ${folder} (ID: ${charId})...`)
-      const files = fs.readdirSync(charDir).filter((f) => f.endsWith('.png'))
+      const files = fs.readdirSync(charDir).filter((f) => f.endsWith('.webp') || f.endsWith('.png'))
       if (files.length === 0) continue
 
       const charFrames = []
@@ -596,8 +592,8 @@ async function run() {
   console.log(`  ✅ Character manifest written (${Object.keys(characterManifest).length} models: ${Object.keys(characterManifest).join(', ')})`)
 
   // 2. Separate environment sprites into 3 logical categories
-  console.log('📦 Processing environment sprites (790 sprites)...')
-  const spriteFiles = fs.readdirSync(SPRITES_DIR).filter((f) => f.endsWith('.png'))
+  console.log('📦 Processing environment sprites...')
+  const spriteFiles = fs.readdirSync(SPRITES_DIR).filter((f) => f.endsWith('.webp') || f.endsWith('.png'))
 
   const terrainFrames = []
   const structuresFrames = []

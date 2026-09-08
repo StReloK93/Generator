@@ -300,6 +300,8 @@
           <!-- Live Character Animation Simulator -->
           <CharacterLivePreview 
             :model-value="selectedWave.characterModel || 'male'" 
+            :anim-speed="selectedWave.animSpeed || 1.0"
+            :offset-y="selectedWave.offsetY || 0"
             :show-model-selector="false"
           />
 
@@ -339,7 +341,7 @@
           </div>
 
           <!-- Parameters Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <!-- 1. Unit Count -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
@@ -368,7 +370,7 @@
               <span class="text-[10px] text-slate-500 block mt-1">Health durability per enemy unit</span>
             </UiCard>
 
-            <!-- 3. Speed -->
+            <!-- 3. Movement Speed -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitSpeed"
@@ -376,10 +378,10 @@
                 :min="0.5"
                 :max="5.0"
                 :step="0.1"
-                unit=" cells/s"
+                unit=" c/s"
                 @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Grid cells per second</span>
+              <span class="text-[10px] text-slate-500 block mt-1">Movement cells per second</span>
             </UiCard>
 
             <!-- 4. Gold Reward -->
@@ -393,7 +395,35 @@
                 unit=" gold"
                 @update:model-value="(val) => characterStore.setWaveGoldReward(val || 1)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Gold awarded upon wave clearance</span>
+              <span class="text-[10px] text-slate-500 block mt-1">Gold awarded per enemy killed & clear</span>
+            </UiCard>
+
+            <!-- 5. Animation Playback Speed -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.animSpeed || 1.0"
+                label="🏃 Animation Speed"
+                :min="0.5"
+                :max="3.0"
+                :step="0.1"
+                unit="x"
+                @update:model-value="(val) => characterStore.setWaveAnimSpeed(val || 1.0)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Unit walk/run anim cycle rate</span>
+            </UiCard>
+
+            <!-- 6. Height / Elevation Offset -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.offsetY || 0"
+                label="📏 Elevation / Balandlik"
+                :min="-20"
+                :max="40"
+                :step="1"
+                unit="px"
+                @update:model-value="(val) => characterStore.setWaveOffsetY(val || 0)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Elevation above ground tile</span>
             </UiCard>
           </div>
 
@@ -905,6 +935,8 @@
 
           <CharacterLivePreview
             :model-value="tempSelectedUnitModel"
+            :anim-speed="selectedWave?.animSpeed || 1.0"
+            :offset-y="selectedWave?.offsetY || 0"
             :show-model-selector="false"
           />
         </div>
@@ -1138,7 +1170,7 @@ function changeBlueprintAsset(bpId: string, asset: AssetItem) {
   const preview = assetStore.getAssetPreview(asset)
   towerStore.updateBlueprint(bpId, {
     assetId: asset.id,
-    assetName: `${asset.name}.png`,
+    assetName: `${asset.name}.webp`,
     assetPath: preview || asset.previewSrc || asset.src || '',
   })
 }

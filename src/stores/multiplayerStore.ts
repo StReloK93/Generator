@@ -384,7 +384,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
+          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
+            ...w,
+            characterModel: w.characterModel || 'male',
+            animSpeed: Number(w.animSpeed) || 1.0,
+            offsetY: Number(w.offsetY) || 0,
+          }))
         }
         if (msg.payload.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
@@ -438,7 +443,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload?.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({ ...w }))
+          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
+            ...w,
+            characterModel: w.characterModel || 'male',
+            animSpeed: Number(w.animSpeed) || 1.0,
+            offsetY: Number(w.offsetY) || 0,
+          }))
         }
         if (msg.payload?.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
@@ -606,6 +616,24 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           characterStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = state.gameState === 'wave_running'
+
+          // Reconcile placed towers with host state in case of missed build/upgrade/sell packets during lag
+          if (state.placedTowers && Array.isArray(state.placedTowers)) {
+            const hostTowerIds = new Set(state.placedTowers.map((t: any) => t.id))
+            
+            // Remove towers sold/removed on host
+            towerStore.placedTowers = towerStore.placedTowers.filter(t => hostTowerIds.has(t.id))
+
+            // Add or update towers from host
+            for (const hostTower of state.placedTowers) {
+              const existingIdx = towerStore.placedTowers.findIndex(t => t.id === hostTower.id)
+              if (existingIdx === -1) {
+                towerStore.placedTowers.push({ ...hostTower })
+              } else {
+                towerStore.placedTowers[existingIdx] = { ...towerStore.placedTowers[existingIdx], ...hostTower }
+              }
+            }
+          }
 
           if (state.playerStats && Array.isArray(state.playerStats)) {
             for (const stat of state.playerStats) {
@@ -848,6 +876,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           a: u.action,
           f: u.frameIndex,
           hp: Math.round(u.currentHp),
+          mhp: Math.round(u.maxHp || 100),
+          m: u.characterModel || 'male',
+          oy: u.offsetY || 0,
+          as: u.animSpeed || 1.0,
           fl,
           df: u.deathFade,
         })
@@ -878,7 +910,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       combatEventsQueue.length = 0
     }
 
-    // 3. Low-frequency 1Hz Game State Sync
+    // 3. Low-frequency 1Hz Game State Sync (with Placed Towers state check)
     if (now - lastGameStateBroadcastTime >= 800) {
       lastGameStateBroadcastTime = now
       const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
@@ -890,6 +922,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           currentWaveIndex: characterStore.currentWaveIndex,
           playerLives: characterStore.playerLives,
           score: 0,
+          placedTowers: towerStore.placedTowers.map(t => ({ ...t })),
           playerStats: players.value.map(p => ({
             id: p.id,
             killsCount: p.killsCount || 0,

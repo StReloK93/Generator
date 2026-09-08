@@ -407,7 +407,12 @@ async function applyMapProject(rawData: any) {
       currentWaveIndex: (project as any).currentWaveIndex ?? 0,
     }
     if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
-      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
+      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({
+        ...w,
+        characterModel: w.characterModel || 'male',
+        animSpeed: Number(w.animSpeed) || 1.0,
+        offsetY: Number(w.offsetY) || 0,
+      }))
       characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
       ;(mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
     }

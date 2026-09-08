@@ -820,9 +820,7 @@ export const useTowerStore = defineStore('towerStore', () => {
       characterStore.totalKills++
 
       const waveCfg = characterStore.currentWaveConfig
-      const totalWaveReward = waveCfg ? waveCfg.goldReward : 80
-      const totalUnits = Math.max(1, waveCfg ? waveCfg.unitCount : 10)
-      const killGold = Math.max(5, Math.round(totalWaveReward / totalUnits))
+      const killGold = Math.max(1, Number(waveCfg?.goldReward) || 10)
 
       if (sourceTower) {
         sourceTower.killsCount++

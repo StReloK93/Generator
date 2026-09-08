@@ -35,6 +35,8 @@ export interface WaveConfig {
   isBoss: boolean
   goldReward: number
   characterModel?: CharacterModel
+  animSpeed?: number
+  offsetY?: number
 }
 
 export interface CharacterUnit {
@@ -51,6 +53,8 @@ export interface CharacterUnit {
   direction: number // 0..7
   action: CharacterAction
   characterModel?: CharacterModel
+  animSpeed?: number
+  offsetY?: number
   frameIndex: number
   animTimer: number
   pathIndex: number
@@ -597,6 +601,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
     resetTour()
   }
 
+  function setWaveAnimSpeed(speed: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.animSpeed = Math.min(4.0, Math.max(0.2, Math.round(speed * 10) / 10))
+    }
+    syncWavesToProject()
+  }
+
+  function setWaveOffsetY(offset: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.offsetY = Math.min(100, Math.max(-100, Math.round(offset)))
+    }
+    syncWavesToProject()
+  }
+
   function updateWaveConfig(idx: number, updates: Partial<WaveConfig>) {
     const cfg = waveConfigs.value[idx]
     if (!cfg) return
@@ -663,7 +681,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const p = mapStore.project as any
     const waves = p.waveConfigs || p.waveData?.waveConfigs || []
     if (waves && Array.isArray(waves) && waves.length > 0) {
-      waveConfigs.value = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
+      waveConfigs.value = waves.map((w: any) => ({
+        ...w,
+        characterModel: w.characterModel || 'male',
+        animSpeed: Number(w.animSpeed) || 1.0,
+        offsetY: Number(w.offsetY) || 0,
+      }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
     restoreGameSettingsFromProject()
@@ -685,6 +708,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
       isBoss: nextNum % 5 === 0,
       goldReward: baseReward,
       characterModel: prevWave?.characterModel || 'male',
+      animSpeed: prevWave?.animSpeed || 1.0,
+      offsetY: prevWave?.offsetY || 0,
     })
 
     syncWavesToProject()
@@ -768,6 +793,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
           direction: 2,
           action: 'Idle',
           characterModel: model,
+          animSpeed: waveCfg?.animSpeed || 1.0,
+          offsetY: waveCfg?.offsetY || 0,
           frameIndex: (i * 2) % initialMaxFrames,
           animTimer: 0,
           pathIndex: 0,
@@ -1020,7 +1047,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
       // Animation frame duration
       unit.animTimer += deltaSec
       const maxRun = getModelActionFrameCount(unit.characterModel, 'Run')
-      const frameDuration = (maxRun > 15 ? 0.04 : 0.07) / Math.min(5, unitBaseSpeed / 2.5)
+      const animMultiplier = unit.animSpeed || currentWaveConfig.value?.animSpeed || 1.0
+      const frameDuration = ((maxRun > 15 ? 0.04 : 0.07) / Math.min(5, unitBaseSpeed / 2.5)) / Math.max(0.1, animMultiplier)
       if (unit.animTimer >= frameDuration) {
         unit.animTimer = 0
         unit.frameIndex = (unit.frameIndex + 1) % maxRun
@@ -1091,6 +1119,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   // --- GAME MODE CONTROLS ---
 
   function startPlayMode() {
+    restoreGameSettingsFromProject()
+    restoreWavesFromProject()
     towerStore.saveEditorTowersSnapshot()
     towerStore.clearCombatEffects()
     isGameMode.value = true
@@ -1277,6 +1307,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setWaveSpeed,
     setWaveGoldReward,
     setWaveCharacterModel,
+    setWaveAnimSpeed,
+    setWaveOffsetY,
     updateWaveConfig,
     addNewWave,
     deleteWave,

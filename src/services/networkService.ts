@@ -16,9 +16,9 @@ class NetworkService {
   private roomId = ''
   private myPeerId = ''
 
-  // Only enable local HTTP relay if running on localhost / 127.0.0.1 with Vite dev server
+  // Enable local HTTP relay for localhost, LAN IPs, and mobile devices connecting to local server
   private isServerRelayAvailable: boolean = typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    !window.location.hostname.includes('github.io')
 
   private onMessageCallback: ((msg: NetMessage) => void) | null = null
   private onPeerConnectCallback: ((peerId: string) => void) | null = null
@@ -260,7 +260,7 @@ class NetworkService {
 
   private async fetchServerRooms() {
     if (!this.isServerRelayAvailable) return
-    const urls = ['/api/rooms', '/Generator/api/rooms']
+    const urls = ['/Generator/api/rooms', '/api/rooms']
     for (const url of urls) {
       try {
         const res = await fetch(url)
@@ -275,11 +275,9 @@ class NetworkService {
             }
           }
           break
-        } else {
-          this.isServerRelayAvailable = false
         }
       } catch {
-        this.isServerRelayAvailable = false
+        // Continue to next URL fallback
       }
     }
   }
@@ -477,8 +475,8 @@ class NetworkService {
       }
       const cleanId = this.roomId.toUpperCase()
       const urls = [
-        `/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`,
-        `/Generator/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`
+        `/Generator/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`,
+        `/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`
       ]
 
       for (const u of urls) {
@@ -495,13 +493,9 @@ class NetworkService {
               }
             }
             break
-          } else {
-            this.isServerRelayAvailable = false
-            this.stopRoomMessagePolling()
           }
         } catch {
-          this.isServerRelayAvailable = false
-          this.stopRoomMessagePolling()
+          // Continue to fallback URL
         }
       }
     }
@@ -610,8 +604,8 @@ class NetworkService {
     if (!this.roomId || !this.isServerRelayAvailable) return
     const cleanId = this.roomId.toUpperCase()
     const urls = [
-      `/api/rooms/${cleanId}/messages`,
-      `/Generator/api/rooms/${cleanId}/messages`
+      `/Generator/api/rooms/${cleanId}/messages`,
+      `/api/rooms/${cleanId}/messages`
     ]
     for (const u of urls) {
       try {
@@ -620,12 +614,11 @@ class NetworkService {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(msg),
         })
-        if (!res.ok) {
-          this.isServerRelayAvailable = false
+        if (res.ok) {
+          break
         }
-        break
       } catch {
-        this.isServerRelayAvailable = false
+        // Fallback
       }
     }
   }

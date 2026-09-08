@@ -82,6 +82,20 @@ Barcha yangi yoki tahrirlanadigan Vue komponentlarida **faqat Tailwind CSS v4** 
 
 ---
 
+## 💾 TD Settings, Wave & Game Rules Eksport/Import Qoidasi (MAJBURIY)
+
+TD sozlamalari, to'lqinlar yoki o'yin qoidalariga (`goldReward`, `animSpeed`, `offsetY`, `startingGold`, `startingLives`, `wavePrepTime`, `towerBlueprints`, `unitHp`, `unitSpeed`, `unitCount`, va h.k.) yangi parametr qo'shilsa yoki tahrirlansa, quyidagi 5 ta nuqtaga bir vaqtda to'liq ulanishi **shart**:
+
+1. **`src/types/map.ts`**: Interfeyslar (`WaveConfig`, `MapGameSettings`, `TowerBlueprint`) yangilanadi.
+2. **`src/utils/exportHelpers.ts`**: `buildFullProjectJsonPayload` (Export & Auto-save) va `importProjectFromJson` da saqlanadi va o'qiladi.
+3. **`src/components/WelcomeProjectModal.vue`**: JSON xarita import qilinganda `.json` fayldan to'liq o'qib olinadi va store'ga yuklanadi.
+4. **`src/stores/characterStore.ts`**: `syncWavesToProject()`, `restoreWavesFromProject()`, `syncGameSettingsToProject()`, va `restoreGameSettingsFromProject()` orqali sinxronlashtiriladi.
+5. **`src/stores/multiplayerStore.ts`**: Ko'p o'yinchili o'yinda (`MAP_DATA` va `START_GAME`) barcha ulangan o'yinchilarga bir xil to'liq uzatiladi.
+
+> ⚠️ **Qat'iy Talab**: Hech qachon o'yin balansi, mukofotlar yoki personaj/minora sozlamalari kod ichida hardcode qilinmasin — o'yinning barcha qoidalari to'g'ridan-to'g'ri xaritadagi (`.json`) TD settings va wave konfiguratsiyasidan olinishi shart!
+
+---
+
 ## 🚀 Ishga Tushirish (Quick Start)
 
 ```bash
@@ -94,4 +108,5 @@ npm run dev
 # 3. Production build tekshirish
 npm run build
 ```
+
 
