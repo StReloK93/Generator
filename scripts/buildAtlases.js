@@ -561,6 +561,8 @@ async function run() {
       let scale = 1.0
       if (charId === 'male') scale = 0.52
       else if (charId === 'warrior') scale = 1.48
+      else if (charId === 'demon') scale = 1.35
+      else if (charId === 'female') scale = 1.15
       else {
         scale = Math.round((130 / Math.max(40, avgHeight)) * 0.95 * 100) / 100
       }

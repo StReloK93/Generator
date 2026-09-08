@@ -27,6 +27,20 @@ export interface Layer {
   tiles: Record<string, TileItem[]> // key: `${x},${y}` -> array of stacked TileItems
 }
 
+export interface WaveConfig {
+  waveNumber: number
+  name: string
+  unitHp: number
+  unitSpeed: number
+  unitCount: number
+  isBoss: boolean
+  goldReward: number
+  characterModel?: string
+  animSpeed?: number
+  offsetY?: number
+  unitScale?: number
+}
+
 export interface MapGameSettings {
   startingGold: number
   startingLives: number
@@ -60,7 +74,7 @@ export interface MapProject {
   gameSettings?: MapGameSettings
   placedTowers?: any[]
   towerBlueprints?: any[]
-  waveConfigs?: any[]
+  waveConfigs?: WaveConfig[]
   currentWaveIndex?: number
   createdAt: number
   updatedAt: number

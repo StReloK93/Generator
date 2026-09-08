@@ -37,6 +37,7 @@ export interface WaveConfig {
   characterModel?: CharacterModel
   animSpeed?: number
   offsetY?: number
+  unitScale?: number
 }
 
 export interface CharacterUnit {
@@ -55,6 +56,7 @@ export interface CharacterUnit {
   characterModel?: CharacterModel
   animSpeed?: number
   offsetY?: number
+  unitScale?: number
   frameIndex: number
   animTimer: number
   pathIndex: number
@@ -615,6 +617,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
     syncWavesToProject()
   }
 
+  function setWaveUnitScale(scale: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.unitScale = Math.min(4.0, Math.max(0.3, Math.round(scale * 100) / 100))
+    }
+    syncWavesToProject()
+  }
+
   function updateWaveConfig(idx: number, updates: Partial<WaveConfig>) {
     const cfg = waveConfigs.value[idx]
     if (!cfg) return
@@ -686,6 +695,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
         characterModel: w.characterModel || 'male',
         animSpeed: Number(w.animSpeed) || 1.0,
         offsetY: Number(w.offsetY) || 0,
+        unitScale: Number(w.unitScale) || 1.0,
       }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
@@ -710,6 +720,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       characterModel: prevWave?.characterModel || 'male',
       animSpeed: prevWave?.animSpeed || 1.0,
       offsetY: prevWave?.offsetY || 0,
+      unitScale: prevWave?.unitScale || 1.0,
     })
 
     syncWavesToProject()
@@ -795,6 +806,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
           characterModel: model,
           animSpeed: waveCfg?.animSpeed || 1.0,
           offsetY: waveCfg?.offsetY || 0,
+          unitScale: waveCfg?.unitScale || 1.0,
           frameIndex: (i * 2) % initialMaxFrames,
           animTimer: 0,
           pathIndex: 0,
@@ -1309,6 +1321,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setWaveCharacterModel,
     setWaveAnimSpeed,
     setWaveOffsetY,
+    setWaveUnitScale,
     updateWaveConfig,
     addNewWave,
     deleteWave,

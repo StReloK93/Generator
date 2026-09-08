@@ -146,6 +146,7 @@ export function buildFullProjectJsonPayload(
     characterModel: w.characterModel || 'male',
     animSpeed: Number(w.animSpeed) || 1.0,
     offsetY: Number(w.offsetY) || 0,
+    unitScale: Number(w.unitScale) || 1.0,
   }))
   const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
 

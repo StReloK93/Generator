@@ -1,4 +1,27 @@
 {
+  "demon": {
+    "id": "demon",
+    "name": "Demon",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.715,
+    "scale": 1.35,
+    "actions": {
+      "Idle_Simple": {
+        "id": "Idle_Simple",
+        "label": "Idle_Simple",
+        "icon": "🧘",
+        "frameCount": 12
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 8
+      }
+    }
+  },
   "female": {
     "id": "female",
     "name": "Female",
@@ -6,7 +29,7 @@
     "cellHeight": 256,
     "anchorX": 0.5,
     "anchorY": 0.788,
-    "scale": 0.95,
+    "scale": 1.15,
     "actions": {
       "Idle_Sword": {
         "id": "Idle_Sword",

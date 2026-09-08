@@ -302,6 +302,7 @@
             :model-value="selectedWave.characterModel || 'male'" 
             :anim-speed="selectedWave.animSpeed || 1.0"
             :offset-y="selectedWave.offsetY || 0"
+            :unit-scale="selectedWave.unitScale || 1.0"
             :show-model-selector="false"
           />
 
@@ -424,6 +425,20 @@
                 @update:model-value="(val) => characterStore.setWaveOffsetY(val || 0)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">Elevation above ground tile</span>
+            </UiCard>
+
+            <!-- 7. Unit Scale / O'lcham -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.unitScale || 1.0"
+                label="📏 Unit Scale / O'lcham"
+                :min="0.5"
+                :max="3.0"
+                :step="0.05"
+                unit="x"
+                @update:model-value="(val) => characterStore.setWaveUnitScale(val || 1.0)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">Personaj o'lchami (0.5x - 3.0x)</span>
             </UiCard>
           </div>
 
@@ -937,6 +952,7 @@
             :model-value="tempSelectedUnitModel"
             :anim-speed="selectedWave?.animSpeed || 1.0"
             :offset-y="selectedWave?.offsetY || 0"
+            :unit-scale="selectedWave?.unitScale || 1.0"
             :show-model-selector="false"
           />
         </div>

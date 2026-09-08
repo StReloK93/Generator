@@ -1622,9 +1622,10 @@ export class IsoEngine {
         const anchorY = modelMeta?.anchorY ?? (modelKey === 'male' ? 0.898 : 0.67)
         const cellW = modelMeta?.cellWidth || 256
         const baseScale = (tileWidth * 1.0) / cellW
-        const scaleMult = modelMeta?.scale ?? (modelKey === 'warrior' ? 1.48 : (modelKey === 'male' ? 0.95 : 1.0))
+        const scaleMult = modelMeta?.scale ?? (modelKey === 'warrior' ? 1.48 : (modelKey === 'demon' ? 1.35 : (modelKey === 'female' ? 1.15 : (modelKey === 'male' ? 0.95 : 1.0))))
+        const customUnitScale = Number((unit as any).unitScale) || 1.0
 
-        sprite.scale.set(baseScale * (modelKey === 'male' ? 0.95 : scaleMult))
+        sprite.scale.set(baseScale * (modelKey === 'male' ? 0.95 : scaleMult) * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
       }
 

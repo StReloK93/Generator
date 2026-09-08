@@ -389,6 +389,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             characterModel: w.characterModel || 'male',
             animSpeed: Number(w.animSpeed) || 1.0,
             offsetY: Number(w.offsetY) || 0,
+            unitScale: Number(w.unitScale) || 1.0,
           }))
         }
         if (msg.payload.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
@@ -448,6 +449,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             characterModel: w.characterModel || 'male',
             animSpeed: Number(w.animSpeed) || 1.0,
             offsetY: Number(w.offsetY) || 0,
+            unitScale: Number(w.unitScale) || 1.0,
           }))
         }
         if (msg.payload?.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
@@ -880,6 +882,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           m: u.characterModel || 'male',
           oy: u.offsetY || 0,
           as: u.animSpeed || 1.0,
+          us: (u as any).unitScale || 1.0,
           fl,
           df: u.deathFade,
         })

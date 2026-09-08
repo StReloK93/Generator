@@ -34,6 +34,7 @@ export interface InterpolatedUnit {
   characterModel?: string
   offsetY?: number
   animSpeed?: number
+  unitScale?: number
 }
 
 export interface ClientVisualProjectile {
@@ -253,8 +254,11 @@ class NetworkSyncBuffer {
           characterModel: curr.m || 'male',
           offsetY: curr.oy || 0,
           animSpeed: curr.as || 1.0,
+          unitScale: curr.us || 1.0,
         }
         this.renderUnitsMap.set(id, renderUnit)
+      } else {
+        renderUnit.unitScale = curr.us || renderUnit.unitScale || 1.0
       }
 
       // Check for major lag or telephone sleep/wake-up jump (> 100px)

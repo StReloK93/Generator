@@ -43,6 +43,9 @@
         <span class="text-[11px] font-mono font-bold truncate max-w-40 sm:max-w-48 text-purple-300 capitalize">
           {{ currentModel }}
         </span>
+        <span v-if="unitScale && unitScale !== 1" class="text-[10px] font-mono text-purple-300 bg-purple-950/70 px-1 py-0.2 rounded border border-purple-800/60">
+          {{ unitScale }}x
+        </span>
         <span v-if="offsetY" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1 py-0.2 rounded border border-cyan-800/60">
           +{{ offsetY }}px
         </span>
@@ -205,6 +208,7 @@ const props = withDefaults(
     showModelSelector?: boolean
     animSpeed?: number
     offsetY?: number
+    unitScale?: number
   }>(),
   {
     modelValue: 'male',
@@ -212,6 +216,7 @@ const props = withDefaults(
     showModelSelector: true,
     animSpeed: 1.0,
     offsetY: 0,
+    unitScale: 1.0,
   }
 )
 
@@ -308,6 +313,9 @@ watch(() => props.modelValue, (newVal) => {
 })
 
 function selectModel(model: CharacterModel) {
+  if (currentModel.value !== model) {
+    lastRenderedEntry = null
+  }
   currentModel.value = model
   emit('update:modelValue', model)
 
@@ -335,18 +343,17 @@ function setDirection(dir: number) {
 }
 
 function getStabilizedImageForFrame(model: CharacterModel, direction: number, action: CharacterAction, frame: number) {
-  const isWarrior = model === 'warrior'
-  const prefix = isWarrior ? 'Warrior' : 'Male'
+  const modelStr = String(model || 'male').toLowerCase()
   const actionPrefix = action || 'Idle'
-  const frameIdx = actionPrefix === 'Idle' ? (isWarrior ? 0 : frame) : frame
-  const key = `${prefix}_${direction}_${actionPrefix}${frameIdx}`
+  const frameIdx = actionPrefix === 'Idle' ? (modelStr === 'warrior' ? 0 : frame) : frame
+  const key = `${modelStr}_${direction}_${actionPrefix}${frameIdx}`
 
   if (imageCache.has(key)) {
     return imageCache.get(key) || null
   }
 
   // Generate Stabilized Data URL from AssetManager
-  const data = assetManager.getCharacterStabilizedPreview(model, direction, action, frameIdx)
+  const data = assetManager.getCharacterStabilizedPreview(modelStr, direction, action, frameIdx)
   if (!data || !data.dataUrl) return null
 
   const img = new Image()
@@ -489,8 +496,13 @@ function renderFrame(timestamp: number) {
 
   if (activeEntry && activeEntry.img.complete && activeEntry.img.naturalWidth > 0) {
     lastRenderedEntry = activeEntry
-    const isW = currentModel.value === 'warrior'
-    const drawScale = isW ? 0.88 : 0.52
+    const modelKey = String(currentModel.value || 'male').toLowerCase()
+    const modelMeta = (characterManifest as any)?.[modelKey]
+    const baseModelScale = modelMeta?.scale ?? 0.8
+    const baseDrawScale = (modelKey === 'male' ? 0.52 : baseModelScale * 0.6)
+    const customUnitScale = Number(props.unitScale) || 1.0
+    const drawScale = baseDrawScale * customUnitScale
+
     const drawW = activeEntry.width * drawScale
     const drawH = activeEntry.height * drawScale
 
