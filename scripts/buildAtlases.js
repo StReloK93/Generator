@@ -261,7 +261,7 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
     const webpPath = path.join(PUBLIC_ATLAS_DIR, `${sheetName}.webp`)
 
     // Save high quality WebP (with 100% alpha fidelity)
-    const webpBuf = await baseImage.webp({ quality: 90, alphaQuality: 100 }).toBuffer()
+    const webpBuf = await baseImage.webp({ quality: 70, alphaQuality: 65 }).toBuffer()
     fs.writeFileSync(webpPath, webpBuf)
 
     const webpSize = webpBuf.length
