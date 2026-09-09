@@ -57,7 +57,7 @@
 import { computed } from 'vue'
 
 export type CardVariant = 'default' | 'subtle' | 'amber' | 'brand' | 'emerald' | 'danger' | 'slate' | 'ghost'
-export type CardPadding = 'none' | 'sm' | 'md' | 'lg'
+export type CardPadding = 'none' | 'xs' | 'sm' | 'md' | 'lg'
 
 interface Props {
   title?: string
@@ -122,6 +122,8 @@ const paddingClasses = computed(() => {
   switch (props.padding) {
     case 'none':
       return 'p-0'
+    case 'xs':
+      return 'p-1.5 sm:p-2'
     case 'sm':
       return 'p-2.5 sm:p-3'
     case 'lg':

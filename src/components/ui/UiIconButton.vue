@@ -21,7 +21,7 @@
 import { computed } from 'vue'
 
 export type IconButtonVariant = 'default' | 'tool' | 'ghost' | 'danger' | 'success' | 'amber'
-export type IconButtonSize = 'sm' | 'md' | 'lg'
+export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 interface Props {
   icon?: any
@@ -72,6 +72,8 @@ const variantClasses = computed(() => {
 
 const sizeClasses = computed(() => {
   switch (props.size) {
+    case 'xs':
+      return 'w-5 h-5 p-0.5 rounded-md text-xs'
     case 'sm':
       return 'w-7 h-7 p-1 rounded-lg'
     case 'lg':
@@ -84,6 +86,8 @@ const sizeClasses = computed(() => {
 
 const iconSizeClass = computed(() => {
   switch (props.size) {
+    case 'xs':
+      return 'w-3 h-3'
     case 'sm':
       return 'w-3.5 h-3.5'
     case 'lg':

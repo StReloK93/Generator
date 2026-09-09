@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="toolStore.isGameConfigModalOpen"
-    title="Tower Defense & Movement Settings"
-    subtitle="Configure tower blueprints, wave difficulty, map balance, placed defenses and routes"
+    :title="$t('config.modalTitle')"
+    :subtitle="$t('config.modalTitle')"
     :icon="Gamepad2"
     icon-color="amber"
     size="5xl"
@@ -11,7 +11,7 @@
     <!-- Header Extra Slot for Gold -->
     <template #title>
       <div class="flex items-center justify-between w-full">
-        <span>Tower Defense & Movement Settings</span>
+        <span>{{ $t('config.modalTitle') }}</span>
       </div>
     </template>
 
@@ -143,7 +143,7 @@
             <!-- Damage -->
             <UiSlider 
               :model-value="selectedBp.damage"
-              label="💥 Damage"
+              label="Damage"
               :min="5"
               :max="500"
               :step="5"
@@ -154,7 +154,7 @@
             <!-- Attack Speed -->
             <UiSlider 
               :model-value="selectedBp.attackSpeed"
-              label="⚡ Attack Speed"
+              label="Attack Speed"
               :min="0.1"
               :max="3.0"
               :step="0.1"
@@ -165,7 +165,7 @@
             <!-- Range -->
             <UiSlider 
               :model-value="selectedBp.range"
-              label="🎯 Attack Range"
+              label="Attack Range"
               :min="1"
               :max="12"
               :step="1"
@@ -183,9 +183,9 @@
                 :key="pType.id"
                 :variant="selectedBp.projectileType === pType.id ? 'game-amber' : 'secondary'"
                 size="xs"
+                :leading-icon="pType.icon"
                 @click="updateSelectedBp({ projectileType: pType.id as any })"
               >
-                <span class="mr-1">{{ pType.icon }}</span>
                 <span>{{ pType.name }}</span>
               </UiButton>
             </div>
@@ -194,7 +194,7 @@
           <!-- Splash Damage Options -->
           <UiSwitch
             :model-value="selectedBp.isSplash"
-            label="💥 Area of Effect (Splash AoE)"
+            label="Area of Effect (Splash AoE)"
             description="Deals splash damage to adjacent enemies around the impact point"
             variant="amber"
             @update:model-value="(val) => updateSelectedBp({ isSplash: val })"
@@ -244,8 +244,7 @@
             size="sm"
             @click="characterStore.selectWave(idx)"
           >
-            <span class="mr-1">{{ getModelEmoji(w.characterModel) }}</span>
-            <span>{{ w.name }}</span>
+            <span class="font-bold font-mono">{{ idx + 1 }}</span>
             <UiBadge variant="brand" size="xs" custom-class="ml-1">{{ w.unitCount }}x</UiBadge>
           </UiButton>
         </div>
@@ -293,7 +292,7 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-purple-300 text-xs truncate">Unit Appearance</span>
             <UiBadge :variant="getUnitBadgeVariant(selectedWave.characterModel)" size="xs">
-              {{ getModelEmoji(selectedWave.characterModel) }} {{ getUnitModelDisplayName(selectedWave.characterModel) }}
+              <span>{{ getUnitModelDisplayName(selectedWave.characterModel) }}</span>
             </UiBadge>
           </div>
 
@@ -323,11 +322,8 @@
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3 lg:col-span-2">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-purple-300 text-sm">{{ selectedWave.name }} Settings</span>
+              <span class="font-bold text-purple-300 text-sm">Wave {{ characterStore.currentWaveIndex + 1 }} Settings</span>
               <UiBadge variant="emerald" size="xs">{{ selectedWave.unitCount }} Enemies</UiBadge>
-              <UiBadge :variant="getUnitBadgeVariant(selectedWave.characterModel)" size="xs">
-                {{ getModelEmoji(selectedWave.characterModel) }} {{ getUnitModelDisplayName(selectedWave.characterModel) }}
-              </UiBadge>
             </div>
 
             <UiButton 
@@ -347,7 +343,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitCount"
-                label="👥 Enemies Count"
+                label="Enemies Count"
                 :min="1"
                 :max="100"
                 :step="1"
@@ -361,7 +357,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitHp"
-                label="❤️ Health (HP)"
+                label="Health (HP)"
                 :min="20"
                 :max="5000"
                 :step="10"
@@ -375,7 +371,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitSpeed"
-                label="⚡ Movement Speed"
+                label="Movement Speed"
                 :min="0.5"
                 :max="5.0"
                 :step="0.1"
@@ -389,7 +385,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.goldReward"
-                label="🪙 Bounty Reward"
+                label="Bounty Reward"
                 :min="1"
                 :max="100"
                 :step="1"
@@ -403,7 +399,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.animSpeed || 1.0"
-                label="🏃 Animation Speed"
+                label="Animation Speed"
                 :min="0.5"
                 :max="3.0"
                 :step="0.1"
@@ -417,7 +413,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.offsetY || 0"
-                label="📏 Elevation / Balandlik"
+                label="Elevation Offset"
                 :min="-20"
                 :max="40"
                 :step="1"
@@ -427,25 +423,25 @@
               <span class="text-[10px] text-slate-500 block mt-1">Elevation above ground tile</span>
             </UiCard>
 
-            <!-- 7. Unit Scale / O'lcham -->
+            <!-- 7. Unit Scale -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitScale || 1.0"
-                label="📏 Unit Scale / O'lcham"
+                label="Unit Scale"
                 :min="0.5"
                 :max="3.0"
                 :step="0.05"
                 unit="x"
                 @update:model-value="(val) => characterStore.setWaveUnitScale(val || 1.0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Personaj o'lchami (0.5x - 3.0x)</span>
+              <span class="text-[10px] text-slate-500 block mt-1">Unit scale multiplier (0.5x - 3.0x)</span>
             </UiCard>
           </div>
 
           <!-- Formation & March Settings -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800 mt-auto">
             <div class="flex flex-col gap-1.5">
-              <span class="text-[11px] font-semibold text-slate-300">👥 March Formation:</span>
+              <span class="text-[11px] font-semibold text-slate-300">March Formation:</span>
               <UiTabs 
                 v-model="characterStore.formation"
                 :items="[
@@ -460,7 +456,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 v-model="characterStore.pairDistance"
-                label="📏 Unit Spacing"
+                label="Unit Spacing"
                 :min="0.1"
                 :max="1.5"
                 :step="0.05"
@@ -489,8 +485,9 @@
             <p class="text-[11px] text-slate-400">Starting treasury, base lives and wave prep timers are saved per project</p>
           </div>
         </div>
-        <UiBadge variant="amber" size="sm">
-          🗺️ {{ mapStore.project.name || 'Map' }}
+        <UiBadge variant="amber" size="sm" class="flex items-center gap-1">
+          <MapPin class="w-3.5 h-3.5" />
+          <span>{{ mapStore.project.name || 'Map' }}</span>
         </UiBadge>
       </UiCard>
 
@@ -677,10 +674,10 @@
               :key="door.id || idx"
               :variant="characterStore.selectedDoorIndex === idx ? 'game-amber' : 'secondary'"
               size="sm"
+              :leading-icon="Flag"
               @click="characterStore.selectedDoorIndex = idx"
             >
-              <span class="w-2 h-2 rounded-full mr-1.5" :class="characterStore.selectedDoorIndex === idx ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'"></span>
-              <span>🚩 {{ door.name }} ({{ door.col }}, {{ door.row }})</span>
+              <span>{{ door.name }} ({{ door.col }}, {{ door.row }})</span>
             </UiButton>
           </div>
 
@@ -841,7 +838,10 @@
               <img
                 :src="assetStore.getAssetPreview(asset)"
                 :alt="asset.name"
-                class="w-full h-full object-contain pointer-events-none group-hover:scale-110 transition-transform"
+                width="64"
+                height="64"
+                decoding="async"
+                class="w-full h-full aspect-square object-contain pointer-events-none group-hover:scale-110 transition-transform"
                 loading="lazy"
               />
             </div>
@@ -908,13 +908,12 @@
               : 'bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800'"
             class="p-3 rounded-2xl cursor-pointer transition-all flex items-center justify-between gap-3 group relative overflow-hidden"
           >
-            <!-- Left Info & Emoji -->
+            <!-- Left Info & Icon -->
             <div class="flex items-center gap-3">
               <div 
-                class="w-11 h-11 rounded-xl flex items-center justify-center text-xl transition-all"
-                :class="tempSelectedUnitModel === model.id ? 'bg-purple-600/30 border border-purple-500/50 shadow-inner' : 'bg-slate-950 border border-slate-800 group-hover:border-slate-700'"
+                class="w-11 h-11 rounded-xl flex items-center justify-center transition-all"
+                :class="tempSelectedUnitModel === model.id ? 'bg-purple-600/30 border border-purple-500/50 shadow-inner text-purple-300' : 'bg-slate-950 border border-slate-800 group-hover:border-slate-700 text-slate-400'"
               >
-                {{ getModelEmoji(model.id) }}
               </div>
               
               <div class="flex flex-col">
@@ -942,7 +941,6 @@
         <div class="lg:col-span-7 flex flex-col gap-2 bg-slate-900/60 rounded-2xl border border-slate-800 p-2.5">
           <div class="flex items-center justify-between pb-1 border-b border-slate-800">
             <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
-              <span>{{ getModelEmoji(tempSelectedUnitModel) }}</span>
               <span>Live Test: {{ getUnitModelDisplayName(tempSelectedUnitModel) }}</span>
             </span>
             <UiBadge variant="brand" size="xs">Interactive Test</UiBadge>
@@ -990,7 +988,8 @@ import {
   Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
   Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
-  Search, Pencil, Check, Image
+  Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
+  ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -1015,6 +1014,7 @@ import { requestAppFullscreen } from '../utils/fullscreen'
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import characterManifest from '../assets/generated/characterManifest.json'
+import { useI18n } from '../stores/i18nStore'
 
 const router = useRouter()
 const toolStore = useToolStore()
@@ -1022,12 +1022,13 @@ const towerStore = useTowerStore()
 const characterStore = useCharacterStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
+const { t } = useI18n()
 
 const configTabItems = computed<TabItem[]>(() => [
-  { id: 'towers', label: 'Towers', icon: ShieldAlert, count: towerStore.blueprints.length },
-  { id: 'waves', label: 'Waves', icon: Swords, count: characterStore.waveConfigs.length },
-  { id: 'balance', label: 'Map Balance', icon: Coins },
-  { id: 'spawns', label: 'Spawn Points', icon: MapPin, count: characterStore.detectedDoors.length },
+  { id: 'towers', label: t('config.tabTowers') || 'Towers', icon: ShieldAlert, count: towerStore.blueprints.length },
+  { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: Swords, count: characterStore.waveConfigs.length },
+  { id: 'balance', label: t('config.tabRules') || 'Map Balance', icon: Coins },
+  { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: characterStore.detectedDoors.length },
 ])
 
 const selectedBp = computed(() => towerStore.selectedBlueprint)
@@ -1051,19 +1052,6 @@ const availableCharacterModels = computed(() => {
     { id: 'female', name: 'Female', cellWidth: 256, cellHeight: 256, actions: {} },
   ]
 })
-
-function getModelEmoji(id?: string): string {
-  const lower = String(id || 'male').toLowerCase()
-  if (lower.includes('warrior') || lower.includes('knight')) return '⚔️'
-  if (lower.includes('archer') || lower.includes('hunter') || lower.includes('bow')) return '🏹'
-  if (lower.includes('mage') || lower.includes('wizard') || lower.includes('sorcerer')) return '🧙'
-  if (lower.includes('male') || lower.includes('peasant') || lower.includes('villager') || lower.includes('worker')) return '🧑'
-  if (lower.includes('female') || lower.includes('woman') || lower.includes('girl')) return '👩'
-  if (lower.includes('orc') || lower.includes('goblin') || lower.includes('monster') || lower.includes('ogre')) return '👹'
-  if (lower.includes('skeleton') || lower.includes('zombie') || lower.includes('undead')) return '💀'
-  if (lower.includes('dragon') || lower.includes('beast') || lower.includes('demon')) return '🐉'
-  return '👤'
-}
 
 function getUnitModelDisplayName(id?: string): string {
   const lower = String(id || 'male').toLowerCase()
@@ -1093,13 +1081,13 @@ function saveUnitSelection() {
 }
 
 const projectileOptions = [
-  { id: 'fireball', name: 'Fireball', icon: '🔥' },
-  { id: 'arrow', name: 'Arrow', icon: '🏹' },
-  { id: 'magic_bolt', name: 'Magic Bolt', icon: '⚡' },
-  { id: 'cannonball', name: 'Cannonball', icon: '💣' },
-  { id: 'frost_bolt', name: 'Frost Bolt', icon: '❄️' },
-  { id: 'laser', name: 'Laser Beam', icon: '🔴' },
-  { id: 'missile', name: 'Missile', icon: '🚀' },
+  { id: 'fireball', name: 'Fireball', icon: Flame },
+  { id: 'arrow', name: 'Arrow', icon: ArrowRight },
+  { id: 'magic_bolt', name: 'Magic Bolt', icon: Zap },
+  { id: 'cannonball', name: 'Cannonball', icon: CircleDot },
+  { id: 'frost_bolt', name: 'Frost Bolt', icon: Snowflake },
+  { id: 'laser', name: 'Laser Beam', icon: Radio },
+  { id: 'missile', name: 'Missile', icon: Rocket },
 ]
 
 // Change Sprite Modal State
@@ -1210,6 +1198,7 @@ function handleStartDrawingRoute() {
 
 function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
+  characterStore.entrySource = 'editor'
   router.push('/game')
   requestAppFullscreen()
   characterStore.startLoadingScreen(mapStore.project.name || 'Map')

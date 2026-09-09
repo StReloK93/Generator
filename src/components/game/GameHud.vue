@@ -1,23 +1,47 @@
 <template>
   <div class="pointer-events-none z-30 flex flex-col justify-between select-none w-full gap-1 landscape:gap-0.5">
     <!-- Left & Center: Game Global Indicators + User Indicators -->
-    <div class="flex flex-wrap justify-between  gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1">
-      <!-- Right: Unified Action Dock (Exit, Fullscreen, Zoom In +, Zoom Out -, Center) -->
+    <div class="flex flex-wrap justify-between gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1">
+      <!-- Right: Unified Action Dock (Menu, Exit, Fullscreen, Center, Language) -->
       <div class="flex items-center pointer-events-auto">
         <div
           class="p-0.5 landscape:p-0.5 rounded-xl sm:rounded-xl border border-slate-800/80 shadow-2xl backdrop-blur-xl bg-slate-950/80 flex items-center gap-1 sm:gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
 
-          <!-- 1. Exit / Back to Editor Button -->
-          <UiButton variant="danger" size="sm" :leading-icon="ArrowLeft" title="Exit game" @click="handleExitGame">
-          </UiButton>
+          <!-- 1. Tactical In-Game Menu Button -->
+          <UiButton
+            variant="ghost"
+            size="sm"
+            :leading-icon="Menu"
+            :title="$t('game.menu')"
+            @click="isMenuOpen = true"
+          />
 
-          <!-- 2. Fullscreen Button -->
-          <UiButton variant="ghost" size="sm" :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
-            title="Toggle Fullscreen" @click="handleToggleFullscreen" />
+          <!-- 2. Exit / Back Button -->
+          <UiButton
+            variant="danger"
+            size="sm"
+            :leading-icon="ArrowLeft"
+            :title="characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome')"
+            @click="handleExitGame"
+          />
 
-          <!-- 3. Center Focus Button -->
-          <UiButton variant="ghost" size="sm" :leading-icon="Crosshair" title="Reset View to Center"
-            @click="handleFocusCenter" />
+          <!-- 3. Fullscreen Button -->
+          <UiButton
+            variant="ghost"
+            size="sm"
+            :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
+            title="Toggle Fullscreen"
+            @click="handleToggleFullscreen"
+          />
+
+          <!-- 4. Center Focus Button -->
+          <UiButton
+            variant="ghost"
+            size="sm"
+            :leading-icon="Crosshair"
+            title="Reset View to Center"
+            @click="handleFocusCenter"
+          />
 
         </div>
       </div>
@@ -28,14 +52,14 @@
       <UiCard v-if="!multiplayerStore.roomId" class="px-2.5 landscape:py-0.5 flex gap-3">
         <!-- Gold -->
         <div class="flex items-center gap-1" title="Current gold balance">
-          <DollarSign class="size-4 text-amber-400 " />
-          <span class="font-bold  text-amber-400">{{ characterStore.gold }}</span>
+          <DollarSign class="size-4 text-amber-400" />
+          <span class="font-bold text-amber-400">{{ characterStore.gold }}</span>
         </div>
 
         <!-- Total Kills -->
         <div class="flex items-center gap-1" title="Total enemies killed">
-          <Skull class="size-4 text-rose-400 " />
-          <span class="font-bold  text-rose-300">{{ characterStore.totalKills }}</span>
+          <Skull class="size-4 text-rose-400" />
+          <span class="font-bold text-rose-300">{{ characterStore.totalKills }}</span>
         </div>
 
         <!-- Base Lives -->
@@ -43,7 +67,7 @@
           :class="characterStore.playerLives <= 5 ? 'text-rose-400 animate-pulse font-black' : 'text-slate-200'"
           title="Remaining base lives">
           <Heart class="size-4 text-rose-500 fill-rose-500" />
-          <span class="font-bold ">
+          <span class="font-bold">
             {{ characterStore.playerLives }}
           </span>
         </div>
@@ -90,7 +114,62 @@
       </div>
     </div>
 
+    <!-- In-Game Tactical Menu Modal -->
+    <UiModal
+      :is-open="isMenuOpen"
+      :title="$t('game.pauseMenu')"
+      :subtitle="$t('game.menu')"
+      :icon="Gamepad2"
+      icon-color="brand"
+      size="sm"
+      body-class="flex flex-col gap-2.5 p-3 sm:p-4"
+      @close="isMenuOpen = false"
+    >
+      <div class="flex flex-col gap-2.5 w-full">
+        <!-- Resume Game -->
+        <UiButton
+          variant="game-green"
+          size="md"
+          class="w-full justify-center text-xs sm:text-sm font-bold"
+          :leading-icon="Play"
+          @click="isMenuOpen = false"
+        >
+          {{ $t('game.resumeGame') }}
+        </UiButton>
 
+        <!-- Restart Game (Singleplayer only) -->
+        <UiButton
+          v-if="!multiplayerStore.roomId"
+          variant="game-amber"
+          size="md"
+          class="w-full justify-center text-xs sm:text-sm font-bold"
+          :leading-icon="RotateCcw"
+          @click="handleRestartGame"
+        >
+          {{ $t('game.restartGame') }}
+        </UiButton>
+
+        <!-- Exit to Home / Editor -->
+        <UiButton
+          variant="secondary"
+          size="md"
+          class="w-full justify-center text-xs sm:text-sm font-bold"
+          :leading-icon="characterStore.entrySource === 'editor' ? Layers : Home"
+          @click="handleExitFromMenu"
+        >
+          {{ characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome') }}
+        </UiButton>
+
+        <!-- Language Switcher in Menu -->
+        <div class="flex items-center justify-between px-3 py-2 mt-1 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
+          <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+            <Languages class="w-4 h-4 text-cyan-400" />
+            {{ $t('common.settings') }}
+          </span>
+          <UiLanguageSwitcher />
+        </div>
+      </div>
+    </UiModal>
 
     <!-- Network & Performance Diagnostics Overlay (When FPS badge is clicked) -->
     <div v-if="showDiagnostics"
@@ -101,7 +180,9 @@
           <Activity class="size-5" /> Performance Telemetry
         </span>
         <button type="button" class="text-slate-400 hover:text-white cursor-pointer"
-          @click="showDiagnostics = false">✕</button>
+          @click="showDiagnostics = false">
+          <X class="w-3.5 h-3.5" />
+        </button>
       </div>
 
       <div class="flex justify-between">
@@ -120,20 +201,18 @@
         <span class="text-amber-400">{{ towerStore.placedTowers.length }}</span>
       </div>
       <template v-if="multiplayerStore.roomId">
-        <div class="pt-1 mt-0.5 border-t border-slate-800 flex justify-between">
-          <span class="text-slate-400">Net Rx (In):</span>
-          <span class="text-sky-300">{{ networkSyncBuffer.ppsIn }} pkt/s ({{ networkSyncBuffer.kbpsIn }} KB/s)</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">Net Tx (Out):</span>
-          <span class="text-emerald-300">{{ networkSyncBuffer.ppsOut }} pkt/s ({{ networkSyncBuffer.kbpsOut }}
-            KB/s)</span>
-        </div>
         <div class="flex justify-between">
           <span class="text-slate-400">Role:</span>
-          <span class="text-purple-300 font-bold">
-            {{ multiplayerStore.isHost ? 'Host (Authoritative)' : 'Client (P2P Lerp 60FPS)' }}
-          </span>
+          <span class="text-amber-300 font-bold">{{ multiplayerStore.isHost ? 'Host (Authoritative)' : 'Client (P2P)'
+            }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Packets In/Out:</span>
+          <span>{{ networkSyncBuffer.packetsReceived }} / {{ networkSyncBuffer.packetsSent }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Data Received:</span>
+          <span>{{ (networkSyncBuffer.bytesReceived / 1024).toFixed(1) }} KB</span>
         </div>
       </template>
     </div>
@@ -144,13 +223,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen
+  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
-import { UiButton,UiCard } from '../ui'
+import { UiButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
+import { useI18nStore } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { toggleAppFullscreen, isAppFullscreen } from '../../utils/fullscreen'
 
@@ -159,9 +239,11 @@ const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
+const { t } = useI18nStore()
 
 const showDiagnostics = ref(false)
 const isFullscreenMode = ref(false)
+const isMenuOpen = ref(false)
 
 function checkFullscreenState() {
   isFullscreenMode.value = isAppFullscreen()
@@ -189,14 +271,30 @@ function handleFocusCenter() {
   }
 }
 
+function handleRestartGame() {
+  isMenuOpen.value = false
+  characterStore.restartGame()
+}
+
+function handleExitFromMenu() {
+  isMenuOpen.value = false
+  handleExitGame()
+}
+
 async function handleExitGame() {
+  const isEditor = characterStore.entrySource === 'editor'
+  const isMulti = !!multiplayerStore.roomId
+
+  const title = isMulti ? t('lobby.confirmLeaveTitle') : (isEditor ? t('game.returnEditor') : t('game.returnHome'))
+  const message = isMulti
+    ? t('game.exitRoomConfirm')
+    : (isEditor ? t('game.confirmExitEditor') : t('game.confirmExitHome'))
+
   const confirmed = await notify.confirm({
-    title: 'O\'yindan chiqish',
-    message: multiplayerStore.roomId
-      ? 'Haqiqatan ham xonani tark etmoqchimisiz?'
-      : 'O\'yindan chiqib, xarita tahrirlovchisiga (Editor) qaytmoqchimisiz?',
-    confirmText: 'Chiqish',
-    cancelText: 'Bekor qilish',
+    title,
+    message,
+    confirmText: t('common.confirm'),
+    cancelText: t('common.cancel'),
     variant: 'danger',
   })
 
@@ -204,8 +302,10 @@ async function handleExitGame() {
     characterStore.exitPlayMode()
     if (multiplayerStore.roomId) {
       multiplayerStore.leaveRoom(router)
-    } else {
+    } else if (isEditor) {
       router.push('/editor')
+    } else {
+      router.push('/')
     }
   }
 }

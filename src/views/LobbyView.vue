@@ -7,43 +7,45 @@
     </div>
 
     <!-- Header Bar -->
-    <header class="relative z-10 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0">
+    <header class="relative z-10 w-full px-3 sm:px-6 py-2 sm:py-3 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0">
       <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
         <!-- Back to Home Button -->
         <UiButton
           variant="secondary"
           size="sm"
           :leading-icon="ArrowLeft"
-          title="Return to Home"
+          :title="$t('lobby.leave')"
           @click="handleLeave"
         >
-          <span class="hidden sm:inline">Leave</span>
+          <span class="hidden sm:inline">{{ $t('lobby.leave') }}</span>
         </UiButton>
 
         <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
 
         <div class="min-w-0">
           <h1 class="text-xs sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
-            <span class="truncate">{{ multiplayerStore.roomName || 'Game Room' }}</span>
+            <span class="truncate">{{ multiplayerStore.roomName || $t('lobby.title') }}</span>
             <UiBadge variant="emerald" size="xs">
-              LOBBY
+              {{ $t('lobby.title') }}
             </UiBadge>
           </h1>
-          <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">Map: <strong class="text-slate-200">{{ multiplayerStore.mapName }}</strong></p>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">{{ $t('common.name') }}: <strong class="text-slate-200">{{ multiplayerStore.mapName }}</strong></p>
         </div>
       </div>
 
-      <!-- Room Code Copy Badge -->
+      <!-- Right Header Actions: Language Switcher + Room PIN -->
       <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        <UiLanguageSwitcher />
+
         <div class="glass-panel px-2.5 sm:px-3.5 py-1 rounded-xl sm:rounded-2xl border border-amber-500/40 bg-slate-900/90 flex items-center gap-1.5 sm:gap-2">
-          <span class="text-[10px] sm:text-xs text-slate-400 font-medium hidden xs:inline">PIN:</span>
+          <span class="text-[10px] sm:text-xs text-slate-400 font-medium hidden xs:inline">{{ $t('lobby.roomPin') }}:</span>
           <span class="font-mono text-xs sm:text-sm font-black text-amber-300 tracking-wider">
             {{ multiplayerStore.roomId || route.params.roomId }}
           </span>
           <button 
             type="button"
             class="p-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 transition-colors cursor-pointer touch-target flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8"
-            :title="isCopied ? 'Copied!' : 'Copy room code'"
+            :title="isCopied ? $t('common.copied') : $t('common.copy')"
             @click="copyRoomCode"
           >
             <Check v-if="isCopied" class="w-3.5 h-3.5 text-emerald-400" />
@@ -64,28 +66,25 @@
       />
     </div>
 
-    <!-- Main Lobby Content (Scrollable & Responsive) -->
-    <main class="relative z-10 flex-1 max-w-7xl mx-auto w-full p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5 items-start overflow-y-auto custom-scrollbar">
+    <!-- Main Lobby Content (Zero page scroll) -->
+    <main class="relative z-10 flex-1 max-w-6xl mx-auto w-full p-2.5 sm:p-4 grid grid-cols-1 lg:grid-cols-3 gap-2.5 sm:gap-4 items-stretch min-h-0 overflow-hidden">
       
       <!-- Left 2 Cols: Player Slots Grid -->
       <div 
-        class="lg:col-span-2 space-y-3 sm:space-y-4"
-        :class="{ 'hidden lg:block': mobileActiveTab !== 'slots' }"
+        class="lg:col-span-2 flex flex-col justify-between gap-2 min-h-0 overflow-y-auto custom-scrollbar"
+        :class="{ 'hidden lg:flex': mobileActiveTab !== 'slots' }"
       >
-        <div class="flex items-center justify-between px-1">
+        <div class="flex items-center justify-between px-1 shrink-0">
           <div class="flex items-center gap-2">
-            <Users class="w-4 h-4 text-brand-400" />
-            <h2 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-              Player Slots ({{ filledSlotsCount }} / {{ multiplayerStore.slots.length }})
+            <Users class="w-3.5 h-3.5 text-brand-400" />
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider">
+              {{ $t('lobby.players', { current: filledSlotsCount, max: multiplayerStore.slots.length }) }}
             </h2>
           </div>
-          <span class="text-[11px] text-slate-400 hidden sm:inline">
-            Each player is assigned to a defensive quadrant
-          </span>
         </div>
 
         <!-- Player Slots List / Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 min-h-0">
           <LobbyPlayerSlot 
             v-for="slot in multiplayerStore.slots"
             :key="slot.slotIndex"
@@ -93,30 +92,30 @@
           />
         </div>
 
-        <!-- Map Info Banner -->
-        <UiCard variant="subtle" padding="sm" custom-class="flex items-center justify-between text-xs text-slate-400">
-          <div class="flex items-center gap-2.5 sm:gap-3">
-            <div class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-base shrink-0">
-              🗺️
+        <!-- Map Info Banner (Compact) -->
+        <UiCard variant="subtle" padding="xs" custom-class="flex items-center justify-between text-xs text-slate-400 shrink-0 py-1.5 px-2.5">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-lg bg-slate-800 text-amber-400 flex items-center justify-center text-sm shrink-0">
+              <Map class="w-3.5 h-3.5" />
             </div>
             <div>
-              <strong class="text-white text-xs block">{{ mapStore.project.name || 'Burbenog TD' }}</strong>
-              <span class="text-[11px]">{{ mapStore.project.cols }}x{{ mapStore.project.rows }} | {{ mapStore.project.layers.length }} Layers</span>
+              <strong class="text-white text-xs block truncate max-w-40">{{ mapStore.project.name || 'Burbenog TD' }}</strong>
+              <span class="text-[10px] text-slate-400 font-mono">{{ mapStore.project.cols }}×{{ mapStore.project.rows }}</span>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span class="text-amber-400 font-semibold block text-[11px] sm:text-xs">{{ characterStore.waveConfigs.length || 10 }} Waves</span>
-            <span class="text-[10px] text-slate-500">Auto synced</span>
+            <span class="text-amber-400 font-semibold block text-[11px]">{{ characterStore.waveConfigs.length || 10 }} {{ $t('game.wave') }}</span>
+            <span class="text-[9px] text-slate-500">{{ $t('common.ready') }}</span>
           </div>
         </UiCard>
       </div>
 
       <!-- Right Col: Lobby Chat & Controls -->
       <div 
-        class="h-90 sm:h-115 lg:h-125 flex flex-col"
+        class="h-full min-h-0 flex flex-col"
         :class="{ 'hidden lg:flex': mobileActiveTab !== 'chat' }"
       >
-        <LobbyChat class="flex-1" />
+        <LobbyChat class="flex-1 min-h-0" />
       </div>
     </main>
 
@@ -124,7 +123,10 @@
     <footer class="relative z-20 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-800/90 bg-slate-900/95 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0 pb-safe shadow-2xl">
       <div class="flex items-center gap-2 text-xs text-slate-400 min-w-0">
         <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="multiplayerStore.connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
-        <span class="truncate text-[11px] sm:text-xs">{{ multiplayerStore.isHost ? '👑 You are Host' : '🌐 Connected' }}</span>
+        <span class="truncate text-[11px] sm:text-xs flex items-center gap-1.5">
+          <component :is="multiplayerStore.isHost ? Crown : Radio" class="w-3.5 h-3.5 text-amber-400" />
+          <span>{{ multiplayerStore.isHost ? $t('lobby.youAreHost') : $t('lobby.connected') }}</span>
+        </span>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
@@ -133,10 +135,11 @@
           v-if="!multiplayerStore.isHost"
           :variant="multiplayerStore.myPlayer?.isReady ? 'game-green' : 'game-amber'"
           size="md"
+          :leading-icon="multiplayerStore.myPlayer?.isReady ? Check : Clock"
           :custom-class="multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady ? 'ring-4 ring-amber-400 animate-bounce' : ''"
           @click="multiplayerStore.toggleReady()"
         >
-          {{ multiplayerStore.myPlayer?.isReady ? '✅ Ready' : '⏳ Ready Up!' }}
+          <span>{{ multiplayerStore.myPlayer?.isReady ? $t('common.ready') : $t('lobby.readyUp') }}</span>
         </UiButton>
 
         <!-- Start Game / Nudge Button (For Host) -->
@@ -147,10 +150,10 @@
             variant="game-amber"
             size="md"
             :leading-icon="BellRing"
-            title="Request all players to ready up"
+            :title="$t('lobby.nudge', { count: multiplayerStore.unreadyCount })"
             @click="multiplayerStore.sendReadyCheck()"
           >
-            🔔 Nudge ({{ multiplayerStore.unreadyCount }} waiting)
+            <span>{{ $t('lobby.nudge', { count: multiplayerStore.unreadyCount }) }}</span>
           </UiButton>
 
           <!-- When everyone is ready (or solo): Start Game Button -->
@@ -161,7 +164,7 @@
             :leading-icon="Play"
             @click="handleStartGame"
           >
-            🚀 Start Game
+            <span>{{ $t('lobby.startGame') }}</span>
           </UiButton>
         </template>
       </div>
@@ -174,15 +177,16 @@
     >
       <div class="glass-panel w-full max-w-sm rounded-3xl border-2 border-amber-500/80 bg-slate-900/95 shadow-2xl p-5 sm:p-6 text-center space-y-4 animate-in zoom-in-95 duration-200">
         <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 mx-auto flex items-center justify-center text-2xl sm:text-3xl shadow-lg animate-bounce">
-          🔔
+          <BellRing class="w-6 h-6 sm:w-7 sm:h-7" />
         </div>
 
         <div class="space-y-1">
           <h3 class="text-base font-bold text-white tracking-wide">
-            Game Is Starting!
+            {{ $t('lobby.nudgeAlertTitle') }}
           </h3>
-          <p class="text-xs text-slate-300 leading-relaxed">
-            👑 Room Host (<strong class="text-amber-300">{{ multiplayerStore.nudgeHostName || 'Host' }}</strong>) is ready to start the game. Please confirm readiness!
+          <p class="text-xs text-slate-300 leading-relaxed flex items-center justify-center gap-1">
+            <Crown class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>{{ $t('lobby.nudgeAlertDesc', { name: multiplayerStore.nudgeHostName || 'Host' }) }}</span>
           </p>
         </div>
 
@@ -193,7 +197,7 @@
           :leading-icon="Check"
           @click="multiplayerStore.toggleReady()"
         >
-          ✅ YES, I AM READY!
+          {{ $t('lobby.imReady') }}
         </UiButton>
       </div>
     </div>
@@ -203,12 +207,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Users, Copy, Check, Play, BellRing } from 'lucide-vue-next'
-import { UiButton, UiBadge, UiCard, UiTabs, TabItem } from '../components/ui'
+import { ArrowLeft, Users, Copy, Check, Play, BellRing, Map, Crown, Radio, Clock } from 'lucide-vue-next'
+import { UiButton, UiBadge, UiCard, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useNotificationStore } from '../stores/notificationStore'
+import { useI18n } from '../stores/i18nStore'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 
@@ -218,14 +223,15 @@ const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const notify = useNotificationStore()
+const { t } = useI18n()
 
 const isCopied = ref(false)
 const mobileActiveTab = ref<string | number>('slots')
 
-const mobileTabs: TabItem[] = [
-  { id: 'slots', label: 'Slots', icon: Users },
-  { id: 'chat', label: 'Room Chat' },
-]
+const mobileTabs = computed<TabItem[]>(() => [
+  { id: 'slots', label: t('lobby.players', { current: filledSlotsCount.value, max: multiplayerStore.slots.length }), icon: Users },
+  { id: 'chat', label: t('lobby.chatTitle') },
+])
 
 const filledSlotsCount = computed(() => {
   return multiplayerStore.slots.filter(s => s.player !== null).length
@@ -244,6 +250,7 @@ watch(
   () => multiplayerStore.roomGameState,
   (state) => {
     if (state === 'in_game') {
+      characterStore.entrySource = 'lobby'
       const code = multiplayerStore.roomId || (route.params.roomId as string)
       router.push(`/game/${code}`)
     }
@@ -256,7 +263,7 @@ function copyRoomCode() {
   if (code) {
     navigator.clipboard.writeText(code)
     isCopied.value = true
-    notify.info(`Xona kodi nusxalandi: ${code}`)
+    notify.info(`${t('lobby.roomCode', { code })} - ${t('common.copied')}`)
     setTimeout(() => {
       isCopied.value = false
     }, 2000)
@@ -269,11 +276,11 @@ function handleStartGame() {
 
 async function handleLeave() {
   const confirmed = await notify.confirm({
-    title: "Xonadan chiqish",
-    message: "Haqiqatan ham ushbu xonadan chiqmoqchimisiz?",
-    confirmText: "Chiqish",
-    cancelText: "Bekor qilish",
-    variant: "danger"
+    title: t('lobby.confirmLeaveTitle'),
+    message: t('lobby.confirmLeaveDesc'),
+    confirmText: t('lobby.leave'),
+    cancelText: t('common.cancel'),
+    variant: 'danger'
   })
   if (confirmed) {
     multiplayerStore.leaveRoom(router)

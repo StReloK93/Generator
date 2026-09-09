@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="characterStore.gameState === 'game_over'"
-    title="Defeat!"
-    subtitle="All base lives lost! Enemies have overrun the stronghold."
+    :title="$t('game.defeatTitle')"
+    :subtitle="$t('game.defeatDesc')"
     :icon="Skull"
     icon-color="rose"
     size="sm"
@@ -16,8 +16,9 @@
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs">
-      <span>Wave: <strong class="text-purple-300">{{ characterStore.currentWaveIndex + 1 }}</strong></span>
-      <span class="flex items-center gap-1">Kills: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ characterStore.totalKills }}</strong></span>
+      <span>{{ $t('game.wave') }}: <strong class="text-purple-300">{{ characterStore.currentWaveIndex + 1 }}</strong></span>
+      <span class="flex items-center gap-1">{{ $t('game.goldEarned') }}: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ characterStore.totalGoldEarned }}</strong></span>
+      <span class="flex items-center gap-1">{{ $t('game.kills') }}: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ characterStore.totalKills }}</strong></span>
     </div>
 
     <!-- Action Buttons Footer -->
@@ -31,7 +32,7 @@
             :leading-icon="Home"
             @click="multiplayerStore.returnToLobby(router)"
           >
-            Lobby
+            {{ $t('lobby.title') }}
           </UiButton>
           <UiButton
             variant="secondary"
@@ -39,7 +40,7 @@
             :leading-icon="LogOut"
             @click="multiplayerStore.leaveRoom(router)"
           >
-            Leave
+            {{ $t('lobby.leaveLobby') }}
           </UiButton>
         </template>
 
@@ -48,16 +49,18 @@
           <UiButton
             variant="danger"
             size="sm"
+            :leading-icon="RotateCcw"
             @click="characterStore.restartGame()"
           >
-            Play Again
+            {{ $t('game.playAgain') }}
           </UiButton>
           <UiButton
             variant="secondary"
             size="sm"
-            @click="handleReturnToEditor"
+            :leading-icon="characterStore.entrySource === 'editor' ? Layers : Home"
+            @click="handleExit"
           >
-            Editor
+            {{ characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome') }}
           </UiButton>
         </template>
       </div>
@@ -67,7 +70,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Skull, Home, LogOut } from 'lucide-vue-next'
+import { Skull, Home, LogOut, RotateCcw, Layers, Coins } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
@@ -76,8 +79,12 @@ const router = useRouter()
 const characterStore = useCharacterStore()
 const multiplayerStore = useMultiplayerStore()
 
-function handleReturnToEditor() {
+function handleExit() {
   characterStore.exitPlayMode()
-  router.push('/editor')
+  if (characterStore.entrySource === 'editor') {
+    router.push('/editor')
+  } else {
+    router.push('/')
+  }
 }
 </script>

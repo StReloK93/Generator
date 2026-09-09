@@ -23,14 +23,18 @@
     <div v-if="characterStore.isSettingSpawnPoint"
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2">
       <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
-      <span>
-        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? '➕ New Spawn Point' : '📍 Relocate Spawn Point' }}:</strong>
+      <span class="flex items-center gap-1.5">
+        <component :is="characterStore.spawnPointPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
+        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? 'New Spawn Point' : 'Relocate Spawn Point' }}:</strong>
         Click any cell on the map
       </span>
-      <button @click="characterStore.isSettingSpawnPoint = false"
-        class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer">
+      <UiButton
+        variant="secondary"
+        size="xs"
+        @click="characterStore.isSettingSpawnPoint = false"
+      >
         Cancel
-      </button>
+      </UiButton>
     </div>
 
     <!-- Floating HUD when Drawing Custom Route -->
@@ -38,17 +42,23 @@
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2">
       <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
       <span>
-        <strong>🖌️ Drawing Route:</strong> Click cells sequentially (Points: {{
+        <strong>Drawing Route:</strong> Click cells sequentially (Points: {{
           characterStore.drawingPath.length }})
       </span>
-      <button @click="characterStore.finishDrawingRoute()"
-        class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm cursor-pointer">
+      <UiButton
+        variant="game-green"
+        size="xs"
+        @click="characterStore.finishDrawingRoute()"
+      >
         Finish
-      </button>
-      <button @click="characterStore.cancelDrawingRoute()"
-        class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 cursor-pointer">
+      </UiButton>
+      <UiButton
+        variant="secondary"
+        size="xs"
+        @click="characterStore.cancelDrawingRoute()"
+      >
         Cancel
-      </button>
+      </UiButton>
     </div>
 
     <!-- Drag & Drop Overlay Indicator -->
@@ -88,9 +98,24 @@
 
         <template v-if="toolStore.hoveredCell && hoveredCellItemsCount > 0">
           <div class="h-3 w-px bg-slate-800 hidden sm:block"></div>
-          <div class="hidden sm:flex items-center gap-1 text-[11px] text-amber-300 font-sans">
-            <span>📦 {{ hoveredCellItemsCount }} items</span>
+          <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-amber-300 font-sans">
+            <Package class="w-3.5 h-3.5 text-amber-400" />
+            <span>{{ hoveredCellItemsCount }} items</span>
           </div>
+        </template>
+
+        <!-- Dynamic Modifier Placement Mode Indicator -->
+        <template v-if="isCtrlPressed">
+          <div class="h-3 w-px bg-slate-800"></div>
+          <span class="bg-rose-500/25 text-rose-300 font-bold px-1.5 py-0.5 rounded border border-rose-500/40 text-[10px] uppercase font-sans">
+            Ctrl: Replace
+          </span>
+        </template>
+        <template v-else-if="isShiftPressed">
+          <div class="h-3 w-px bg-slate-800"></div>
+          <span class="bg-cyan-500/25 text-cyan-300 font-bold px-1.5 py-0.5 rounded border border-cyan-500/40 text-[10px] uppercase font-sans">
+            Shift: Stack
+          </span>
         </template>
       </div>
     </div>
@@ -102,21 +127,24 @@
         {{ Math.round(camera.localZoom.value * 100) }}%
       </div>
       <div class="pointer-events-auto flex items-center gap-1.5">
-        <!-- Spawn Points Toggle Button (placed right next to Center) -->
-        <button 
+        <!-- Spawn Points Toggle Button -->
+        <UiIconButton
+          variant="tool"
+          size="sm"
+          :active="characterStore.showSpawnPoints"
+          :icon="MapPin"
+          title="Toggle Spawn Points"
           @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
-          :class="characterStore.showSpawnPoints ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/60 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/30' : 'bg-slate-800/90 text-slate-400 border-slate-700 hover:text-slate-200'"
-          class="w-8 h-8 border rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95"
-          title="Chiqish nuqtalarini ko'rsatish / yashirish (Spawn Points)">
-          <MapPin class="w-4 h-4" />
-        </button>
+        />
 
         <!-- Reset View to Center -->
-        <button @click="camera.focusOnCenter(viewportContainerRef)"
-          class="w-8 h-8 border border-slate-700 rounded-xl bg-slate-800/90 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-95"
-          title="Markazga qo'yish (Center View)">
-          <Crosshair class="w-4 h-4" />
-        </button>
+        <UiIconButton
+          variant="default"
+          size="sm"
+          :icon="Crosshair"
+          title="Center Origin"
+          @click="camera.focusOnCenter(viewportContainerRef)"
+        />
       </div>
     </div>
   </div>
@@ -124,7 +152,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
-import { Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle } from 'lucide-vue-next'
+import { Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package } from 'lucide-vue-next'
+import { UiButton, UiIconButton } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
 import PlacementPromptModal from '../PlacementPromptModal.vue'
 import { useMapStore } from '../../stores/mapStore'
@@ -290,11 +319,15 @@ watch(() => [
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
 }, { deep: true })
 
+// Track modifier keys for strict replace (Ctrl) vs stack (Shift) placement
+const isCtrlPressed = ref(false)
+const isShiftPressed = ref(false)
+
 // Track last drawn cell during mouse drag to prevent duplicate placement in the same cell
 const lastDrawnCell = ref<GridCoord | null>(null)
 
 // --- Mouse / Tool Handling ---
-function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
+function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseEvent | TouchEvent) {
   if (mapStore.activeLayer?.locked) return
   if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
     if (!assetStore.selectedAssetId || toolStore.activeTool === 'select') {
@@ -380,17 +413,25 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
     const placedAssetId = assetStore.selectedAssetId
     const existingDirect = mapStore.getCellItems(gridCoord.col, gridCoord.row)
 
-    // Prevent duplicate placement if this cell already has the exact same asset
-    const alreadyHasSame = existingDirect.some(i => i.assetId === placedAssetId)
-    if (alreadyHasSame) {
-      toolStore.isMouseDown = true
-      toolStore.dragStartCell = gridCoord
-      lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-      return
+    const isCtrl = !!((e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || isCtrlPressed.value)
+    const isShift = !!((e && 'shiftKey' in e && e.shiftKey) || isShiftPressed.value)
+
+    let effectiveMode: 'replace' | 'stack' | 'ask' = toolStore.placementMode
+    if (isCtrl) {
+      effectiveMode = 'replace'
+    } else if (isShift) {
+      effectiveMode = 'stack'
     }
 
     if (existingDirect.length > 0) {
-      if (toolStore.placementMode === 'ask' && !isContinuous) {
+      if (effectiveMode === 'replace' && existingDirect.length === 1 && existingDirect[0].assetId === placedAssetId) {
+        toolStore.isMouseDown = true
+        toolStore.dragStartCell = gridCoord
+        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
+        return
+      }
+
+      if (effectiveMode === 'ask' && !isContinuous) {
         toolStore.placementConflict = {
           col: gridCoord.col,
           row: gridCoord.row,
@@ -398,7 +439,7 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
         }
         return
       } else {
-        mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, toolStore.placementMode === 'replace' ? 'replace' : 'stack')
+        mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, effectiveMode === 'replace' ? 'replace' : 'stack')
       }
     } else {
       mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack')
@@ -440,7 +481,10 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
       if (itemArr.length > 0) activeTilesRecord[key] = { assetId: itemArr[itemArr.length - 1].assetId }
     }
     const targetCells = floodFill(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, activeTilesRecord, mapStore.project.cols, mapStore.project.rows)
-    if (targetCells.length > 0) mapStore.fillTiles(targetCells, assetStore.selectedAssetId)
+    const isCtrl = isCtrlPressed.value
+    const isShift = isShiftPressed.value
+    const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
+    if (targetCells.length > 0) mapStore.fillTiles(targetCells, assetStore.selectedAssetId, mapStore.activeLayerId, mode)
     if (!isContinuous) assetStore.selectAsset(null)
     return
   }
@@ -454,6 +498,8 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false) {
 }
 
 function handleMouseDown(e: MouseEvent) {
+  isCtrlPressed.value = e.ctrlKey || e.metaKey
+  isShiftPressed.value = e.shiftKey
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   if (e.button === 2) {
@@ -468,10 +514,12 @@ function handleMouseDown(e: MouseEvent) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-  executeCellClick(gridCoord, e.shiftKey || e.ctrlKey || e.metaKey)
+  executeCellClick(gridCoord, false, e)
 }
 
 function handleMouseMove(e: MouseEvent) {
+  isCtrlPressed.value = e.ctrlKey || e.metaKey
+  isShiftPressed.value = e.shiftKey
   if (camera.isPanning.value) {
     camera.updatePan(e.clientX, e.clientY)
     return
@@ -486,7 +534,10 @@ function handleMouseMove(e: MouseEvent) {
     if (toolStore.activeTool === 'brush' && assetStore.selectedAssetId) {
       if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
         lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        mapStore.setTile(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, 'stack')
+        const isCtrl = e.ctrlKey || e.metaKey || isCtrlPressed.value
+        const isShift = e.shiftKey || isShiftPressed.value
+        const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
+        mapStore.setTile(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, mode)
       }
     } else if (toolStore.activeTool === 'eraser') {
       if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
@@ -501,11 +552,18 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
-function handleMouseUp() {
+function handleMouseUp(e?: MouseEvent) {
+  if (e) {
+    isCtrlPressed.value = e.ctrlKey || e.metaKey
+    isShiftPressed.value = e.shiftKey
+  }
   if (camera.isPanning.value) camera.endPan()
   if (toolStore.isMouseDown && toolStore.dragStartCell && assetStore.selectedAssetId) {
     if (toolStore.previewCells.length > 0) {
-      mapStore.fillTiles(toolStore.previewCells, assetStore.selectedAssetId)
+      const isCtrl = (e && (e.ctrlKey || e.metaKey)) || isCtrlPressed.value
+      const isShift = (e && e.shiftKey) || isShiftPressed.value
+      const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
+      mapStore.fillTiles(toolStore.previewCells, assetStore.selectedAssetId, mapStore.activeLayerId, mode)
       toolStore.previewCells = []
     }
   }
@@ -569,7 +627,11 @@ function handleTouchCancel() {
 }
 
 // --- Drag & Drop ---
-function handleDragOver() { isDraggingOver.value = true }
+function handleDragOver(e: DragEvent) { 
+  isDraggingOver.value = true
+  isCtrlPressed.value = e.ctrlKey || e.metaKey
+  isShiftPressed.value = e.shiftKey
+}
 function handleDragLeave() { isDraggingOver.value = false }
 function handleCanvasDrop(e: DragEvent) {
   isDraggingOver.value = false
@@ -578,21 +640,30 @@ function handleCanvasDrop(e: DragEvent) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   if (isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+    const isCtrl = e.ctrlKey || e.metaKey || isCtrlPressed.value
+    const isShift = e.shiftKey || isShiftPressed.value
     const existingDirect = mapStore.getCellItems(gridCoord.col, gridCoord.row)
-    if (existingDirect.length > 0 && toolStore.placementMode === 'ask') {
+
+    if (isCtrl) {
+      mapStore.setTile(gridCoord.col, gridCoord.row, assetId, 'replace')
+    } else if (isShift) {
+      mapStore.setTile(gridCoord.col, gridCoord.row, assetId, 'stack')
+    } else if (existingDirect.length > 0 && toolStore.placementMode === 'ask') {
       toolStore.placementConflict = {
         col: gridCoord.col,
         row: gridCoord.row,
         assetId,
       }
     } else {
-      mapStore.setTile(gridCoord.col, gridCoord.row, assetId, 'stack')
+      mapStore.setTile(gridCoord.col, gridCoord.row, assetId, toolStore.placementMode === 'replace' ? 'replace' : 'stack')
     }
   }
 }
 
 // --- Hotkeys ---
 function handleKeyDown(e: KeyboardEvent) {
+  isCtrlPressed.value = e.ctrlKey || e.metaKey
+  isShiftPressed.value = e.shiftKey
   if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
   if (e.code === 'Space') camera.isSpacePressed.value = true
   if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -604,6 +675,8 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 function handleKeyUp(e: KeyboardEvent) {
+  isCtrlPressed.value = e.ctrlKey || e.metaKey
+  isShiftPressed.value = e.shiftKey
   if (e.code === 'Space') camera.isSpacePressed.value = false
 }
 

@@ -451,8 +451,17 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   function restoreEditorTowersSnapshot() {
     if (editorTowersSnapshot.value !== null) {
-      placedTowers.value = editorTowersSnapshot.value.map(t => ({ ...t }))
+      placedTowers.value = editorTowersSnapshot.value.map(t => ({ 
+        ...t,
+        totalDamageDealt: 0,
+        killsCount: 0,
+      }))
       editorTowersSnapshot.value = null
+    } else {
+      for (const t of placedTowers.value) {
+        t.totalDamageDealt = 0
+        t.killsCount = 0
+      }
     }
     selectedPlacedTowerId.value = null
     activeBuildTowerId.value = null
@@ -834,18 +843,19 @@ export const useTowerStore = defineStore('towerStore', () => {
         // Single Player Game Mode:
         if (characterStore.isGameMode) {
           characterStore.gold += killGold
+          characterStore.totalGoldEarned += killGold
         }
       }
 
-      // Floating Gold VFX Floater (+15 💰)
+      // Floating Gold VFX Floater (+15 G)
       damageFloaters.value.push({
-        id: `gold-${Date.now()}-${Math.random()}`,
-        text: `+${killGold} 💰`,
+        id: `gold-drop-${Date.now()}-${Math.random()}`,
+        text: `+${killGold} G`,
         x: unit.screenX,
-        y: unit.screenY - mapStore.project.tileHeight * 1.3,
-        color: 0xfacc15,
+        y: unit.screenY - 24,
+        color: 0xfbbf24, // Amber gold color
         alpha: 1.0,
-        lifeTimer: 0,
+        lifeTimer: 0.9,
       })
 
       if (multiplayerStore.roomId && multiplayerStore.isHost) {

@@ -20,19 +20,11 @@
 
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-300">Your Color:</label>
-          <div class="flex items-center gap-1.5 pt-0.5">
-            <button 
-              v-for="color in PLAYER_COLORS"
-              :key="color"
-              type="button"
-              class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-sm touch-target"
-              :style="{ backgroundColor: color }"
-              :class="selectedColor === color ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'"
-              @click="selectedColor = color"
-            >
-              <Check v-if="selectedColor === color" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 font-bold" />
-            </button>
-          </div>
+          <UiColorPicker
+            v-model="selectedColor"
+            :colors="PLAYER_COLORS"
+            size="md"
+          />
         </div>
       </div>
     </UiCard>
@@ -47,14 +39,15 @@
           </h3>
         </div>
         
-        <button 
-          type="button"
-          class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-800 touch-target"
+        <UiButton
+          variant="ghost"
+          size="xs"
+          :leading-icon="RefreshCw"
+          :loading="isRefreshing"
           @click="handleManualRefresh"
         >
-          <RefreshCw class="w-3 h-3" :class="isRefreshing ? 'animate-spin text-brand-400' : ''" />
-          <span>Refresh</span>
-        </button>
+          Refresh
+        </UiButton>
       </div>
 
       <!-- Active Lobbies Grid / List -->
@@ -74,7 +67,9 @@
                 :style="{ backgroundColor: room.hostColor || '#38bdf8' }"
               >
                 <span>{{ room.hostName ? room.hostName.slice(0, 2).toUpperCase() : 'TD' }}</span>
-                <span class="absolute -top-1 -right-1 text-[10px]">👑</span>
+                <span class="absolute -top-1 -right-1 p-0.5 bg-amber-500 rounded-full text-slate-950">
+                  <Crown class="w-2.5 h-2.5" />
+                </span>
               </div>
 
               <div class="min-w-0">
@@ -86,10 +81,14 @@
                 </div>
 
                 <div class="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                  <span class="text-slate-200 font-medium truncate max-w-25">🗺️ {{ room.mapName }}</span>
+                  <span class="text-slate-200 font-medium truncate max-w-25 flex items-center gap-1">
+                    <Map class="w-3 h-3 text-slate-400" />
+                    <span>{{ room.mapName }}</span>
+                  </span>
                   <span>•</span>
-                  <span class="text-amber-300 font-semibold font-mono">
-                    👥 {{ room.playersCount }}/{{ room.maxPlayers }}
+                  <span class="text-amber-300 font-semibold font-mono flex items-center gap-1">
+                    <Users class="w-3 h-3 text-amber-400" />
+                    <span>{{ room.playersCount }}/{{ room.maxPlayers }}</span>
                   </span>
                 </div>
               </div>
@@ -131,9 +130,10 @@
           <UiButton
             variant="game-amber"
             size="sm"
+            :leading-icon="Plus"
             @click="handleCreateGameInstead"
           >
-            ➕ Host New Room
+            Host New Room
           </UiButton>
         </div>
       </UiCard>
@@ -192,8 +192,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Check, LogIn, Radio, RefreshCw, ChevronDown } from 'lucide-vue-next'
-import { UiModal, UiInput, UiCard, UiButton, UiBadge } from './ui'
+import { Check, LogIn, Radio, RefreshCw, ChevronDown, Crown, Map, Users, Plus } from 'lucide-vue-next'
+import { UiModal, UiInput, UiCard, UiButton, UiBadge, UiColorPicker } from './ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { PLAYER_COLORS } from '../types/multiplayer'
@@ -256,11 +256,11 @@ async function handleJoinGame() {
   try {
     multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
     await multiplayerStore.joinGame(roomCode.value, router)
-    notify.success(`Xonaga ulanildi: ${roomCode.value}`)
+    notify.success(`Joined room: ${roomCode.value}`)
     isOpen.value = false
   } catch (err: any) {
     console.error('Failed to join room:', err)
-    notify.error(err?.message || 'Xonaga ulanishda xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.', 'Ulanish xatosi')
+    notify.error(err?.message || 'Failed to connect to room. Please try again.', 'Connection Error')
   } finally {
     isJoining.value = false
   }

@@ -472,7 +472,7 @@ async function run() {
             }
           }
         } else {
-          // Discrete Single Frame PNG (e.g. Male_0_Idle0.png or 0_Idle_0.png)
+          // Discrete Single Frame PNG/WebP (e.g. Male_0_Idle0.png or 0_Idle_0.png)
           const trimmed = await analyzeAndTrim(filePath)
           detectedCellW = trimmed.origW
           detectedCellH = trimmed.origH

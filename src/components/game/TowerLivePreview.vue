@@ -354,7 +354,7 @@ function renderFrame(time: number) {
     const angle = Math.atan2(p.targetY - p.startY, p.targetX - p.startX)
     
     if (p.type === 'arrow') {
-      // 🏹 Arrow
+      // Arrow
       ctx.save()
       ctx.translate(p.currentX, p.currentY)
       const arcDy = -Math.cos(p.progress * Math.PI) * 22 * Math.PI / (p.targetX - p.startX)
@@ -386,7 +386,7 @@ function renderFrame(time: number) {
       ctx.restore()
 
     } else if (p.type === 'fireball') {
-      // 🔥 Fireball
+      // Fireball
       ctx.beginPath()
       ctx.arc(p.currentX, p.currentY, 7.5, 0, Math.PI * 2)
       ctx.fillStyle = 'rgba(239, 68, 68, 0.5)'
@@ -403,7 +403,7 @@ function renderFrame(time: number) {
       ctx.fill()
 
     } else if (p.type === 'frost_bolt') {
-      // ❄️ Frost Bolt
+      // Frost Bolt
       ctx.save()
       ctx.translate(p.currentX, p.currentY)
       ctx.rotate(time * 0.01)
@@ -427,7 +427,7 @@ function renderFrame(time: number) {
       ctx.restore()
 
     } else if (p.type === 'laser') {
-      // 🔴 Laser Beam Ray
+      // Laser Beam Ray
       ctx.beginPath()
       ctx.moveTo(p.startX, p.startY)
       ctx.lineTo(p.currentX, p.currentY)
@@ -448,7 +448,7 @@ function renderFrame(time: number) {
       ctx.fill()
 
     } else if (p.type === 'missile') {
-      // 🚀 Missile
+      // Missile
       ctx.save()
       ctx.translate(p.currentX, p.currentY)
       ctx.rotate(angle)
@@ -471,7 +471,7 @@ function renderFrame(time: number) {
       ctx.restore()
 
     } else if (p.type === 'cannonball') {
-      // 💣 Cannonball
+      // Cannonball
       ctx.beginPath()
       ctx.arc(p.currentX, p.currentY, 5.5, 0, Math.PI * 2)
       ctx.fillStyle = '#1e293b'
@@ -486,7 +486,7 @@ function renderFrame(time: number) {
       ctx.fill()
 
     } else {
-      // ⚡ Magic Bolt
+      // Magic Bolt
       ctx.beginPath()
       ctx.arc(p.currentX, p.currentY, 6.5, 0, Math.PI * 2)
       ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'

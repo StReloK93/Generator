@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import { router } from './router'
+import { useI18nStore } from './stores/i18nStore'
 import './style.css'
 
 async function initApp() {
@@ -20,6 +21,10 @@ async function initApp() {
 
   app.use(pinia)
   app.use(router)
+
+  const i18n = useI18nStore()
+  app.config.globalProperties.$t = (key: string, params?: Record<string, string | number>) => i18n.t(key, params)
+
   app.mount('#app')
 }
 

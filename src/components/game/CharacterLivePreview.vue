@@ -5,24 +5,16 @@
     <div class="flex items-center justify-between gap-2 p-2.5 bg-slate-900/90 border-b border-slate-800/80">
       <div v-if="showModelSelector" class="flex items-center gap-1.5">
         <span class="text-xs font-bold text-slate-300">Unit Model:</span>
-        <div class="flex items-center gap-1 bg-slate-950 p-0.5 rounded-xl border border-slate-800">
-          <button
-            v-for="modelOption in availableModels"
-            :key="modelOption.id"
-            type="button"
-            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer capitalize"
-            :class="currentModel === modelOption.id ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'"
-            @click="selectModel(modelOption.id)"
-          >
-            <span>{{ getModelEmoji(modelOption.id) }}</span>
-            <span>{{ modelOption.name }}</span>
-          </button>
-        </div>
+        <UiTabs
+          :model-value="currentModel"
+          :items="availableModels.map(m => ({ id: m.id, label: m.name }))"
+          size="xs"
+          @update:model-value="(id) => selectModel(id as CharacterModel)"
+        />
       </div>
 
       <div v-else class="flex items-center gap-2">
         <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-          <span>{{ getModelEmoji(currentModel) }}</span>
           <span class="capitalize text-purple-300">{{ currentModel }}</span>
         </span>
       </div>
@@ -50,146 +42,34 @@
           +{{ offsetY }}px
         </span>
       </div>
+    </div>
 
-      <!-- Direction Compass Floating Pad (Bottom-Right) -->
-      <div class="absolute bottom-2.5 right-2.5 z-10 flex flex-col items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700/80 shadow-xl">
-        <div class="grid grid-cols-3 gap-1">
-          <!-- Row 1: North-West, North, North-East -->
-          <button
-            type="button"
-            title="Direction 6 (North-West)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 6 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(6)"
-          >
-            ↖
-          </button>
-          <button
-            type="button"
-            title="Direction 7 (North)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 7 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(7)"
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            title="Direction 0 (North-East)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 0 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(0)"
-          >
-            ↗
-          </button>
-
-          <!-- Row 2: West, Auto-Rotate, East -->
-          <button
-            type="button"
-            title="Direction 5 (West)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 5 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(5)"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            title="Toggle Auto-Rotate"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="isAutoRotating ? 'bg-emerald-600 text-white animate-spin' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="isAutoRotating = !isAutoRotating"
-          >
-            🔄
-          </button>
-          <button
-            type="button"
-            title="Direction 1 (East)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 1 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(1)"
-          >
-            →
-          </button>
-
-          <!-- Row 3: South-West, South, South-East -->
-          <button
-            type="button"
-            title="Direction 4 (South-West)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 4 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(4)"
-          >
-            ↙
-          </button>
-          <button
-            type="button"
-            title="Direction 3 (South)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 3 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(3)"
-          >
-            ↓
-          </button>
-          <button
-            type="button"
-            title="Direction 2 (South-East)"
-            class="w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer"
-            :class="currentDirection === 2 ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'"
-            @click="setDirection(2)"
-          >
-            ↘
-          </button>
-        </div>
-      </div>
+    <!-- 8 Directions Control Bar (Beneath Canvas) -->
+    <div class="flex items-center justify-center flex-wrap gap-1.5 px-2 py-1.5 bg-slate-900/95 border-t border-slate-800/80">
+      <UiButton
+        v-for="d in directionItems"
+        :key="d.dir"
+        :leading-icon="d.icon"
+        size="xs"
+        variant="tool"
+        :active="currentDirection === d.dir"
+        :title="d.name"
+        @click="setDirection(d.dir)"
+      />
     </div>
 
     <!-- Bottom Dynamic Animation Action Tester Buttons -->
-    <div class="flex items-center justify-between gap-2 p-2.5 bg-slate-900/90 border-t border-slate-800/80 flex-wrap">
-      <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-[11px] font-semibold text-slate-400 mr-1">Animation:</span>
-
-        <button
-          v-for="act in currentModelActions"
-          :key="act.id"
-          type="button"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-          :class="currentAction.toLowerCase() === act.id.toLowerCase() ? (act.id === 'Run' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : act.id === 'Idle' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-amber-600 text-white shadow-lg shadow-amber-600/30') : 'bg-slate-800 hover:bg-slate-700 text-slate-300'"
-          @click="setAction(act.id)"
-        >
-          <span>{{ act.icon }}</span>
-          <span>{{ act.label }}</span>
-          <span class="text-[10px] opacity-75">({{ act.frameCount }}f)</span>
-        </button>
-      </div>
-
-      <!-- Play / Speed Controls -->
-      <div class="flex items-center gap-1.5 ml-auto">
-        <button
-          type="button"
-          class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-bold text-slate-300 transition-all cursor-pointer"
-          :class="playbackSpeed === 0.5 ? 'bg-purple-600! text-white!' : ''"
-          @click="playbackSpeed = 0.5"
-        >
-          0.5x
-        </button>
-        <button
-          type="button"
-          class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-bold text-slate-300 transition-all cursor-pointer"
-          :class="playbackSpeed === 1.0 ? 'bg-purple-600! text-white!' : ''"
-          @click="playbackSpeed = 1.0"
-        >
-          1x
-        </button>
-        <button
-          type="button"
-          class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono font-bold text-slate-300 transition-all cursor-pointer"
-          :class="playbackSpeed === 2.0 ? 'bg-purple-600! text-white!' : ''"
-          @click="playbackSpeed = 2.0"
-        >
-          2x
-        </button>
-      </div>
+    <div class="flex items-center justify-center gap-1.5 p-2 bg-slate-900/90 border-t border-slate-800/80 flex-wrap">
+      <UiButton
+        v-for="act in currentModelActions"
+        :key="act.id"
+        :variant="currentAction.toLowerCase() === act.id.toLowerCase() ? 'primary' : 'secondary'"
+        size="xs"
+        @click="setAction(act.id)"
+      >
+        <span>{{ act.label }}</span>
+        <span class="text-[10px] opacity-75">({{ act.frameCount }}f)</span>
+      </UiButton>
     </div>
 
   </div>
@@ -197,9 +77,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { assetManager } from '../../services/assetManager'
+import { 
+  ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowLeft, ArrowRight, 
+  ArrowDownLeft, ArrowDown, ArrowDownRight,
+  Swords, Crosshair, Wand2, User, Skull, Shield 
+} from 'lucide-vue-next'
+import { UiButton, UiIconButton, UiTabs } from '../ui'
 import { CharacterAction, CharacterModel } from '../../stores/characterStore'
 import characterManifest from '../../assets/generated/characterManifest.json'
+import { assetManager } from '../../services/assetManager'
 
 const props = withDefaults(
   defineProps<{
@@ -227,13 +113,23 @@ const emit = defineEmits<{
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
+// 8 Directions Clockwise Definition
+const directionItems = [
+  { dir: 7, name: 'North (7)', icon: ArrowUp },
+  { dir: 0, name: 'North-East (0)', icon: ArrowUpRight },
+  { dir: 1, name: 'East (1)', icon: ArrowRight },
+  { dir: 2, name: 'South-East (2)', icon: ArrowDownRight },
+  { dir: 3, name: 'South (3)', icon: ArrowDown },
+  { dir: 4, name: 'South-West (4)', icon: ArrowDownLeft },
+  { dir: 5, name: 'West (5)', icon: ArrowLeft },
+  { dir: 6, name: 'North-West (6)', icon: ArrowUpLeft },
+]
+
 // Current Selection States
 const currentModel = ref<CharacterModel>(props.modelValue || 'male')
 const currentAction = ref<CharacterAction>(props.initialAction || 'Run')
 const currentDirection = ref<number>(2) // Default 2: South-East (Down-Right)
 const currentFrameIndex = ref<number>(0)
-const isAutoRotating = ref(false)
-const playbackSpeed = ref(1.0)
 
 // Dynamic Manifest Data
 const availableModels = computed(() => {
@@ -250,19 +146,6 @@ const availableModels = computed(() => {
   ]
 })
 
-function getModelEmoji(id: string): string {
-  const lower = String(id).toLowerCase()
-  if (lower.includes('warrior') || lower.includes('knight')) return '⚔️'
-  if (lower.includes('archer') || lower.includes('hunter') || lower.includes('bow')) return '🏹'
-  if (lower.includes('mage') || lower.includes('wizard') || lower.includes('sorcerer')) return '🧙'
-  if (lower.includes('male') || lower.includes('peasant') || lower.includes('villager') || lower.includes('worker')) return '🧑'
-  if (lower.includes('female') || lower.includes('woman') || lower.includes('girl')) return '👩'
-  if (lower.includes('orc') || lower.includes('goblin') || lower.includes('monster') || lower.includes('ogre')) return '👹'
-  if (lower.includes('skeleton') || lower.includes('zombie') || lower.includes('undead')) return '💀'
-  if (lower.includes('dragon') || lower.includes('beast') || lower.includes('demon')) return '🐉'
-  return '👤'
-}
-
 const currentModelActions = computed(() => {
   const modelInfo = (characterManifest as any)[currentModel.value]
   if (modelInfo && modelInfo.actions && Object.keys(modelInfo.actions).length > 0) {
@@ -275,14 +158,14 @@ const currentModelActions = computed(() => {
   }
   if (currentModel.value === 'warrior') {
     return [
-      { id: 'Idle', label: 'Idle', icon: '🧘', frameCount: 24 },
-      { id: 'Run', label: 'Run', icon: '🏃', frameCount: 24 },
+      { id: 'Idle', label: 'Idle', icon: 'Idle', frameCount: 24 },
+      { id: 'Run', label: 'Run', icon: 'Run', frameCount: 24 },
     ]
   }
   return [
-    { id: 'Idle', label: 'Idle', icon: '🧘', frameCount: 4 },
-    { id: 'Run', label: 'Run', icon: '🏃', frameCount: 10 },
-    { id: 'Pickup', label: 'Pickup / Die', icon: '💥', frameCount: 10 },
+    { id: 'Idle', label: 'Idle', icon: 'Idle', frameCount: 4 },
+    { id: 'Run', label: 'Run', icon: 'Run', frameCount: 10 },
+    { id: 'Pickup', label: 'Pickup / Die', icon: 'Pickup', frameCount: 10 },
   ]
 })
 
@@ -300,7 +183,6 @@ const totalFramesForAction = computed(() => {
 let animationFrameId: number | null = null
 let lastTimestamp = 0
 let animTimer = 0
-let autoRotateTimer = 0
 
 // Image Cache for 2D Canvas Drawing
 const imageCache = new Map<string, { img: HTMLImageElement; width: number; height: number; anchorX: number; anchorY: number }>()
@@ -339,7 +221,6 @@ function setAction(action: CharacterAction) {
 
 function setDirection(dir: number) {
   currentDirection.value = dir
-  isAutoRotating.value = false
 }
 
 function getStabilizedImageForFrame(model: CharacterModel, direction: number, action: CharacterAction, frame: number) {
@@ -365,7 +246,7 @@ function getStabilizedImageForFrame(model: CharacterModel, direction: number, ac
 
 function renderFrame(timestamp: number) {
   if (!lastTimestamp) lastTimestamp = timestamp
-  const speedMult = Math.max(0.1, (props.animSpeed || 1.0) * playbackSpeed.value)
+  const speedMult = Math.max(0.1, props.animSpeed || 1.0)
   const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000) * speedMult
   lastTimestamp = timestamp
 
@@ -389,15 +270,6 @@ function renderFrame(timestamp: number) {
   if (!ctx) {
     animationFrameId = requestAnimationFrame(renderFrame)
     return
-  }
-
-  // Advance Auto-Rotation
-  if (isAutoRotating.value) {
-    autoRotateTimer += dt
-    if (autoRotateTimer >= 0.8) {
-      autoRotateTimer = 0
-      currentDirection.value = (currentDirection.value + 1) % 8
-    }
   }
 
   // Advance Animation Frame

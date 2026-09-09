@@ -7,7 +7,7 @@
         variant="secondary"
         size="sm"
         :leading-icon="Home"
-        title="Return to home screen"
+        :title="$t('header.home')"
         @click="router.push('/')"
       >
         <span class="hidden md:inline font-bold">Isocraft</span>
@@ -18,9 +18,9 @@
       <!-- Current Map Name Display -->
       <div 
         class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-bold text-slate-200"
-        :title="mapStore.project.name || 'Untitled Map'"
+        :title="mapStore.project.name || $t('header.newMap')"
       >
-        <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || 'New Map' }}</span>
+        <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || $t('header.newMap') }}</span>
       </div>
 
       <!-- New Map Action Button -->
@@ -28,11 +28,11 @@
         variant="ghost"
         size="xs"
         :leading-icon="Plus"
-        title="Create new blank map"
+        :title="$t('header.newMap')"
         custom-class="text-brand-300 hover:bg-brand-500/15 border-brand-500/30"
         @click="emit('open-welcome', 'new', false)"
       >
-        <span class="hidden sm:inline">New</span>
+        <span class="hidden sm:inline">{{ $t('common.create') }}</span>
       </UiButton>
 
       <!-- Import Map Action Button -->
@@ -40,11 +40,11 @@
         variant="ghost"
         size="xs"
         :leading-icon="Upload"
-        title="Import saved project file"
+        :title="$t('common.import')"
         custom-class="text-teal-300 hover:bg-teal-500/15 border-teal-500/30"
         @click="emit('open-welcome', 'import', false)"
       >
-        <span class="hidden sm:inline">Import</span>
+        <span class="hidden sm:inline">{{ $t('common.import') }}</span>
       </UiButton>
 
       <!-- Map Dimensions -->
@@ -63,10 +63,10 @@
         size="xs"
         :active="toolStore.showGrid"
         :leading-icon="Grid"
-        title="Toggle Grid Overlay (Ctrl+G)"
+        :title="$t('header.gridToggle')"
         @click="toolStore.showGrid = !toolStore.showGrid"
       >
-        <span class="hidden md:inline text-[11px]">Grid</span>
+        <span class="hidden md:inline text-[11px]">{{ $t('sidebar.layerManagement').split(' ')[0] }}</span>
       </UiButton>
 
       <!-- Coordinates Toggle -->
@@ -75,10 +75,10 @@
         size="xs"
         :active="toolStore.showCoordinates"
         :leading-icon="Hash"
-        title="Toggle Cell Coordinates"
+        :title="$t('inspector.gridPosition')"
         @click="toolStore.showCoordinates = !toolStore.showCoordinates"
       >
-        <span class="hidden md:inline text-[11px]">Coords</span>
+        <span class="hidden md:inline text-[11px]">{{ $t('common.position') }}</span>
       </UiButton>
 
       <!-- Spawn Points Overlay Toggle -->
@@ -87,10 +87,10 @@
         size="xs"
         :active="characterStore.showSpawnPoints"
         :leading-icon="MapPin"
-        title="Toggle Spawn Points Overlay on Map"
+        :title="$t('config.tabRoutes')"
         @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
       >
-        <span class="hidden md:inline text-[11px]">Spawns</span>
+        <span class="hidden md:inline text-[11px]">{{ $t('config.tabRoutes').split(' ')[0] }}</span>
       </UiButton>
 
       <div class="h-4 w-px bg-slate-800 mx-1"></div>
@@ -101,7 +101,7 @@
         size="sm"
         :icon="Undo2"
         :disabled="!mapStore.canUndo"
-        title="Undo (Ctrl+Z)"
+        :title="$t('header.undo')"
         @click="mapStore.undo()"
       />
 
@@ -111,7 +111,7 @@
         size="sm"
         :icon="Redo2"
         :disabled="!mapStore.canRedo"
-        title="Redo (Ctrl+Y)"
+        :title="$t('header.redo')"
         @click="mapStore.redo()"
       />
     </div>
@@ -123,10 +123,10 @@
         :variant="toolStore.isGameConfigModalOpen ? 'game-amber' : 'secondary'"
         size="sm"
         :leading-icon="ShieldAlert"
-        title="Towers, Waves & Movement Settings"
+        :title="$t('header.gameConfig')"
         @click="toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen"
       >
-        <span class="hidden sm:inline">TD Settings</span>
+        <span class="hidden sm:inline">{{ $t('header.gameConfig') }}</span>
       </UiButton>
 
       <!-- Play Game Button (Navigates cleanly to /game) -->
@@ -134,10 +134,10 @@
         variant="game-green"
         size="sm"
         :leading-icon="Gamepad2"
-        title="Switch to Game Mode (Play on current map)"
+        :title="$t('header.playTest')"
         @click="handleStartGame"
       >
-        <span>Play</span>
+        <span>{{ $t('header.playTest') }}</span>
       </UiButton>
 
       <!-- Export Button -->
@@ -145,18 +145,21 @@
         variant="primary"
         size="sm"
         :leading-icon="Download"
-        title="Export PNG or JSON"
+        :title="$t('common.export')"
         @click="toolStore.isExportModalOpen = true; emit('open-export')"
       >
-        <span class="hidden sm:inline">Export</span>
+        <span class="hidden sm:inline">{{ $t('common.export') }}</span>
       </UiButton>
+
+      <!-- Language Switcher -->
+      <UiLanguageSwitcher />
 
       <!-- Help Button -->
       <UiIconButton
         variant="ghost"
         size="sm"
         :icon="HelpCircle"
-        title="Keyboard Shortcuts (Help)"
+        :title="$t('header.help')"
         custom-class="hidden sm:inline-flex"
         @click="toolStore.isShortcutsModalOpen = true"
       />
@@ -169,15 +172,17 @@ import { useRouter } from 'vue-router'
 import { 
   Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, MapPin
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton } from '../ui'
+import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useI18nStore } from '../../stores/i18nStore'
 
 const router = useRouter()
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const characterStore = useCharacterStore()
+const { t } = useI18nStore()
 
 const emit = defineEmits<{
   (e: 'open-welcome', mode?: 'new' | 'import', forced?: boolean): void
@@ -185,6 +190,7 @@ const emit = defineEmits<{
 }>()
 
 function handleStartGame() {
+  characterStore.entrySource = 'editor'
   router.push('/game')
 }
 </script>

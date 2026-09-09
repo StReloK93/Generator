@@ -16,10 +16,10 @@
         </div>
         <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-100">
-            Element Inspector
+            {{ $t('inspector.title') }}
           </h2>
           <p class="text-[10px] font-mono text-brand-400">
-            Cell: X: {{ toolStore.selectedElement.col }}, Y: {{ toolStore.selectedElement.row }}
+            {{ $t('inspector.gridPosition') }}: X: {{ toolStore.selectedElement.col }}, Y: {{ toolStore.selectedElement.row }}
           </p>
         </div>
       </div>
@@ -27,7 +27,7 @@
         :icon="X"
         size="sm"
         variant="ghost"
-        title="Close (Right click or Esc)"
+        :title="$t('common.close')"
         @click="toolStore.setSelectedElement(null)"
       />
     </div>
@@ -59,7 +59,10 @@
               <img 
                 :src="assetStore.getAssetPreview(entry.item.assetId)" 
                 :alt="getAsset(entry.item.assetId)?.name"
-                class="max-w-full max-h-full object-contain filter drop-shadow"
+                width="32"
+                height="32"
+                decoding="async"
+                class="max-w-full max-h-full aspect-square object-contain filter drop-shadow"
                 :style="{
                   transform: `scaleX(${entry.item.flipX ? -1 : 1}) rotate(${entry.item.rotation || 0}deg)`
                 }"
@@ -162,26 +165,22 @@
               </UiButton>
             </div>
           </div>
-          <p class="text-[10px] text-slate-400 leading-tight">
-            💡 Click <strong>Above Front</strong> to place this object above overlapping front walls and props.
+          <p class="text-[10px] text-slate-400 leading-tight flex items-center gap-1.5">
+            <Lightbulb class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Click <strong>Above Front</strong> to place this object above overlapping front walls and props.</span>
           </p>
         </UiCard>
 
         <!-- 3. Layer Selector -->
         <div class="flex flex-col gap-1.5">
           <span class="text-xs font-semibold text-slate-300">Layer:</span>
-          <div class="grid grid-cols-3 gap-1">
-            <UiButton 
-              v-for="layer in mapStore.project.layers"
-              :key="layer.id"
-              :variant="toolStore.selectedElement?.layerId === layer.id ? 'primary' : 'secondary'"
-              size="xs"
-              custom-class="truncate"
-              @click="handleSwitchLayer(layer.id)"
-            >
-              {{ layer.name }}
-            </UiButton>
-          </div>
+          <UiTabs
+            :model-value="toolStore.selectedElement?.layerId || ''"
+            :items="mapStore.project.layers.map(l => ({ id: l.id, label: l.name }))"
+            size="xs"
+            fill
+            @update:model-value="(id) => handleSwitchLayer(String(id))"
+          />
         </div>
 
         <!-- 4. In-Cell Z-Index -->
@@ -193,13 +192,14 @@
             </span>
             <div class="flex items-center gap-1">
               <span class="text-[10px] text-slate-400">Value:</span>
-              <input 
-                type="number"
-                min="0"
-                max="999"
-                :value="currentInspectedCellZ"
-                @change="(e) => handleCurrentCellZChange((e.target as HTMLInputElement).valueAsNumber)"
-                class="w-12 bg-slate-950 border border-slate-700 rounded-lg px-1 py-0.5 text-xs text-center font-mono font-bold text-brand-400 focus:outline-none focus:border-brand-500"
+              <UiNumberInput
+                :model-value="currentInspectedCellZ"
+                variant="compact"
+                size="xs"
+                :min="0"
+                :max="999"
+                custom-class="w-16"
+                @change="handleCurrentCellZChange"
               />
             </div>
           </div>
@@ -208,13 +208,15 @@
           <div v-if="(activeItem.spanX || 1) > 1 || (activeItem.spanY || 1) > 1" class="flex flex-col gap-1.5 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
             <div class="flex justify-between items-center text-[10px]">
               <span class="text-slate-400 font-medium">Per-cell Z-Index:</span>
-              <button 
-                @click="applyCurrentZToAllCells"
-                class="text-brand-400 hover:text-brand-300 underline font-medium cursor-pointer"
+              <UiButton 
+                variant="ghost"
+                size="xs"
                 title="Apply current Z-Index to all spanned cells"
+                custom-class="text-brand-400! hover:text-brand-300! p-0!"
+                @click="applyCurrentZToAllCells"
               >
                 Apply to all
-              </button>
+              </UiButton>
             </div>
 
             <!-- Dynamic Grid Matrix -->
@@ -236,7 +238,7 @@
                     </span>
                     <div class="flex items-center gap-0.5 mt-0.5">
                       <UiIconButton 
-                        size="sm"
+                        size="xs"
                         variant="default"
                         custom-class="w-4! h-4! text-[9px]!"
                         @click.stop="adjustMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1, -1)"
@@ -247,7 +249,7 @@
                         {{ getMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1) }}
                       </span>
                       <UiIconButton 
-                        size="sm"
+                        size="xs"
                         variant="default"
                         custom-class="w-4! h-4! text-[9px]!"
                         @click.stop="adjustMatrixCellZ(activeItem.x + c - 1, activeItem.y + r - 1, +1)"
@@ -307,7 +309,7 @@
         </UiCard>
 
         <!-- 5. Anchor Base Height -->
-        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-1.5">
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Crosshair class="w-3.5 h-3.5 text-brand-400" />
@@ -316,86 +318,56 @@
             <UiBadge variant="brand" size="xs">{{ Math.round(currentAnchorY * 100) }}%</UiBadge>
           </div>
           
-          <div class="grid grid-cols-3 gap-1">
-            <UiButton 
-              :variant="Math.abs(currentAnchorY - 0.5) < 0.05 ? 'primary' : 'secondary'"
-              size="xs"
-              @click="handleSetAnchor(0.5, 0.5)"
-            >
-              Tile (50%)
-            </UiButton>
-            <UiButton 
-              :variant="Math.abs(currentAnchorY - 0.88) < 0.05 ? 'primary' : 'secondary'"
-              size="xs"
-              @click="handleSetAnchor(0.5, 0.88)"
-            >
-              Wall (88%)
-            </UiButton>
-            <UiButton 
-              :variant="Math.abs(currentAnchorY - 1.0) < 0.05 ? 'primary' : 'secondary'"
-              size="xs"
-              @click="handleSetAnchor(0.5, 1.0)"
-            >
-              Base (100%)
-            </UiButton>
-          </div>
+          <UiTabs
+            :model-value="Math.abs(currentAnchorY - 0.5) < 0.05 ? 0.5 : Math.abs(currentAnchorY - 0.88) < 0.05 ? 0.88 : Math.abs(currentAnchorY - 1.0) < 0.05 ? 1.0 : currentAnchorY"
+            :items="[
+              { id: 0.5, label: 'Tile (50%)' },
+              { id: 0.88, label: 'Wall (88%)' },
+              { id: 1.0, label: 'Base (100%)' }
+            ]"
+            size="xs"
+            fill
+            @update:model-value="(val) => handleSetAnchor(currentAnchorX, Number(val))"
+          />
 
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-[10px] text-slate-500 w-12">Fine Y:</span>
-            <input 
-              type="range"
-              min="0.2"
-              max="1.0"
-              step="0.02"
-              :value="currentAnchorY"
-              @input="(e) => handleSetAnchor(currentAnchorX, parseFloat((e.target as HTMLInputElement).value))"
-              class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded"
-            />
-          </div>
+          <UiSlider
+            :model-value="currentAnchorY"
+            label="Fine Y"
+            :min="0.2"
+            :max="1.0"
+            :step="0.02"
+            :format-value="(val) => `${Math.round(val * 100)}%`"
+            @update:model-value="(val) => handleSetAnchor(currentAnchorX, val)"
+          />
         </UiCard>
 
         <!-- 6. Scaling -->
-        <div class="flex flex-col gap-1.5">
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
           <div class="flex justify-between items-center text-xs">
             <span class="font-semibold text-slate-300">Scale:</span>
             <UiBadge variant="brand" size="xs">{{ Math.round((activeItem.scale || 1.0) * 100) }}%</UiBadge>
           </div>
           <div class="flex items-center gap-2">
-            <UiButton 
-              variant="secondary"
-              size="sm"
-              @click="adjustScale(-0.1)"
-            >
-              -
-            </UiButton>
-            <input 
-              type="range"
-              min="0.2"
-              max="3.5"
-              step="0.05"
-              :value="activeItem.scale || 1.0"
-              @input="(e) => handleScaleInput(parseFloat((e.target as HTMLInputElement).value))"
-              class="flex-1 accent-brand-500 cursor-pointer h-1.5 bg-slate-800 rounded"
+            <UiSlider
+              :model-value="activeItem.scale || 1.0"
+              :min="0.2"
+              :max="3.5"
+              :step="0.05"
+              custom-class="flex-1"
+              :format-value="(val) => `${Math.round(val * 100)}%`"
+              @update:model-value="handleScaleInput"
             />
             <UiButton 
               variant="secondary"
-              size="sm"
-              @click="adjustScale(+0.1)"
-            >
-              +
-            </UiButton>
-
-            <UiButton 
-              variant="secondary"
-              size="sm"
+              size="xs"
               @click="handleScaleInput(1.0)"
             >
               1x
             </UiButton>
           </div>
-        </div>
+        </UiCard>
 
-        <!-- 9. Pixel Offset (Nudge) -->
+        <!-- 7. Pixel Offset (Nudge) -->
         <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
             <span class="text-slate-400 font-medium">Pixel Offset (Nudge):</span>
@@ -405,38 +377,42 @@
           </div>
 
           <!-- Nudge 4-way arrow buttons -->
-          <div class="flex items-center gap-1.5 py-1">
+          <div class="flex items-center justify-center gap-1.5 py-1">
             <UiButton 
               variant="secondary"
               size="xs"
+              :leading-icon="ArrowLeft"
               title="Nudge Left 2px"
               @click="nudge(-2, 0)"
             >
-              ← 2px
+              2px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
+              :leading-icon="ArrowUp"
               title="Nudge Up 2px"
               @click="nudge(0, -2)"
             >
-              ↑ 2px
+              2px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
+              :leading-icon="ArrowDown"
               title="Nudge Down 2px"
               @click="nudge(0, 2)"
             >
-              ↓ 2px
+              2px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
+              :leading-icon="ArrowRight"
               title="Nudge Right 2px"
               @click="nudge(2, 0)"
             >
-              → 2px
+              2px
             </UiButton>
             <UiButton 
               variant="secondary"
@@ -487,13 +463,17 @@
 import { ref, computed } from 'vue'
 import { 
   Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine, 
-  ChevronsUp, ChevronsDown, Move, Trash2, Crosshair 
+  ChevronsUp, ChevronsDown, Move, Trash2, Crosshair, Lightbulb,
+  ArrowLeft, ArrowRight, ArrowUp, ArrowDown
 } from 'lucide-vue-next'
 import { 
   UiButton, 
   UiIconButton, 
   UiCard, 
-  UiBadge 
+  UiBadge,
+  UiTabs,
+  UiNumberInput,
+  UiSlider
 } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'

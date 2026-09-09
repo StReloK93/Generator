@@ -18,7 +18,10 @@
             v-if="topExistingAsset"
             :src="assetStore.getAssetPreview(topExistingAsset)" 
             :alt="topExistingAsset.name" 
-            class="max-w-full max-h-full object-contain filter drop-shadow"
+            width="64"
+            height="64"
+            decoding="async"
+            class="max-w-full max-h-full aspect-square object-contain filter drop-shadow"
           />
         </div>
         <span class="text-xs font-semibold text-slate-300 truncate w-full">
@@ -34,7 +37,10 @@
             v-if="newAsset"
             :src="assetStore.getAssetPreview(newAsset)" 
             :alt="newAsset.name" 
-            class="max-w-full max-h-full object-contain filter drop-shadow"
+            width="64"
+            height="64"
+            decoding="async"
+            class="max-w-full max-h-full aspect-square object-contain filter drop-shadow"
           />
         </div>
         <span class="text-xs font-semibold text-brand-300 truncate w-full">
@@ -46,33 +52,40 @@
     <!-- Placement Decision Buttons -->
     <div class="flex flex-col gap-2 pt-1">
       <!-- Option 1: Stack on Top (Recommended) -->
-      <button 
-        type="button"
-        class="w-full p-3 rounded-xl bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center justify-between group active:scale-95 cursor-pointer touch-target"
+      <UiCard
+        variant="brand"
+        interactive
+        padding="sm"
+        custom-class="bg-linear-to-r! from-brand-600! to-indigo-600! hover:from-brand-500! hover:to-indigo-500! text-white"
         @click="chooseStack"
       >
-        <div class="flex items-center gap-2.5">
-          <PlusCircle class="w-4 h-4 text-white shrink-0" />
-          <div class="text-left">
-            <div>Stack on Top</div>
-            <div class="text-[10px] text-brand-200 font-normal">Places as a new layer on top (increases Z-Index)</div>
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center gap-2.5">
+            <PlusCircle class="w-4 h-4 text-white shrink-0" />
+            <div class="text-left">
+              <div class="font-bold text-xs">Stack on Top</div>
+              <div class="text-[10px] text-brand-200 font-normal">Places as a new layer on top (increases Z-Index)</div>
+            </div>
           </div>
+          <UiBadge variant="cyan" size="xs">Recommended</UiBadge>
         </div>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 shrink-0">Recommended</span>
-      </button>
+      </UiCard>
 
       <!-- Option 2: Replace Existing -->
-      <button 
-        type="button"
-        class="w-full p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-all flex items-center gap-2.5 active:scale-95 cursor-pointer touch-target"
+      <UiCard
+        variant="default"
+        interactive
+        padding="sm"
         @click="chooseReplace"
       >
-        <RefreshCw class="w-4 h-4 text-amber-400 shrink-0" />
-        <div class="text-left">
-          <div>Replace Existing</div>
-          <div class="text-[10px] text-slate-400 font-normal">Removes existing element and replaces it with the new one</div>
+        <div class="flex items-center gap-2.5 w-full">
+          <RefreshCw class="w-4 h-4 text-amber-400 shrink-0" />
+          <div class="text-left">
+            <div class="font-bold text-xs text-white">Replace Existing</div>
+            <div class="text-[10px] text-slate-400 font-normal">Removes existing element and replaces it with the new one</div>
+          </div>
         </div>
-      </button>
+      </UiCard>
     </div>
 
     <!-- Footer: Remember Choice & Cancel -->
@@ -102,7 +115,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Layers, PlusCircle, RefreshCw } from 'lucide-vue-next'
-import { UiModal, UiCard, UiButton } from './ui'
+import { UiModal, UiCard, UiButton, UiBadge } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'

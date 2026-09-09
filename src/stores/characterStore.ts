@@ -92,8 +92,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // Game Mode & Economy State (Configured per map in mapStore.project.gameSettings)
   const isGameMode = ref(false) // Toggle between Map Redaktor and Playable Game Mode
+  const entrySource = ref<'editor' | 'home' | 'play' | 'lobby'>('home') // Context-aware origin
   const fps = ref(60) // Live Engine FPS Counter
-  const totalKills = ref(0) // Total enemy units defeated
+  const totalKills = ref(0) // Total enemy units defeated in current match
+  const totalGoldEarned = ref(0) // Total gold accumulated during current match
   const playerLives = ref(20)
   const maxLives = ref(20)
   const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
@@ -479,7 +481,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       drawingPath.value = [startPt]
     }
     
-    statusMessage.value = "✏️ Click consecutive cells on the map to draw. Finish your route anywhere!"
+    statusMessage.value = "Click consecutive cells on the map to draw. Finish your route anywhere!"
   }
 
   function addPathTile(coord: GridCoord) {
@@ -539,7 +541,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       doorRoutesCache.value = {}
       spawnAtDoor(selectedDoorIndex.value)
       mapStore.pushHistory(`Saved route (${drawingPath.value.length} cells)`)
-      statusMessage.value = `✅ Route saved (${drawingPath.value.length} cells)! Ready to begin movement.`
+      statusMessage.value = `Route saved (${drawingPath.value.length} cells)! Ready to begin movement.`
     } else {
       isDrawingRoute.value = false
       statusMessage.value = "Route drawing cancelled (at least 2 cells required)"
@@ -711,7 +713,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     waveConfigs.value.push({
       waveNumber: nextNum,
-      name: `Wave ${nextNum} (New Wave)`,
+      name: `Wave ${nextNum}`,
       unitHp: baseHp,
       unitSpeed: 3.5,
       unitCount: baseCount,
@@ -1088,16 +1090,18 @@ export const useCharacterStore = defineStore('characterStore', () => {
               p.gold = (p.gold || 0) + reward
               if (p.id === multiplayerStore.myPlayerId) {
                 gold.value = p.gold
+                totalGoldEarned.value += reward
               }
             }
           } else {
             gold.value += reward
+            totalGoldEarned.value += reward
           }
 
           if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
             gameState.value = 'victory'
             isPlaying.value = false
-            statusMessage.value = "🏆 Victory! All waves successfully cleared!"
+            statusMessage.value = "Victory! All waves successfully cleared!"
           } else {
             // Next wave: Enter building & prep phase!
             currentWaveIndex.value++
@@ -1106,9 +1110,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
             isPlaying.value = false
             spawnAtDoor(0)
             if (multiplayerStore.roomId) {
-              statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
+              statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
             } else {
-              statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} cleared! +${reward} Gold. Click Start to begin next wave.`
+              statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. Click Start to begin next wave.`
             }
           }
         }
@@ -1116,7 +1120,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
         // Redaktor mode: Stop after testing the wave
         gold.value += reward
         pauseTour()
-        statusMessage.value = `🎉 ${completedWave?.name || 'Wave'} test completed!`
+        statusMessage.value = `${completedWave?.name || 'Wave'} test completed!`
       }
     }
   }
@@ -1140,6 +1144,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     maxLives.value = initLives
     playerLives.value = initLives
     gold.value = startingGold.value
+    totalKills.value = 0
+    totalGoldEarned.value = 0
     currentWaveIndex.value = 0
     gameState.value = 'build_prep'
     prepCountdown.value = wavePrepDuration.value
@@ -1326,6 +1332,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     addNewWave,
     deleteWave,
     isGameMode,
+    entrySource,
     playerLives,
     maxLives,
     gameState,
@@ -1363,6 +1370,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     isCellBlockedForBuilding,
     fps,
     totalKills,
+    totalGoldEarned,
     aliveEnemiesCount,
     leakedEnemiesCount,
     deadEnemiesCount,

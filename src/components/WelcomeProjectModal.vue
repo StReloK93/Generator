@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="isOpen"
-    title="Map Architect"
-    subtitle="Create a new isometric map, import an existing project, or resume recent work"
+    :title="$t('welcome.title')"
+    :subtitle="$t('welcome.subtitle')"
     :icon="Map"
     icon-color="brand"
     size="2xl"
@@ -26,7 +26,7 @@
       <!-- Project Name Input -->
       <UiInput
         v-model="newProjectName"
-        label="Map Name (Required)"
+        :label="$t('common.name') + ' *'"
         placeholder="e.g. Castle Fortress Siege #1"
         :leading-icon="Sparkles"
         @keyup.enter="handleCreateNew"
@@ -34,7 +34,7 @@
 
       <!-- Presets Selection -->
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold text-slate-300">Dimension Presets</label>
+        <label class="text-xs font-semibold text-slate-300">{{ $t('common.size') }}</label>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <UiCard
             v-for="preset in presets" 
@@ -56,7 +56,7 @@
       <UiCard variant="subtle" padding="md" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiSlider
           v-model="cols"
-          label="Columns (Width)"
+          :label="$t('welcome.mapWidth')"
           :min="10"
           :max="128"
           :step="2"
@@ -67,7 +67,7 @@
 
         <UiSlider
           v-model="rows"
-          label="Rows (Height)"
+          :label="$t('welcome.mapHeight')"
           :min="10"
           :max="128"
           :step="2"
@@ -85,7 +85,7 @@
         :leading-icon="Sparkles"
         @click="handleCreateNew"
       >
-        Enter Editor ({{ cols }}×{{ rows }})
+        {{ $t('welcome.createEmpty') }} ({{ cols }}×{{ rows }})
       </UiButton>
     </div>
 
@@ -101,8 +101,8 @@
           <Upload class="w-8 h-8" />
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-100">Select Map Project File</h3>
-          <p class="text-xs text-slate-400 mt-1">.json or .isomap.json format project file</p>
+          <h3 class="text-base font-bold text-slate-100">{{ $t('welcome.importProject') }}</h3>
+          <p class="text-xs text-slate-400 mt-1">{{ $t('welcome.importDesc') }}</p>
         </div>
         <UiButton
           type="button"
@@ -111,7 +111,7 @@
           :leading-icon="Upload"
           custom-class="mt-2 pointer-events-none"
         >
-          Choose File
+          {{ $t('welcome.chooseFile') }}
         </UiButton>
       </div>
 
@@ -129,8 +129,8 @@
     <!-- ========================================== -->
     <div v-else-if="activeMode === 'recents'" class="flex flex-col gap-3">
       <div class="flex items-center justify-between text-xs text-slate-400 px-1">
-        <span>Recent workspace projects:</span>
-        <UiBadge variant="amber" size="sm">{{ recentProjects.length }} saved</UiBadge>
+        <span>{{ $t('home.recentMaps') }}:</span>
+        <UiBadge variant="amber" size="sm">{{ recentProjects.length }}</UiBadge>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -143,16 +143,19 @@
         >
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
-              🗺️
+              <Map class="w-5 h-5" />
             </div>
             <div class="min-w-0">
               <h4 class="font-bold text-sm text-slate-100 group-hover:text-amber-300 transition-colors truncate">
                 {{ rec.name }}
               </h4>
               <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono mt-0.5">
-                <span>{{ rec.cols }}×{{ rec.rows }} cells</span>
+                <span>{{ rec.cols }}×{{ rec.rows }}</span>
                 <span>•</span>
-                <span>📦 {{ rec.tilesCount }} tiles</span>
+                <span class="flex items-center gap-1">
+                  <Package class="w-3 h-3 text-amber-400" />
+                  <span>{{ rec.tilesCount }}</span>
+                </span>
                 <span>•</span>
                 <span class="text-amber-400/90">{{ formatTimeAgo(rec.updatedAt) }}</span>
               </div>
@@ -165,14 +168,14 @@
               size="sm"
               @click="openRecentProject(rec)"
             >
-              Open
+              {{ $t('header.openMap') }}
             </UiButton>
 
             <UiIconButton 
               variant="ghost"
               size="sm"
               :icon="Trash2"
-              title="Delete from history"
+              :title="$t('common.delete')"
               custom-class="text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
               @click="removeRecent(rec.id)"
             />
@@ -186,7 +189,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Sparkles, Upload, History, Trash2, Map } from 'lucide-vue-next'
+import { Sparkles, Upload, History, Trash2, Map, Package } from 'lucide-vue-next'
 import { 
   UiModal, 
   UiTabs, 
@@ -213,6 +216,7 @@ import {
 } from '../services/projectStorage'
 
 import { useNotificationStore } from '../stores/notificationStore'
+import { useI18n } from '../stores/i18nStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -222,6 +226,7 @@ const toolStore = useToolStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const notify = useNotificationStore()
+const { t } = useI18n()
 
 const isOpen = ref(false)
 const isForcedMode = ref(false)
@@ -235,13 +240,13 @@ const recentProjects = ref<RecentProjectItem[]>([])
 
 const tabItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
-    { id: 'new', label: 'New Map', icon: Sparkles },
-    { id: 'import', label: 'Import File', icon: Upload },
+    { id: 'new', label: t('header.newMap'), icon: Sparkles },
+    { id: 'import', label: t('welcome.importProject'), icon: Upload },
   ]
   if (recentProjects.value.length > 0) {
     items.push({
       id: 'recents',
-      label: 'Recents',
+      label: t('home.recentMaps'),
       icon: History,
       count: recentProjects.value.length
     })

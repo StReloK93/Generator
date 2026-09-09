@@ -55,22 +55,22 @@
       </div>
 
       <div class="flex items-center gap-1">
-        <button 
-          type="button" 
-          class="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-[10px] font-bold cursor-pointer"
-          @click="store.copySelection()"
+        <UiButton 
+          variant="secondary"
+          size="xs"
           title="Copy (Ctrl+C)"
+          @click="store.copySelection()"
         >
           Copy
-        </button>
-        <button 
-          type="button" 
-          class="px-2 py-0.5 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:text-white text-[10px] font-bold cursor-pointer"
-          @click="store.deleteSelected()"
+        </UiButton>
+        <UiButton 
+          variant="danger"
+          size="xs"
           title="Delete"
+          @click="store.deleteSelected()"
         >
           Delete
-        </button>
+        </UiButton>
       </div>
     </div>
 
@@ -98,7 +98,7 @@
         <!-- Left: Thumbnail & Name -->
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
-            <img :src="part.src || assetStore.getAssetPreview(part.assetId || part.assetName)" :alt="part.assetName" class="max-w-full max-h-full object-contain" />
+            <img :src="part.src || assetStore.getAssetPreview(part.assetId || part.assetName)" :alt="part.assetName" width="28" height="28" decoding="async" class="max-w-full max-h-full aspect-square object-contain" />
           </div>
 
           <div class="flex flex-col min-w-0">
@@ -112,48 +112,45 @@
         </div>
 
         <!-- Right: Actions (Visibility, Lock, Duplicate, Delete) -->
-        <div class="flex items-center gap-1 shrink-0" @click.stop>
+        <div class="flex items-center gap-0.5 shrink-0" @click.stop>
           <!-- Eye Visibility Toggle -->
-          <button 
-            type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+          <UiIconButton 
+            :icon="part.visible ? Eye : EyeOff"
+            size="xs"
+            variant="ghost"
             :title="part.visible ? 'Hide' : 'Show'"
+            :custom-class="part.visible ? 'text-slate-300' : 'text-slate-600'"
             @click="store.updatePartProperties(part.id, { visible: !part.visible })"
-          >
-            <Eye v-if="part.visible" class="w-3.5 h-3.5 text-slate-300" />
-            <EyeOff v-else class="w-3.5 h-3.5 text-slate-600" />
-          </button>
+          />
 
           <!-- Lock Toggle -->
-          <button 
-            type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+          <UiIconButton 
+            :icon="part.locked ? Lock : Unlock"
+            size="xs"
+            variant="ghost"
             :title="part.locked ? 'Unlock' : 'Lock'"
+            :custom-class="part.locked ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'"
             @click="store.updatePartProperties(part.id, { locked: !part.locked })"
-          >
-            <Lock v-if="part.locked" class="w-3.5 h-3.5 text-amber-400" />
-            <Unlock v-else class="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400" />
-          </button>
+          />
 
           <!-- Duplicate -->
-          <button 
-            type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-sky-300 transition-colors cursor-pointer"
+          <UiIconButton 
+            :icon="Copy"
+            size="xs"
+            variant="ghost"
             title="Duplicate (Ctrl+D)"
+            custom-class="text-slate-400 hover:text-sky-300"
             @click="store.duplicatePart(part.id)"
-          >
-            <Copy class="w-3.5 h-3.5" />
-          </button>
+          />
 
           <!-- Delete -->
-          <button 
-            type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+          <UiIconButton 
+            :icon="Trash2"
+            size="xs"
+            variant="danger"
             title="Delete (Delete)"
             @click="store.removePart(part.id)"
-          >
-            <Trash2 class="w-3.5 h-3.5" />
-          </button>
+          />
         </div>
       </div>
     </div>

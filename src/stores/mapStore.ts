@@ -794,7 +794,12 @@ export const useMapStore = defineStore('mapStore', () => {
     project.value.updatedAt = Date.now()
   }
 
-  function fillTiles(cells: { col: number; row: number }[], assetId: string | null, layerId = activeLayerId.value) {
+  function fillTiles(
+    cells: { col: number; row: number }[], 
+    assetId: string | null, 
+    layerId = activeLayerId.value,
+    mode: 'replace' | 'stack' = 'replace'
+  ) {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked || cells.length === 0) return
 
@@ -807,25 +812,50 @@ export const useMapStore = defineStore('mapStore', () => {
       if (assetId === null) {
         delete layer.tiles[key]
       } else {
+        const existing = getCellItems(col, row, layerId)
+        const initialZ = mode === 'stack' ? (existing.length > 0 ? Math.max(...existing.map(i => i.zIndex)) + 1 : 0) : 0
+
+        const spanX = asset?.spanX || 1
+        const spanY = asset?.spanY || 1
+        const scale = asset?.scale || 1.0
+        const anchorX = asset?.anchorX ?? 0.5
+        const anchorY = asset?.anchorY ?? 0.5
+
+        const cellZIndex: Record<string, number> = {}
+        for (let cx = col; cx < col + spanX; cx++) {
+          for (let cy = row; cy < row + spanY; cy++) {
+            cellZIndex[cellKey(cx, cy)] = initialZ
+          }
+        }
+
         const newItem: TileItem = {
           id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}`,
           x: col,
           y: row,
           assetId,
-          zIndex: 0,
+          zIndex: initialZ,
           depthOffset: 0,
-          cellZIndex: { [key]: 0 },
-          spanX: asset?.spanX || 1,
-          spanY: asset?.spanY || 1,
-          scale: asset?.scale || 1.0,
-          anchorX: asset?.anchorX ?? 0.5,
-          anchorY: asset?.anchorY ?? 0.5,
+          cellZIndex,
+          spanX,
+          spanY,
+          scale,
+          anchorX,
+          anchorY,
+          flipX: false,
+          rotation: 0,
+          offsetX: 0,
+          offsetY: 0,
         }
-        layer.tiles[key] = [newItem]
+
+        if (mode === 'replace' || existing.length === 0) {
+          layer.tiles[key] = [newItem]
+        } else {
+          layer.tiles[key] = [...existing, newItem]
+        }
       }
     }
 
-    pushHistory(`Placed ${cells.length} tiles`)
+    pushHistory(mode === 'stack' ? `Stacked ${cells.length} tiles` : `Placed ${cells.length} tiles`)
   }
 
   function clearLayerTiles(layerId = activeLayerId.value) {

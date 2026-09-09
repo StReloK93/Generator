@@ -29,19 +29,13 @@
     </div>
 
     <!-- Category Filter Tabs -->
-    <div class="px-2.5 pt-2 pb-1 border-b border-slate-800/60 shrink-0 overflow-x-auto no-scrollbar flex items-center gap-1.5">
-      <button 
-        v-for="cat in categories" 
-        :key="cat.id"
-        type="button"
-        class="px-2.5 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer select-none"
-        :class="selectedCategory === cat.id 
-          ? 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/20' 
-          : 'bg-slate-950/60 text-slate-400 hover:text-white border border-slate-800'"
-        @click="selectedCategory = cat.id"
-      >
-        {{ cat.label }}
-      </button>
+    <div class="px-2.5 pt-2 pb-1 border-b border-slate-800/60 shrink-0 overflow-x-auto no-scrollbar">
+      <UiTabs
+        v-model="selectedCategory"
+        :items="categories"
+        variant="cyan"
+        size="xs"
+      />
     </div>
 
     <!-- Sprites Grid List -->
@@ -57,7 +51,10 @@
         <img 
           :src="assetStore.getAssetPreview(asset)" 
           :alt="asset.name"
-          class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] transition-all pointer-events-none"
+          width="64"
+          height="64"
+          decoding="async"
+          class="max-w-full max-h-full aspect-square object-contain filter drop-shadow-md group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] transition-all pointer-events-none"
           loading="lazy"
         />
 
@@ -79,7 +76,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Boxes, Search, Plus, Sparkles } from 'lucide-vue-next'
-import { UiInput, UiBadge } from '../ui'
+import { UiInput, UiBadge, UiTabs } from '../ui'
 import { useAssetStore } from '../../stores/assetStore'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
 import { AssetItem } from '../../types/map'

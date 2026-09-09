@@ -183,7 +183,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomGameState.value = 'lobby'
 
     // Add System Chat
-    addSystemMessage(`🏠 Room created: ${code}. Share this PIN code with your friends!`)
+    addSystemMessage(`Room created: ${code}. Share this PIN code with your friends!`)
 
     // Start P2P Host Node
     await networkService.initHost(
@@ -360,7 +360,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         emptySlot.player = newPlayer
         players.value.push(newPlayer)
 
-        addSystemMessage(`👋 ${newPlayer.name} joined the room (${emptySlot.doorName})`)
+        addSystemMessage(`${newPlayer.name} joined the room (${emptySlot.doorName})`)
 
         // Send map data to client so client loads exact same map
         networkService.broadcast({
@@ -433,7 +433,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           nudgeHostName.value = host
           isNudgeModalOpen.value = true
           isReadyButtonGlowing.value = true
-          addSystemMessage(`🔔 ${host} requested everyone to ready up!`)
+          addSystemMessage(`${host} requested everyone to ready up!`)
         }
         break
       }
@@ -485,7 +485,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         })
         isNudgeModalOpen.value = false
         isReadyButtonGlowing.value = false
-        addSystemMessage("🏠 All players returned to the lobby!")
+        addSystemMessage("All players returned to the lobby!")
 
         if (globalRouter) {
           globalRouter.push(`/lobby/${roomId.value}`)
@@ -499,7 +499,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           const existing = towerStore.placedTowers.find(t => t.id === tower.id || (t.col === tower.col && t.row === tower.row))
           if (!existing) {
             towerStore.placedTowers.push(tower)
-            addSystemMessage(`🔨 ${tower.builderName || 'Player'} built a tower at (${tower.col}, ${tower.row})!`)
+            addSystemMessage(`${tower.builderName || 'Player'} built a tower at (${tower.col}, ${tower.row})!`)
 
             // Authoritative Host Gold Deduction:
             if (isHost.value) {
@@ -559,7 +559,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           const bp = towerStore.blueprints.find(b => b.id === removed.blueprintId)
           const baseCost = bp ? bp.cost : 100
           const refund = Math.round(baseCost * 0.7 * (1 + (removed.level - 1) * 0.5))
-          addSystemMessage(`💰 ${removed.name} was sold (+${refund} Gold).`)
+          addSystemMessage(`${removed.name} was sold (+${refund} Gold).`)
 
           // Authoritative Host Gold Refund:
           if (isHost.value) {
@@ -697,7 +697,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'PING_CELL': {
         const ping = msg.payload
-        addSystemMessage(`📍 ${ping.playerName} pinged cell (${ping.col}, ${ping.row})!`)
+        addSystemMessage(`${ping.playerName} pinged cell (${ping.col}, ${ping.row})!`)
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
         }
@@ -710,7 +710,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'ROOM_CLOSED': {
-        notify.warning(msg.payload?.message || "Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
+        notify.warning(msg.payload?.message || "Host left the room. Room closed.", "Room Closed")
         characterStore.exitPlayMode()
         towerStore.clearAllTowers()
         leaveRoom(globalRouter)
@@ -726,7 +726,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function handlePeerDisconnected(peerId: string) {
     const leftPlayer = players.value.find(p => p.id === peerId)
     if (leftPlayer) {
-      addSystemMessage(`🚪 ${leftPlayer.name} left the room.`)
+      addSystemMessage(`${leftPlayer.name} left the room.`)
       const slot = slots.value.find(s => s.player?.id === peerId)
       if (slot) {
         slot.player = null
@@ -789,7 +789,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    */
   function sendReadyCheck() {
     if (!isHost.value) return
-    addSystemMessage("🔔 Ready check notification sent to all players!")
+    addSystemMessage("Ready check notification sent to all players!")
     networkService.broadcast({
       type: 'READY_CHECK',
       payload: {
@@ -1156,7 +1156,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         type: 'ROOM_CLOSED',
         payload: {
           roomId: roomId.value,
-          message: "⚠️ Host left the room. Room closed."
+          message: "Host left the room. Room closed."
         },
         senderId: myPlayerId.value,
         timestamp: Date.now(),

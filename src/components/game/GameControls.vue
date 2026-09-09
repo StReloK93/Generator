@@ -47,7 +47,7 @@
         </UiButton>
 
         <UiButton v-if="isOwnerOfSelectedTower" variant="danger" size="sm" @click="sellSelectedTower">
-          <span>Sell</span>
+          <span>{{ $t('common.sell') }}</span>
           <span class="font-mono text-amber-300 flex items-center gap-0.5 ml-1">
             <Coins class="w-3 h-3 text-amber-400 inline" />{{ sellRefund }}
           </span>
@@ -104,7 +104,9 @@
           <span class="font-bold text-white">{{ activeSelectedBlueprint.range }} cells</span>
         </div>
         <div class="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-          <span class="text-slate-400 flex items-center gap-1">🎯 Type:</span>
+          <span class="text-slate-400 flex items-center gap-1">
+            <Crosshair class="w-3.5 h-3.5 text-purple-400" />Type:
+          </span>
           <span class="font-bold text-purple-300 uppercase text-[10px] truncate max-w-15">{{
             activeSelectedBlueprint.projectileType }}</span>
         </div>
@@ -149,13 +151,14 @@
       <div class="flex items-center gap-1.5 shrink-0 pl-0.5 border-l border-slate-800/80">
 
         <!-- Speed Multiplier (ONLY in Preview / Test Mode) -->
-        <div v-if="!multiplayerStore.roomId"
-          class="flex items-center gap-0.5 bg-slate-900/80 p-0.5 rounded-xl border border-slate-800 shrink-0">
-          <button v-for="spd in [1, 2, 5, 10, 20, 50]" :key="spd" @click="characterStore.setGameSpeed(spd)"
-            :class="characterStore.gameSpeed === spd ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
-            class="px-1 py-0.5 rounded-lg text-[9px] font-mono transition-all cursor-pointer active:scale-95">
-            {{ spd }}x
-          </button>
+        <div v-if="!multiplayerStore.roomId" class="shrink-0">
+          <UiTabs
+            :model-value="characterStore.gameSpeed"
+            :items="speedTabs"
+            size="xs"
+            variant="amber"
+            @update:model-value="characterStore.setGameSpeed(Number($event))"
+          />
         </div>
 
         <!-- 1. PREP PHASE: CIRCULAR TIMER (Multiplayer only) & START BUTTON -->
@@ -170,9 +173,9 @@
 
           <!-- Start Wave Button (Manual trigger in test mode) -->
           <UiButton variant="game-amber" size="sm" :leading-icon="Play"
-            :title="multiplayerStore.roomId ? 'Start wave immediately' : 'Start Wave'"
+            :title="multiplayerStore.roomId ? $t('game.startWaveNow') : $t('common.start')"
             @click="characterStore.startNextWaveInGame()">
-            <span>Start</span>
+            <span>{{ $t('common.start') }}</span>
           </UiButton>
         </div>
         <div v-else-if="characterStore.gameState === 'wave_running'"
@@ -193,7 +196,8 @@ import {
   UiButton,
   UiIconButton,
   UiCard,
-  UiBadge
+  UiBadge,
+  UiTabs
 } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore, TowerBlueprint, PlacedTower } from '../../stores/towerStore'
@@ -206,6 +210,15 @@ const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
 const notify = useNotificationStore()
+
+const speedTabs = [
+  { id: 1, label: '1x' },
+  { id: 2, label: '2x' },
+  { id: 5, label: '5x' },
+  { id: 10, label: '10x' },
+  { id: 20, label: '20x' },
+  { id: 50, label: '50x' }
+]
 
 // Active currently selected blueprint for placement
 const activeSelectedBlueprint = computed<TowerBlueprint | null>(() => {
@@ -284,13 +297,13 @@ function upgradeSelectedTower() {
   }
 
   if (currentGold < upgradeCost.value) {
-    notify.gold(`Yangilash uchun ${upgradeCost.value} oltin kerak. Sizda: ${currentGold} oltin`, 'Oltin yetarli emas')
+    notify.gold(`Need ${upgradeCost.value} gold to upgrade. You have: ${currentGold} gold`, 'Not enough gold')
     return
   }
 
   isUpgrading.value = true
   towerStore.upgradePlacedTower(t.id)
-  notify.success(`Minora darajasi oshirildi (Lvl ${t.level + 1})`, 'Minora kuchaytirildi')
+  notify.success(`Tower upgraded (Lvl ${t.level + 1})`, 'Tower Upgraded')
 
   setTimeout(() => {
     isUpgrading.value = false
@@ -302,6 +315,6 @@ function sellSelectedTower() {
   if (!t) return
   const refund = sellRefund.value
   towerStore.sellPlacedTower(t.id)
-  notify.info(`Minora sotildi (+${refund} oltin qaytarildi)`, 'Minora sotildi')
+  notify.info(`Tower sold (+${refund} gold refunded)`, 'Tower Sold')
 }
 </script>

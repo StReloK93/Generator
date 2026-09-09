@@ -303,8 +303,8 @@ export class IsoEngine {
 
         // Center Pin Badge
         const centerLabel = isOddOdd
-          ? `🎯 CENTER (${midCol}, ${midRow})`
-          : `🎯 CENTER (${cols % 2 === 0 ? `${midCol - 0.5}..${midCol + 0.5}` : midCol}, ${rows % 2 === 0 ? `${midRow - 0.5}..${midRow + 0.5}` : midRow})`
+          ? `[CENTER] (${midCol}, ${midRow})`
+          : `[CENTER] (${cols % 2 === 0 ? `${midCol - 0.5}..${midCol + 0.5}` : midCol}, ${rows % 2 === 0 ? `${midRow - 0.5}..${midRow + 0.5}` : midRow})`
 
         const centerBadge = new Text({
           text: centerLabel,
@@ -979,7 +979,7 @@ export class IsoEngine {
         .fill({ color: ringColor, alpha: isBlocked ? 0.12 : 0.08 })
         .stroke({ width: 2, color: ringColor, alpha: 0.80 })
 
-      // 4. Confirmation Badge: True Galochka (✅) or Blocked (❌)
+      // 4. Confirmation Badge: Checkmark or Blocked
       const badgeY = pt.y - tileHeight * 0.80
       if (!isBlocked) {
         // Glowing green outer halo
@@ -993,14 +993,14 @@ export class IsoEngine {
           .fill({ color: 0x0f172a, alpha: 0.95 })
           .stroke({ width: 2.2, color: 0x10b981, alpha: 1.0 })
 
-        // True Galochka (✔ / Checkmark)
+        // Checkmark
         this.combatGraphics
           .moveTo(pt.x - 5, badgeY)
           .lineTo(pt.x - 1.5, badgeY + 3.5)
           .lineTo(pt.x + 5.5, badgeY - 3.5)
           .stroke({ width: 2.5, color: 0x34d399, alpha: 1.0 })
       } else {
-        // Red ❌ Blocked Warning Badge
+        // Red Blocked Warning Badge
         this.combatGraphics
           .circle(pt.x, badgeY, 15)
           .fill({ color: 0xef4444, alpha: 0.30 })
@@ -1091,7 +1091,7 @@ export class IsoEngine {
 
         // 2. Render Projectile Heads (100% matched with TowerLivePreview)
         if (type === 'arrow') {
-          // 🏹 ARROW: Oriented wood shaft + sharp steel tip + fletching feathers
+          // ARROW: Oriented wood shaft + sharp steel tip + fletching feathers
           const arrowLength = 16
           const tailX = renderX - Math.cos(angle) * arrowLength
           const tailY = renderY - Math.sin(angle) * arrowLength
@@ -1127,7 +1127,7 @@ export class IsoEngine {
             .moveTo(tailX, tailY).lineTo(featherRightX, featherRightY).stroke({ width: 1.5, color: 0xef4444, alpha: 0.95 })
 
         } else if (type === 'fireball') {
-          // 🔥 FIREBALL: Blazing fiery sphere with glowing core
+          // FIREBALL: Blazing fiery sphere with glowing core
           this.combatGraphics
             .circle(renderX, renderY, 7.5)
             .fill({ color: 0xef4444, alpha: 0.5 })
@@ -1141,7 +1141,7 @@ export class IsoEngine {
             .fill({ color: 0xfef08a, alpha: 1.0 })
 
         } else if (type === 'frost_bolt') {
-          // ❄️ FROST BOLT: Crystalline rotating diamond shard with cryogenic aura
+          // FROST BOLT: Crystalline rotating diamond shard with cryogenic aura
           this.combatGraphics
             .circle(renderX, renderY, 6.5)
             .fill({ color: 0x06b6d4, alpha: 0.5 })
@@ -1161,7 +1161,7 @@ export class IsoEngine {
             .stroke({ width: 1.2, color: 0x0891b2, alpha: 1.0 })
 
         } else if (type === 'laser') {
-          // 🔴 LASER: Concentrated high-energy continuous plasma beam
+          // LASER: Concentrated high-energy continuous plasma beam
           this.combatGraphics
             .moveTo(proj.startX, proj.startY)
             .lineTo(renderX, renderY)
@@ -1177,7 +1177,7 @@ export class IsoEngine {
             .fill({ color: 0xffffff, alpha: 1.0 })
 
         } else if (type === 'missile') {
-          // 🚀 MISSILE: High-tech rocket with warhead and thruster flame
+          // MISSILE: High-tech rocket with warhead and thruster flame
           const mLen = 14
           const tailX = renderX - Math.cos(angle) * mLen
           const tailY = renderY - Math.sin(angle) * mLen
@@ -1201,7 +1201,7 @@ export class IsoEngine {
             .fill({ color: 0xfbbf24, alpha: 0.95 })
 
         } else if (type === 'cannonball') {
-          // 💣 CANNONBALL: Heavy dark iron sphere with specular shine
+          // CANNONBALL: Heavy dark iron sphere with specular shine
           this.combatGraphics
             .circle(renderX, renderY, 5.5)
             .fill({ color: 0x1e293b, alpha: 1.0 })
@@ -1212,7 +1212,7 @@ export class IsoEngine {
             .fill({ color: 0x94a3b8, alpha: 0.95 })
 
         } else {
-          // ⚡ MAGIC BOLT: Arcane plasma sphere with 4-pointed electric cross star
+          // MAGIC BOLT: Arcane plasma sphere with 4-pointed electric cross star
           this.combatGraphics
             .circle(renderX, renderY, 6.5)
             .fill({ color: 0x38bdf8, alpha: 0.5 })
@@ -1515,7 +1515,7 @@ export class IsoEngine {
             .fill({ color: beaconColor, alpha: 1.0 })
 
           // 5. Floating badge background pill card
-          const labelText = `🚩 ${door.name || `Door ${dIdx + 1}`} (${c}, ${r})`
+          const labelText = `${door.name || `Door ${dIdx + 1}`} (${c}, ${r})`
           const cardW = Math.max(80, labelText.length * 6.8 + 16)
           const cardH = 22
           this.spawnOverlayGraphics

@@ -77,8 +77,13 @@ Barcha yangi yoki tahrirlanadigan Vue komponentlarida **faqat Tailwind CSS v4** 
    - Oldiga qo'yish ❌ (`!relative`, `!w-10`, `!min-w-[40px]`)
    - Orqasiga qo'yish ✅ (`relative!`, `w-10!`, `min-w-10!`, `hidden!`, `flex!`)
 
-4. **Matn va Word Break**:
-   - `break-words` ❌ -> `wrap-break-word` ✅
+---
+
+## 🔣 Ikonkalar Qoidasi (Emoji/Windows Icon Taqiqlangan - Faqat Lucide Icons)
+
+Barcha UI komponentlarida (tugmalar, modallar, panellar, tablar):
+- Hech qachon matnli emojilar (masalan: `🏞️`, `🌲`, `🔷`, `👣`, `💡`, `🏰`, `🧘`, `🏃`) ishlatilmasin! ❌
+- Har doim faqat `lucide-vue-next` kutubxonasining vektorli SVG ikonkalari (`Mountain`, `TreePine`, `Footprints`, `Lightbulb`, `Castle`, `Crosshair`, `Boxes`, `Image`, va h.k.) ishlatilsin! ✅
 
 ---
 
@@ -93,6 +98,33 @@ TD sozlamalari, to'lqinlar yoki o'yin qoidalariga (`goldReward`, `animSpeed`, `o
 5. **`src/stores/multiplayerStore.ts`**: Ko'p o'yinchili o'yinda (`MAP_DATA` va `START_GAME`) barcha ulangan o'yinchilarga bir xil to'liq uzatiladi.
 
 > ⚠️ **Qat'iy Talab**: Hech qachon o'yin balansi, mukofotlar yoki personaj/minora sozlamalari kod ichida hardcode qilinmasin — o'yinning barcha qoidalari to'g'ridan-to'g'ri xaritadagi (`.json`) TD settings va wave konfiguratsiyasidan olinishi shart!
+
+---
+
+## 🧩 UI Elementlarni Markazlashtirish va Standartlashtirish Qoidasi (MAJBURIY)
+
+Barcha sahifalar, modallar, panellar va komponentlarda faqat `src/components/ui/` ichidagi markazlashtirilgan UI komponentlar ishlatilsin. Hech qachon qo'lda xom `<button>`, `<input>` yoki maxsus tab dizaynlari yozilmasin:
+
+1. **`UiButton`** / **`UiIconButton`**: Har qanday tugma, harakat, trigger uchun (variantlar: `primary`, `secondary`, `danger`, `ghost`, `amber`, `game-green`, `game-amber`).
+2. **`UiTabs`**: Har qanday tab, ko'rinish rejimi (View Mode), qadam ko'paytirgich (Step selector), opacity presetlari, toifalar (Categories), yoki burchak/masshtab presetlari uchun (`variant="segmented"`, `"pills"`, `"amber"`, `"emerald"` va `size="xs" | "sm" | "md"`).
+3. **`UiInput`** / **`UiNumberInput`**: Barcha matnli va raqamli kiritish maydonlari (katak koordinatalari, ofsetlar, Z-Index, nomlar, sonlar). Stepper yoki inline ixcham rejimlar bilan.
+4. **`UiColorPicker`**: Rang tanlash palitrasi uchun.
+5. **`UiCard`**, **`UiBadge`**, **`UiModal`**, **`UiSlider`**, **`UiSwitch`**, **`UiLanguageSwitcher`**.
+6. **Kod Tozaligi va SOLID**: Kod doimo ixcham, toza, qayta foydalaniladigan va o'qish uchun maksimal qulay bo'lishi shart!
+
+---
+
+## 📱 Mobile-First Dizayn va No-Scroll Qoidasi (MAJBURIY)
+
+Xarita muharriri (`EditorView`) va Asset muharriri (`AssetEditorView`) dan tashqari, dasturning barcha sahifalari (`HomeView`, `PlayView`, `LobbyView`, `GameView`, o'yin modallari) **Mobile-First** standartida bo'lishi shart:
+
+1. **Scroll Bo'lmasligi Shart (Zero Unwanted Scroll)**:
+   - Mobil va planshet ekranlarida sahifalar to'liq ko'rinishi (`h-dvh`, `max-h-dvh`, `overflow-hidden`, `pt-safe`, `pb-safe`) va vertikal/gorizontal scroll bo'lmasligi kerak.
+   - Agar biror joyda scroll hosil bo'lsa, o'yinchiga kerak bo'lmagan ikkinchi darajali ortiqcha ma'lumotlar olib tashlanib, ixchamlashtirilishi shart!
+
+2. **Ixcham va Qulay Boshqaruv (Touch & Mobile Friendly)**:
+   - Tugmalar, kartalar va inputlar barmog'i bilan teginish uchun qulay (`touch-target`, kamida `h-9` yoki `h-10` interaktiv maydonlar).
+   - Matnlar qisqa, tushunarli, muhim harakatlar (Play, Host, Join) birinchi o'rinda.
 
 ---
 

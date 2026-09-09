@@ -90,7 +90,10 @@
                 <img 
                   :src="assetStore.getAssetPreview(entry.item.assetId)" 
                   :alt="getAsset(entry.item.assetId)?.name"
-                  class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform"
+                  width="32"
+                  height="32"
+                  decoding="async"
+                  class="max-w-full max-h-full aspect-square object-contain filter drop-shadow group-hover:scale-105 transition-transform"
                   loading="lazy"
                 />
               </div>
@@ -319,16 +322,13 @@
           />
 
           <!-- Category Filter Chips -->
-          <div class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar shrink-0 text-[10px]">
-            <button 
-              v-for="cat in assetStore.categories"
-              :key="cat"
-              @click="assetStore.selectedCategory = cat"
-              :class="assetStore.selectedCategory === cat ? 'bg-brand-600/30 text-brand-300 border-brand-500/50 font-bold shadow-sm' : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border-slate-800/80'"
-              class="px-2.5 py-1 rounded-xl border whitespace-nowrap transition-all cursor-pointer shrink-0 text-xs"
-            >
-              {{ cat }}
-            </button>
+          <div class="overflow-x-auto pb-0.5 custom-scrollbar shrink-0">
+            <UiTabs
+              v-model="assetStore.selectedCategory"
+              :items="assetStore.categories"
+              variant="pills"
+              size="xs"
+            />
           </div>
         </div>
 
@@ -352,7 +352,10 @@
               <img 
                 :src="assetStore.getAssetPreview(asset)" 
                 :alt="asset.name"
-                class="max-w-full max-h-full object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200 pointer-events-none"
+                width="64"
+                height="64"
+                decoding="async"
+                class="max-w-full max-h-full aspect-square object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200 pointer-events-none"
                 loading="lazy"
               />
 
@@ -364,21 +367,21 @@
               </div>
 
               <!-- Quick Hover Actions (Anchor & Delete) -->
-              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/95 rounded-xl p-0.5 border border-slate-800 shadow-md backdrop-blur-sm z-10">
+              <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/90 rounded-md p-0.5 border border-slate-800/80 shadow-md backdrop-blur-xs z-10">
                 <UiIconButton 
                   :icon="Crosshair"
-                  size="sm"
+                  size="xs"
                   variant="ghost"
                   title="Adjust Anchor"
-                  custom-class="p-0.5! w-5! h-5!"
+                  custom-class=" rounded-xs!"
                   @click.stop="openAnchorModal(asset)"
                 />
                 <UiIconButton 
                   :icon="Trash2"
-                  size="sm"
+                  size="xs"
                   variant="danger"
                   title="Delete Asset"
-                  custom-class="p-0.5! w-5! h-5!"
+                  custom-class="p-0.5! rounded-xs!"
                   @click.stop="assetStore.deleteAsset(asset.id)"
                 />
               </div>
@@ -424,7 +427,10 @@
               <img 
                 :src="assetStore.getAssetPreview(assetStore.selectedAsset)" 
                 :alt="assetStore.selectedAsset.name" 
-                class="max-w-full max-h-full object-contain"
+                width="28"
+                height="28"
+                decoding="async"
+                class="max-w-full max-h-full aspect-square object-contain"
               />
             </div>
             <div class="flex flex-col min-w-0">
@@ -489,6 +495,7 @@ import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { AssetItem } from '../types/map'
 import AnchorAdjustModal from './AnchorAdjustModal.vue'
+import { useI18n } from '../stores/i18nStore'
 
 const emit = defineEmits<{
   (e: 'focus-cell', pos: { col: number; row: number }): void
@@ -497,14 +504,15 @@ const emit = defineEmits<{
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
+const { t } = useI18n()
 
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 const activeTopTab = ref<'elements' | 'layers'>('elements')
 const elementSearchQuery = ref('')
 
 const topTabItems = computed<TabItem[]>(() => [
-  { id: 'elements', label: 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
-  { id: 'layers', label: 'Layers', icon: Layers, count: mapStore.project.layers.length }
+  { id: 'elements', label: t('sidebar.layersTab').split(' ')[0] || 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
+  { id: 'layers', label: t('header.layerManager') || 'Layers', icon: Layers, count: mapStore.project.layers.length }
 ])
 
 const folderInputRef = ref<HTMLInputElement | null>(null)

@@ -18,22 +18,11 @@
           :maxlength="16"
         />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-slate-300">Player Color:</label>
-          <div class="flex items-center gap-2 pt-0.5">
-            <button 
-              v-for="color in PLAYER_COLORS"
-              :key="color"
-              type="button"
-              class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-sm touch-target"
-              :style="{ backgroundColor: color }"
-              :class="selectedColor === color ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'"
-              @click="selectedColor = color"
-            >
-              <Check v-if="selectedColor === color" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 font-bold" />
-            </button>
-          </div>
-        </div>
+        <UiColorPicker
+          v-model="selectedColor"
+          :colors="PLAYER_COLORS"
+          label="Player Color:"
+        />
       </div>
     </UiCard>
 
@@ -120,7 +109,7 @@
           :leading-icon="Sparkles"
           @click="handleCreateGame"
         >
-          {{ isCreating ? 'Creating Room...' : '🚀 Host Game' }}
+          {{ isCreating ? 'Creating Room...' : 'Host Game' }}
         </UiButton>
       </div>
     </template>
@@ -131,7 +120,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check, Users, Sparkles, Gamepad2 } from 'lucide-vue-next'
-import { UiModal, UiInput, UiCard, UiButton, UiBadge } from './ui'
+import { UiModal, UiInput, UiCard, UiButton, UiBadge, UiColorPicker } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
@@ -255,11 +244,11 @@ async function handleCreateGame() {
       mapStore.project,
       router
     )
-    notify.success(`"${customRoomName.value || 'O\'yin'}" xonasi muvaffaqiyatli ochildi!`)
+    notify.success(`Room "${customRoomName.value || 'Game'}" created successfully!`)
     isOpen.value = false
   } catch (err: any) {
     console.error('Failed to create room:', err)
-    notify.error(err?.message || 'Xona ochishda xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.', 'Xona ochish xatosi')
+    notify.error(err?.message || 'Failed to create room. Please try again.', 'Room Creation Error')
   } finally {
     isCreating.value = false
   }

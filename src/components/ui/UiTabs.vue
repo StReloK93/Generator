@@ -1,18 +1,18 @@
 <template>
   <div
     :class="[
-      'flex items-center p-1 rounded-2xl select-none',
+      'flex items-center select-none',
       variantContainerClasses,
       customClass
     ]"
   >
     <button
-      v-for="tab in items"
+      v-for="tab in normalizedItems"
       :key="tab.id"
       type="button"
       :disabled="tab.disabled"
       :class="[
-        'flex items-center justify-center font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none rounded-xl',
+        'flex items-center justify-center font-bold transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none',
         tabButtonSizeClasses,
         modelValue === tab.id ? activeTabClass : inactiveTabClass,
         fill ? 'flex-1' : ''
@@ -23,7 +23,11 @@
       <component
         :is="tab.icon"
         v-if="tab.icon"
-        :class="['w-4 h-4 shrink-0 mr-1.5', modelValue === tab.id ? 'text-white' : 'text-slate-400']"
+        :class="[
+          size === 'xs' ? 'w-3 h-3 mr-1' : 'w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5',
+          'shrink-0',
+          modelValue === tab.id ? '' : 'text-slate-400'
+        ]"
       />
 
       <!-- Tab Label -->
@@ -57,13 +61,13 @@ export interface TabItem {
   disabled?: boolean
 }
 
-export type TabVariant = 'segmented' | 'pills' | 'amber' | 'emerald'
+export type TabVariant = 'segmented' | 'pills' | 'amber' | 'emerald' | 'cyan' | 'brand' | 'subtle'
 
 interface Props {
   modelValue: string | number
-  items: TabItem[]
+  items: (TabItem | string | number)[]
   variant?: TabVariant
-  size?: 'sm' | 'md'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   fill?: boolean
   customClass?: string | string[] | Record<string, any>
 }
@@ -80,6 +84,18 @@ const emit = defineEmits<{
   (e: 'change', value: string | number): void
 }>()
 
+const normalizedItems = computed<TabItem[]>(() => {
+  return props.items.map(item => {
+    if (typeof item === 'object' && item !== null && 'id' in item) {
+      return item as TabItem
+    }
+    return {
+      id: item,
+      label: String(item),
+    }
+  })
+})
+
 function selectTab(id: string | number) {
   emit('update:modelValue', id)
   emit('change', id)
@@ -88,22 +104,33 @@ function selectTab(id: string | number) {
 const variantContainerClasses = computed(() => {
   switch (props.variant) {
     case 'pills':
-      return 'bg-transparent gap-1.5 p-0'
+      return 'bg-transparent gap-1 p-0'
+    case 'subtle':
+      return 'bg-slate-900/60 border border-slate-800/80 p-0.5 rounded-xl gap-0.5'
     case 'amber':
     case 'emerald':
+    case 'cyan':
+    case 'brand':
     case 'segmented':
     default:
-      return 'bg-slate-950/80 border border-slate-800 gap-1'
+      if (props.size === 'xs') {
+        return 'bg-slate-950/90 border border-slate-800 p-0.5 rounded-lg gap-0.5'
+      }
+      return 'bg-slate-950/80 border border-slate-800 p-1 rounded-2xl gap-1'
   }
 })
 
 const tabButtonSizeClasses = computed(() => {
   switch (props.size) {
+    case 'xs':
+      return 'px-2 py-0.5 text-[10px] rounded-md'
     case 'sm':
-      return 'px-2.5 py-1 text-xs'
+      return 'px-2.5 py-1 text-xs rounded-xl'
+    case 'lg':
+      return 'px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-2xl'
     case 'md':
     default:
-      return 'px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm'
+      return 'px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm rounded-xl'
   }
 })
 
@@ -113,8 +140,13 @@ const activeTabClass = computed(() => {
       return 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
     case 'emerald':
       return 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
+    case 'cyan':
+      return 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
     case 'pills':
       return 'bg-brand-600 text-white font-bold shadow-md shadow-brand-600/30'
+    case 'subtle':
+      return 'bg-slate-800 text-brand-300 font-bold shadow-xs'
+    case 'brand':
     case 'segmented':
     default:
       return 'bg-brand-600 text-white font-bold shadow-md shadow-brand-600/30'
@@ -122,6 +154,11 @@ const activeTabClass = computed(() => {
 })
 
 const inactiveTabClass = computed(() => {
-  return 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+  switch (props.variant) {
+    case 'pills':
+      return 'bg-slate-950/60 text-slate-400 hover:text-white border border-slate-800'
+    default:
+      return 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+  }
 })
 </script>

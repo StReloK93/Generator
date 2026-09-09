@@ -8,10 +8,10 @@
     <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
       <div class="flex items-center gap-2">
         <MessageSquare class="w-4 h-4 text-brand-400" />
-        <span class="text-xs font-bold text-white uppercase tracking-wider">Room Chat</span>
+        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $t('lobby.chatTitle') }}</span>
       </div>
       <UiBadge variant="slate" size="xs">
-        {{ multiplayerStore.chatMessages.length }} messages
+        {{ multiplayerStore.chatMessages.length }}
       </UiBadge>
     </div>
 
@@ -24,7 +24,7 @@
         v-if="multiplayerStore.chatMessages.length === 0"
         class="h-full flex items-center justify-center text-center text-slate-500 text-xs py-8"
       >
-        <span>No messages yet. Be the first to say hello!</span>
+        <span>{{ $t('lobby.chatPlaceholder') }}</span>
       </div>
 
       <div 
@@ -62,7 +62,7 @@
       <UiInput 
         v-model="inputMsg"
         size="sm"
-        placeholder="Type a message... (Enter)"
+        :placeholder="$t('lobby.chatPlaceholder')"
         :maxlength="120"
         custom-class="flex-1"
         @keyup.enter="handleSend"
@@ -72,7 +72,7 @@
         size="md"
         variant="default"
         :disabled="!inputMsg.trim()"
-        title="Send"
+        :title="$t('lobby.send')"
         custom-class="bg-brand-600 hover:bg-brand-500 text-white border-brand-500/40"
         @click="handleSend"
       />

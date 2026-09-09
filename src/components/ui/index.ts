@@ -28,6 +28,9 @@ export { default as UiSectionHeader } from './UiSectionHeader.vue'
 export { default as UiIconButton } from './UiIconButton.vue'
 export type { IconButtonVariant, IconButtonSize } from './UiIconButton.vue'
 
+export { default as UiLanguageSwitcher } from './UiLanguageSwitcher.vue'
+export { default as UiColorPicker } from './UiColorPicker.vue'
+export type { ColorPickerSize } from './UiColorPicker.vue'
 export { default as UiToastContainer } from './UiToastContainer.vue'
 export { default as UiConfirmModal } from './UiConfirmModal.vue'
 

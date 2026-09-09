@@ -1,270 +1,305 @@
 <template>
-  <div class="relative h-screen w-screen bg-slate-950 text-slate-100 flex flex-col justify-between overflow-hidden select-none font-sans px-8 py-4 pt-safe pb-safe">
+  <div class="relative h-screen w-screen bg-slate-950 text-slate-100 flex flex-col justify-between overflow-hidden select-none font-sans px-4 sm:px-8 py-3 sm:py-5 pt-safe pb-safe">
     
-    <!-- ================= BACKGROUND FX & ATMOSPHERE ================= -->
-    <!-- Taktik Panjara (Cyber Grid) -->
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none"></div>
-    
-    <!-- Radar / Scanning Sweep Effect -->
-    <div class="absolute inset-0 bg-linear-to-b from-cyan-500/4 via-transparent to-transparent pointer-events-none animate-[pulse_4s_ease-in-out_infinite]"></div>
+    <!-- Subtle Ambient Background -->
+    <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none"></div>
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Ambient Glowing Orbs -->
-    <div class="absolute -top-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ================= 1. INITIAL APP ASSET PRELOADER ================= -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition duration-400 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0 pointer-events-none"
+    >
+      <div 
+        v-if="isPreloading" 
+        class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
+      >
+        <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
+          <p class="text-xs font-semibold text-slate-400 mb-6 tracking-widest uppercase">
+            {{ $t(preloadStageKey) }}
+          </p>
 
-    <!-- Hexagon Overlay Pattern -->
-    <div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[16px_16px] pointer-events-none"></div>
-
-
-    <!-- ================= TOP HUD HEADER ================= -->
-    <header class="relative z-20 w-full flex items-center justify-between">
-      <!-- Game Logo / Insignia -->
-      <div class="flex items-center gap-3">
-        <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-linear-to-br from-amber-400 via-amber-600 to-amber-900 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.4)]">
-          <div class="w-full h-full bg-slate-950/90 rounded-[14px] flex items-center justify-center backdrop-blur-md">
-            <Castle class="w-6 h-6 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+          <!-- Minimal Linear Progress Bar -->
+          <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2 overflow-hidden shadow-inner mb-2">
+            <div 
+              class="h-full bg-amber-400 transition-all duration-200 rounded-full"
+              :style="{ width: `${preloadProgress}%` }"
+            ></div>
           </div>
-        </div>
-
-        <div class="flex flex-col text-left">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl font-black italic tracking-widest text-transparent bg-clip-text bg-linear-to-b from-white via-amber-200 to-amber-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              ISOCRAFT
-            </span>
-            <UiBadge variant="amber" style-type="glow" size="xs">
-              TD CORE
-            </UiBadge>
-          </div>
-          <span class="text-[9px] font-black tracking-[0.3em] uppercase text-cyan-400 drop-shadow flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-            Tactical Defense Grid
+          <span class="font-mono text-xs text-slate-500 font-bold">
+            {{ Math.round(preloadProgress) }}%
           </span>
         </div>
       </div>
+    </Transition>
 
-      <!-- Commander Profile Badge -->
-      <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 pl-2 pr-4 py-1.5 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.7)] backdrop-blur-xl">
-        <div class="relative">
-          <div 
-            class="w-7 h-7 rounded-xl border-2 border-white/60 shadow-inner flex items-center justify-center text-[10px] font-black text-slate-950"
-            :style="{ backgroundColor: multiplayerStore.myPlayerColor || '#38bdf8' }"
-          >
-            {{ multiplayerStore.myPlayerName ? multiplayerStore.myPlayerName.slice(0, 1).toUpperCase() : 'C' }}
+    <!-- ================= 2. MAP LOADING OVERLAY (WITH PROMINENT MAP NAME) ================= -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-300 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0 pointer-events-none"
+    >
+      <div 
+        v-if="isMapLoading" 
+        class="fixed inset-0 z-100 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+      >
+        <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
+          <!-- Prominent Map Name on top of loading bar -->
+          <h2 class="text-2xl sm:text-3xl font-black tracking-wider text-white uppercase mb-1 drop-shadow-md">
+            {{ loadingMapName }}
+          </h2>
+          <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase">
+            {{ $t('home.loadingMap') }}
+          </p>
+
+          <!-- Minimal Linear Progress Bar -->
+          <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
+            <div 
+              class="h-full bg-linear-to-r from-amber-500 to-amber-300 transition-all duration-150 rounded-full shadow-sm shadow-amber-500/50"
+              :style="{ width: `${mapLoadProgress}%` }"
+            ></div>
           </div>
-          <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-slate-950 ring-2 ring-emerald-500/40"></span>
-        </div>
-        <div class="flex flex-col text-left">
-          <span class="text-[8px] uppercase tracking-widest font-black text-slate-400">Commander</span>
-          <span class="font-extrabold text-xs text-white tracking-wide truncate max-w-32.5">
-            {{ multiplayerStore.myPlayerName }}
+          <span class="font-mono text-xs text-slate-500 font-bold">
+            {{ Math.round(mapLoadProgress) }}%
           </span>
         </div>
+      </div>
+    </Transition>
+
+    <!-- ================= 3. TOP HEADER (ONLY PLACE WITH ISOCRAFT LOGO) ================= -->
+    <header class="relative z-20 w-full flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-lg sm:text-xl font-black tracking-widest text-white">
+          ISOCRAFT
+        </span>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Map Architect -->
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :leading-icon="Layers"
+          @click="goToEditor"
+        >
+          {{ $t('home.mapArchitect') }}
+        </UiButton>
+
+        <!-- Asset Editor -->
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :leading-icon="Palette"
+          @click="router.push('/asset-editor')"
+        >
+          {{ $t('home.assetEditor') }}
+        </UiButton>
+
+        <!-- Ghost Fullscreen Toggle -->
+        <UiButton
+          variant="ghost"
+          size="icon-sm"
+          :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
+          :title="isFullscreenMode ? 'Exit Fullscreen' : 'Fullscreen'"
+          @click="handleToggleFullscreen"
+        />
+
+        <!-- Ghost / Borderless Language Switcher -->
+        <UiLanguageSwitcher />
       </div>
     </header>
 
-
-    <!-- ================= MAIN ARENA (LANDSCAPE 2-COLUMN) ================= -->
-    <main class="relative z-20 flex-1 grid grid-cols-12 gap-8 items-center my-auto w-full max-w-6xl mx-auto min-h-0">
+    <!-- ================= 4. MINIMALIST CENTER MENU ================= -->
+    <main class="relative z-20 flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full my-auto">
       
-      <!-- LEFT COLUMN: Live War Lobbies / Tactical Monitor (5 cols) -->
-      <div class="col-span-5 flex flex-col justify-center h-full max-h-60">
+      <!-- Primary Action Buttons Only -->
+      <div class="flex flex-col gap-3.5 w-full max-w-xs sm:max-w-sm">
         
-        <!-- Open Lobbies Found -->
-        <div v-if="multiplayerStore.availableRooms.length > 0" class="flex flex-col gap-2.5">
-          <div class="flex items-center justify-between px-1">
-            <div class="flex items-center gap-2">
-              <Radio class="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span class="text-[11px] font-black uppercase tracking-widest text-emerald-400 drop-shadow">
-                Live Deployments ({{ multiplayerStore.availableRooms.length }})
-              </span>
-            </div>
-            <button 
-              type="button"
-              class="text-[10px] text-slate-400 hover:text-emerald-300 font-black uppercase tracking-wider cursor-pointer transition-colors"
-              @click="router.push('/play')" 
-            >
-              Browse All &rarr;
-            </button>
-          </div>
-
-          <div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
-            <UiCard 
-              v-for="room in multiplayerStore.availableRooms.slice(0, 2)" 
-              :key="room.roomId"
-              variant="default"
-              padding="sm"
-              interactive
-              custom-class="hover:border-emerald-500/40 group"
-            >
-              <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0">
-                  <div 
-                    class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-black text-xs border border-white/30 shadow-[0_0_12px_rgba(16,185,129,0.3)] shrink-0"
-                    :style="{ backgroundColor: room.hostColor || '#10b981' }"
-                  >
-                    {{ room.hostName ? room.hostName.slice(0, 2).toUpperCase() : 'TD' }}
-                  </div>
-                  <div class="min-w-0 text-left">
-                    <h4 class="font-extrabold text-xs text-white truncate group-hover:text-emerald-300 transition-colors">{{ room.roomName }}</h4>
-                    <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                      <span class="text-slate-300 font-semibold truncate max-w-22.5">{{ room.mapName }}</span>
-                      <span>•</span>
-                      <span class="text-amber-400 font-black font-mono">{{ room.playersCount }}/{{ room.maxPlayers }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Quick Deploy Mini-Button -->
-                <UiButton
-                  variant="game-green"
-                  size="xs"
-                  @click="router.push('/play')"
-                >
-                  Engage
-                </UiButton>
-              </div>
-            </UiCard>
-          </div>
-        </div>
-
-        <!-- No Rooms / Singleplayer Campaign Status Card -->
-        <UiCard 
-          v-else 
-          variant="slate"
-          padding="lg"
-          custom-class="relative overflow-hidden group text-left"
+        <!-- Single Player Button -> Opens Map Modal -->
+        <UiButton
+          variant="game-amber"
+          size="lg"
+          block
+          :leading-icon="Play"
+          class="py-3.5 sm:py-4 text-sm sm:text-base font-black tracking-wider uppercase shadow-lg shadow-amber-500/20 justify-center"
+          @click="openMapModal"
         >
-          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none"></div>
-          
-          <div class="flex items-center gap-2 mb-2">
-            <ShieldAlert class="w-4 h-4 text-amber-400 animate-bounce" />
-            <span class="text-[10px] font-black tracking-widest text-amber-400 uppercase">Perimeter Status: Normal</span>
-          </div>
-          <h2 class="text-base font-black text-white tracking-wide">Base Fortification Active</h2>
-          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-            Construct defenses, withstand unrelenting waves of invaders, or formulate custom siege layouts.
-          </p>
-        </UiCard>
+          {{ $t('home.singleplayer') }}
+        </UiButton>
 
-      </div>
-
-      <!-- Spacing Column (1 col) -->
-      <div class="col-span-1"></div>
-
-      <!-- RIGHT COLUMN: Heavy Armor Action Buttons (6 cols) -->
-      <div class="col-span-6 flex flex-col gap-3.5 justify-center">
-        
-        <!-- 1. BATTLE / PLAY GAME BUTTON -->
-        <button 
-          type="button"
-          class="group relative w-full p-4 rounded-2xl bg-linear-to-r from-amber-500 via-yellow-500 to-amber-600 border-t-2 border-amber-200 border-b-[6px] border-amber-950 active:border-b-2 active:translate-y-1 shadow-[0_12px_30px_rgba(245,158,11,0.45)] hover:shadow-[0_12px_35px_rgba(245,158,11,0.65)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
+        <!-- Multiplayer Button -> Navigates to Online Mode -->
+        <UiButton
+          variant="game-green"
+          size="lg"
+          block
+          :leading-icon="Users"
+          class="py-3.5 sm:py-4 text-sm sm:text-base font-black tracking-wider uppercase shadow-lg shadow-emerald-500/20 justify-center"
           @click="router.push('/play')"
         >
-          <!-- Shimmer Sweep Line -->
-          <div class="absolute inset-0 w-1/3 bg-white/30 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700 pointer-events-none"></div>
-
-          <div class="flex items-center gap-3.5 relative z-10">
-            <div class="w-12 h-12 rounded-xl bg-amber-950/80 border border-amber-300/40 flex items-center justify-center text-amber-300 shadow-inner group-hover:scale-105 transition-transform">
-              <Swords class="w-7 h-7 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
-            </div>
-            <div class="text-left">
-              <div class="font-black text-xl text-slate-950 tracking-wider uppercase drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">
-                BATTLE COMMENCE
-              </div>
-              <span class="text-[10px] font-black text-amber-950/80 tracking-widest uppercase">
-                Host / Join Multiplayer Arena
-              </span>
-            </div>
-          </div>
-
-          <div class="w-10 h-10 rounded-xl bg-amber-900/70 border border-amber-400/40 flex items-center justify-center text-amber-200 shadow group-hover:bg-amber-950 transition-colors">
-            <ChevronRight class="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        <!-- 2. TACTICAL MAP EDITOR BUTTON -->
-        <button 
-          type="button"
-          class="group relative w-full p-3.5 rounded-2xl bg-linear-to-r from-cyan-600 via-blue-600 to-indigo-700 border-t-2 border-cyan-300 border-b-[6px] border-slate-950 active:border-b-2 active:translate-y-1 shadow-[0_10px_25px_rgba(6,182,212,0.35)] hover:shadow-[0_10px_30px_rgba(6,182,212,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
-          @click="goToEditor"
-        >
-          <!-- Shimmer Sweep Line -->
-          <div class="absolute inset-0 w-1/3 bg-white/25 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700 pointer-events-none"></div>
-
-          <div class="flex items-center gap-3.5 relative z-10">
-            <div class="w-11 h-11 rounded-xl bg-slate-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-inner group-hover:scale-105 transition-transform">
-              <Layers class="w-6 h-6 drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
-            </div>
-            <div class="text-left">
-              <div class="flex items-center gap-2">
-                <span class="font-black text-base text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                  MAP ARCHITECT
-                </span>
-                <UiBadge variant="cyan" size="xs">
-                  EDITOR
-                </UiBadge>
-              </div>
-              <span class="text-[10px] font-extrabold text-cyan-200/80 tracking-widest uppercase">
-                Forge Waves & Pathing Nodes
-              </span>
-            </div>
-          </div>
-
-          <div class="w-9 h-9 rounded-xl bg-slate-950/70 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow group-hover:bg-slate-900 transition-colors">
-            <ChevronRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        <!-- 3. ASSET STUDIO / EDITOR BUTTON -->
-        <button 
-          type="button"
-          class="group relative w-full p-3 rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-800 border-t-2 border-emerald-300 border-b-6 border-slate-950 active:border-b-2 active:translate-y-1 shadow-[0_10px_25px_rgba(16,185,129,0.35)] hover:shadow-[0_10px_30px_rgba(16,185,129,0.55)] transition-all duration-150 cursor-pointer flex items-center justify-between overflow-hidden"
-          @click="router.push('/asset-editor')"
-        >
-          <!-- Shimmer Sweep Line -->
-          <div class="absolute inset-0 w-1/3 bg-white/25 skew-x-12 group-hover:translate-x-[400%] transition-transform duration-700 pointer-events-none"></div>
-
-          <div class="flex items-center gap-3.5 relative z-10">
-            <div class="w-10 h-10 rounded-xl bg-slate-950/80 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow-inner group-hover:scale-105 transition-transform">
-              <Wrench class="w-5 h-5 drop-shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
-            </div>
-            <div class="text-left">
-              <div class="flex items-center gap-2">
-                <span class="font-black text-sm text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                  ASSET EDITOR
-                </span>
-                <UiBadge variant="emerald" size="xs">
-                  STUDIO
-                </UiBadge>
-              </div>
-              <span class="text-[9px] font-extrabold text-emerald-200/80 tracking-widest uppercase">
-                Combine Sprites & Export Transparent PNG
-              </span>
-            </div>
-          </div>
-
-          <div class="w-8 h-8 rounded-xl bg-slate-950/70 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow group-hover:bg-slate-900 transition-colors">
-            <ChevronRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
+          {{ $t('home.multiplayer') }}
+        </UiButton>
       </div>
 
     </main>
 
-
-    <!-- ================= BOTTOM SUB-HUD ================= -->
-    <footer class="relative z-20 w-full flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 border-t border-slate-800/80 pt-2">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]"></span>
-        <span>PROTOCOL v1.4.2 &bull; ALL SYSTEMS ONLINE</span>
-      </div>
-      <div class="flex items-center gap-4 text-slate-400">
-        <span class="hover:text-white cursor-pointer transition-colors">ISOCRAFT STUDIOS</span>
-        <span class="text-amber-400/80 font-mono">READY</span>
-      </div>
+    <!-- ================= 5. MINIMAL FOOTER ================= -->
+    <footer class="relative z-20 w-full flex items-center justify-between text-[11px] font-medium text-slate-500 pt-2 border-t border-slate-900">
+      <span>Tower Defense</span>
+      <span>v1.0.0</span>
     </footer>
+
+    <!-- ================= 6. SCALABLE MAP SELECTION MODAL (SUPPORTS 100+ MAPS) ================= -->
+    <UiModal
+      v-model:is-open="isMapModalOpen"
+      :title="$t('home.selectMapTitle')"
+      :subtitle="$t('home.selectMapSubtitle')"
+      :icon="Map"
+      icon-color="amber"
+      size="xl"
+      body-class="flex flex-col gap-3 p-3 sm:p-5"
+    >
+      <!-- Search & Filter Bar -->
+      <div class="relative shrink-0">
+        <UiInput
+          v-model="mapSearchQuery"
+          :placeholder="$t('home.searchMaps')"
+          :leading-icon="Search"
+          size="sm"
+          class="w-full"
+        />
+        <button
+          v-if="mapSearchQuery"
+          type="button"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
+          @click="mapSearchQuery = ''"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Scrollable Maps Grid (Designed for 100+ maps) -->
+      <div class="max-h-72 sm:max-h-96 overflow-y-auto custom-scrollbar pr-1 -mr-1">
+        <div v-if="filteredMaps.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div
+            v-for="mapItem in filteredMaps"
+            :key="mapItem.id"
+            @click="selectedMapId = mapItem.id"
+            @dblclick="startSelectedMap"
+            :class="[
+              'group relative p-3 sm:p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-md flex flex-col justify-between gap-2.5 active:scale-[0.99]',
+              selectedMapId === mapItem.id
+                ? 'bg-amber-500/15 border-amber-400 ring-2 ring-amber-400/40 shadow-amber-500/20'
+                : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 hover:border-slate-700'
+            ]"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <h3 
+                  :class="[
+                    'text-xs sm:text-sm font-bold truncate transition-colors',
+                    selectedMapId === mapItem.id ? 'text-amber-300 font-extrabold' : 'text-white group-hover:text-amber-300'
+                  ]"
+                >
+                  {{ mapItem.name }}
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5 font-medium font-mono">
+                  {{ mapItem.cols }} × {{ mapItem.rows }} Tiles
+                </p>
+              </div>
+
+              <!-- Selected Checkmark or Player Badge -->
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2 py-0.5 text-[10px] font-mono font-bold rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+                  {{ mapItem.playersCount }}P
+                </span>
+                <div 
+                  v-if="selectedMapId === mapItem.id" 
+                  class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-sm"
+                >
+                  <Check class="w-3 h-3 stroke-[3]" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px]">
+              <span class="text-slate-400 flex items-center gap-1.5 font-medium">
+                <Shield class="w-3.5 h-3.5 text-amber-400" />
+                {{ mapItem.wavesCount }} {{ $t('game.wave') }}
+              </span>
+              <span 
+                :class="[
+                  'text-xs font-bold flex items-center gap-1 transition-transform group-hover:translate-x-0.5',
+                  selectedMapId === mapItem.id ? 'text-amber-300' : 'text-slate-500 group-hover:text-slate-300'
+                ]"
+              >
+                <span>{{ selectedMapId === mapItem.id ? $t('common.selected') || 'Selected' : $t('common.select') }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Search State -->
+        <div v-else class="py-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+          <Map class="w-8 h-8 text-slate-600 animate-pulse" />
+          <p class="text-xs font-medium">{{ $t('home.noMapsFound') }}</p>
+          <UiButton
+            v-if="mapSearchQuery"
+            variant="ghost"
+            size="xs"
+            @click="mapSearchQuery = ''"
+          >
+            {{ $t('common.clear') }}
+          </UiButton>
+        </div>
+      </div>
+
+      <!-- Modal Footer with Import Option & Play Game Action -->
+      <template #footer>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+          <!-- Left: Custom Map Import & Total Counter -->
+          <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <label class="cursor-pointer group flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors">
+              <input type="file" accept=".json,.isomap.json" class="hidden" @change="handleCustomMapFile" />
+              <Upload class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400 transition-colors" />
+              <span>{{ $t('home.importMap') }}</span>
+            </label>
+            <span class="text-[11px] font-mono text-slate-500">
+              {{ $t('home.mapCount', { count: filteredMaps.length }) }}
+            </span>
+          </div>
+
+          <!-- Right: Play Game Primary Button -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <UiButton
+              variant="secondary"
+              size="sm"
+              @click="isMapModalOpen = false"
+            >
+              {{ $t('common.cancel') }}
+            </UiButton>
+
+            <UiButton
+              variant="game-amber"
+              size="sm"
+              :leading-icon="Play"
+              :disabled="!selectedMapObject"
+              class="w-full sm:w-auto justify-center px-5 font-black uppercase tracking-wider"
+              @click="startSelectedMap"
+            >
+              {{ $t('home.playGame') }}
+            </UiButton>
+          </div>
+        </div>
+      </template>
+    </UiModal>
 
     <!-- Editor Setup Modal -->
     <WelcomeProjectModal ref="editorSetupModalRef" />
@@ -272,41 +307,257 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Castle, 
-  Radio, 
-  Swords, 
-  Layers, 
-  ChevronRight, 
-  ShieldAlert,
-  Wrench
+  Play,
+  Users,
+  Layers,
+  Palette,
+  Map,
+  Shield,
+  Upload,
+  Search,
+  Check,
+  Maximize2,
+  Minimize2
 } from 'lucide-vue-next'
-import { UiBadge, UiCard, UiButton } from '../components/ui'
-import { useMultiplayerStore } from '../stores/multiplayerStore'
+import { UiButton, UiModal, UiInput, UiLanguageSwitcher } from '../components/ui'
+import { useMapStore } from '../stores/mapStore'
+import { useCharacterStore } from '../stores/characterStore'
+import { useTowerStore } from '../stores/towerStore'
+import { useAssetStore } from '../stores/assetStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import { assetManager } from '../services/assetManager'
+import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
 
 const router = useRouter()
-const multiplayerStore = useMultiplayerStore()
+const mapStore = useMapStore()
+const characterStore = useCharacterStore()
+const towerStore = useTowerStore()
+const assetStore = useAssetStore()
+const notify = useNotificationStore()
+
 const editorSetupModalRef = ref<any>(null)
+const isFullscreenMode = ref(false)
 
-let discoveryTimer: any = null
-onMounted(() => {
-  assetManager.preloadRemainingInBackground()
+// Modals & Loaders State
+const isMapModalOpen = ref(false)
+const isMapLoading = ref(false)
+const loadingMapName = ref('')
+const mapLoadProgress = ref(0)
+const mapSearchQuery = ref('')
+const selectedMapId = ref<string>('')
 
-  multiplayerStore.refreshDiscovery()
-  discoveryTimer = setInterval(() => {
-    multiplayerStore.refreshDiscovery()
-  }, 1000)
+function checkFullscreenState() {
+  isFullscreenMode.value = isAppFullscreen()
+}
+
+// Preloader State
+const isPreloading = ref(true)
+const preloadProgress = ref(0)
+const preloadStageKey = ref('loader.initEngine')
+
+// Auto-load available maps
+const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
+const rawAvailableMaps = Object.entries(mapModules).map(([path, mod]) => {
+  const raw = (mod as any).default || mod
+  const project = raw.project || raw
+  const fileName = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
+  const id = fileName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+  const waves = raw.waveData?.waveConfigs || raw.waveConfigs || project.waveConfigs || []
+
+  return {
+    id,
+    name: project.name || fileName,
+    cols: project.cols || 60,
+    rows: project.rows || 60,
+    playersCount: project.playersCount || project.gameSettings?.maxPlayers || (project.cols >= 60 ? 4 : 2),
+    wavesCount: waves.length || 24,
+    raw,
+  }
+})
+
+const customImportedMaps = ref<any[]>([])
+
+const availableMaps = computed(() => {
+  return [...customImportedMaps.value, ...rawAvailableMaps]
+})
+
+const filteredMaps = computed(() => {
+  const q = mapSearchQuery.value.trim().toLowerCase()
+  if (!q) return availableMaps.value
+  return availableMaps.value.filter(m => 
+    m.name.toLowerCase().includes(q) || 
+    `${m.cols}x${m.rows}`.includes(q)
+  )
+})
+
+const selectedMapObject = computed(() => {
+  return availableMaps.value.find(m => m.id === selectedMapId.value) || availableMaps.value[0] || null
+})
+
+function openMapModal() {
+  if (!selectedMapId.value && availableMaps.value.length > 0) {
+    selectedMapId.value = availableMaps.value[0].id
+  }
+  isMapModalOpen.value = true
+}
+
+onMounted(async () => {
+  checkFullscreenState()
+  document.addEventListener('fullscreenchange', checkFullscreenState)
+  document.addEventListener('webkitfullscreenchange', checkFullscreenState)
+
+  if (availableMaps.value.length > 0) {
+    selectedMapId.value = availableMaps.value[0].id
+  }
+
+  // Start initial asset preloader
+  await runPreloadSequence()
 })
 
 onUnmounted(() => {
-  if (discoveryTimer) clearInterval(discoveryTimer)
+  document.removeEventListener('fullscreenchange', checkFullscreenState)
+  document.removeEventListener('webkitfullscreenchange', checkFullscreenState)
 })
+
+async function handleToggleFullscreen() {
+  const active = await toggleAppFullscreen()
+  isFullscreenMode.value = active
+}
+
+async function runPreloadSequence() {
+  try {
+    // 1. Initial WebGPU/Engine initialization phase (0 - 15%)
+    preloadStageKey.value = 'loader.initEngine'
+    preloadProgress.value = 10
+
+    // 2. Terrains & Core Atlases (15 - 40%)
+    preloadStageKey.value = 'loader.loadTerrains'
+    await assetManager.loadCore((p) => {
+      preloadProgress.value = 10 + p * 30
+    })
+
+    // 3. Structures & Towers (40 - 65%)
+    preloadStageKey.value = 'loader.loadStructures'
+    await assetManager.loadBundle('structures', (p) => {
+      preloadProgress.value = 40 + p * 25
+    })
+
+    // 4. Characters & Monsters (65 - 85%)
+    preloadStageKey.value = 'loader.loadCharacters'
+    await assetManager.loadBundle('characters', (p) => {
+      preloadProgress.value = 65 + p * 20
+    })
+
+    // 5. Props & Atmosphere (85 - 95%)
+    preloadStageKey.value = 'loader.loadProps'
+    await assetManager.loadBundle('props', (p) => {
+      preloadProgress.value = 85 + p * 10
+    })
+
+    // 6. Built-in Sprite Store Manifest sync
+    await assetStore.loadBuiltinSprites()
+
+    // 7. Complete Ready State (100%)
+    preloadStageKey.value = 'loader.ready'
+    preloadProgress.value = 100
+
+    // Short buffer for smooth visual transition
+    setTimeout(() => {
+      isPreloading.value = false
+    }, 350)
+  } catch (err) {
+    console.warn('[HomeView] Preloader caught error, completing gracefully:', err)
+    preloadProgress.value = 100
+    isPreloading.value = false
+  }
+}
 
 function goToEditor() {
   editorSetupModalRef.value?.open('new', false)
+}
+
+function startSelectedMap() {
+  const mapData = selectedMapObject.value
+  if (!mapData) return
+  selectAndStartMap(mapData)
+}
+
+async function selectAndStartMap(mapData: any) {
+  isMapModalOpen.value = false
+  loadingMapName.value = mapData.name || 'Battlefield'
+  isMapLoading.value = true
+  mapLoadProgress.value = 20
+
+  try {
+    characterStore.entrySource = 'home'
+    const rawData = mapData.raw as any
+    if (rawData) {
+      const proj = rawData.project || rawData
+      mapStore.project = JSON.parse(JSON.stringify(proj))
+
+      const waves = rawData.waveData?.waveConfigs || rawData.waveConfigs || proj.waveConfigs || []
+      if (waves && waves.length > 0) {
+        characterStore.waveConfigs = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
+      }
+
+      const towers = rawData.towerData?.towerBlueprints || rawData.towerBlueprints || proj.towerBlueprints || []
+      if (towers && towers.length > 0) {
+        towerStore.blueprints = towers.map((b: any) => ({ ...b }))
+      }
+
+      mapLoadProgress.value = 55
+      towerStore.restoreFromProject()
+      characterStore.restoreWavesFromProject()
+      characterStore.detectDoors()
+    }
+
+    mapLoadProgress.value = 85
+    await assetStore.loadBuiltinSprites()
+    mapLoadProgress.value = 100
+
+    setTimeout(() => {
+      isMapLoading.value = false
+      router.push('/game')
+    }, 350)
+  } catch (err) {
+    console.error('Error starting map:', err)
+    mapLoadProgress.value = 100
+    setTimeout(() => {
+      isMapLoading.value = false
+      router.push('/game')
+    }, 200)
+  }
+}
+
+function handleCustomMapFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = async (evt) => {
+    try {
+      const raw = JSON.parse(evt.target?.result as string)
+      const project = raw.project || raw
+      const waves = raw.waveData?.waveConfigs || raw.waveConfigs || project.waveConfigs || []
+      const customMap = {
+        id: 'custom-' + Date.now(),
+        name: project.name || file.name.replace(/\.json$/i, ''),
+        cols: project.cols || 60,
+        rows: project.rows || 60,
+        playersCount: project.playersCount || 2,
+        wavesCount: waves.length || 20,
+        raw
+      }
+      customImportedMaps.value.unshift(customMap)
+      selectedMapId.value = customMap.id
+      notify.success(`Loaded "${customMap.name}"`)
+    } catch (err) {
+      notify.error('Invalid map JSON file')
+    }
+  }
+  reader.readAsText(file)
 }
 </script>

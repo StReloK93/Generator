@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="toolStore.isExportModalOpen"
-    title="Export Map"
-    subtitle="Save project to file or download as PNG image"
+    :title="$t('export.title')"
+    :subtitle="$t('export.jsonDesc')"
     :icon="Download"
     icon-color="brand"
     size="md"
@@ -38,8 +38,9 @@
         </div>
       </div>
 
-      <div class="text-[11px] leading-relaxed bg-brand-950/20 p-3 rounded-xl border border-brand-500/20 text-brand-200/90">
-        💡 <strong>Complete Project Backup:</strong> This file embeds all layers, coordinates, and custom uploaded sprites. You can import and resume editing anytime!
+      <div class="text-[11px] leading-relaxed bg-brand-950/20 p-3 rounded-xl border border-brand-500/20 text-brand-200/90 flex items-start gap-2">
+        <Lightbulb class="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
+        <span><strong>Complete Project Backup:</strong> This file embeds all layers, coordinates, and custom uploaded sprites. You can import and resume editing anytime!</span>
       </div>
     </div>
 
@@ -85,8 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Download, Image, FileCode } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Download, Image, FileCode, Lightbulb } from 'lucide-vue-next'
 import { UiModal, UiTabs, UiButton, UiSwitch, TabItem } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
@@ -95,6 +96,7 @@ import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { exportProjectJson, downloadDataUrl } from '../utils/exportHelpers'
+import { useI18n } from '../stores/i18nStore'
 
 const props = defineProps<{
   viewportRef?: any
@@ -110,16 +112,17 @@ const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const notify = useNotificationStore()
+const { t } = useI18n()
 
-const exportType = ref<string | number>('json')
+const exportType = ref<'json' | 'png'>('json')
 const includeGrid = ref<boolean>(false)
 const transparentBg = ref<boolean>(true)
 const isExporting = ref<boolean>(false)
 
-const tabItems: TabItem[] = [
-  { id: 'json', label: 'JSON Project', icon: FileCode },
-  { id: 'png', label: 'PNG Image', icon: Image },
-]
+const tabItems = computed<TabItem[]>(() => [
+  { id: 'json', label: t('export.jsonTab') || 'JSON Project', icon: FileCode },
+  { id: 'png', label: t('export.pngTab') || 'PNG Image', icon: Image },
+])
 
 function closeModal() {
   toolStore.isExportModalOpen = false

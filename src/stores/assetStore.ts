@@ -64,6 +64,24 @@ export const useAssetStore = defineStore('assetStore', () => {
     return assetManager.getPreviewDataUrl(assetOrId.id || assetOrId.name) || assetOrId.previewSrc || ''
   }
 
+  // Get full-frame preview data URL (with trim offsets) for accurate anchor calibration
+  function getFullAssetPreview(assetOrId: AssetItem | string | null | undefined): string {
+    void assetManager.atlasRevision.value
+
+    if (!assetOrId) return ''
+    if (typeof assetOrId === 'string') {
+      const found = assets.value.find(a => a.id === assetOrId || a.name === assetOrId)
+      if (found && found.src && found.src.startsWith('data:')) return found.src
+      return assetManager.getFullPreviewDataUrl(assetOrId) || (found?.previewSrc || '')
+    }
+
+    if (assetOrId.src && assetOrId.src.startsWith('data:')) {
+      return assetOrId.src
+    }
+
+    return assetManager.getFullPreviewDataUrl(assetOrId.id || assetOrId.name) || assetOrId.previewSrc || ''
+  }
+
   const selectedAsset = computed(() => {
     return assets.value.find(a => a.id === selectedAssetId.value) || null
   })
@@ -285,6 +303,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     uploadProgress,
     loadBuiltinSprites,
     getAssetPreview,
+    getFullAssetPreview,
     uploadFiles,
     addCustomAsset,
     selectAsset,

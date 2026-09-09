@@ -34,19 +34,13 @@
           />
 
           <!-- Category Pills -->
-          <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
-            <button
-              v-for="cat in categories"
-              :key="cat.id"
-              type="button"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer select-none"
-              :class="selectedCategory === cat.id 
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm' 
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
-              @click="selectedCategory = cat.id"
-            >
-              {{ cat.label }}
-            </button>
+          <div class="overflow-x-auto custom-scrollbar py-0.5">
+            <UiTabs
+              v-model="selectedCategory"
+              :items="categories"
+              variant="amber"
+              size="xs"
+            />
           </div>
         </div>
 
@@ -84,7 +78,10 @@
                 <img 
                   :src="getAssetThumbnail(asset)" 
                   :alt="asset.name"
-                  class="w-full h-full object-contain pointer-events-none group-hover:scale-110 transition-transform" 
+                  width="64"
+                  height="64"
+                  decoding="async"
+                  class="w-full h-full aspect-square object-contain pointer-events-none group-hover:scale-110 transition-transform" 
                   loading="lazy"
                 />
               </div>
@@ -107,7 +104,7 @@
           :min="10"
           :max="5000"
           :step="10"
-          unit=" 🪙"
+          unit=" Gold"
         />
       </div>
 
@@ -116,7 +113,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <UiSlider
             v-model="form.damage"
-            label="💥 Damage:"
+            label="Damage:"
             :min="5"
             :max="500"
             :step="5"
@@ -124,7 +121,7 @@
 
           <UiSlider
             v-model="form.attackSpeed"
-            label="⚡ Cooldown (Atk Speed):"
+            label="Attack Rate (per sec):"
             :min="0.1"
             :max="3.0"
             :step="0.1"
@@ -133,7 +130,7 @@
 
           <UiSlider
             v-model="form.range"
-            label="🎯 Range:"
+            label="Attack Range:"
             :min="1.5"
             :max="10.0"
             :step="0.5"
@@ -145,32 +142,22 @@
       <!-- 4. Projectile Type -->
       <div class="flex flex-col gap-1.5">
         <span class="text-xs font-semibold text-slate-300">Projectile Type:</span>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <button 
-            v-for="pType in projectileTypes" 
-            :key="pType.id"
-            type="button"
-            :class="form.projectileType === pType.id ? 'bg-amber-600/40 text-amber-300 border-amber-500 font-bold ring-1 ring-amber-400' : 'bg-slate-900 text-slate-400 hover:text-white border-slate-800'"
-            class="py-2 px-2.5 rounded-xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-target"
-            @click="form.projectileType = pType.id as ProjectileType"
-          >
-            <span>{{ pType.icon }}</span>
-            <span>{{ pType.name }}</span>
-          </button>
-        </div>
+        <UiTabs
+          v-model="form.projectileType"
+          :items="projectileTypes.map(p => ({ id: p.id, label: p.name, icon: p.icon }))"
+          variant="amber"
+          size="sm"
+        />
       </div>
 
       <!-- 5. Splash Damage Toggle & Radius -->
       <UiCard variant="subtle" padding="md">
         <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input 
-              v-model="form.isSplash"
-              type="checkbox" 
-              class="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-            />
-            <span class="text-xs font-semibold text-slate-200">💥 Area Damage (Splash AoE)</span>
-          </label>
+          <UiSwitch
+            v-model="form.isSplash"
+            label="Area Damage (Splash AoE)"
+            variant="amber"
+          />
 
           <div v-if="form.isSplash" class="flex items-center gap-1 text-[11px] font-mono text-amber-300">
             <span>Radius: {{ form.splashRadius }} cells</span>
@@ -187,24 +174,15 @@
             unit=" cells"
           />
 
-          <div class="flex items-center gap-2">
-            <button 
-              type="button"
-              :class="form.splashType === 'falloff' ? 'bg-rose-600 text-white font-bold' : 'bg-slate-900 text-slate-400 border border-slate-700'"
-              class="py-1 px-2.5 rounded-lg text-xs cursor-pointer touch-target"
-              @click="form.splashType = 'falloff'"
-            >
-              📉 Falloff
-            </button>
-            <button 
-              type="button"
-              :class="form.splashType === 'constant' ? 'bg-rose-600 text-white font-bold' : 'bg-slate-900 text-slate-400 border border-slate-700'"
-              class="py-1 px-2.5 rounded-lg text-xs cursor-pointer touch-target"
-              @click="form.splashType = 'constant'"
-            >
-              🟩 Constant
-            </button>
-          </div>
+          <UiTabs
+            v-model="form.splashType"
+            :items="[
+              { id: 'falloff', label: 'Falloff', icon: TrendingDown },
+              { id: 'constant', label: 'Constant', icon: Equal }
+            ]"
+            variant="amber"
+            size="xs"
+          />
         </div>
       </UiCard>
 
@@ -226,7 +204,7 @@
         :leading-icon="ShieldAlert"
         @click="handleCreateTower"
       >
-        🏰 Create Tower
+        Create Tower
       </UiButton>
     </template>
   </UiModal>
@@ -234,8 +212,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, ShieldAlert, Search } from 'lucide-vue-next'
-import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge } from './ui'
+import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal } from 'lucide-vue-next'
+import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge, UiTabs, UiSwitch } from './ui'
 import { useTowerStore, ProjectileType, SplashType } from '../stores/towerStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useNotificationStore } from '../stores/notificationStore'
@@ -257,13 +235,13 @@ const categories = [
 ]
 
 const projectileTypes = [
-  { id: 'fireball', name: 'Fireball', icon: '🔥' },
-  { id: 'arrow', name: 'Arrow', icon: '🏹' },
-  { id: 'magic_bolt', name: 'Magic Bolt', icon: '⚡' },
-  { id: 'cannonball', name: 'Cannonball', icon: '💣' },
-  { id: 'frost_bolt', name: 'Frost Bolt', icon: '❄️' },
-  { id: 'laser', name: 'Laser Beam', icon: '🔴' },
-  { id: 'missile', name: 'Missile', icon: '🚀' },
+  { id: 'fireball', name: 'Fireball', icon: Flame },
+  { id: 'arrow', name: 'Arrow', icon: ArrowRight },
+  { id: 'magic_bolt', name: 'Magic Bolt', icon: Zap },
+  { id: 'cannonball', name: 'Cannonball', icon: CircleDot },
+  { id: 'frost_bolt', name: 'Frost Bolt', icon: Snowflake },
+  { id: 'laser', name: 'Laser Beam', icon: Radio },
+  { id: 'missile', name: 'Missile', icon: Rocket },
 ]
 
 function getAssetThumbnail(asset: AssetItem | any): string {

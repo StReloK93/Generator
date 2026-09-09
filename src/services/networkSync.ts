@@ -431,7 +431,7 @@ class NetworkSyncBuffer {
           df.x = hitX + (Math.random() * 12 - 6)
           df.y = hitY - 24
           df.startY = df.y
-          df.text = `+${goldReward} 💰`
+          df.text = `+${goldReward} G`
           df.color = 0xfacc15
           df.alpha = 1.0
           df.isCrit = true

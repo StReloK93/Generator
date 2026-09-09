@@ -282,7 +282,9 @@ class AssetManagerService {
     return null
   }
 
-  // Extract a standalone cropped preview Data URL directly from the loaded Atlas texture
+  private fullPreviewCache = new Map<string, string>()
+
+  // Extract a standalone tightly cropped preview Data URL for Gallery/Sidebar thumbnails (perfectly centered)
   public getPreviewDataUrl(assetIdOrName: string): string {
     if (!assetIdOrName) return ''
 
@@ -314,6 +316,49 @@ class AssetManagerService {
       const dataUrl = canvas.toDataURL('image/png')
       this.previewCache.set(clean, dataUrl)
       this.previewCache.set(assetIdOrName, dataUrl)
+      return dataUrl
+    } catch (e) {
+      return ''
+    }
+  }
+
+  // Extract a standalone full-frame Data URL with original canvas dimensions and trim offset (for Anchor Studio)
+  public getFullPreviewDataUrl(assetIdOrName: string): string {
+    if (!assetIdOrName) return ''
+
+    const clean = assetIdOrName.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+    if (this.fullPreviewCache.has(clean)) {
+      return this.fullPreviewCache.get(clean)!
+    }
+
+    const tex = this.getTexture(assetIdOrName)
+    if (!tex || !tex.source) return ''
+
+    const res = (tex.source as any)?.resource || (tex.source as any)?.source || (tex.source as any)?._source || (tex.source as any)
+    if (!res) return ''
+
+    try {
+      const frame = tex.frame
+      const origW = (tex.orig && tex.orig.width) ? tex.orig.width : frame.width
+      const origH = (tex.orig && tex.orig.height) ? tex.orig.height : frame.height
+      const trimX = (tex.trim && tex.trim.x !== undefined) ? tex.trim.x : 0
+      const trimY = (tex.trim && tex.trim.y !== undefined) ? tex.trim.y : 0
+
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, origW)
+      canvas.height = Math.max(1, origH)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return ''
+
+      ctx.drawImage(
+        res,
+        frame.x, frame.y, frame.width, frame.height,
+        trimX, trimY, frame.width, frame.height
+      )
+
+      const dataUrl = canvas.toDataURL('image/png')
+      this.fullPreviewCache.set(clean, dataUrl)
+      this.fullPreviewCache.set(assetIdOrName, dataUrl)
       return dataUrl
     } catch (e) {
       return ''

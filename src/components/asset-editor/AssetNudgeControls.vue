@@ -33,20 +33,17 @@
             <span>Directional Nudge</span>
           </span>
           <!-- Step Multiplier Selector -->
-          <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-0.5">
-            <button
-              v-for="step in [1, 5, 10, 32]"
-              :key="step"
-              type="button"
-              class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
-              :class="store.nudgeStep === step 
-                ? 'bg-brand-500 text-white shadow' 
-                : 'text-slate-400 hover:text-white'"
-              @click="store.nudgeStep = step"
-            >
-              {{ step }}px
-            </button>
-          </div>
+          <UiTabs
+            v-model="store.nudgeStep"
+            :items="[
+              { id: 1, label: '1px' },
+              { id: 5, label: '5px' },
+              { id: 10, label: '10px' },
+              { id: 32, label: '32px' }
+            ]"
+            variant="brand"
+            size="xs"
+          />
         </div>
 
         <!-- Arrow Keypad Grid -->
@@ -176,20 +173,19 @@
         />
 
         <!-- Quick 90° rotation buttons -->
-        <div class="grid grid-cols-4 gap-1">
-          <button
-            v-for="deg in [0, 90, 180, 270]"
-            :key="deg"
-            type="button"
-            class="py-1 rounded-lg text-[10px] font-mono font-bold transition-colors cursor-pointer border"
-            :class="store.selectedPart?.rotation === deg 
-              ? 'bg-amber-500 text-slate-950 border-amber-400 font-black' 
-              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'"
-            @click="store.updateAllSelectedProperties({ rotation: deg })"
-          >
-            {{ deg }}°
-          </button>
-        </div>
+        <UiTabs
+          :model-value="store.selectedPart?.rotation || 0"
+          :items="[
+            { id: 0, label: '0°' },
+            { id: 90, label: '90°' },
+            { id: 180, label: '180°' },
+            { id: 270, label: '270°' }
+          ]"
+          variant="amber"
+          size="xs"
+          fill
+          @update:model-value="(deg) => store.updateAllSelectedProperties({ rotation: Number(deg) })"
+        />
       </UiCard>
 
       <!-- 4. Scale & Opacity Sliders -->
@@ -212,19 +208,22 @@
         />
 
         <!-- Quick Scale Presets -->
-        <div v-if="store.selectedPart" class="grid grid-cols-6 gap-1">
-          <button
-            v-for="sc in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]"
-            :key="sc"
-            type="button"
-            class="py-1 rounded-lg text-[9px] font-mono font-bold transition-colors cursor-pointer border"
-            :class="Math.abs(store.selectedPart.scaleX) === sc 
-              ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-black' 
-              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'"
-            @click="handleScaleChange(sc)"
-          >
-            {{ sc }}x
-          </button>
+        <div v-if="store.selectedPart">
+          <UiTabs
+            :model-value="Number(Math.abs(store.selectedPart.scaleX).toFixed(2))"
+            :items="[
+              { id: 0.5, label: '0.5x' },
+              { id: 0.75, label: '0.75x' },
+              { id: 1.0, label: '1x' },
+              { id: 1.25, label: '1.25x' },
+              { id: 1.5, label: '1.5x' },
+              { id: 2.0, label: '2x' }
+            ]"
+            variant="emerald"
+            size="xs"
+            fill
+            @update:model-value="(sc) => handleScaleChange(Number(sc))"
+          />
         </div>
 
         <!-- Opacity Slider -->
@@ -261,7 +260,7 @@ import {
   Copy,
   ClipboardPaste
 } from 'lucide-vue-next'
-import { UiCard, UiBadge, UiButton, UiNumberInput, UiSlider } from '../ui'
+import { UiCard, UiBadge, UiButton, UiNumberInput, UiSlider, UiTabs } from '../ui'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
 
 const store = useAssetEditorStore()

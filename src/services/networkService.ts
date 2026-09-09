@@ -9,16 +9,10 @@ class NetworkService {
   private broadcastChannel: BroadcastChannel | null = null
   private discoveryChannel: BroadcastChannel | null = null
   private discoveryInterval: any = null
-  private messagePollingInterval: any = null
-  private lastMessageFetchTimestamp = 0
   private processedMessageIds: Set<string> = new Set()
   private isHost = false
   private roomId = ''
   private myPeerId = ''
-
-  // Enable local HTTP relay for localhost, LAN IPs, and mobile devices connecting to local server
-  private isServerRelayAvailable: boolean = typeof window !== 'undefined' && 
-    !window.location.hostname.includes('github.io')
 
   private onMessageCallback: ((msg: NetMessage) => void) | null = null
   private onPeerConnectCallback: ((peerId: string) => void) | null = null
@@ -52,7 +46,6 @@ class NetworkService {
 
     // BroadcastChannel for instant local tab testing
     this.initBroadcastChannel(roomId)
-    this.startRoomMessagePolling(roomId)
 
     return new Promise((resolve) => {
       const formattedHostPeerId = `isocraft-host-${roomId.toLowerCase()}`
@@ -95,17 +88,12 @@ class NetworkService {
   public startDiscoveryBeacon(summaryProvider: () => ActiveRoomSummary) {
     this.stopDiscoveryBeacon()
 
-    const broadcastBeacon = async () => {
+    const broadcastBeacon = () => {
       try {
         const summary = summaryProvider()
         summary.lastHeartbeat = Date.now()
 
-        // 1. Send to Local Server/Vite discovery hub (only if local server is available)
-        if (this.isServerRelayAvailable) {
-          this.sendHttpHeartbeat(summary)
-        }
-
-        // 2. Broadcast via Discovery Channel (Same browser multi-tab)
+        // 1. Broadcast via Discovery Channel (Same browser multi-tab)
         if (this.discoveryChannel) {
           try {
             this.discoveryChannel.postMessage({
@@ -115,7 +103,7 @@ class NetworkService {
           } catch {}
         }
 
-        // 3. Write to LocalStorage
+        // 2. Write to LocalStorage (Instant cross-tab discovery)
         let activeMap: Record<string, ActiveRoomSummary> = {}
         try {
           activeMap = JSON.parse(localStorage.getItem('isocraft_active_rooms') || '{}')
@@ -140,41 +128,12 @@ class NetworkService {
     this.discoveryInterval = setInterval(broadcastBeacon, 1000)
   }
 
-  private async sendHttpHeartbeat(summary: ActiveRoomSummary) {
-    if (!this.isServerRelayAvailable) return
-    const urls = ['/api/rooms', '/Generator/api/rooms']
-    for (const url of urls) {
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(summary),
-        })
-        if (!res.ok) {
-          this.isServerRelayAvailable = false
-        }
-        break
-      } catch {
-        this.isServerRelayAvailable = false
-      }
-    }
-  }
-
   public stopDiscoveryBeacon() {
     if (this.discoveryInterval) {
       clearInterval(this.discoveryInterval)
       this.discoveryInterval = null
     }
     if (this.roomId) {
-      if (this.isServerRelayAvailable) {
-        const urls = [`/api/rooms/${this.roomId}`, `/Generator/api/rooms/${this.roomId}`]
-        for (const url of urls) {
-          try {
-            fetch(url, { method: 'DELETE' }).catch(() => {})
-          } catch {}
-        }
-      }
-
       try {
         const activeMap: Record<string, ActiveRoomSummary> = JSON.parse(
           localStorage.getItem('isocraft_active_rooms') || '{}'
@@ -216,22 +175,14 @@ class NetworkService {
       })
     }
 
-    // Periodic fast poll to sync HTTP + LocalStorage
+    // Periodic fast check to prune expired rooms
     setInterval(() => {
-      this.syncAllDiscoverySources()
-    }, 600)
+      this.syncFromLocalStorage()
+    }, 1000)
   }
 
   public async syncAllDiscoverySources(): Promise<ActiveRoomSummary[]> {
-    // 1. Sync from LocalStorage
-    this.syncFromLocalStorage()
-
-    // 2. Sync from Server API (LAN / Multi-browser / Cross-device)
-    await this.fetchServerRooms()
-
-    const list = Array.from(this.discoveredRooms.values())
-    this.notifyDiscoveryUpdate()
-    return list
+    return this.syncFromLocalStorage()
   }
 
   public syncFromLocalStorage(): ActiveRoomSummary[] {
@@ -255,31 +206,9 @@ class NetworkService {
       }
     }
 
-    return Array.from(this.discoveredRooms.values())
-  }
-
-  private async fetchServerRooms() {
-    if (!this.isServerRelayAvailable) return
-    const urls = ['/Generator/api/rooms', '/api/rooms']
-    for (const url of urls) {
-      try {
-        const res = await fetch(url)
-        if (res.ok) {
-          const list = (await res.json()) as ActiveRoomSummary[]
-          if (Array.isArray(list)) {
-            const now = Date.now()
-            for (const room of list) {
-              if (room && room.roomId && now - (room.lastHeartbeat || 0) <= 12000) {
-                this.discoveredRooms.set(room.roomId, room)
-              }
-            }
-          }
-          break
-        }
-      } catch {
-        // Continue to next URL fallback
-      }
-    }
+    const list = Array.from(this.discoveredRooms.values())
+    this.notifyDiscoveryUpdate()
+    return list
   }
 
   public listenToDiscovery(callback: (rooms: ActiveRoomSummary[]) => void): () => void {
@@ -320,7 +249,6 @@ class NetworkService {
     this.onHostDisconnectCallback = onDisconnect
 
     this.initBroadcastChannel(roomId)
-    this.startRoomMessagePolling(roomId)
 
     return new Promise((resolve) => {
       const hostPeerId = `isocraft-host-${roomId.toLowerCase()}`
@@ -459,58 +387,6 @@ class NetworkService {
   }
 
   /**
-   * HTTP Fallback Message Polling for LAN & Cross-browser communication
-   */
-  public startRoomMessagePolling(roomId: string) {
-    this.stopRoomMessagePolling()
-    // Do not poll HTTP if WebRTC or direct peer connection is already established
-    if (!this.isServerRelayAvailable || (this.hostConnection && this.hostConnection.open)) return
-
-    this.lastMessageFetchTimestamp = Date.now() - 500
-
-    const poll = async () => {
-      if (!this.roomId || !this.isServerRelayAvailable || (this.hostConnection && this.hostConnection.open)) {
-        this.stopRoomMessagePolling()
-        return
-      }
-      const cleanId = this.roomId.toUpperCase()
-      const urls = [
-        `/Generator/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`,
-        `/api/rooms/${cleanId}/messages?since=${this.lastMessageFetchTimestamp}&sender=${this.myPeerId}`
-      ]
-
-      for (const u of urls) {
-        try {
-          const res = await fetch(u)
-          if (res.ok) {
-            const list = await res.json()
-            if (Array.isArray(list) && list.length > 0) {
-              for (const msg of list) {
-                if (msg && msg.timestamp) {
-                  this.lastMessageFetchTimestamp = Math.max(this.lastMessageFetchTimestamp, msg.timestamp)
-                }
-                this.receiveMessage(msg as NetMessage)
-              }
-            }
-            break
-          }
-        } catch {
-          // Continue to fallback URL
-        }
-      }
-    }
-
-    this.messagePollingInterval = setInterval(poll, 150)
-  }
-
-  public stopRoomMessagePolling() {
-    if (this.messagePollingInterval) {
-      clearInterval(this.messagePollingInterval)
-      this.messagePollingInterval = null
-    }
-  }
-
-  /**
    * Deeply sanitizes messages to Plain Old JavaScript Objects (POJO)
    * eliminating Vue reactive Proxies, non-cloneable objects and circular references.
    */
@@ -531,14 +407,11 @@ class NetworkService {
     if (!msg.timestamp) msg.timestamp = Date.now()
     if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
 
-    let sentViaWebRTC = false
-
     // 1. Send via WebRTC to all connected peer clients
     for (const [_, conn] of this.clientConnections.entries()) {
       if (conn && conn.open) {
         try {
           conn.send(msg)
-          sentViaWebRTC = true
         } catch (e) {
           console.warn('[P2P Broadcast Send Error]:', e)
         }
@@ -555,11 +428,6 @@ class NetworkService {
     }
 
     networkSyncBuffer.recordPacketOut(100)
-
-    // 3. Fallback to HTTP Relay ONLY if no WebRTC clients are connected and server is available
-    if (!sentViaWebRTC && this.isServerRelayAvailable && msg.type !== 'WORLD_SNAPSHOT' && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
-      this.sendToHttpRelay(msg)
-    }
   }
 
   /**
@@ -571,13 +439,10 @@ class NetworkService {
     if (!msg.timestamp) msg.timestamp = Date.now()
     if (msg.seq === undefined) msg.seq = ++this.outgoingSeq
 
-    let sentViaWebRTC = false
-
     // 1. Send via WebRTC
     if (this.hostConnection && this.hostConnection.open) {
       try {
         this.hostConnection.send(msg)
-        sentViaWebRTC = true
       } catch (e) {
         console.warn('[P2P Send to Host Error]:', e)
       }
@@ -593,39 +458,10 @@ class NetworkService {
     }
 
     networkSyncBuffer.recordPacketOut(100)
-
-    // 3. Fallback to HTTP Relay ONLY if WebRTC is not connected
-    if (!sentViaWebRTC && this.isServerRelayAvailable && msg.type !== 'WORLD_SNAPSHOT' && msg.type !== 'WAVE_TICK' && msg.type !== 'PLAYER_HOVER') {
-      this.sendToHttpRelay(msg)
-    }
-  }
-
-  private async sendToHttpRelay(msg: NetMessage) {
-    if (!this.roomId || !this.isServerRelayAvailable) return
-    const cleanId = this.roomId.toUpperCase()
-    const urls = [
-      `/Generator/api/rooms/${cleanId}/messages`,
-      `/api/rooms/${cleanId}/messages`
-    ]
-    for (const u of urls) {
-      try {
-        const res = await fetch(u, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(msg),
-        })
-        if (res.ok) {
-          break
-        }
-      } catch {
-        // Fallback
-      }
-    }
   }
 
   public disconnect() {
     this.stopDiscoveryBeacon()
-    this.stopRoomMessagePolling()
     this.processedMessageIds.clear()
 
     for (const conn of this.clientConnections.values()) {

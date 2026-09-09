@@ -50,10 +50,10 @@
       </div>
 
       <h3 class="text-base font-black text-white mb-1.5 tracking-wide">
-        Rotate Device to Landscape
+        {{ $t('game.rotateToLandscape') }}
       </h3>
       <p class="text-xs text-slate-400 max-w-xs mb-5 leading-relaxed">
-        For optimal tactical gameplay and viewing, rotate your phone horizontally
+        {{ $t('game.rotateLandscapeDesc') }}
       </p>
 
       <div class="flex flex-col gap-2 w-full max-w-xs">
@@ -62,13 +62,13 @@
           class="w-full py-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95 touch-target"
         >
           <Maximize2 class="w-4 h-4" />
-          <span>Fullscreen</span>
+          <span>{{ $t('game.fullscreen') }}</span>
         </button>
         <button 
           @click="dismissOrientationAlert = true" 
           class="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white font-bold text-xs cursor-pointer active:scale-95 touch-target"
         >
-          Continue
+          {{ $t('game.continue') }}
         </button>
       </div>
     </div>
