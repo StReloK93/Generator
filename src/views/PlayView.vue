@@ -8,7 +8,7 @@
     </div>
 
     <!-- Top Compact Header -->
-    <header class="relative z-10 w-full px-3 sm:px-6 py-2 sm:py-2.5 max-w-4xl mx-auto flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md shrink-0">
+    <header class="relative z-30 w-full px-3 sm:px-6 py-2 sm:py-2.5 max-w-4xl mx-auto flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md shrink-0">
       <div class="flex items-center gap-2">
         <UiButton
           variant="secondary"
@@ -28,12 +28,9 @@
       <div class="flex items-center gap-2">
         <UiLanguageSwitcher />
 
-        <div class="px-2 py-0.5 rounded-xl border border-slate-800 flex items-center gap-1.5 text-xs bg-slate-900/90 shadow-sm">
-          <span 
-            class="w-2.5 h-2.5 rounded-full border border-white/50 shrink-0" 
-            :style="{ backgroundColor: selectedColor }"
-          ></span>
-          <span class="font-bold text-white text-[10px] sm:text-xs truncate max-w-20 sm:max-w-28">
+        <div class="px-2.5 py-1 rounded-xl border border-slate-800 flex items-center gap-1.5 text-xs bg-slate-900/90 shadow-sm">
+          <User class="w-3 h-3 text-slate-400 shrink-0" />
+          <span class="font-bold text-white text-[10px] sm:text-xs truncate max-w-24 sm:max-w-32">
             {{ playerName || $t('common.default') }}
           </span>
         </div>
@@ -43,10 +40,10 @@
     <!-- Main Mobile Content Area (Zero page scroll) -->
     <main class="relative z-10 flex-1 max-w-lg mx-auto w-full px-3 sm:px-4 py-2 flex flex-col justify-center gap-2.5 min-h-0">
       
-      <!-- 1. Player Setup Strip (Name & Color) -->
+      <!-- 1. Player Setup Strip (Name) -->
       <UiCard variant="subtle" padding="xs" custom-class="shrink-0 py-1.5 px-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2 flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <div class="flex-1 min-w-0">
             <UiInput
               v-model="playerName"
               :placeholder="$t('home.playerName')"
@@ -55,13 +52,6 @@
               size="sm"
             />
           </div>
-
-          <!-- Quick Colors Palette -->
-          <UiColorPicker
-            v-model="selectedColor"
-            :colors="PLAYER_COLORS"
-            size="sm"
-          />
         </div>
       </UiCard>
 
@@ -264,7 +254,7 @@ import { useRouter } from 'vue-router'
 import { 
   ArrowLeft, ArrowRight, Gamepad2, Globe, User, Check, Users, KeyRound, Radio, RefreshCw 
 } from 'lucide-vue-next'
-import { UiButton, UiCard, UiInput, UiTabs, UiColorPicker, UiLanguageSwitcher, TabItem } from '../components/ui'
+import { UiButton, UiCard, UiInput, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
@@ -281,7 +271,6 @@ const notify = useNotificationStore()
 const { t } = useI18n()
 
 const activeTab = ref<string | number>('host')
-const PLAYER_COLORS = ['#38bdf8', '#f59e0b', '#10b981', '#f43f5e', '#a855f7', '#ec4899']
 
 const playModeTabs = computed<TabItem[]>(() => [
   { id: 'host', label: t('play.hostGame'), icon: Gamepad2 },
@@ -289,7 +278,6 @@ const playModeTabs = computed<TabItem[]>(() => [
 ])
 
 const playerName = ref(multiplayerStore.myPlayerName || 'Player')
-const selectedColor = ref(multiplayerStore.myPlayerColor || '#38bdf8')
 const roomName = ref('Burbenog TD Co-op')
 const roomCodeInput = ref('')
 const selectedMapIndex = ref(0)
@@ -319,7 +307,7 @@ const availableMaps = Object.entries(mapModules).map(([path, mod]) => {
 let pollTimer: any = null
 
 onMounted(() => {
-  multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
+  multiplayerStore.setPlayerProfile(playerName.value)
   multiplayerStore.refreshDiscovery()
   pollTimer = setInterval(() => {
     multiplayerStore.refreshDiscovery()
@@ -343,7 +331,7 @@ async function handleCreateRoom() {
   isCreatingRoom.value = true
 
   try {
-    multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
+    multiplayerStore.setPlayerProfile(playerName.value)
 
     const mapData = availableMaps[selectedMapIndex.value]
     const rawData = mapData.raw as any
@@ -389,7 +377,7 @@ async function handleJoinByCode() {
 async function joinRoom(code: string) {
   isJoining.value = true
   try {
-    multiplayerStore.setPlayerProfile(playerName.value, selectedColor.value)
+    multiplayerStore.setPlayerProfile(playerName.value)
     await multiplayerStore.joinGame(code, router)
     notify.success(`Connected to room: ${code}`)
   } catch (err: any) {

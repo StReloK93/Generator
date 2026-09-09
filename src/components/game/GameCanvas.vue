@@ -72,27 +72,43 @@ function updateEngineState() {
   )
 }
 
+const emit = defineEmits<{
+  (e: 'ready'): void
+}>()
+
 onMounted(async () => {
   if (!viewportContainerRef.value) return
   camera.updateViewportRect(viewportContainerRef.value)
   const rect = camera.getViewportRect(viewportContainerRef.value)
   
-  characterStore.setLoadingProgress(10, "Initializing isometric engine and graphics cache...")
+  characterStore.setLoadingProgress(20, "Initializing isometric engine and shaders...")
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
+  await new Promise(resolve => setTimeout(resolve, 300))
 
   // Fast PixiJS 8 Asset Bundle Loading (Core + Game bundles)
-  characterStore.setLoadingProgress(30, "Loading character and tower models...")
-  await assetManager.loadGame((prog) => {
-    const p = 30 + Math.round(prog * 50)
-    characterStore.setLoadingProgress(p, `Loading game textures (${Math.round(prog * 100)}%)...`)
-  })
-
-  // Ensure asset store manifest is ready
+  characterStore.setLoadingProgress(50, "Loading textures and character models...")
+  await assetManager.loadGame()
   await assetStore.loadBuiltinSprites()
+  await new Promise(resolve => setTimeout(resolve, 400))
 
   // Restore placed towers from map
   towerStore.restoreFromProject()
   characterStore.detectDoors()
+
+  camera.focusOnCenter(viewportContainerRef.value)
+  updateEngineState()
+
+  characterStore.setLoadingProgress(85, "Syncing layers and defense grid...")
+  await new Promise(resolve => setTimeout(resolve, 400))
+
+  // Render initial frame to eliminate initial WebGL pipeline compile hiccups
+  if (engine.app?.renderer) {
+    try {
+      engine.app.renderer.render(engine.app.stage)
+    } catch (e) {
+      console.warn('Initial render frame:', e)
+    }
+  }
 
   // Hook up 60 FPS Game Simulation Ticker
   engine.onTick = (rawDeltaSec: number) => {
@@ -116,8 +132,13 @@ onMounted(async () => {
     engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
   }
 
-  camera.focusOnCenter(viewportContainerRef.value)
-  updateEngineState()
+  characterStore.setLoadingProgress(100, "Battlefield ready!")
+  // Double requestAnimationFrame ensures that GPU has completed drawing the frame buffer
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  await new Promise(resolve => setTimeout(resolve, 350))
+
+  characterStore.finishLoadingScreen()
+  emit('ready')
 
   function onZoomIn() {
     camera.zoomIn(viewportContainerRef.value)

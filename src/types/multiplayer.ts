@@ -176,12 +176,16 @@ export interface CompactCombatEvent {
 }
 
 export const PLAYER_COLORS = [
-  '#38bdf8', // Sky Blue
-  '#f43f5e', // Rose Red
-  '#10b981', // Emerald Green
-  '#fbbf24', // Amber Yellow
-  '#a855f7', // Purple
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f97316', // Orange
+  '#ef4444', // Slot 1 - Qizil (Red)
+  '#3b82f6', // Slot 2 - Ko'k (Blue)
+  '#10b981', // Slot 3 - Yashil (Green)
+  '#f59e0b', // Slot 4 - Sariq (Amber / Yellow)
+  '#a855f7', // Slot 5 - Binafsha (Purple)
+  '#ec4899', // Slot 6 - Pushti (Pink)
+  '#06b6d4', // Slot 7 - Moviy (Cyan)
+  '#f97316', // Slot 8 - To'q sariq (Orange)
 ]
+
+export function getSlotColor(slotIndex: number): string {
+  return PLAYER_COLORS[slotIndex % PLAYER_COLORS.length] || '#ef4444'
+}

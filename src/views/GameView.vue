@@ -2,24 +2,52 @@
   <div class="relative h-dvh min-h-dvh max-h-dvh w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
     <!-- 1. FULL SCREEN GAME ISOMETRIC CANVAS VIEWPORT -->
     <div class="absolute inset-0 z-0 overflow-hidden w-full h-full">
-      <!-- Loading Overlay when map is transferring or loading -->
-      <div 
-        v-if="!isMapLoaded" 
-        class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center gap-4 text-center p-6"
-      >
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-brand-500/20 text-brand-400 border border-brand-500/40 flex items-center justify-center shadow-xl shadow-brand-500/10 animate-bounce">
-          <Map class="w-7 h-7 sm:w-8 sm:h-8 text-brand-400" />
-        </div>
-        <div class="space-y-1">
-          <h3 class="text-sm sm:text-base font-bold text-white">Loading Map...</h3>
-          <p class="text-xs text-slate-400">Syncing layers, routes, and defensive grids</p>
-        </div>
-        <div class="w-48 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-          <div class="h-full bg-linear-to-r from-brand-500 to-indigo-500 animate-pulse w-3/4 rounded-full"></div>
-        </div>
-      </div>
+      <GameCanvas v-if="isMapLoaded" ref="canvasRef" @ready="handleCanvasReady" />
 
-      <GameCanvas v-if="isMapLoaded" ref="canvasRef" />
+      <!-- Seamless Canvas Readiness Preloader (Covers everything until PixiJS canvas is 100% rendered) -->
+      <Transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition duration-400 ease-in-out"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-102 pointer-events-none"
+      >
+        <div 
+          v-if="!isCanvasReady" 
+          class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
+        >
+          <!-- Ambient Background Glows -->
+          <div class="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none"></div>
+          <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-87.5 bg-amber-500/10 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
+
+          <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-2xl shadow-amber-500/20 mb-4 animate-bounce">
+              <Shield class="w-8 h-8 sm:w-10 sm:h-10 text-amber-400" />
+            </div>
+
+            <!-- Prominent Map Title -->
+            <h2 class="text-xl sm:text-2xl font-black tracking-wider text-white uppercase mb-1 drop-shadow-md">
+              {{ mapStore.project.name || 'Battlefield' }}
+            </h2>
+            <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+              <span>{{ characterStore.loadingMessage || $t('home.loadingMap') }}</span>
+            </p>
+
+            <!-- Minimal Linear Progress Bar -->
+            <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
+              <div 
+                class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-200 rounded-full shadow-sm shadow-amber-500/50"
+                :style="{ width: `${characterStore.loadingProgress || 50}%` }"
+              ></div>
+            </div>
+            <span class="font-mono text-xs text-slate-500 font-bold">
+              {{ Math.round(characterStore.loadingProgress || 50) }}%
+            </span>
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <!-- 2. FLOATING TOP IN-GAME HUD (Semi-transparent, compact) -->
@@ -82,7 +110,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { MessageSquare, Map, Smartphone, Maximize2 } from 'lucide-vue-next'
+import { MessageSquare, Map, Shield, Smartphone, Maximize2 } from 'lucide-vue-next'
 import GameCanvas from '../components/game/GameCanvas.vue'
 import GameHud from '../components/game/GameHud.vue'
 import GameControls from '../components/game/GameControls.vue'
@@ -105,10 +133,15 @@ const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
 
 const canvasRef = ref<any>(null)
+const isCanvasReady = ref(false)
 const isChatOpen = ref(false)
 const unreadCount = ref(0)
 const isPortrait = ref(false)
 const dismissOrientationAlert = ref(false)
+
+function handleCanvasReady() {
+  isCanvasReady.value = true
+}
 
 function checkOrientation() {
   if (typeof window === 'undefined') return

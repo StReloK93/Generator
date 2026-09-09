@@ -37,44 +37,9 @@
       </div>
     </Transition>
 
-    <!-- ================= 2. MAP LOADING OVERLAY (WITH PROMINENT MAP NAME) ================= -->
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition duration-300 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0 pointer-events-none"
-    >
-      <div 
-        v-if="isMapLoading" 
-        class="fixed inset-0 z-100 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
-      >
-        <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
-          <!-- Prominent Map Name on top of loading bar -->
-          <h2 class="text-2xl sm:text-3xl font-black tracking-wider text-white uppercase mb-1 drop-shadow-md">
-            {{ loadingMapName }}
-          </h2>
-          <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase">
-            {{ $t('home.loadingMap') }}
-          </p>
-
-          <!-- Minimal Linear Progress Bar -->
-          <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
-            <div 
-              class="h-full bg-linear-to-r from-amber-500 to-amber-300 transition-all duration-150 rounded-full shadow-sm shadow-amber-500/50"
-              :style="{ width: `${mapLoadProgress}%` }"
-            ></div>
-          </div>
-          <span class="font-mono text-xs text-slate-500 font-bold">
-            {{ Math.round(mapLoadProgress) }}%
-          </span>
-        </div>
-      </div>
-    </Transition>
 
     <!-- ================= 3. TOP HEADER (ONLY PLACE WITH ISOCRAFT LOGO) ================= -->
-    <header class="relative z-20 w-full flex items-center justify-between">
+    <header class="relative z-40 w-full flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-lg sm:text-xl font-black tracking-widest text-white">
           ISOCRAFT
@@ -290,11 +255,12 @@
               variant="game-amber"
               size="sm"
               :leading-icon="Play"
-              :disabled="!selectedMapObject"
+              :loading="isStartingGame"
+              :disabled="!selectedMapObject || isStartingGame"
               class="w-full sm:w-auto justify-center px-5 font-black uppercase tracking-wider"
               @click="startSelectedMap"
             >
-              {{ $t('home.playGame') }}
+              {{ isStartingGame ? $t('home.loadingMap') : $t('home.playGame') }}
             </UiButton>
           </div>
         </div>
@@ -342,11 +308,9 @@ const notify = useNotificationStore()
 const editorSetupModalRef = ref<any>(null)
 const isFullscreenMode = ref(false)
 
-// Modals & Loaders State
+// Modals & Button States
 const isMapModalOpen = ref(false)
-const isMapLoading = ref(false)
-const loadingMapName = ref('')
-const mapLoadProgress = ref(0)
+const isStartingGame = ref(false)
 const mapSearchQuery = ref('')
 const selectedMapId = ref<string>('')
 
@@ -487,10 +451,8 @@ function startSelectedMap() {
 }
 
 async function selectAndStartMap(mapData: any) {
-  isMapModalOpen.value = false
-  loadingMapName.value = mapData.name || 'Battlefield'
-  isMapLoading.value = true
-  mapLoadProgress.value = 20
+  if (isStartingGame.value) return
+  isStartingGame.value = true
 
   try {
     characterStore.entrySource = 'home'
@@ -509,27 +471,25 @@ async function selectAndStartMap(mapData: any) {
         towerStore.blueprints = towers.map((b: any) => ({ ...b }))
       }
 
-      mapLoadProgress.value = 55
       towerStore.restoreFromProject()
       characterStore.restoreWavesFromProject()
       characterStore.detectDoors()
     }
 
-    mapLoadProgress.value = 85
-    await assetStore.loadBuiltinSprites()
-    mapLoadProgress.value = 100
+    // Preload all game textures and sprites while button spinner is running
+    await Promise.all([
+      assetManager.loadGame(),
+      assetStore.loadBuiltinSprites()
+    ])
 
-    setTimeout(() => {
-      isMapLoading.value = false
-      router.push('/game')
-    }, 350)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    isMapModalOpen.value = false
+    await router.push('/game')
   } catch (err) {
     console.error('Error starting map:', err)
-    mapLoadProgress.value = 100
-    setTimeout(() => {
-      isMapLoading.value = false
-      router.push('/game')
-    }, 200)
+    notify.error('Failed to load map')
+  } finally {
+    isStartingGame.value = false
   }
 }
 

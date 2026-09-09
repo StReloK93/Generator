@@ -10,7 +10,8 @@ import {
   TeammateHover,
   CompactUnitSnapshot,
   CompactCombatEvent,
-  PLAYER_COLORS 
+  PLAYER_COLORS,
+  getSlotColor
 } from '../types/multiplayer'
 import { networkService } from '../services/networkService'
 import { networkSyncBuffer } from '../services/networkSync'
@@ -32,8 +33,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   const myPlayerId = ref<string>(`p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`)
   const myPlayerName = ref<string>(savedName)
-  const myPlayerColor = ref<string>(savedColor)
   const mySlotIndex = ref<number>(0)
+  const myPlayerColor = computed(() => getSlotColor(mySlotIndex.value))
   const isHost = ref<boolean>(false)
 
   // Global Router Reference for automatic screen transitions
@@ -99,15 +100,13 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     return slots.value.find(s => s.slotIndex === mySlotIndex.value) || null
   })
 
-  function setPlayerProfile(name: string, color: string) {
+  function setPlayerProfile(name: string, _color?: string) {
     myPlayerName.value = name.trim() || 'Player'
-    myPlayerColor.value = color
     localStorage.setItem('isocraft_player_name', myPlayerName.value)
-    localStorage.setItem('isocraft_player_color', myPlayerColor.value)
 
     if (myPlayer.value) {
       myPlayer.value.name = myPlayerName.value
-      myPlayer.value.color = myPlayerColor.value
+      myPlayer.value.color = getSlotColor(myPlayer.value.slotIndex)
       syncLobbyState()
     }
   }
@@ -164,11 +163,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
     const startGold = mapProject.gameSettings?.startingGold || characterStore.startingGold || 150
 
-    // Setup Host Player
+    // Setup Host Player (Slot 0 is Slot 1 = Red)
     const hostPlayer: PlayerInfo = {
       id: myPlayerId.value,
       name: myPlayerName.value,
-      color: myPlayerColor.value,
+      color: getSlotColor(0),
       slotIndex: 0,
       isHost: true,
       isReady: true,
@@ -335,12 +334,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           return
         }
 
-        // Color collision avoidance
-        const usedColors = new Set(players.value.map(p => p.color))
-        let assignedColor = applicant.color
-        if (usedColors.has(assignedColor)) {
-          assignedColor = PLAYER_COLORS.find(c => !usedColors.has(c)) || PLAYER_COLORS[emptySlot.slotIndex % PLAYER_COLORS.length]
-        }
+        // Slot-based authoritative color
+        const assignedColor = getSlotColor(emptySlot.slotIndex)
 
         const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
 
@@ -412,6 +407,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           currentSlot.player = null
           targetSlot.player = player
           player.slotIndex = targetSlotIndex
+          player.color = getSlotColor(targetSlotIndex)
           syncLobbyState()
         }
         break
@@ -751,6 +747,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         currentSlot.player = null
         target.player = myPlayer.value
         myPlayer.value.slotIndex = targetSlotIndex
+        myPlayer.value.color = getSlotColor(targetSlotIndex)
         mySlotIndex.value = targetSlotIndex
         syncLobbyState()
       }

@@ -7,7 +7,7 @@
     </div>
 
     <!-- Header Bar -->
-    <header class="relative z-10 w-full px-3 sm:px-6 py-2 sm:py-3 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0">
+    <header class="relative z-40 w-full px-3 sm:px-6 py-2 sm:py-3 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between gap-2 shrink-0">
       <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
         <!-- Back to Home Button -->
         <UiButton
