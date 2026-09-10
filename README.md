@@ -1,4 +1,4 @@
-# 🏰 Isocraft - Isometric Map Generator & Tower Defense Game
+# 🏰 Defensor - Tower Defense Game & Map Engine
 
 A high-performance Isometric Map Editor and playable Tower Defense Game built with **Vue 3**, **TypeScript**, **Pinia**, **PixiJS 8**, and **Tailwind CSS**.
 

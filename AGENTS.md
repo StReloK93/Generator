@@ -1,4 +1,4 @@
-# Isocraft: Isometric Map Generator & Tower Defense Game Engine
+# Defensor: Tower Defense Game & Isometric Map Engine
 
 Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida qurilgan professional izometrik xarita muharriri (Redaktor) va to'liq interaktiv Tower Defense (TD) o'yin dvijogidir.
 

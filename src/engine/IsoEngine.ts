@@ -1,5 +1,5 @@
 import { Application, Container, Graphics, Sprite, Texture, Text, TextStyle, ImageSource } from 'pixi.js'
-import { MapProject, AssetItem, GridCoord, Point2D, SelectedElementRef } from '../types/map'
+import { MapProject, AssetItem, GridCoord, Point2D, SelectedElementRef, UnitVariantType } from '../types/map'
 import { networkSyncBuffer } from '../services/networkSync'
 import { assetManager } from '../services/assetManager'
 import characterManifest from '../assets/generated/characterManifest.json'
@@ -11,6 +11,8 @@ import {
   getFootprintBaseCenter,
   isInsideGrid 
 } from '../utils/isometric'
+import { getVariantDef, getVariantTint } from '../utils/unitVariants'
+import { renderPixiUnitEffect } from '../utils/unitEffectRenderer'
 
 export class IsoEngine {
   public app: Application
@@ -1366,13 +1368,20 @@ export class IsoEngine {
     const isGame = Boolean(characterStore.isGameMode)
     const isDrawing = !isGame && Boolean(characterStore.isDrawingRoute)
     const drawingPathLen = characterStore.drawingPath?.length || 0
+    const drawingWpLen = characterStore.drawingWaypoints?.length || 0
+    const selectedWpIdx = characterStore.selectedWaypointIndex ?? -1
     const showSpawns = !isGame && (characterStore.showSpawnPoints !== false || isDrawing || Boolean(characterStore.isSettingSpawnPoint))
     const doorsCount = characterStore.detectedDoors?.length || 0
-    const selectedDoorIdx = characterStore.selectedDoorIndex || 0
+    const selectedDoorIdx = (characterStore.selectedDoorIndex !== null && characterStore.selectedDoorIndex !== undefined) ? characterStore.selectedDoorIndex : -1
     const spawnMode = characterStore.spawnMode || 'all_doors'
     const currentRouteLen = characterStore.currentActiveRoute?.length || 0
 
-    const trailSignature = `${isGame}_${isDrawing}_${drawingPathLen}_${showSpawns}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}`
+    const wpHash = isDrawing && characterStore.drawingWaypoints 
+      ? characterStore.drawingWaypoints.map((p: GridCoord) => `${p.col},${p.row}`).join('|')
+      : ''
+    const showLines = Boolean(characterStore.showPathTrail !== false)
+
+    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}`
 
     // 1. Draw Custom Route / Patrol Trail & Spawn Overlay (Always above all elements)
     if (isDrawing || trailSignature !== this.lastTrailSignature) {
@@ -1407,73 +1416,187 @@ export class IsoEngine {
           })
         }
 
-        // 2. Render actively drawing route with vivid glowing green line & waypoints on top
+        // 2. Render actively drawing route connecting line (expanded path)
         const activeRoute = characterStore.drawingPath
-        if (activeRoute && activeRoute.length > 0) {
-          const pts = (activeRoute as GridCoord[]).map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+        if (activeRoute && activeRoute.length > 1) {
+          const screenPts = activeRoute.map((p: GridCoord) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+          
+          // High-contrast dark outline
+          this.pathTrailGraphics.moveTo(screenPts[0].x, screenPts[0].y)
+          for (let i = 1; i < screenPts.length; i++) {
+            this.pathTrailGraphics.lineTo(screenPts[i].x, screenPts[i].y)
+          }
+          this.pathTrailGraphics.stroke({ width: 8, color: 0x090d16, alpha: 0.95 })
 
-          if (pts.length > 1) {
-            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-            for (let i = 1; i < pts.length; i++) {
-              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-            }
-            this.pathTrailGraphics.stroke({ width: 6, color: 0x090d16, alpha: 0.85 })
+          // Glowing active path stroke
+          this.pathTrailGraphics.moveTo(screenPts[0].x, screenPts[0].y)
+          for (let i = 1; i < screenPts.length; i++) {
+            this.pathTrailGraphics.lineTo(screenPts[i].x, screenPts[i].y)
+          }
+          this.pathTrailGraphics.stroke({ width: 4.5, color: 0x10b981, alpha: 0.95 })
 
-            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-            for (let i = 1; i < pts.length; i++) {
-              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-            }
-            this.pathTrailGraphics.stroke({ width: 3.5, color: 0x10b981, alpha: 1.0 })
+          // Glowing pulse waypoint dots along path
+          for (let i = 0; i < screenPts.length; i += 3) {
+            this.pathTrailGraphics
+              .circle(screenPts[i].x, screenPts[i].y, 3)
+              .fill({ color: 0x34d399, alpha: 0.85 })
+              .stroke({ width: 1, color: 0xffffff, alpha: 0.95 })
+          }
+        }
+
+        // 3. Discrete Numbered Waypoint Circle Badges ([ 1 ], [ 2 ], [ 3 ]...)
+        const waypoints: GridCoord[] = characterStore.drawingWaypoints || []
+        for (let i = 0; i < waypoints.length; i++) {
+          const wp = waypoints[i]
+          const pt = gridToScreen(wp.col, wp.row, tileWidth, tileHeight)
+          const isSelected = i === selectedWpIdx
+          const isStart = i === 0
+          const isEnd = i === waypoints.length - 1 && waypoints.length > 1
+
+          // 3.1 Ground Isometric Diamond Footprint
+          const groundPoly = getCellPolygon(wp.col, wp.row, tileWidth, tileHeight)
+          if (isSelected) {
+            this.spawnOverlayGraphics
+              .poly(groundPoly)
+              .fill({ color: 0xfacc15, alpha: 0.45 })
+              .stroke({ width: 2.5, color: 0xfacc15, alpha: 1.0 })
+          } else if (isStart) {
+            this.spawnOverlayGraphics
+              .poly(groundPoly)
+              .fill({ color: 0xf59e0b, alpha: 0.3 })
+              .stroke({ width: 2, color: 0xf59e0b, alpha: 0.8 })
+          } else if (isEnd) {
+            this.spawnOverlayGraphics
+              .poly(groundPoly)
+              .fill({ color: 0x38bdf8, alpha: 0.3 })
+              .stroke({ width: 2, color: 0x38bdf8, alpha: 0.8 })
+          } else {
+            this.spawnOverlayGraphics
+              .poly(groundPoly)
+              .fill({ color: 0x10b981, alpha: 0.2 })
+              .stroke({ width: 1.5, color: 0x10b981, alpha: 0.6 })
           }
 
-          // Draw start door marker & waypoint dots
-          for (let i = 0; i < pts.length; i++) {
-            const isStart = i === 0
-            const isEnd = i === pts.length - 1
-            const radius = isStart || isEnd ? 7 : 4
-            const colr = isStart ? 0xf59e0b : (isEnd ? 0x38bdf8 : 0x10b981)
+          // 3.2 Waypoint Circle Node Badge
+          const circleRadius = isSelected ? 15 : (isStart || isEnd ? 13 : 11.5)
+          const fillColor = isSelected 
+            ? 0xf59e0b 
+            : (isStart ? 0xf97316 : (isEnd ? 0x0284c7 : 0x10b981))
 
+          if (isSelected) {
+            // Glowing Double Pulse Rings around selected waypoint
             this.pathTrailGraphics
-              .circle(pts[i].x, pts[i].y, radius)
-              .fill({ color: colr, alpha: 1.0 })
-              .stroke({ width: 2, color: 0xffffff, alpha: 0.95 })
+              .circle(pt.x, pt.y, 23)
+              .stroke({ width: 2, color: 0xffffff, alpha: 0.8 })
+            this.pathTrailGraphics
+              .circle(pt.x, pt.y, 18)
+              .stroke({ width: 3.5, color: 0xfacc15, alpha: 1.0 })
+          } else if (isStart) {
+            this.pathTrailGraphics
+              .circle(pt.x, pt.y, 16)
+              .stroke({ width: 2, color: 0xf59e0b, alpha: 0.7 })
+          } else if (isEnd) {
+            this.pathTrailGraphics
+              .circle(pt.x, pt.y, 16)
+              .stroke({ width: 2, color: 0x38bdf8, alpha: 0.7 })
+          }
+
+          // Main Circle Body
+          this.pathTrailGraphics
+            .circle(pt.x, pt.y, circleRadius)
+            .fill({ color: fillColor, alpha: 1.0 })
+            .stroke({ width: isSelected ? 3 : 2.5, color: 0xffffff, alpha: 1.0 })
+
+          // 3.3 Number Text Badge inside circle (1, 2, 3...)
+          const numText = new Text({
+            text: String(i + 1),
+            style: new TextStyle({
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: isSelected ? 12 : 11,
+              fontWeight: '900',
+              fill: 0xffffff,
+              stroke: { color: 0x090d16, width: 2.5 },
+              align: 'center',
+            })
+          })
+          numText.anchor.set(0.5, 0.5)
+          numText.position.set(pt.x, pt.y)
+          this.spawnMarkersContainer.addChild(numText)
+
+          // 3.4 Floating status tag if selected
+          if (isSelected) {
+            const selTag = new Text({
+              text: `Point #${i + 1} (Click to move)`,
+              style: new TextStyle({
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontSize: 10,
+                fontWeight: 'bold',
+                fill: 0xfacc15,
+                stroke: { color: 0x090d16, width: 3 },
+                align: 'center',
+              })
+            })
+            selTag.anchor.set(0.5, 1.0)
+            selTag.position.set(pt.x, pt.y - 26)
+            this.spawnMarkersContainer.addChild(selTag)
           }
         }
       } else if (showSpawns) {
         // Draw route trails for all active doors or single door (Rendered on top!)
-        const routesToDraw: GridCoord[][] = (spawnMode === 'all_doors' && characterStore.detectedDoors && characterStore.detectedDoors.length > 1)
-          ? characterStore.detectedDoors.map((_: any, idx: number) => characterStore.getRouteForDoor ? characterStore.getRouteForDoor(idx) : characterStore.currentActiveRoute)
-          : [characterStore.currentActiveRoute]
+        if (characterStore.showPathTrail !== false) {
+          const doors = characterStore.detectedDoors || []
+          const routesToDraw: { route: GridCoord[]; dIdx: number }[] = (doors.length > 0)
+            ? doors.map((_: any, idx: number) => ({
+                route: characterStore.getRouteForDoor ? characterStore.getRouteForDoor(idx) : characterStore.currentActiveRoute,
+                dIdx: idx
+              }))
+            : [{ route: characterStore.currentActiveRoute, dIdx: 0 }]
 
-        const colors = [0x8b5cf6, 0x38bdf8, 0xf59e0b, 0x10b981]
+          const colors = [0x10b981, 0x38bdf8, 0xf59e0b, 0xec4899, 0x8b5cf6, 0x06b6d4]
+          const isAnyRouteSelected = selectedDoorIdx >= 0
 
-        routesToDraw.forEach((route, rIdx) => {
-          if (!route || route.length <= 1) return
-          const pts = route.map(p => gridToScreen(p.col, p.row, tileWidth, tileHeight))
-          const c = colors[rIdx % colors.length]
+          routesToDraw.forEach(({ route, dIdx }) => {
+            if (!route || route.length <= 1) return
+            const pts = route.map(p => gridToScreen(p.col, p.row, tileWidth, tileHeight))
+            const isSelectedRoute = (selectedDoorIdx >= 0 && dIdx === selectedDoorIdx)
+            const baseColor = colors[dIdx % colors.length]
+            const c = isSelectedRoute ? 0x10b981 : baseColor
+            const lineAlpha = isSelectedRoute ? 1.0 : (isAnyRouteSelected ? 0.32 : 0.75)
+            const lineWidth = isSelectedRoute ? 4.5 : 2.5
+            const outlineWidth = isSelectedRoute ? 7.5 : 4.5
 
-          // 1. Dark outline for high contrast over any tile/building
-          this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-          for (let i = 1; i < pts.length; i++) {
-            this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-          }
-          this.pathTrailGraphics.stroke({ width: 5.5, color: 0x090d16, alpha: 0.85 })
+            // 1. Dark outline for high contrast over any tile/building
+            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
+            for (let i = 1; i < pts.length; i++) {
+              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
+            }
+            this.pathTrailGraphics.stroke({ width: outlineWidth, color: 0x090d16, alpha: isSelectedRoute ? 0.95 : (isAnyRouteSelected ? 0.4 : 0.65) })
 
-          // 2. Colored glow route stroke
-          this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
-          for (let i = 1; i < pts.length; i++) {
-            this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
-          }
-          this.pathTrailGraphics.stroke({ width: 3, color: c, alpha: 0.95 })
+            // 2. Glowing colored route stroke (with radiant halo for selected route)
+            if (isSelectedRoute) {
+              this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
+              for (let i = 1; i < pts.length; i++) {
+                this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
+              }
+              this.pathTrailGraphics.stroke({ width: lineWidth + 4, color: 0x34d399, alpha: 0.35 })
+            }
 
-          // 3. Glowing waypoint beads
-          for (let i = 0; i < pts.length; i += 3) {
-            this.pathTrailGraphics
-              .circle(pts[i].x, pts[i].y, 3)
-              .fill({ color: c, alpha: 1.0 })
-              .stroke({ width: 1.5, color: 0xffffff, alpha: 0.9 })
-          }
-        })
+            this.pathTrailGraphics.moveTo(pts[0].x, pts[0].y)
+            for (let i = 1; i < pts.length; i++) {
+              this.pathTrailGraphics.lineTo(pts[i].x, pts[i].y)
+            }
+            this.pathTrailGraphics.stroke({ width: lineWidth, color: c, alpha: lineAlpha })
+
+            // 3. Glowing waypoint beads
+            const step = isSelectedRoute ? 2 : 4
+            for (let i = 0; i < pts.length; i += step) {
+              this.pathTrailGraphics
+                .circle(pts[i].x, pts[i].y, isSelectedRoute ? 3.5 : 2.5)
+                .fill({ color: c, alpha: lineAlpha })
+                .stroke({ width: isSelectedRoute ? 1.5 : 1, color: 0xffffff, alpha: isSelectedRoute ? 0.95 : 0.5 })
+            }
+          })
+        }
       }
 
       // 1.5 Render Glowing Top-Layer Spawn Point Beacons & Badges on Map (Always above all elements)
@@ -1482,7 +1605,7 @@ export class IsoEngine {
           const c = door.spawnCol !== undefined ? door.spawnCol : door.col
           const r = door.spawnRow !== undefined ? door.spawnRow : door.row
           const pt = gridToScreen(c, r, tileWidth, tileHeight)
-          const isSelected = selectedDoorIdx === dIdx
+          const isSelected = selectedDoorIdx >= 0 && selectedDoorIdx === dIdx
           const beaconColor = isSelected ? 0xf59e0b : 0x10b981
           const poly = getCellPolygon(c, r, tileWidth, tileHeight)
 
@@ -1514,8 +1637,10 @@ export class IsoEngine {
             .circle(pt.x, badgeY + 8, 3.5)
             .fill({ color: beaconColor, alpha: 1.0 })
 
-          // 5. Floating badge background pill card
-          const labelText = `${door.name || `Door ${dIdx + 1}`} (${c}, ${r})`
+          // 5. Floating badge background pill card (Clean label without duplicated coordinates)
+          const rawName = door.name || `Route ${dIdx + 1}`
+          const cleanName = rawName.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${dIdx + 1}`
+          const labelText = `${cleanName} (${c}, ${r})`
           const cardW = Math.max(80, labelText.length * 6.8 + 16)
           const cardH = 22
           this.spawnOverlayGraphics
@@ -1601,6 +1726,7 @@ export class IsoEngine {
 
       const shadow = container.getChildAt(0) as Graphics
       const sprite = container.getChildAt(1) as Sprite
+      const marker = container.getChildAt(2) as Graphics
 
       // Get Texture from AssetManager
       const actionPrefix = unit.action || 'Idle'
@@ -1627,11 +1753,31 @@ export class IsoEngine {
 
         sprite.scale.set(baseScale * (modelKey === 'male' ? 0.95 : scaleMult) * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
-      }
 
-      // Hide ground shadow as requested
-      shadow.visible = false
-      shadow.alpha = 0
+        // Apply Unit Variant GPU Tinting & Real Dynamic Elemental Particle Effects
+        const variant = (unit.unitVariant || 'normal') as UnitVariantType
+        sprite.tint = getVariantTint(variant, unit.variantTint)
+
+        if (!unit.isDead) {
+          renderPixiUnitEffect({
+            marker,
+            shadow,
+            variant,
+            tileWidth,
+            tileHeight,
+            customUnitScale,
+            fadeAlpha,
+            unitIndex: i,
+            animTime: performance.now() * 0.001
+          })
+        } else {
+          shadow.visible = false
+          marker.visible = false
+        }
+      } else {
+        shadow.visible = false
+        marker.visible = false
+      }
 
       // Position (with customizable vertical height elevation offset)
       const unitOffsetY = unit.offsetY ?? 0

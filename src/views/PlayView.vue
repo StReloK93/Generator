@@ -72,7 +72,7 @@
         <UiInput
           v-model="roomName"
           :label="$t('play.roomName') + ':'"
-          placeholder="e.g. Burbenog TD Co-op"
+          :placeholder="$t('play.roomNamePlaceholder')"
           :maxlength="32"
           size="sm"
         />
@@ -110,7 +110,7 @@
 
               <div class="flex items-center gap-1 text-[9px] text-amber-300 font-semibold pt-1 mt-1 border-t border-slate-800/80">
                 <Users class="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                <span>Max: {{ m.playersCount }}</span>
+                <span>{{ $t('common.max') }}: {{ m.playersCount }}</span>
               </div>
             </UiCard>
           </div>
@@ -239,10 +239,10 @@
 
     <!-- Bottom Navigation / Status -->
     <footer class="relative z-10 w-full px-4 py-1.5 max-w-4xl mx-auto flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-900 shrink-0">
-      <span>Isocraft TD</span>
+      <span>Defensor TD</span>
       <span class="flex items-center gap-1.5">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-        <span>Online</span>
+        <span>{{ $t('common.online') }}</span>
       </span>
     </footer>
   </div>
@@ -359,10 +359,10 @@ async function handleCreateRoom() {
       mapStore.project,
       router
     )
-    notify.success(`Room "${roomName.value}" created successfully!`)
+    notify.success(t('play.roomCreated', { name: roomName.value }))
   } catch (err: any) {
     console.error('Failed to create room:', err)
-    notify.error('Failed to create room: ' + (err?.message || ''), 'Room Error')
+    notify.error(t('play.roomCreationError', { error: err?.message || '' }), t('common.error'))
   } finally {
     isCreatingRoom.value = false
   }
@@ -379,10 +379,10 @@ async function joinRoom(code: string) {
   try {
     multiplayerStore.setPlayerProfile(playerName.value)
     await multiplayerStore.joinGame(code, router)
-    notify.success(`Connected to room: ${code}`)
+    notify.success(t('play.connectedToRoom', { code }))
   } catch (err: any) {
     console.error('Failed to join:', err)
-    notify.error('Failed to connect: ' + (err?.message || ''), 'Connection Error')
+    notify.error(t('play.roomConnectionError', { error: err?.message || '' }), t('common.error'))
   } finally {
     isJoining.value = false
   }

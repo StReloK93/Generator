@@ -19,8 +19,8 @@
           <UiTabs
             v-model="viewMode"
             :items="[
-              { id: 'isometric', label: 'Iso Grid', icon: Boxes },
-              { id: 'sprite', label: 'Sprite 2D', icon: Image }
+              { id: 'isometric', label: $t('anchor.viewIso'), icon: Boxes },
+              { id: 'sprite', label: $t('anchor.viewSprite'), icon: Image }
             ]"
             size="xs"
           />
@@ -29,7 +29,7 @@
           <div class="flex items-center gap-2">
             <!-- Sprite Opacity Toggle -->
             <div class="flex items-center gap-1">
-              <span class="text-[10px] text-slate-500 font-semibold px-0.5">Opacity:</span>
+              <span class="text-[10px] text-slate-500 font-semibold px-0.5">{{ $t('anchor.opacity') }}</span>
               <UiTabs
                 v-model="spriteOpacity"
                 :items="[
@@ -48,23 +48,24 @@
                 :icon="ZoomOut" 
                 size="xs" 
                 variant="ghost" 
-                title="Zoom Out"
+                :title="$t('anchor.zoomOut')"
                 :disabled="zoom <= 0.5"
                 @click="adjustZoom(-0.25)" 
               />
-              <button 
-                type="button"
-                class="px-1.5 py-0.5 text-[11px] font-mono text-slate-300 hover:text-brand-300 transition-colors cursor-pointer"
-                title="Reset Zoom"
+              <UiButton 
+                size="xs"
+                variant="ghost"
+                custom-class="px-1.5! py-0.5! text-[11px]! font-mono text-slate-300 hover:text-brand-300"
+                :title="$t('anchor.resetZoom')"
                 @click="resetView"
               >
                 {{ Math.round(zoom * 100) }}%
-              </button>
+              </UiButton>
               <UiIconButton 
                 :icon="ZoomIn" 
                 size="xs" 
                 variant="ghost" 
-                title="Zoom In"
+                :title="$t('anchor.zoomIn')"
                 :disabled="zoom >= 4.0"
                 @click="adjustZoom(0.25)" 
               />
@@ -162,7 +163,7 @@
               :style="contentBoundsStyle"
             >
               <span class="absolute -top-3.5 left-0 text-[8px] font-mono text-amber-300 font-bold px-1 bg-slate-950/90 rounded border border-amber-400/40">
-                bounds
+                {{ $t('anchor.bounds') }}
               </span>
             </div>
 
@@ -176,7 +177,7 @@
               }"
             >
               <div class="w-7 h-14 bg-linear-to-t from-cyan-500 to-cyan-300/50 rounded-t-full border border-cyan-200 flex items-center justify-center text-[9px] font-extrabold text-slate-950 shadow-md">
-                Unit
+                {{ $t('anchor.unit') }}
               </div>
             </div>
           </div>
@@ -273,7 +274,7 @@
             <div class="px-2.5 py-1 rounded-xl bg-slate-950/95 border border-slate-800 text-[11px] font-mono text-slate-200 backdrop-blur-md flex items-center gap-2 shadow-md">
               <span class="text-rose-400 font-bold flex items-center gap-1">
                 <Crosshair class="w-3 h-3" />
-                <span>Pivot:</span>
+                <span>{{ $t('anchor.pivot') }}</span>
               </span>
               <span>X: {{ Math.round(currentX * 1000) / 10 }}%</span>
               <span class="text-slate-600">|</span>
@@ -285,42 +286,33 @@
             <!-- Controls Notice -->
             <div class="hidden sm:flex px-2.5 py-1 rounded-xl bg-slate-950/90 border border-slate-800 text-[10px] text-slate-400 backdrop-blur-md items-center gap-1">
               <Compass class="w-3 h-3 text-brand-400" />
-              <span>Use right panel controls & arrows</span>
+              <span>{{ $t('anchor.usePanelNotice') }}</span>
             </div>
           </div>
         </div>
 
         <!-- Viewport Helpers Toggle Row -->
-        <div class="flex flex-wrap items-center justify-between gap-1.5 px-1 text-xs text-slate-400">
-          <div class="flex items-center gap-2.5">
-            <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 select-none">
-              <input 
-                v-model="showGroundGuide" 
-                type="checkbox" 
-                class="rounded border-slate-700 bg-slate-900 text-brand-500 focus:ring-0 w-3.5 h-3.5 cursor-pointer" 
-              />
-              <span class="text-[11px]">Ground Slab</span>
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 select-none">
-              <input 
-                v-model="showUnitGuide" 
-                type="checkbox" 
-                class="rounded border-slate-700 bg-slate-900 text-brand-500 focus:ring-0 w-3.5 h-3.5 cursor-pointer" 
-              />
-              <span class="text-[11px]">Unit Scale</span>
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 select-none">
-              <input 
-                v-model="showBoundsGuide" 
-                type="checkbox" 
-                class="rounded border-slate-700 bg-slate-900 text-brand-500 focus:ring-0 w-3.5 h-3.5 cursor-pointer" 
-              />
-              <span class="text-[11px]">Content Bounds</span>
-            </label>
+        <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-400">
+          <div class="flex items-center gap-3">
+            <UiSwitch 
+              v-model="showGroundGuide"
+              size="sm"
+              :label="$t('anchor.groundSlab')"
+            />
+            <UiSwitch 
+              v-model="showUnitGuide"
+              size="sm"
+              :label="$t('anchor.unitScale')"
+            />
+            <UiSwitch 
+              v-model="showBoundsGuide"
+              size="sm"
+              :label="$t('anchor.contentBounds')"
+            />
           </div>
 
           <span class="text-[10px] text-slate-400 font-mono bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">
-            Native: {{ resolvedWidth }}×{{ resolvedHeight }} px
+            {{ $t('anchor.nativeSize', { w: resolvedWidth, h: resolvedHeight }) }}
           </span>
         </div>
 
@@ -334,7 +326,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
               <Compass class="w-3.5 h-3.5 text-brand-400" />
-              <span>Nudge Pivot</span>
+              <span>{{ $t('anchor.nudgePivot') }}</span>
             </span>
 
             <!-- Step Selector (1px, 5px, 10px) -->
@@ -354,7 +346,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              title="Nudge Left (ArrowLeft)"
+              :title="$t('anchor.nudgeLeft')"
               @click="nudge(-nudgeStep, 0)"
             >
               <ArrowLeft class="w-4 h-4" />
@@ -362,7 +354,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              title="Nudge Up (ArrowUp)"
+              :title="$t('anchor.nudgeUp')"
               @click="nudge(0, -nudgeStep)"
             >
               <ArrowUp class="w-4 h-4" />
@@ -370,7 +362,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              title="Reset Center (0.5, 0.5)"
+              :title="$t('anchor.resetCenter')"
               custom-class="text-brand-400! font-black"
               @click="setPreset(0.5, 0.5)"
             >
@@ -379,7 +371,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              title="Nudge Down (ArrowDown)"
+              :title="$t('anchor.nudgeDown')"
               @click="nudge(0, nudgeStep)"
             >
               <ArrowDown class="w-4 h-4" />
@@ -387,7 +379,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              title="Nudge Right (ArrowRight)"
+              :title="$t('anchor.nudgeRight')"
               @click="nudge(nudgeStep, 0)"
             >
               <ArrowRight class="w-4 h-4" />
@@ -399,7 +391,7 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
           <!-- Pixel X -->
           <div class="flex flex-col gap-1 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xs">
-            <span class="text-[11px] font-semibold text-slate-400">Anchor X:</span>
+            <span class="text-[11px] font-semibold text-slate-400">{{ $t('anchor.anchorX') }}</span>
             <UiNumberInput
               :model-value="currentPixelX"
               variant="compact"
@@ -417,7 +409,7 @@
 
           <!-- Pixel Y -->
           <div class="flex flex-col gap-1 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xs">
-            <span class="text-[11px] font-semibold text-slate-400">Anchor Y:</span>
+            <span class="text-[11px] font-semibold text-slate-400">{{ $t('anchor.anchorY') }}</span>
             <UiNumberInput
               :model-value="currentPixelY"
               variant="compact"
@@ -436,67 +428,67 @@
 
         <!-- 3. Smart Anchor Presets -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-[11px] font-semibold text-slate-400">Smart Presets:</span>
+          <span class="text-[11px] font-semibold text-slate-400">{{ $t('anchor.smartPresets') }}</span>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="Mountain"
-              title="Align with top diamond surface for thick ground cliffs"
+              :title="$t('anchor.topSurfaceTitle')"
               custom-class="justify-start! text-left!"
               @click="applyTopSurfacePreset"
             >
-              Top Surface
+              {{ $t('anchor.topSurface') }}
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="TreePine"
-              title="Bottom of sprite for trees, characters and buildings"
+              :title="$t('anchor.bottomTitle')"
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 1.0)"
             >
-              Bottom (100%)
+              {{ $t('anchor.bottom') }}
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="Focus"
-              title="Exact center for flat tiles (128x64)"
+              :title="$t('anchor.centerTitle')"
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 0.5)"
             >
-              Center (50%)
+              {{ $t('anchor.center') }}
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="Footprints"
-              title="Auto-detect bottom of non-transparent pixels"
+              :title="$t('anchor.autoFeetTitle')"
               custom-class="justify-start! text-left!"
               @click="applyAutoFeetPreset"
             >
-              Auto Feet
+              {{ $t('anchor.autoFeet') }}
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="Lightbulb"
-              title="Top center (0.5, 0.0)"
+              :title="$t('anchor.topTitle')"
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 0.0)"
             >
-              Top (0%)
+              {{ $t('anchor.top') }}
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="Castle"
-              title="Tall object anchor (0.5, 0.88)"
+              :title="$t('anchor.tallTitle')"
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 0.88)"
             >
-              Tall (88%)
+              {{ $t('anchor.tall') }}
             </UiButton>
           </div>
         </div>
@@ -504,8 +496,8 @@
         <!-- 4. Grid Footprint Span Selector -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-semibold text-[11px]">Footprint Span:</span>
-            <span class="font-mono text-brand-300 font-bold text-xs">{{ currentSpanX }}×{{ currentSpanY }} cells</span>
+            <span class="text-slate-400 font-semibold text-[11px]">{{ $t('anchor.footprintSpan') }}</span>
+            <span class="font-mono text-brand-300 font-bold text-xs">{{ $t('anchor.cellsCount', { x: currentSpanX, y: currentSpanY }) }}</span>
           </div>
           <UiTabs
             :model-value="`${currentSpanX}x${currentSpanY}`"
@@ -522,17 +514,17 @@
         <!-- 5. Base Scale Multiplier -->
         <div class="flex flex-col gap-1 pt-1 border-t border-slate-800/80">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-semibold text-[11px]">Scale Multiplier:</span>
+            <span class="text-slate-400 font-semibold text-[11px]">{{ $t('anchor.scaleMultiplier') }}</span>
             <div class="flex items-center gap-1.5">
-              <span class="font-mono text-brand-300 font-bold text-xs">{{ Math.round(currentScale * 100) }}%</span>
-              <button 
+              <UiButton 
                 v-if="currentScale !== 1.0"
-                type="button" 
-                class="text-[10px] text-slate-400 hover:text-white underline cursor-pointer"
+                variant="ghost" 
+                size="xs"
+                custom-class="text-[10px]! px-1.5! py-0.5! text-slate-400 hover:text-white"
                 @click="currentScale = 1.0"
               >
-                Reset
-              </button>
+                {{ $t('anchor.reset') }}
+              </UiButton>
             </div>
           </div>
           <UiSlider
@@ -553,7 +545,7 @@
       <div class="flex items-center justify-between w-full">
         <div class="text-[11px] text-slate-400 flex items-center gap-1">
           <Info class="w-3.5 h-3.5 text-brand-400 shrink-0" />
-          <span>Use keyboard arrows or D-Pad to calibrate anchor</span>
+          <span>{{ $t('anchor.calibrateHint') }}</span>
         </div>
 
         <div class="flex items-center gap-2">
@@ -562,7 +554,7 @@
             size="sm"
             @click="$emit('close')"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </UiButton>
           <UiButton
             variant="primary"
@@ -570,7 +562,7 @@
             :leading-icon="Check"
             @click="save"
           >
-            Apply & Save
+            {{ $t('anchor.applySave') }}
           </UiButton>
         </div>
       </div>
@@ -586,7 +578,7 @@ import {
   Compass, Check, Info, Mountain, TreePine, 
   Focus, Footprints, Lightbulb, Castle 
 } from 'lucide-vue-next'
-import { UiModal, UiSlider, UiButton, UiIconButton, UiTabs, UiNumberInput } from './ui'
+import { UiModal, UiSlider, UiButton, UiIconButton, UiTabs, UiNumberInput, UiSwitch } from './ui'
 import { AssetItem } from '../types/map'
 import { useAssetStore } from '../stores/assetStore'
 

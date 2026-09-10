@@ -114,11 +114,11 @@
           <!-- 2. Bottom Permanent Scale Badge (Click to type scale or press S) -->
           <div 
             class="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg bg-slate-900/95 border border-emerald-500/80 text-emerald-300 font-mono text-[9px] font-bold whitespace-nowrap shadow-xl flex items-center gap-1.5 pointer-events-auto cursor-pointer hover:bg-emerald-950 hover:border-emerald-400 hover:scale-105 transition-all"
-            title="Change scale (or press 'S' on keyboard)"
+            :title="$t('assetEditor.scaleChange')"
             @mousedown.stop
             @click.stop="openQuickScaleModal"
           >
-            <span class="text-slate-400 font-normal">Scale:</span>
+            <span class="text-slate-400 font-normal">{{ $t('common.scale') }}:</span>
             <span class="text-white font-black">{{ Math.abs(part.scaleX).toFixed(2) }}x</span>
             <span class="bg-emerald-500/20 text-emerald-300 px-1 rounded text-[8px] border border-emerald-500/30 font-bold">S</span>
           </div>
@@ -128,37 +128,37 @@
             v-if="isScaling && activeScaleValue !== null"
             class="absolute -bottom-14 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-slate-900/95 border-2 border-emerald-400 text-emerald-300 font-mono text-xs font-black shadow-2xl flex items-center gap-1.5 pointer-events-none z-50 whitespace-nowrap animate-pulse ring-4 ring-emerald-500/30"
           >
-            <span>SCALE:</span>
+            <span>{{ $t('common.scale').toUpperCase() }}:</span>
             <span class="text-white text-sm font-black">{{ activeScaleValue.toFixed(2) }}x</span>
-            <span class="text-[9px] text-emerald-400/80 font-normal">(0.05 step)</span>
+            <span class="text-[9px] text-emerald-400/80 font-normal">(0.05)</span>
           </div>
 
           <!-- 4. Corner Scale Handles (0.05 Step Scaling) -->
           <!-- Top-Left Handle -->
           <div 
             class="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-500 rounded-sm shadow-md hover:scale-125 transition-transform cursor-nwse-resize pointer-events-auto hover:bg-amber-300"
-            title="Change scale (0.05 step)"
+            :title="$t('assetEditor.scaleStepTip')"
             @mousedown.stop="handleScaleStart($event, part, 'tl')"
           ></div>
 
           <!-- Top-Right Handle -->
           <div 
             class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-500 rounded-sm shadow-md hover:scale-125 transition-transform cursor-nesw-resize pointer-events-auto hover:bg-amber-300"
-            title="Change scale (0.05 step)"
+            :title="$t('assetEditor.scaleStepTip')"
             @mousedown.stop="handleScaleStart($event, part, 'tr')"
           ></div>
 
           <!-- Bottom-Right Handle -->
           <div 
             class="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-500 rounded-sm shadow-md hover:scale-125 transition-transform cursor-nwse-resize pointer-events-auto hover:bg-amber-300"
-            title="Change scale (0.05 step)"
+            :title="$t('assetEditor.scaleStepTip')"
             @mousedown.stop="handleScaleStart($event, part, 'br')"
           ></div>
 
           <!-- Bottom-Left Handle -->
           <div 
             class="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-500 rounded-sm shadow-md hover:scale-125 transition-transform cursor-nesw-resize pointer-events-auto hover:bg-amber-300"
-            title="Change scale (0.05 step)"
+            :title="$t('assetEditor.scaleStepTip')"
             @mousedown.stop="handleScaleStart($event, part, 'bl')"
           ></div>
         </div>
@@ -168,16 +168,16 @@
     <!-- Quick Tooltip / Hotkey Indicator Banner -->
     <div class="absolute top-4 left-4 z-30 flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-2xl shadow-xl backdrop-blur-md text-[10px] text-slate-300 font-mono">
       <span class="text-amber-400 font-bold">Shift+Click:</span>
-      <span>Multi-select</span>
+      <span>{{ $t('assetEditor.multiSelectHint') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-emerald-400 font-bold">"S" key:</span>
-      <span>Exact Scale Input</span>
+      <span>{{ $t('assetEditor.exactScaleHint') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-amber-400 font-bold">Corners:</span>
-      <span>0.05 Scale</span>
+      <span>{{ $t('assetEditor.cornerScaleHint') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-amber-400 font-bold">Ctrl+Wheel:</span>
-      <span>Z-Index</span>
+      <span>{{ $t('assetEditor.zIndexHint') }}</span>
     </div>
 
     <!-- Selected Part Live Scale Indicator in Viewport HUD -->
@@ -185,16 +185,17 @@
       v-if="store.selectedParts.length > 0" 
       class="absolute top-4 right-4 z-30 flex items-center gap-2 bg-slate-900/95 border border-emerald-500/50 px-3 py-1.5 rounded-2xl shadow-xl backdrop-blur-md font-mono text-xs"
     >
-      <span class="text-slate-400 text-[10px]">Scale:</span>
+      <span class="text-slate-400 text-[10px]">{{ $t('common.scale') }}:</span>
       <span class="text-emerald-300 font-black text-sm">{{ Math.abs(store.selectedPart?.scaleX || 1.0).toFixed(2) }}x</span>
-      <button 
-        type="button" 
-        class="px-1.5 py-0.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold transition-colors cursor-pointer"
+      <UiButton 
+        variant="ghost"
+        size="xs"
+        custom-class="px-1.5! py-0.5! rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px]! font-bold"
         title="Press 'S' on keyboard"
         @click="openQuickScaleModal"
       >
-        (S) Change
-      </button>
+        (S) {{ $t('common.edit') }}
+      </UiButton>
     </div>
 
     <!-- Viewport Floating HUD Controls (Zoom, Pan Reset, Grid Toggle) -->
@@ -203,7 +204,7 @@
         :icon="ZoomOut" 
         size="sm" 
         variant="ghost" 
-        title="Zoom Out (-)" 
+        :title="$t('anchor.zoomOut') + ' (-)'" 
         @click="zoomOut" 
       />
       <span class="text-[11px] font-mono font-bold text-amber-300 w-12 text-center">
@@ -213,7 +214,7 @@
         :icon="ZoomIn" 
         size="sm" 
         variant="ghost" 
-        title="Zoom In (+)" 
+        :title="$t('anchor.zoomIn') + ' (+)'" 
         @click="zoomIn" 
       />
       
@@ -223,7 +224,7 @@
         :icon="RotateCcw" 
         size="sm" 
         variant="ghost" 
-        title="Reset View (Pan & Zoom)" 
+        :title="$t('assetEditor.resetView')" 
         @click="store.resetView()" 
       />
       
@@ -232,7 +233,7 @@
         size="sm" 
         :variant="store.showGridGuide ? 'tool' : 'ghost'"
         :active="store.showGridGuide"
-        title="Toggle 2:1 Isometric Grid Guide" 
+        :title="$t('assetEditor.toggleGrid')" 
         @click="store.showGridGuide = !store.showGridGuide" 
       />
     </div>
@@ -253,23 +254,22 @@
               <Scaling class="w-4 h-4" />
             </div>
             <div>
-              <span class="text-xs font-bold text-white block">Enter Exact Scale</span>
-              <span class="text-[10px] text-slate-400 block font-mono">Confirm with "Enter"</span>
+              <span class="text-xs font-bold text-white block">{{ $t('assetEditor.enterExactScale') }}</span>
+              <span class="text-[10px] text-slate-400 block font-mono">{{ $t('assetEditor.confirmEnter') }}</span>
             </div>
           </div>
-          <button 
-            type="button" 
-            class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+          <UiIconButton 
+            :icon="X"
+            size="xs"
+            variant="ghost"
             @click="closeQuickScale"
-          >
-            <X class="w-4 h-4" />
-          </button>
+          />
         </div>
 
         <!-- Numeric Input Box -->
         <div class="flex flex-col gap-1.5">
           <label class="text-[11px] font-mono font-bold text-slate-300">
-            Scale Multiplier:
+            {{ $t('assetEditor.scaleMultiplier') }}:
           </label>
           <div class="relative">
             <input 
@@ -290,27 +290,28 @@
 
         <!-- Preset Fast Buttons -->
         <div class="flex flex-col gap-1">
-          <span class="text-[10px] text-slate-400 font-mono">Quick Presets:</span>
+          <span class="text-[10px] text-slate-400 font-mono">{{ $t('assetEditor.quickPresets') }}</span>
           <div class="grid grid-cols-6 gap-1">
-            <button 
+            <UiButton 
               v-for="p in [0.1, 0.25, 0.5, 0.75, 1.0, 1.5]"
               :key="p"
-              type="button"
-              class="py-1 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-300 font-mono text-[10px] font-bold transition-all border border-slate-700 cursor-pointer text-center"
+              variant="secondary"
+              size="xs"
+              custom-class="font-mono text-[10px]! p-1! justify-center"
               @click="quickScaleInput = p.toString(); applyQuickScale()"
             >
               {{ p }}x
-            </button>
+            </UiButton>
           </div>
         </div>
 
         <!-- Modal Actions -->
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
           <UiButton variant="ghost" size="sm" @click="closeQuickScale">
-            Cancel (Esc)
+            {{ $t('common.cancel') }} (Esc)
           </UiButton>
           <UiButton variant="game-green" size="sm" @click="applyQuickScale">
-            Apply (Enter)
+            {{ $t('common.apply') }} (Enter)
           </UiButton>
         </div>
       </div>

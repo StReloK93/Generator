@@ -8,8 +8,8 @@
           <Boxes class="w-4 h-4" />
         </div>
         <div>
-          <h3 class="font-bold text-xs text-white">Sprite Library</h3>
-          <p class="text-[10px] text-slate-400">Add components to canvas</p>
+          <h3 class="font-bold text-xs text-white">{{ $t('sidebar.spriteLibrary') }}</h3>
+          <p class="text-[10px] text-slate-400">{{ $t('assetEditor.addComponents') }}</p>
         </div>
       </div>
       <UiBadge variant="cyan" size="xs">
@@ -22,7 +22,7 @@
       <UiInput 
         v-model="searchQuery" 
         size="sm" 
-        placeholder="Search sprites..." 
+        :placeholder="$t('sidebar.searchAssets')" 
         :leading-icon="Search" 
         clearable 
       />
@@ -44,7 +44,7 @@
         v-for="asset in filteredAssets"
         :key="asset.id"
         class="group relative rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-400/60 hover:bg-slate-800/60 p-1.5 flex flex-col items-center justify-center cursor-pointer transition-all duration-150 aspect-square hover:scale-105 active:scale-95 shadow-sm overflow-hidden"
-        :title="`${asset.name} (Click to add)`"
+        :title="`${asset.name} (${$t('assetEditor.clickToAdd')})`"
         @click="handleAdd(asset)"
       >
         <!-- Sprite Image (Trimmed and centered for Asset Editor) -->
@@ -68,7 +68,7 @@
     <!-- Quick Tip Footer -->
     <div class="p-2 border-t border-slate-800 bg-slate-950/60 text-[10px] text-slate-400 flex items-center gap-1.5 shrink-0">
       <Sparkles class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-      <span class="truncate">Click sprite to add to canvas</span>
+      <span class="truncate">{{ $t('assetEditor.clickToAdd') }}</span>
     </div>
   </aside>
 </template>
@@ -76,24 +76,26 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Boxes, Search, Plus, Sparkles } from 'lucide-vue-next'
-import { UiInput, UiBadge, UiTabs } from '../ui'
+import { UiInput, UiBadge, UiTabs, TabItem } from '../ui'
 import { useAssetStore } from '../../stores/assetStore'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
+import { useI18n } from '../../stores/i18nStore'
 import { AssetItem } from '../../types/map'
 
 const assetStore = useAssetStore()
 const editorStore = useAssetEditorStore()
+const { t } = useI18n()
 
 const searchQuery = ref('')
 const selectedCategory = ref('all')
 
-const categories = [
-  { id: 'all', label: 'All' },
-  { id: 'walls', label: 'Walls & Towers' },
-  { id: 'ground', label: 'Ground & Stone' },
-  { id: 'stairs', label: 'Stairs & Bridges' },
-  { id: 'props', label: 'Objects & Props' },
-]
+const categories = computed<TabItem[]>(() => [
+  { id: 'all', label: t('common.all') },
+  { id: 'walls', label: t('config.catWalls') },
+  { id: 'ground', label: t('config.catGround') },
+  { id: 'stairs', label: t('config.catStairs') },
+  { id: 'props', label: t('config.catProps') },
+])
 
 const filteredAssets = computed(() => {
   let list = assetStore.assets

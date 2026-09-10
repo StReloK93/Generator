@@ -1,39 +1,20 @@
 <template>
-  <div class="relative w-full rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden shadow-xl select-none flex flex-col">
-    
-    <!-- Top Model Selection Bar / Header -->
-    <div class="flex items-center justify-between gap-2 p-2.5 bg-slate-900/90 border-b border-slate-800/80">
-      <div v-if="showModelSelector" class="flex items-center gap-1.5">
-        <span class="text-xs font-bold text-slate-300">Unit Model:</span>
-        <UiTabs
-          :model-value="currentModel"
-          :items="availableModels.map(m => ({ id: m.id, label: m.name }))"
-          size="xs"
-          @update:model-value="(id) => selectModel(id as CharacterModel)"
-        />
-      </div>
-
-      <div v-else class="flex items-center gap-2">
-        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-          <span class="capitalize text-purple-300">{{ currentModel }}</span>
-        </span>
-      </div>
-
-      <!-- Action State Badge -->
-      <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-[11px] font-mono text-purple-300 ml-auto">
-        <span class="font-semibold capitalize">{{ currentAction }}</span>
-        <span class="text-slate-500">({{ currentFrameIndex + 1 }}/{{ totalFramesForAction }})</span>
-      </div>
-    </div>
-
+  <div class="relative w-full rounded-xl bg-slate-900 border border-slate-700/80 overflow-hidden shadow-xl select-none flex flex-col">
     <!-- Main Live Canvas Viewport -->
-    <div ref="containerRef" class="relative w-full h-52 sm:h-56 bg-slate-950 overflow-hidden">
+    <div ref="containerRef" class="relative w-full h-40 sm:h-50 bg-slate-800 overflow-hidden">
       <canvas ref="canvasRef" class="w-full h-full block"></canvas>
 
       <!-- Absolute Top-Left Asset Badge -->
       <div class="absolute top-2.5 left-2.5 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-slate-200">
         <span class="text-[11px] font-mono font-bold truncate max-w-40 sm:max-w-48 text-purple-300 capitalize">
           {{ currentModel }}
+        </span>
+        <span 
+          v-if="unitVariant && unitVariant !== 'normal'" 
+          class="text-[10px] font-bold px-1.5 py-0.5 rounded border capitalize flex items-center gap-1"
+          :style="{ color: activeVariantDef.color, borderColor: activeVariantDef.color + '60', backgroundColor: activeVariantDef.color + '20' }"
+        >
+          {{ unitVariant }}
         </span>
         <span v-if="unitScale && unitScale !== 1" class="text-[10px] font-mono text-purple-300 bg-purple-950/70 px-1 py-0.2 rounded border border-purple-800/60">
           {{ unitScale }}x
@@ -45,7 +26,7 @@
     </div>
 
     <!-- 8 Directions Control Bar (Beneath Canvas) -->
-    <div class="flex items-center justify-center flex-wrap gap-1.5 px-2 py-1.5 bg-slate-900/95 border-t border-slate-800/80">
+    <div class="flex items-center justify-center flex-wrap gap-1.5 px-2 py-1.5 bg-slate-800/95 border-t border-slate-700/80">
       <UiButton
         v-for="d in directionItems"
         :key="d.dir"
@@ -59,7 +40,7 @@
     </div>
 
     <!-- Bottom Dynamic Animation Action Tester Buttons -->
-    <div class="flex items-center justify-center gap-1.5 p-2 bg-slate-900/90 border-t border-slate-800/80 flex-wrap">
+    <div class="flex items-center justify-center gap-1.5 p-2 bg-slate-800/90 border-t border-slate-700/80 flex-wrap">
       <UiButton
         v-for="act in currentModelActions"
         :key="act.id"
@@ -80,10 +61,12 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { 
   ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowLeft, ArrowRight, 
   ArrowDownLeft, ArrowDown, ArrowDownRight,
-  Swords, Crosshair, Wand2, User, Skull, Shield 
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiTabs } from '../ui'
+import { UiButton,  UiTabs, } from '../ui'
 import { CharacterAction, CharacterModel } from '../../stores/characterStore'
+import { UnitVariantType } from '../../types/map'
+import { getVariantDef } from '../../utils/unitVariants'
+import { renderCanvasUnitEffect } from '../../utils/unitEffectRenderer'
 import characterManifest from '../../assets/generated/characterManifest.json'
 import { assetManager } from '../../services/assetManager'
 
@@ -95,6 +78,8 @@ const props = withDefaults(
     animSpeed?: number
     offsetY?: number
     unitScale?: number
+    unitVariant?: UnitVariantType
+    variantTint?: number | string
   }>(),
   {
     modelValue: 'male',
@@ -103,6 +88,7 @@ const props = withDefaults(
     animSpeed: 1.0,
     offsetY: 0,
     unitScale: 1.0,
+    unitVariant: 'normal',
   }
 )
 
@@ -244,6 +230,62 @@ function getStabilizedImageForFrame(model: CharacterModel, direction: number, ac
   return entry
 }
 
+const activeVariantDef = computed(() => {
+  return getVariantDef(props.unitVariant)
+})
+
+// Offscreen buffer for 2D sprite tinting
+let offscreenCanvas: HTMLCanvasElement | null = null
+let offscreenCtx: CanvasRenderingContext2D | null = null
+
+function drawTintedSprite(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  tintColor: string
+) {
+  if (!tintColor || props.unitVariant === 'normal') {
+    ctx.drawImage(img, x, y, w, h)
+    return
+  }
+
+  const natW = img.naturalWidth || img.width
+  const natH = img.naturalHeight || img.height
+  if (!natW || !natH) return
+
+  if (!offscreenCanvas) {
+    offscreenCanvas = document.createElement('canvas')
+    offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: false })
+  }
+
+  if (offscreenCanvas.width !== natW || offscreenCanvas.height !== natH) {
+    offscreenCanvas.width = natW
+    offscreenCanvas.height = natH
+  }
+
+  if (offscreenCtx) {
+    offscreenCtx.clearRect(0, 0, natW, natH)
+    offscreenCtx.drawImage(img, 0, 0)
+
+    // Color tint pass
+    offscreenCtx.globalCompositeOperation = 'source-atop'
+    offscreenCtx.fillStyle = tintColor
+    offscreenCtx.fillRect(0, 0, natW, natH)
+
+    // Blend texture back
+    offscreenCtx.globalCompositeOperation = 'multiply'
+    offscreenCtx.drawImage(img, 0, 0)
+    offscreenCtx.globalCompositeOperation = 'source-over'
+
+    ctx.drawImage(offscreenCanvas, x, y, w, h)
+  } else {
+    ctx.drawImage(img, x, y, w, h)
+  }
+}
+
 function renderFrame(timestamp: number) {
   if (!lastTimestamp) lastTimestamp = timestamp
   const speedMult = Math.max(0.1, props.animSpeed || 1.0)
@@ -286,13 +328,30 @@ function renderFrame(timestamp: number) {
   // --- DRAW CANVAS SCENE ---
   ctx.clearRect(0, 0, width, height)
 
-  // 1. Authentic Isometric Grid Tile Platform (Katak)
   const centerX = width / 2
   const centerY = height * 0.70
   const tileRadiusX = 64
   const tileRadiusY = 32
   const slabDepth = 7
 
+  // Studio Lighting Backdrop (Slate-Gray with Center Soft Glow)
+  const bgGrad = ctx.createRadialGradient(centerX, centerY - 35, 15, centerX, centerY - 35, Math.max(width, height) * 0.75)
+  bgGrad.addColorStop(0, '#475569') // slate-600 center illumination
+  bgGrad.addColorStop(0.55, '#334155') // slate-700
+  bgGrad.addColorStop(1, '#1e293b') // slate-800 outer corners
+  ctx.fillStyle = bgGrad
+  ctx.fillRect(0, 0, width, height)
+
+  // Soft studio rim backlight behind character body for contrast
+  const studioLight = ctx.createRadialGradient(centerX, centerY - 35, 5, centerX, centerY - 35, 85)
+  studioLight.addColorStop(0, 'rgba(241, 245, 249, 0.15)')
+  studioLight.addColorStop(1, 'rgba(241, 245, 249, 0.0)')
+  ctx.fillStyle = studioLight
+  ctx.beginPath()
+  ctx.arc(centerX, centerY - 35, 85, 0, Math.PI * 2)
+  ctx.fill()
+
+  // 1. Authentic Isometric Grid Tile Platform (Katak)
   ctx.save()
 
   // 1A. Bottom 3D slab thickness (Left & Right isometric faces)
@@ -303,9 +362,9 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
   ctx.lineTo(centerX - tileRadiusX, centerY + slabDepth)
   ctx.closePath()
-  ctx.fillStyle = '#1e293b'
+  ctx.fillStyle = '#475569'
   ctx.fill()
-  ctx.strokeStyle = '#334155'
+  ctx.strokeStyle = '#64748b'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -316,9 +375,9 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX + tileRadiusX, centerY + slabDepth)
   ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
   ctx.closePath()
-  ctx.fillStyle = '#0f172a'
+  ctx.fillStyle = '#334155'
   ctx.fill()
-  ctx.strokeStyle = '#334155'
+  ctx.strokeStyle = '#475569'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -330,10 +389,10 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX - tileRadiusX, centerY)
   ctx.closePath()
 
-  // Clean tile fill gradient
+  // Clean tile fill gradient (Lighter Slate Gray)
   const tileGrad = ctx.createLinearGradient(centerX - tileRadiusX, centerY - tileRadiusY, centerX + tileRadiusX, centerY + tileRadiusY)
-  tileGrad.addColorStop(0, '#1e293b')
-  tileGrad.addColorStop(1, '#0f172a')
+  tileGrad.addColorStop(0, '#64748b') // slate-500
+  tileGrad.addColorStop(1, '#475569') // slate-600
   ctx.fillStyle = tileGrad
   ctx.fill()
 
@@ -345,7 +404,7 @@ function renderFrame(timestamp: number) {
   // West-to-East axis line
   ctx.moveTo(centerX - tileRadiusX, centerY)
   ctx.lineTo(centerX + tileRadiusX, centerY)
-  ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)'
+  ctx.strokeStyle = 'rgba(226, 232, 240, 0.4)'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -356,15 +415,20 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX, centerY + tileRadiusY)
   ctx.lineTo(centerX - tileRadiusX, centerY)
   ctx.closePath()
-  ctx.strokeStyle = 'rgba(100, 116, 139, 0.8)'
+  ctx.strokeStyle = 'rgba(203, 213, 225, 0.85)'
   ctx.lineWidth = 1.5
   ctx.stroke()
 
   ctx.restore()
 
+  const animTime = timestamp * 0.001
+  const customUnitScale = Number(props.unitScale) || 1.0
+  const variant = props.unitVariant || 'normal'
+
   // 2. Draw Character Sprite (With smooth flicker-free cache & height elevation offset)
   const entry = getStabilizedImageForFrame(currentModel.value, currentDirection.value, currentAction.value, currentFrameIndex.value)
   const activeEntry = (entry && entry.img.complete && entry.img.naturalWidth > 0) ? entry : lastRenderedEntry
+  const heightElevation = Number(props.offsetY) || 0
 
   if (activeEntry && activeEntry.img.complete && activeEntry.img.naturalWidth > 0) {
     lastRenderedEntry = activeEntry
@@ -372,18 +436,38 @@ function renderFrame(timestamp: number) {
     const modelMeta = (characterManifest as any)?.[modelKey]
     const baseModelScale = modelMeta?.scale ?? 0.8
     const baseDrawScale = (modelKey === 'male' ? 0.52 : baseModelScale * 0.6)
-    const customUnitScale = Number(props.unitScale) || 1.0
     const drawScale = baseDrawScale * customUnitScale
 
     const drawW = activeEntry.width * drawScale
     const drawH = activeEntry.height * drawScale
 
     const drawX = centerX - drawW * activeEntry.anchorX
-    // Apply vertical height elevation offset (props.offsetY lifts the unit above the katak)
-    const heightElevation = Number(props.offsetY) || 0
     const drawY = centerY - drawH * activeEntry.anchorY - heightElevation
 
-    ctx.drawImage(activeEntry.img, drawX, drawY, drawW, drawH)
+    // Draw sprite with variant color tinting
+    drawTintedSprite(ctx, activeEntry.img, drawX, drawY, drawW, drawH, activeVariantDef.value.color)
+  }
+
+  // 3. Draw Dynamic Organic Elemental Magic Effects via SOLID UnitEffectRenderer (No artificial disks!)
+  if (variant && variant !== 'normal') {
+    const unitBaseY = centerY - heightElevation
+    const bodyChestY = unitBaseY - 36 * customUnitScale
+    const bodyHeadY = unitBaseY - 58 * customUnitScale
+    const bodyWaistY = unitBaseY - 20 * customUnitScale
+    const bodyFeetY = unitBaseY - 2 * customUnitScale
+
+    renderCanvasUnitEffect({
+      ctx,
+      centerX,
+      centerY,
+      bodyHeadY,
+      bodyChestY,
+      bodyWaistY,
+      bodyFeetY,
+      customUnitScale,
+      animTime,
+      variant
+    })
   }
 
   animationFrameId = requestAnimationFrame(renderFrame)

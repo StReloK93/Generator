@@ -38,31 +38,35 @@
     </Transition>
 
 
-    <!-- ================= 3. TOP HEADER (ONLY PLACE WITH ISOCRAFT LOGO) ================= -->
+    <!-- ================= 3. TOP HEADER (ONLY PLACE WITH DEFENSOR LOGO) ================= -->
     <header class="relative z-40 w-full flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-lg sm:text-xl font-black tracking-widest text-white">
-          ISOCRAFT
+          DEFENSOR
         </span>
       </div>
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <!-- Map Architect -->
+        <!-- Map Architect (Desktop only) -->
         <UiButton
+          v-if="isDesktopDevice"
           variant="secondary"
           size="xs"
           :leading-icon="Layers"
+          custom-class="desktop-only-btn hidden! lg:inline-flex!"
           @click="goToEditor"
         >
           {{ $t('home.mapArchitect') }}
         </UiButton>
 
-        <!-- Asset Editor -->
+        <!-- Asset Editor (Desktop only) -->
         <UiButton
+          v-if="isDesktopDevice"
           variant="secondary"
           size="xs"
           :leading-icon="Palette"
+          custom-class="desktop-only-btn hidden! lg:inline-flex!"
           @click="router.push('/asset-editor')"
         >
           {{ $t('home.assetEditor') }}
@@ -117,7 +121,6 @@
 
     <!-- ================= 5. MINIMAL FOOTER ================= -->
     <footer class="relative z-20 w-full flex items-center justify-between text-[11px] font-medium text-slate-500 pt-2 border-t border-slate-900">
-      <span>Tower Defense</span>
       <span>v1.0.0</span>
     </footer>
 
@@ -137,17 +140,10 @@
           v-model="mapSearchQuery"
           :placeholder="$t('home.searchMaps')"
           :leading-icon="Search"
+          clearable
           size="sm"
           class="w-full"
         />
-        <button
-          v-if="mapSearchQuery"
-          type="button"
-          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer"
-          @click="mapSearchQuery = ''"
-        >
-          ✕
-        </button>
       </div>
 
       <!-- Scrollable Maps Grid (Designed for 100+ maps) -->
@@ -294,6 +290,7 @@ import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useNotificationStore } from '../stores/notificationStore'
+import { useI18n } from '../stores/i18nStore'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import { assetManager } from '../services/assetManager'
 import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
@@ -304,19 +301,31 @@ const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const assetStore = useAssetStore()
 const notify = useNotificationStore()
+const { t } = useI18n()
 
 const editorSetupModalRef = ref<any>(null)
 const isFullscreenMode = ref(false)
+const isDesktopDevice = ref(false)
+
+function checkIsDesktopDevice() {
+  if (typeof window === 'undefined') return
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+  const isSmallDevice = Math.min(window.innerWidth, window.innerHeight) < 600
+  const isSmallWidth = window.innerWidth < 1024
+
+  isDesktopDevice.value = !isMobileUA && !isTouch && !isSmallDevice && !isSmallWidth
+}
+
+function checkFullscreenState() {
+  isFullscreenMode.value = isAppFullscreen()
+}
 
 // Modals & Button States
 const isMapModalOpen = ref(false)
 const isStartingGame = ref(false)
 const mapSearchQuery = ref('')
 const selectedMapId = ref<string>('')
-
-function checkFullscreenState() {
-  isFullscreenMode.value = isAppFullscreen()
-}
 
 // Preloader State
 const isPreloading = ref(true)
@@ -371,6 +380,9 @@ function openMapModal() {
 
 onMounted(async () => {
   checkFullscreenState()
+  checkIsDesktopDevice()
+  window.addEventListener('resize', checkIsDesktopDevice)
+  window.addEventListener('orientationchange', checkIsDesktopDevice)
   document.addEventListener('fullscreenchange', checkFullscreenState)
   document.addEventListener('webkitfullscreenchange', checkFullscreenState)
 
@@ -383,6 +395,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', checkIsDesktopDevice)
+  window.removeEventListener('orientationchange', checkIsDesktopDevice)
   document.removeEventListener('fullscreenchange', checkFullscreenState)
   document.removeEventListener('webkitfullscreenchange', checkFullscreenState)
 })
@@ -456,6 +470,7 @@ async function selectAndStartMap(mapData: any) {
 
   try {
     characterStore.entrySource = 'home'
+    characterStore.startLoadingScreen(mapData?.name || t('game.battlefield'))
     const rawData = mapData.raw as any
     if (rawData) {
       const proj = rawData.project || rawData
@@ -521,3 +536,17 @@ function handleCustomMapFile(e: Event) {
   reader.readAsText(file)
 }
 </script>
+
+<style scoped>
+/* Strictly hide editor buttons on all mobile phones, touch devices, and landscape mobile views */
+@media (pointer: coarse), (max-height: 550px), (hover: none) {
+  .desktop-only-btn {
+    display: none !important;
+  }
+}
+@media (pointer: fine) and (min-width: 1024px) and (min-height: 550px) {
+  .desktop-only-btn {
+    display: inline-flex !important;
+  }
+}
+</style>

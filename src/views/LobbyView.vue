@@ -42,15 +42,14 @@
           <span class="font-mono text-xs sm:text-sm font-black text-amber-300 tracking-wider">
             {{ multiplayerStore.roomId || route.params.roomId }}
           </span>
-          <button 
-            type="button"
-            class="p-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 transition-colors cursor-pointer touch-target flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8"
+          <UiIconButton
+            :icon="isCopied ? Check : Copy"
+            size="xs"
+            variant="ghost"
+            :custom-class="isCopied ? 'text-emerald-400!' : 'text-amber-300! hover:bg-amber-500/20!'"
             :title="isCopied ? $t('common.copied') : $t('common.copy')"
             @click="copyRoomCode"
-          >
-            <Check v-if="isCopied" class="w-3.5 h-3.5 text-emerald-400" />
-            <Copy v-else class="w-3.5 h-3.5" />
-          </button>
+          />
         </div>
       </div>
     </header>
@@ -208,7 +207,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Users, Copy, Check, Play, BellRing, Map, Crown, Radio, Clock } from 'lucide-vue-next'
-import { UiButton, UiBadge, UiCard, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
+import { UiButton, UiIconButton, UiBadge, UiCard, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'

@@ -24,15 +24,108 @@
     />
 
     <!-- ========================================================================= -->
-    <!-- TAB 1: TOWER BLUEPRINTS                                                   -->
+    <!-- TAB 1: CLANS & TOWER BLUEPRINTS                                           -->
     <!-- ========================================================================= -->
     <div v-if="toolStore.gameConfigActiveTab === 'towers'" class="flex flex-col gap-3">
       
-      <!-- Header Actions: Blueprint tabs & Create button -->
+      <!-- 1. CLANS SELECTION & MANAGEMENT BAR -->
+      <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2.5">
+        <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+              <Swords class="w-3.5 h-3.5 text-amber-400" />
+              <span>{{ $t('clans.title') }}</span>
+            </span>
+            <UiBadge variant="amber" size="xs">{{ towerStore.clans.length }}</UiBadge>
+          </div>
+
+          <div class="flex items-center gap-1.5 ml-auto">
+            <UiButton 
+              variant="game-amber"
+              size="xs"
+              :leading-icon="Plus"
+              @click="openCreateClanModal"
+            >
+              {{ $t('clans.addClan') }}
+            </UiButton>
+          </div>
+        </div>
+
+        <!-- Clans Chips Row -->
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-0.5">
+          <button
+            v-for="clan in towerStore.clans"
+            :key="clan.id"
+            :class="[
+              'flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer',
+              towerStore.selectedEditorClanId === clan.id
+                ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md ring-1 ring-amber-400/40'
+                : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+            ]"
+            @click="towerStore.selectEditorClan(clan.id)"
+          >
+            <component 
+              :is="getClanIcon(clan.iconName)" 
+              class="w-3.5 h-3.5"
+              :style="{ color: clan.color || '#38bdf8' }" 
+            />
+            <span>{{ clan.name }}</span>
+            <span class="px-1.5 py-0.5 rounded-md bg-slate-950/80 border border-slate-800 text-[10px] font-mono text-slate-400">
+              {{ getClanTowerCount(clan.id) }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Active Clan Info & Actions -->
+        <div v-if="activeEditorClan" class="flex items-center justify-between gap-3 pt-1.5 border-t border-slate-800/60 text-xs">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div 
+              class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
+              :style="{ 
+                backgroundColor: `${activeEditorClan.color || '#38bdf8'}20`, 
+                borderColor: `${activeEditorClan.color || '#38bdf8'}60`,
+                color: activeEditorClan.color || '#38bdf8' 
+              }"
+            >
+              <component :is="getClanIcon(activeEditorClan.iconName)" class="w-4 h-4" />
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="font-bold text-white text-xs leading-tight truncate">{{ activeEditorClan.name }}</span>
+              <span class="text-slate-400 truncate text-[11px] leading-tight">{{ activeEditorClan.description || $t('clans.defaultClanName') }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <UiButton 
+              variant="secondary"
+              size="xs"
+              :leading-icon="Pencil"
+              @click="openEditClanModal(activeEditorClan)"
+            >
+              {{ $t('common.edit') }}
+            </UiButton>
+            <UiIconButton 
+              v-if="towerStore.clans.length > 1"
+              variant="ghost"
+              size="xs"
+              :icon="Trash2"
+              custom-class="text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
+              @click="confirmDeleteClan(activeEditorClan.id)"
+            />
+          </div>
+        </div>
+      </UiCard>
+
+      <!-- 2. TOWERS IN ACTIVE CLAN -->
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
         <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+          <span class="text-xs font-bold text-slate-300 mr-1 flex items-center gap-1">
+            <Shield class="w-3.5 h-3.5 text-amber-400" />
+            <span>{{ activeEditorClan ? `${activeEditorClan.name} Towers:` : 'Towers:' }}</span>
+          </span>
+
           <UiButton 
-            v-for="bp in towerStore.blueprints" 
+            v-for="bp in towerStore.editorClanBlueprints" 
             :key="bp.id"
             :variant="towerStore.selectedBlueprintId === bp.id ? 'game-amber' : 'secondary'"
             size="sm"
@@ -48,33 +141,44 @@
           size="sm"
           :leading-icon="Plus"
           custom-class="ml-auto"
-          @click="towerStore.isCreateTowerModalOpen = true"
+          @click="openCreateTowerModal"
         >
-          Create Tower
+          {{ activeEditorClan ? `+ Add Tower to ${activeEditorClan.name}` : $t('config.createTower') }}
         </UiButton>
       </div>
 
-      <!-- No Blueprints State -->
+      <!-- Clan Has No Towers Empty State -->
       <UiCard 
-        v-if="towerStore.blueprints.length === 0" 
+        v-if="towerStore.editorClanBlueprints.length === 0" 
         variant="subtle"
         padding="lg"
-        custom-class="flex flex-col items-center text-center gap-3 my-4"
+        custom-class="flex flex-col items-center text-center gap-3 my-4 border-dashed border-slate-800"
       >
-        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-          <TowerControl class="w-6 h-6" />
+        <div 
+          class="w-12 h-12 rounded-2xl flex items-center justify-center border shadow-inner"
+          :style="{ 
+            backgroundColor: `${activeEditorClan?.color || '#f59e0b'}20`, 
+            borderColor: `${activeEditorClan?.color || '#f59e0b'}60`,
+            color: activeEditorClan?.color || '#f59e0b' 
+          }"
+        >
+          <component :is="getClanIcon(activeEditorClan?.iconName)" class="w-6 h-6" />
         </div>
         <div class="flex flex-col gap-1 max-w-md">
-          <span class="font-bold text-sm text-amber-300">No defense towers configured</span>
-          <span class="text-xs text-slate-400">Select any sprite image from your library to forge custom defense towers.</span>
+          <span class="font-bold text-sm text-amber-300">
+            {{ activeEditorClan ? `No defense towers in ${activeEditorClan.name} yet` : $t('config.noTowers') }}
+          </span>
+          <span class="text-xs text-slate-400">
+            {{ activeEditorClan ? `Towers are exclusive to their Clan. Add unique defense towers for ${activeEditorClan.name}!` : $t('config.noTowersDesc') }}
+          </span>
         </div>
         <UiButton 
           variant="game-amber"
           size="md"
           :leading-icon="Plus"
-          @click="towerStore.isCreateTowerModalOpen = true"
+          @click="openCreateTowerModal"
         >
-          Create First Tower
+          {{ activeEditorClan ? `Create First Tower for ${activeEditorClan.name}` : $t('config.createFirstTower') }}
         </UiButton>
       </UiCard>
 
@@ -84,7 +188,7 @@
         <!-- Left Column: Visual Live Preview & Sprite Select -->
         <UiCard variant="amber" padding="md" custom-class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-300 text-xs truncate">Tower Appearance</span>
+            <span class="font-bold text-amber-300 text-xs truncate">{{ $t('config.towerAppearance') }}</span>
           </div>
 
           <!-- Live Combat & Range Simulator (Tower sprite + centered firing animation) -->
@@ -99,7 +203,7 @@
               :leading-icon="Image"
               @click="openChangeSpriteModal()"
             >
-              Change Sprite
+              {{ $t('config.changeSprite') }}
             </UiButton>
 
             <!-- Delete Blueprint -->
@@ -111,7 +215,7 @@
               :leading-icon="Trash2"
               @click="handleRemoveSelectedBp()"
             >
-              Delete Blueprint
+              {{ $t('config.deleteBlueprint') }}
             </UiButton>
           </div>
         </UiCard>
@@ -122,14 +226,14 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UiInput 
               :model-value="selectedBp.name"
-              label="Tower Name"
+              :label="$t('config.towerName')"
               size="sm"
               @update:model-value="(val) => updateSelectedBp({ name: String(val) })"
             />
 
             <UiNumberInput 
               :model-value="selectedBp.cost"
-              label="Build Cost (Gold)"
+              :label="$t('config.buildCost')"
               :min="10"
               :max="5000"
               :step="10"
@@ -138,12 +242,34 @@
             />
           </div>
 
+          <!-- Clan Assignment Selector -->
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-semibold text-slate-300">{{ $t('clans.belongsToClan') }}</label>
+            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+              <button
+                v-for="clan in towerStore.clans"
+                :key="clan.id"
+                type="button"
+                :class="[
+                  'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] transition-all cursor-pointer shrink-0',
+                  (selectedBp.clanId === clan.id || (!selectedBp.clanId && clan.id === towerStore.clans[0]?.id))
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                ]"
+                @click="updateSelectedBp({ clanId: clan.id })"
+              >
+                <component :is="getClanIcon(clan.iconName)" class="w-3 h-3" :style="{ color: clan.color || '#38bdf8' }" />
+                <span>{{ clan.name }}</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Damage, Attack Speed, Range Sliders -->
           <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <!-- Damage -->
             <UiSlider 
               :model-value="selectedBp.damage"
-              label="Damage"
+              :label="$t('config.damage')"
               :min="5"
               :max="500"
               :step="5"
@@ -154,7 +280,7 @@
             <!-- Attack Speed -->
             <UiSlider 
               :model-value="selectedBp.attackSpeed"
-              label="Attack Speed"
+              :label="$t('config.attackSpeed')"
               :min="0.1"
               :max="3.0"
               :step="0.1"
@@ -165,7 +291,7 @@
             <!-- Range -->
             <UiSlider 
               :model-value="selectedBp.range"
-              label="Attack Range"
+              :label="$t('config.attackRange')"
               :min="1"
               :max="12"
               :step="1"
@@ -176,7 +302,7 @@
 
           <!-- Projectile Type & Color -->
           <div class="flex flex-col gap-1.5">
-            <span class="text-[11px] font-semibold text-slate-300">Projectile Type & Animation:</span>
+            <span class="text-[11px] font-semibold text-slate-300">{{ $t('config.projectileTypeAnim') }}</span>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               <UiButton 
                 v-for="pType in projectileOptions" 
@@ -191,25 +317,296 @@
             </div>
           </div>
 
-          <!-- Splash Damage Options -->
+          <!-- Splash Damage Options & Distribution Mode -->
           <UiSwitch
             :model-value="selectedBp.isSplash"
-            label="Area of Effect (Splash AoE)"
-            description="Deals splash damage to adjacent enemies around the impact point"
+            :label="$t('config.aoeSplash')"
+            :description="$t('config.aoeSplashDesc')"
             variant="amber"
             @update:model-value="(val) => updateSelectedBp({ isSplash: val })"
           />
 
-          <div v-if="selectedBp.isSplash" class="flex items-center gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <UiSlider 
-              :model-value="selectedBp.splashRadius || 1.5"
-              label="Splash Radius"
-              :min="0.5"
-              :max="5.0"
-              :step="0.5"
-              unit=" cells"
-              @update:model-value="(val) => updateSelectedBp({ splashRadius: val })"
-            />
+          <div v-if="selectedBp.isSplash" class="flex flex-col gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+              <UiSlider 
+                :model-value="selectedBp.splashRadius || 1.5"
+                :label="$t('config.splashRadius')"
+                :min="0.5"
+                :max="5.0"
+                :step="0.5"
+                unit=" cells"
+                @update:model-value="(val) => updateSelectedBp({ splashRadius: val })"
+              />
+
+              <div class="flex flex-col gap-1">
+                <span class="text-[11px] font-semibold text-slate-300">{{ $t('traits.splashType') }}</span>
+                <UiTabs 
+                  :model-value="selectedBp.splashType || 'falloff'"
+                  :items="splashTypeOptions"
+                  variant="amber"
+                  size="xs"
+                  @update:model-value="(val) => updateSelectedBp({ splashType: val as any })"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Traits & Elemental Properties Card -->
+          <div class="flex flex-col gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+            <div class="flex items-center justify-between flex-wrap gap-1.5 pb-1 border-b border-slate-800">
+              <div class="flex items-center gap-1.5">
+                <Sparkles class="w-4 h-4 text-amber-400" />
+                <span class="text-xs font-bold text-slate-200">{{ $t('traits.title') }}</span>
+              </div>
+              <UiBadge 
+                :variant="(selectedBp.traits && selectedBp.traits.length > 0) ? 'amber' : 'slate'" 
+                size="xs"
+              >
+                {{ (selectedBp.traits && selectedBp.traits.length > 0) ? $t('traits.traitsActiveCount', { count: selectedBp.traits.length }) : $t('traits.noTraitsActive') }}
+              </UiBadge>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-tight">
+              {{ $t('traits.subtitle') }}
+            </p>
+
+            <!-- Trait Toggle Buttons Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1.5">
+              <button
+                v-for="trait in TOWER_TRAITS"
+                :key="trait.id"
+                type="button"
+                @click="toggleTowerTrait(trait.id)"
+                :title="$t(trait.descKey)"
+                class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer select-none group"
+                :class="hasTowerTrait(trait.id)
+                  ? 'ring-1 ring-white/40 shadow-sm scale-102 ' + trait.bgClass + ' ' + trait.borderClass
+                  : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800/80 text-slate-400'"
+              >
+                <component 
+                  :is="trait.icon" 
+                  class="w-4 h-4 transition-transform group-hover:scale-110"
+                  :style="{ color: hasTowerTrait(trait.id) ? trait.color : '#94a3b8' }"
+                />
+                <span 
+                  class="text-[10px] font-medium truncate max-w-full mt-1"
+                  :class="hasTowerTrait(trait.id) ? 'font-bold text-slate-100' : 'text-slate-400'"
+                >
+                  {{ $t(trait.nameKey) }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Active Trait Parameter Sub-Sliders -->
+            <div v-if="selectedBp.traits && selectedBp.traits.length > 0" class="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
+              <!-- Fire Parameters -->
+              <UiCard v-if="hasTowerTrait('fire')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-orange-500/30 bg-orange-950/20">
+                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
+                  <Flame class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.fireName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.fireBonusDamage ?? 5"
+                  :label="$t('traits.fireBonusDamage')"
+                  :min="1"
+                  :max="200"
+                  :step="1"
+                  unit=" DMG"
+                  @update:model-value="(val) => updateSelectedBp({ fireBonusDamage: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.burnDps ?? 4"
+                  :label="$t('traits.burnDps')"
+                  :min="1"
+                  :max="100"
+                  :step="1"
+                  unit="/s"
+                  @update:model-value="(val) => updateSelectedBp({ burnDps: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.burnDuration ?? 3.0"
+                  :label="$t('traits.burnDuration')"
+                  :min="0.5"
+                  :max="10.0"
+                  :step="0.5"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ burnDuration: val })"
+                />
+              </UiCard>
+
+              <!-- Frost Parameters -->
+              <UiCard v-if="hasTowerTrait('frost')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-cyan-500/30 bg-cyan-950/20">
+                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
+                  <Snowflake class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.frostName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.frostBonusDamage ?? 2"
+                  :label="$t('traits.frostBonusDamage')"
+                  :min="0"
+                  :max="100"
+                  :step="1"
+                  unit=" DMG"
+                  @update:model-value="(val) => updateSelectedBp({ frostBonusDamage: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.slowPercent ?? 30"
+                  :label="$t('traits.slowPercent')"
+                  :min="5"
+                  :max="80"
+                  :step="5"
+                  unit="%"
+                  @update:model-value="(val) => updateSelectedBp({ slowPercent: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.slowDuration ?? 2.5"
+                  :label="$t('traits.slowDuration')"
+                  :min="0.5"
+                  :max="10.0"
+                  :step="0.5"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ slowDuration: val })"
+                />
+              </UiCard>
+
+              <!-- Poison Parameters -->
+              <UiCard v-if="hasTowerTrait('poison')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-emerald-500/30 bg-emerald-950/20">
+                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
+                  <Skull class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.poisonName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.poisonDps ?? 6"
+                  :label="$t('traits.poisonDps')"
+                  :min="1"
+                  :max="100"
+                  :step="1"
+                  unit="/s"
+                  @update:model-value="(val) => updateSelectedBp({ poisonDps: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.poisonDuration ?? 4.0"
+                  :label="$t('traits.poisonDuration')"
+                  :min="1.0"
+                  :max="15.0"
+                  :step="0.5"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ poisonDuration: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.poisonSlowPercent ?? 10"
+                  :label="$t('traits.poisonSlowPercent')"
+                  :min="0"
+                  :max="50"
+                  :step="5"
+                  unit="%"
+                  @update:model-value="(val) => updateSelectedBp({ poisonSlowPercent: val })"
+                />
+              </UiCard>
+
+              <!-- Stacking Ramp Parameters -->
+              <UiCard v-if="hasTowerTrait('stacking')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-amber-500/30 bg-amber-950/20">
+                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
+                  <TrendingUp class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.stackingName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.stackBonusDamage ?? 4"
+                  :label="$t('traits.stackBonusDamage')"
+                  :min="1"
+                  :max="100"
+                  :step="1"
+                  unit=" DMG/hit"
+                  @update:model-value="(val) => updateSelectedBp({ stackBonusDamage: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.maxStacks ?? 10"
+                  :label="$t('traits.maxStacks')"
+                  :min="2"
+                  :max="50"
+                  :step="1"
+                  unit=" stacks"
+                  @update:model-value="(val) => updateSelectedBp({ maxStacks: val })"
+                />
+              </UiCard>
+
+              <!-- Blood Parameters -->
+              <UiCard v-if="hasTowerTrait('blood')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-rose-500/30 bg-rose-950/20">
+                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
+                  <Droplet class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.bloodName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.bleedDps ?? 7"
+                  :label="$t('traits.bleedDps')"
+                  :min="1"
+                  :max="120"
+                  :step="1"
+                  unit="/s"
+                  @update:model-value="(val) => updateSelectedBp({ bleedDps: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.bleedDuration ?? 3.5"
+                  :label="$t('traits.bleedDuration')"
+                  :min="1.0"
+                  :max="10.0"
+                  :step="0.5"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ bleedDuration: val })"
+                />
+              </UiCard>
+
+              <!-- Electric Parameters -->
+              <UiCard v-if="hasTowerTrait('electric')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-sky-500/30 bg-sky-950/20">
+                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
+                  <Zap class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.electricName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.electricBonusDamage ?? 6"
+                  :label="$t('traits.electricBonusDamage')"
+                  :min="1"
+                  :max="150"
+                  :step="1"
+                  unit=" DMG"
+                  @update:model-value="(val) => updateSelectedBp({ electricBonusDamage: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.stunDuration ?? 0.3"
+                  :label="$t('traits.stunDuration')"
+                  :min="0.1"
+                  :max="2.0"
+                  :step="0.1"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ stunDuration: val })"
+                />
+              </UiCard>
+
+              <!-- Void Parameters -->
+              <UiCard v-if="hasTowerTrait('void')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-purple-500/30 bg-purple-950/20">
+                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
+                  <Ghost class="w-3.5 h-3.5" />
+                  <span>{{ $t('traits.voidName') }}</span>
+                </div>
+                <UiSlider 
+                  :model-value="selectedBp.voidVulnPercent ?? 25"
+                  :label="$t('traits.voidVulnPercent')"
+                  :min="5"
+                  :max="100"
+                  :step="5"
+                  unit="%"
+                  @update:model-value="(val) => updateSelectedBp({ voidVulnPercent: val })"
+                />
+                <UiSlider 
+                  :model-value="selectedBp.voidDuration ?? 4.0"
+                  :label="$t('traits.voidDuration')"
+                  :min="1.0"
+                  :max="15.0"
+                  :step="0.5"
+                  unit="s"
+                  @update:model-value="(val) => updateSelectedBp({ voidDuration: val })"
+                />
+              </UiCard>
+            </div>
           </div>
 
           <!-- Apply To Placed Towers Button -->
@@ -221,7 +618,7 @@
             custom-class="mt-auto"
             @click="handleApplySelectedBp()"
           >
-            Apply to All Placed Towers on Map
+            {{ $t('config.applyToAllTowers') }}
           </UiButton>
         </UiCard>
 
@@ -256,7 +653,7 @@
           custom-class="ml-auto"
           @click="characterStore.addNewWave()"
         >
-          New Wave
+          {{ $t('config.newWave') }}
         </UiButton>
       </div>
 
@@ -271,8 +668,8 @@
           <Swords class="w-6 h-6" />
         </div>
         <div class="flex flex-col gap-1 max-w-md">
-          <span class="font-bold text-sm text-purple-300">No waves defined</span>
-          <span class="text-xs text-slate-400">Add a wave to customize enemy density, health, unit model and bounty.</span>
+          <span class="font-bold text-sm text-purple-300">{{ $t('config.noWaves') }}</span>
+          <span class="text-xs text-slate-400">{{ $t('config.noWavesDesc') }}</span>
         </div>
         <UiButton 
           variant="primary"
@@ -280,7 +677,7 @@
           :leading-icon="Plus"
           @click="characterStore.addNewWave()"
         >
-          Create Wave 1
+          {{ $t('config.createWave1') }}
         </UiButton>
       </UiCard>
 
@@ -288,13 +685,7 @@
       <div v-else-if="selectedWave" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
         
         <!-- Left Column (1 col): Character Model & Live Animation Preview -->
-        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-purple-300 text-xs truncate">Unit Appearance</span>
-            <UiBadge :variant="getUnitBadgeVariant(selectedWave.characterModel)" size="xs">
-              <span>{{ getUnitModelDisplayName(selectedWave.characterModel) }}</span>
-            </UiBadge>
-          </div>
+        <UiCard variant="default" padding="md" custom-class="flex flex-col gap-2.5">
 
           <!-- Live Character Animation Simulator -->
           <CharacterLivePreview 
@@ -302,8 +693,46 @@
             :anim-speed="selectedWave.animSpeed || 1.0"
             :offset-y="selectedWave.offsetY || 0"
             :unit-scale="selectedWave.unitScale || 1.0"
+            :unit-variant="selectedWave.unitVariant || 'normal'"
+            :variant-tint="selectedWave.variantTint"
             :show-model-selector="false"
           />
+
+          <!-- Elemental Variant Quick Selector -->
+          <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-300">{{ $t('config.unitVariant') }}</span>
+              <span class="text-[10px] font-bold" :style="{ color: getVariantDef(selectedWave.unitVariant).color }">
+                {{ $t(getVariantDef(selectedWave.unitVariant).nameKey) }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1">
+              <button
+                v-for="v in UNIT_VARIANTS"
+                :key="v.id"
+                type="button"
+                @click="characterStore.setWaveUnitVariant(v.id)"
+                :title="$t(v.nameKey) + ' - ' + $t(v.descKey)"
+                class="flex flex-col items-center justify-center p-1.5 rounded-xl border transition-all cursor-pointer select-none group"
+                :class="(selectedWave.unitVariant || 'normal') === v.id
+                  ? 'ring-1 ring-white/40 shadow-sm scale-102 ' + v.bgClass + ' ' + v.borderClass
+                  : 'bg-slate-900/80 hover:bg-slate-800/80 border-slate-800/80 text-slate-400'"
+              >
+                <component 
+                  :is="getVariantIcon(v.icon)" 
+                  class="w-3.5 h-3.5 transition-transform group-hover:scale-110"
+                  :style="{ color: v.color }"
+                />
+                <span 
+                  class="text-[9px] font-medium truncate max-w-full mt-0.5"
+                  :class="(selectedWave.unitVariant || 'normal') === v.id ? 'font-bold text-slate-100' : 'text-slate-400'"
+                >
+                  {{ $t(v.nameKey) }}
+                </span>
+              </button>
+            </div>
+          </div>
 
           <!-- Action Button: Change Unit Appearance -->
           <UiButton 
@@ -314,7 +743,7 @@
             custom-class="mt-auto shadow-md shadow-purple-900/30"
             @click="openChangeUnitModal()"
           >
-            Change Unit Appearance
+            {{ $t('config.changeUnitAppearance') }}
           </UiButton>
         </UiCard>
 
@@ -322,8 +751,8 @@
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3 lg:col-span-2">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-purple-300 text-sm">Wave {{ characterStore.currentWaveIndex + 1 }} Settings</span>
-              <UiBadge variant="emerald" size="xs">{{ selectedWave.unitCount }} Enemies</UiBadge>
+              <span class="font-bold text-purple-300 text-sm">{{ $t('config.waveSettings', { num: characterStore.currentWaveIndex + 1 }) }}</span>
+              <UiBadge variant="emerald" size="xs">{{ $t('config.enemiesCount', { count: selectedWave.unitCount }) }}</UiBadge>
             </div>
 
             <UiButton 
@@ -333,7 +762,7 @@
               :leading-icon="Trash2"
               @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
             >
-              Delete Wave
+              {{ $t('config.deleteWave') }}
             </UiButton>
           </div>
 
@@ -343,111 +772,171 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitCount"
-                label="Enemies Count"
+                :label="$t('config.enemiesCountLabel')"
                 :min="1"
                 :max="100"
                 :step="1"
                 unit=" units"
                 @update:model-value="(val) => characterStore.setWaveUnitCount(val || 1)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Invaders spawned per wave</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.enemiesCountDesc') }}</span>
             </UiCard>
 
             <!-- 2. HP (Health) -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitHp"
-                label="Health (HP)"
+                :label="$t('config.healthHp')"
                 :min="20"
                 :max="5000"
                 :step="10"
                 unit=" HP"
                 @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Health durability per enemy unit</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.healthHpDesc') }}</span>
             </UiCard>
 
             <!-- 3. Movement Speed -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitSpeed"
-                label="Movement Speed"
+                :label="$t('config.moveSpeed')"
                 :min="0.5"
                 :max="5.0"
                 :step="0.1"
                 unit=" c/s"
                 @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Movement cells per second</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.moveSpeedDesc') }}</span>
             </UiCard>
 
-            <!-- 4. Gold Reward -->
+            <!-- 4. Unit Bonus (Kill Bounty) -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
-                :model-value="selectedWave.goldReward"
-                label="Bounty Reward"
-                :min="1"
-                :max="100"
+                :model-value="selectedWave.unitBonus ?? selectedWave.goldReward ?? 1"
+                :label="$t('config.unitBonus')"
+                :min="0"
+                :max="50"
                 :step="1"
                 unit=" gold"
-                @update:model-value="(val) => characterStore.setWaveGoldReward(val || 1)"
+                @update:model-value="(val) => characterStore.setWaveUnitBonus(val ?? 1)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Gold awarded per enemy killed & clear</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.unitBonusDesc') }}</span>
+            </UiCard>
+
+            <!-- 5. End Wave Bonus (Clear Reward) -->
+            <UiCard variant="subtle" padding="sm">
+              <UiSlider 
+                :model-value="selectedWave.endWaveBonus ?? 50"
+                :label="$t('config.endWaveBonus')"
+                :min="0"
+                :max="500"
+                :step="5"
+                unit=" gold"
+                @update:model-value="(val) => characterStore.setWaveEndBonus(val ?? 50)"
+              />
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.endWaveBonusDesc') }}</span>
             </UiCard>
 
             <!-- 5. Animation Playback Speed -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.animSpeed || 1.0"
-                label="Animation Speed"
+                :label="$t('config.animSpeed')"
                 :min="0.5"
                 :max="3.0"
                 :step="0.1"
                 unit="x"
                 @update:model-value="(val) => characterStore.setWaveAnimSpeed(val || 1.0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Unit walk/run anim cycle rate</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.animSpeedDesc') }}</span>
             </UiCard>
 
             <!-- 6. Height / Elevation Offset -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.offsetY || 0"
-                label="Elevation Offset"
+                :label="$t('config.elevationOffset')"
                 :min="-20"
                 :max="40"
                 :step="1"
                 unit="px"
                 @update:model-value="(val) => characterStore.setWaveOffsetY(val || 0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Elevation above ground tile</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.elevationOffsetDesc') }}</span>
             </UiCard>
 
             <!-- 7. Unit Scale -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitScale || 1.0"
-                label="Unit Scale"
+                :label="$t('config.unitScale')"
                 :min="0.5"
                 :max="3.0"
                 :step="0.05"
                 unit="x"
                 @update:model-value="(val) => characterStore.setWaveUnitScale(val || 1.0)"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Unit scale multiplier (0.5x - 3.0x)</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.unitScaleDesc') }}</span>
             </UiCard>
+          </div>
+
+          <!-- Wave Unit Immunities Section -->
+          <div class="flex flex-col gap-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+            <div class="flex items-center justify-between flex-wrap gap-1.5 pb-1 border-b border-slate-800">
+              <div class="flex items-center gap-1.5">
+                <Shield class="w-4 h-4 text-purple-400" />
+                <span class="text-xs font-bold text-slate-200">{{ $t('immunities.title') }}</span>
+              </div>
+              <UiBadge 
+                :variant="(selectedWave.immunities && selectedWave.immunities.length > 0) ? 'brand' : 'slate'" 
+                size="xs"
+              >
+                {{ (selectedWave.immunities && selectedWave.immunities.length > 0) ? `${selectedWave.immunities.length} immunities` : $t('immunities.none') }}
+              </UiBadge>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-tight">
+              {{ $t('immunities.desc') }}
+            </p>
+
+            <!-- Immunities Toggle Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1.5">
+              <button
+                v-for="trait in TOWER_TRAITS"
+                :key="trait.id"
+                type="button"
+                @click="toggleWaveImmunity(trait.id)"
+                :title="$t(trait.descKey)"
+                class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer select-none group"
+                :class="hasWaveImmunity(trait.id)
+                  ? 'ring-1 ring-white/40 shadow-sm scale-102 ' + trait.bgClass + ' ' + trait.borderClass
+                  : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800/80 text-slate-400'"
+              >
+                <component 
+                  :is="trait.icon" 
+                  class="w-4 h-4 transition-transform group-hover:scale-110"
+                  :style="{ color: hasWaveImmunity(trait.id) ? trait.color : '#94a3b8' }"
+                />
+                <span 
+                  class="text-[10px] font-medium truncate max-w-full mt-1"
+                  :class="hasWaveImmunity(trait.id) ? 'font-bold text-slate-100' : 'text-slate-400'"
+                >
+                  {{ $t(trait.nameKey) }}
+                </span>
+                <span v-if="hasWaveImmunity(trait.id)" class="text-[8px] font-bold text-purple-300 uppercase tracking-wider mt-0.5">
+                  {{ $t('immunities.resist') }}
+                </span>
+              </button>
+            </div>
           </div>
 
           <!-- Formation & March Settings -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800 mt-auto">
             <div class="flex flex-col gap-1.5">
-              <span class="text-[11px] font-semibold text-slate-300">March Formation:</span>
+              <span class="text-[11px] font-semibold text-slate-300">{{ $t('config.marchFormation') }}</span>
               <UiTabs 
                 v-model="characterStore.formation"
-                :items="[
-                  { id: 'pairs', label: 'Pairs (2 abreast)', icon: Users },
-                  { id: 'single', label: 'Single File (1 by 1)', icon: User },
-                ]"
+                :items="formationOptions"
                 fill
                 size="sm"
               />
@@ -456,13 +945,13 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 v-model="characterStore.pairDistance"
-                label="Unit Spacing"
+                :label="$t('config.unitSpacing')"
                 :min="0.1"
                 :max="1.5"
                 :step="0.05"
                 unit="k"
               />
-              <span class="text-[10px] text-slate-500 block mt-1">Spatial interval between marching units</span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.unitSpacingDesc') }}</span>
             </UiCard>
           </div>
         </UiCard>
@@ -481,8 +970,8 @@
             <Coins class="w-5 h-5" />
           </div>
           <div>
-            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Map Economy & Defense Balance</h3>
-            <p class="text-[11px] text-slate-400">Starting treasury, base lives and wave prep timers are saved per project</p>
+            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">{{ $t('config.mapEconomy') }}</h3>
+            <p class="text-[11px] text-slate-400">{{ $t('config.mapEconomyDesc') }}</p>
           </div>
         </div>
         <UiBadge variant="amber" size="sm" class="flex items-center gap-1">
@@ -497,12 +986,12 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Coins class="w-4 h-4 text-yellow-400" />
-              Starting Gold
+              {{ $t('config.startingGold') }}
             </span>
             <UiBadge variant="amber" size="sm">{{ characterStore.startingGold }} gold</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
-            Initial treasury given to players upon game start.
+            {{ $t('config.startingGoldDesc') }}
           </p>
           <UiSlider 
             v-model="characterStore.startingGold"
@@ -529,12 +1018,12 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Heart class="w-4 h-4 text-rose-400" />
-              Base Lives
+              {{ $t('config.baseLives') }}
             </span>
             <UiBadge variant="rose" size="sm">{{ characterStore.startingLives }} lives</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
-            Total permitted enemy breaches before defeat.
+            {{ $t('config.baseLivesDesc') }}
           </p>
           <UiSlider 
             v-model="characterStore.startingLives"
@@ -561,12 +1050,12 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Timer class="w-4 h-4 text-indigo-400" />
-              Wave Prep Timer
+              {{ $t('config.wavePrepTimer') }}
             </span>
             <UiBadge variant="brand" size="sm">{{ characterStore.wavePrepDuration }}s</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
-            Build preparation cooldown between consecutive enemy waves.
+            {{ $t('config.wavePrepTimerDesc') }}
           </p>
           <UiSlider 
             v-model="characterStore.wavePrepDuration"
@@ -593,10 +1082,10 @@
       <UiCard variant="subtle" padding="md" custom-class="flex flex-col gap-2 text-xs text-slate-300">
         <div class="font-bold text-slate-200 flex items-center gap-2">
           <Sparkles class="w-4 h-4 text-amber-400" />
-          <span>About Map Defense Balance:</span>
+          <span>{{ $t('config.aboutDefenseBalance') }}</span>
         </div>
         <p class="text-[11px] text-slate-400 leading-relaxed">
-          These settings are persisted inside the project file (<code class="text-amber-300 font-mono">.isomap.json</code>) and exported cleanly. Each imported or newly forged map retains its own autonomous balance parameters.
+          {{ $t('config.aboutDefenseBalanceDesc', { code: '.isomap.json' }) }}
         </p>
       </UiCard>
     </div>
@@ -613,13 +1102,13 @@
             <MapPin class="w-5 h-5" />
           </div>
           <div>
-            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">Enemy Spawn Points & Routes</h3>
-            <p class="text-[11px] text-slate-400">Manage door entry coordinates, custom patrol paths and map visibility</p>
+            <h3 class="font-bold text-slate-100 text-xs sm:text-sm">{{ $t('config.enemySpawnPoints') }}</h3>
+            <p class="text-[11px] text-slate-400">{{ $t('config.enemySpawnPointsDesc') }}</p>
           </div>
         </div>
 
         <UiBadge variant="emerald" size="sm">
-          {{ characterStore.detectedDoors.length }} doors
+          {{ $t('config.doorsCount', { count: characterStore.detectedDoors.length }) }}
         </UiBadge>
       </UiCard>
 
@@ -634,8 +1123,8 @@
           <MapPin class="w-6 h-6" />
         </div>
         <div class="flex flex-col gap-1 max-w-md">
-          <span class="font-bold text-sm text-emerald-300">No spawn points placed</span>
-          <p class="text-xs text-slate-400 leading-tight">Place spawn doors directly onto map cells. Invaders will emerge from these coordinates during waves.</p>
+          <span class="font-bold text-sm text-emerald-300">{{ $t('config.noSpawnPoints') }}</span>
+          <p class="text-xs text-slate-400 leading-tight">{{ $t('config.noSpawnPointsDesc') }}</p>
         </div>
         <UiButton 
           variant="game-green"
@@ -643,7 +1132,7 @@
           :leading-icon="Plus"
           @click="handleTriggerAddSpawnPoint"
         >
-          Place First Spawn Door
+          {{ $t('config.placeFirstSpawn') }}
         </UiButton>
       </UiCard>
 
@@ -654,7 +1143,7 @@
           <div class="flex items-center justify-between pb-1 border-b border-slate-800">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <MapPin class="w-4 h-4 text-emerald-400" />
-              <span>Select Spawn Door:</span>
+              <span>{{ $t('config.selectSpawnDoor') }}</span>
             </span>
 
             <UiButton 
@@ -663,7 +1152,7 @@
               :leading-icon="Plus"
               @click="handleTriggerAddSpawnPoint"
             >
-              + Place New Door
+              {{ $t('config.placeNewDoor') }}
             </UiButton>
           </div>
 
@@ -687,7 +1176,7 @@
             class="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 flex-wrap"
           >
             <div class="flex items-center gap-2 text-xs">
-              <UiBadge variant="amber" size="xs">Active: {{ characterStore.selectedDoor.name }}</UiBadge>
+              <UiBadge variant="amber" size="xs">{{ $t('config.activeDoor', { name: characterStore.selectedDoor.name }) }}</UiBadge>
               <span class="text-slate-400 font-mono text-[11px]">Cell: [{{ characterStore.selectedDoor.col }}, {{ characterStore.selectedDoor.row }}]</span>
             </div>
 
@@ -698,16 +1187,16 @@
                 :leading-icon="MapPin"
                 @click="handleTriggerRelocateSpawnPoint"
               >
-                Relocate Door
+                {{ $t('config.relocateDoor') }}
               </UiButton>
 
               <UiButton 
                 variant="danger"
                 size="xs"
                 :leading-icon="Trash2"
-                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex)"
+                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex ?? 0)"
               >
-                Delete Door
+                {{ $t('config.deleteDoor') }}
               </UiButton>
             </div>
           </div>
@@ -719,14 +1208,11 @@
           <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
             <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
               <Sparkles class="w-3.5 h-3.5 text-brand-400" />
-              <span>Spawn Distribution Mode:</span>
+              <span>{{ $t('config.spawnDistributionMode') }}</span>
             </span>
             <UiTabs 
               v-model="characterStore.spawnMode"
-              :items="[
-                { id: 'all_doors', label: 'All Doors Simultaneously', icon: Sparkles },
-                { id: 'single_door', label: 'Selected Door Only', icon: MapPin },
-              ]"
+              :items="spawnModeOptions"
               fill
               size="sm"
             />
@@ -736,7 +1222,7 @@
           <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
             <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1">
               <Navigation class="w-3.5 h-3.5 text-brand-400" />
-              <span>Custom Route Waypoints:</span>
+              <span>{{ $t('config.customRouteWaypoints') }}</span>
             </span>
 
             <div class="grid grid-cols-2 gap-2">
@@ -746,7 +1232,7 @@
                 :leading-icon="PenTool"
                 @click="handleStartDrawingRoute"
               >
-                Draw Route
+                {{ $t('config.drawRoute') }}
               </UiButton>
 
               <UiButton 
@@ -755,7 +1241,7 @@
                 :leading-icon="RotateCcw"
                 @click="characterStore.deleteCurrentRoute()"
               >
-                Clear Route
+                {{ $t('config.clearRoute') }}
               </UiButton>
             </div>
           </UiCard>
@@ -769,8 +1255,8 @@
   <!-- SELECT TOWER SPRITE MODAL (Triggered by Pencil / Change Sprite) -->
   <UiModal
     :is-open="isChangeSpriteModalOpen"
-    title="Select Tower Sprite"
-    subtitle="Choose any sprite image from the library for this defense tower"
+    :title="$t('config.selectTowerSprite')"
+    :subtitle="$t('config.selectTowerSpriteSubtitle')"
     :icon="Image"
     icon-color="amber"
     size="4xl"
@@ -782,26 +1268,18 @@
         <UiInput 
           v-model="spriteModalSearchQuery"
           size="sm"
-          placeholder="Search sprites (wall, tower, stone, column)..."
+          :placeholder="$t('config.searchSpritesPlaceholder')"
           :leading-icon="Search"
           clearable
           custom-class="w-full sm:w-72"
         />
 
-        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
-          <button
-            v-for="cat in spriteCategories"
-            :key="cat.id"
-            type="button"
-            class="px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer"
-            :class="selectedSpriteCategory === cat.id 
-              ? 'bg-amber-500 text-slate-950 font-black shadow-sm' 
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'"
-            @click="selectedSpriteCategory = cat.id"
-          >
-            {{ cat.label }}
-          </button>
-        </div>
+        <UiTabs
+          v-model="selectedSpriteCategory"
+          :items="spriteCategories"
+          size="xs"
+          variant="amber"
+        />
       </div>
 
       <!-- Preview & Sprites Grid -->
@@ -815,7 +1293,7 @@
             class="w-full h-full object-contain filter drop-shadow-xl"
           />
           <div v-else class="text-slate-500 text-xs font-mono text-center">
-            No sprite selected
+            {{ $t('config.noSpriteSelected') }}
           </div>
           <div v-if="tempSelectedAsset" class="absolute bottom-2 inset-x-2 px-2.5 py-1 rounded-xl bg-slate-900/95 border border-slate-700 text-center shadow-md">
             <span class="text-xs font-bold text-amber-300 truncate block">{{ tempSelectedAsset.name }}</span>
@@ -856,7 +1334,7 @@
           size="md"
           @click="isChangeSpriteModalOpen = false"
         >
-          Cancel
+          {{ $t('common.cancel') }}
         </UiButton>
 
         <UiButton
@@ -866,7 +1344,7 @@
           :leading-icon="Check"
           @click="saveSpriteSelection()"
         >
-          Save
+          {{ $t('common.save') }}
         </UiButton>
       </div>
     </div>
@@ -875,8 +1353,8 @@
   <!-- SELECT WAVE UNIT MODEL GALLERY MODAL -->
   <UiModal
     :is-open="isChangeUnitModalOpen"
-    title="Select Wave Unit Appearance"
-    subtitle="Choose 3D isometric enemy character model and test animations for this wave"
+    :title="$t('config.selectWaveUnit')"
+    :subtitle="$t('config.selectWaveUnitSubtitle')"
     :icon="Users"
     icon-color="brand"
     size="4xl"
@@ -886,11 +1364,11 @@
       <!-- Top Info Bar -->
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-slate-300">Available Unit Characters:</span>
-          <UiBadge variant="brand" size="xs">{{ availableCharacterModels.length }} models</UiBadge>
+          <span class="text-xs font-bold text-slate-300">{{ $t('config.availableUnits') }}</span>
+          <UiBadge variant="brand" size="xs">{{ $t('config.modelsCount', { count: availableCharacterModels.length }) }}</UiBadge>
         </div>
         <div class="text-[11px] text-slate-400">
-          Customizing: <strong class="text-purple-300 font-bold">{{ selectedWave?.name }}</strong>
+          {{ $t('config.customizingUnit', { name: selectedWave?.name || '' }) }}
         </div>
       </div>
 
@@ -919,10 +1397,10 @@
               <div class="flex flex-col">
                 <span class="font-bold text-sm text-slate-100 capitalize flex items-center gap-1.5">
                   {{ model.name }}
-                  <UiBadge v-if="selectedWave?.characterModel === model.id" variant="brand" size="xs">Current</UiBadge>
+                  <UiBadge v-if="selectedWave?.characterModel === model.id" variant="brand" size="xs">{{ $t('config.currentBadge') }}</UiBadge>
                 </span>
                 <span class="text-[11px] text-slate-400">
-                  {{ Object.keys(model.actions || {}).length }} animations
+                  {{ $t('config.animationsCount', { count: Object.keys(model.actions || {}).length }) }}
                 </span>
               </div>
             </div>
@@ -939,11 +1417,54 @@
 
         <!-- Right: Live Interactive Animation Tester & Compass (7 cols) -->
         <div class="lg:col-span-7 flex flex-col gap-2 bg-slate-900/60 rounded-2xl border border-slate-800 p-2.5">
-          <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-800 flex-wrap gap-1.5">
             <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
-              <span>Live Test: {{ getUnitModelDisplayName(tempSelectedUnitModel) }}</span>
+              <span>{{ $t('config.liveTestUnit', { name: getUnitModelDisplayName(tempSelectedUnitModel) }) }}</span>
             </span>
-            <UiBadge variant="brand" size="xs">Interactive Test</UiBadge>
+            <div class="flex items-center gap-1.5">
+              <UiBadge 
+                size="xs" 
+                :custom-class="getVariantDef(tempSelectedVariant).bgClass + ' ' + getVariantDef(tempSelectedVariant).borderClass + ' ' + getVariantDef(tempSelectedVariant).textClass + ' border'"
+              >
+                {{ $t(getVariantDef(tempSelectedVariant).nameKey) }}
+              </UiBadge>
+              <UiBadge variant="brand" size="xs">{{ $t('config.interactiveTest') }}</UiBadge>
+            </div>
+          </div>
+
+          <!-- Elemental Variant Selector Pills inside Modal -->
+          <div class="flex flex-col gap-1 p-2 rounded-xl bg-slate-950/80 border border-slate-800/80">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $t('config.unitVariant') }}</span>
+              <span class="text-[10px] font-bold" :style="{ color: getVariantDef(tempSelectedVariant).color }">
+                {{ $t(getVariantDef(tempSelectedVariant).nameKey) }}
+              </span>
+            </div>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-1">
+              <button
+                v-for="v in UNIT_VARIANTS"
+                :key="v.id"
+                type="button"
+                @click="tempSelectedVariant = v.id"
+                :title="$t(v.nameKey) + ' - ' + $t(v.descKey)"
+                class="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl border transition-all cursor-pointer select-none group"
+                :class="tempSelectedVariant === v.id
+                  ? 'ring-1 ring-white/40 shadow-sm scale-102 ' + v.bgClass + ' ' + v.borderClass
+                  : 'bg-slate-900/80 hover:bg-slate-800/80 border-slate-800/80 text-slate-400'"
+              >
+                <component 
+                  :is="getVariantIcon(v.icon)" 
+                  class="w-3.5 h-3.5 transition-transform group-hover:scale-110"
+                  :style="{ color: v.color }"
+                />
+                <span 
+                  class="text-[9px] font-medium truncate max-w-full mt-0.5"
+                  :class="tempSelectedVariant === v.id ? 'font-bold text-slate-100' : 'text-slate-400'"
+                >
+                  {{ $t(v.nameKey) }}
+                </span>
+              </button>
+            </div>
           </div>
 
           <CharacterLivePreview
@@ -951,6 +1472,8 @@
             :anim-speed="selectedWave?.animSpeed || 1.0"
             :offset-y="selectedWave?.offsetY || 0"
             :unit-scale="selectedWave?.unitScale || 1.0"
+            :unit-variant="tempSelectedVariant"
+            :variant-tint="selectedWave?.variantTint"
             :show-model-selector="false"
           />
         </div>
@@ -964,7 +1487,7 @@
           size="md"
           @click="isChangeUnitModalOpen = false"
         >
-          Cancel
+          {{ $t('common.cancel') }}
         </UiButton>
 
         <UiButton
@@ -973,10 +1496,89 @@
           :leading-icon="Check"
           @click="saveUnitSelection()"
         >
-          Save & Apply Unit
+          {{ $t('config.saveApplyUnit') }}
         </UiButton>
       </div>
 
+    </div>
+  </UiModal>
+
+  <!-- ========================================================================= -->
+  <!-- EDIT / CREATE CLAN MODAL                                                  -->
+  <!-- ========================================================================= -->
+  <UiModal
+    :is-open="isClanModalOpen"
+    :title="isNewClanMode ? $t('clans.newClan') : $t('clans.editClan')"
+    :icon="Swords"
+    icon-color="amber"
+    size="md"
+    @close="isClanModalOpen = false"
+  >
+    <div class="flex flex-col gap-3.5 select-none">
+      <UiInput
+        v-model="clanForm.name"
+        :label="$t('clans.clanName')"
+        placeholder="e.g. Glacial Order"
+      />
+
+      <UiInput
+        v-model="clanForm.description"
+        :label="$t('clans.clanDescription')"
+        placeholder="e.g. Master elementalists specialized in freezing enemy waves."
+      />
+
+      <!-- Icon Selector -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-slate-300">{{ $t('clans.clanIcon') }}</label>
+        <div class="grid grid-cols-5 sm:grid-cols-8 gap-1.5 p-2 rounded-xl bg-slate-900 border border-slate-800 max-h-36 overflow-y-auto custom-scrollbar">
+          <button
+            v-for="iconItem in CLAN_AVAILABLE_ICONS"
+            :key="iconItem.id"
+            :class="[
+              'w-9 h-9 rounded-xl flex items-center justify-center border transition-all cursor-pointer',
+              clanForm.iconName === iconItem.id
+                ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-400/40'
+                : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+            ]"
+            :title="iconItem.name"
+            @click="clanForm.iconName = iconItem.id"
+          >
+            <component :is="iconItem.icon" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Color Selector -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-slate-300">{{ $t('clans.clanColor') }}</label>
+        <div class="flex items-center gap-2 flex-wrap p-2 rounded-xl bg-slate-900 border border-slate-800">
+          <button
+            v-for="colorItem in CLAN_AVAILABLE_COLORS"
+            :key="colorItem.id"
+            :class="[
+              'w-7 h-7 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center',
+              clanForm.color === colorItem.id
+                ? 'border-white scale-110 shadow-lg'
+                : 'border-transparent hover:scale-105'
+            ]"
+            :style="{ backgroundColor: colorItem.id }"
+            :title="colorItem.name"
+            @click="clanForm.color = colorItem.id"
+          >
+            <Check v-if="clanForm.color === colorItem.id" class="w-3.5 h-3.5 text-slate-950 font-black" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <UiButton variant="secondary" size="sm" @click="isClanModalOpen = false">
+          {{ $t('common.cancel') }}
+        </UiButton>
+        <UiButton variant="game-amber" size="sm" :leading-icon="Check" @click="saveClanForm">
+          {{ $t('common.save') }}
+        </UiButton>
+      </div>
     </div>
   </UiModal>
 </template>
@@ -989,7 +1591,8 @@ import {
   Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
   Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
-  ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket
+  ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, Ghost, Droplet, Crown,
+  TrendingDown, TrendingUp, Equal
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -1009,7 +1612,10 @@ import { useTowerStore } from '../stores/towerStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
-import { AssetItem } from '../types/map'
+import { AssetItem, UnitVariantType, TowerTraitType, TowerClan } from '../types/map'
+import { UNIT_VARIANTS, UnitVariantDef, getVariantDef } from '../utils/unitVariants'
+import { TOWER_TRAITS, TowerTraitDef, getTraitDef } from '../utils/towerTraits'
+import { getClanIcon, CLAN_AVAILABLE_ICONS, CLAN_AVAILABLE_COLORS } from '../utils/towerClans'
 import { requestAppFullscreen } from '../utils/fullscreen'
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
@@ -1024,9 +1630,102 @@ const assetStore = useAssetStore()
 const mapStore = useMapStore()
 const { t } = useI18n()
 
+// Clan Management state
+const isClanModalOpen = ref(false)
+const isNewClanMode = ref(false)
+const clanForm = ref<{
+  id: string
+  name: string
+  description: string
+  iconName: string
+  color: string
+}>({
+  id: '',
+  name: '',
+  description: '',
+  iconName: 'Castle',
+  color: '#38bdf8',
+})
+
+const activeEditorClan = computed(() => towerStore.selectedEditorClan)
+
+function getClanTowerCount(clanId: string): number {
+  return towerStore.blueprints.filter(bp => {
+    if (bp.clanId) return bp.clanId === clanId
+    return clanId === towerStore.clans[0]?.id
+  }).length
+}
+
+function openCreateClanModal() {
+  isNewClanMode.value = true
+  clanForm.value = {
+    id: `clan-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    name: '',
+    description: '',
+    iconName: 'Castle',
+    color: '#38bdf8',
+  }
+  isClanModalOpen.value = true
+}
+
+function openEditClanModal(clan: TowerClan) {
+  isNewClanMode.value = false
+  clanForm.value = {
+    id: clan.id,
+    name: clan.name,
+    description: clan.description || '',
+    iconName: clan.iconName || 'Castle',
+    color: clan.color || '#38bdf8',
+  }
+  isClanModalOpen.value = true
+}
+
+function saveClanForm() {
+  const name = clanForm.value.name.trim() || (isNewClanMode.value ? 'New Clan' : 'Clan')
+  const payload = {
+    id: clanForm.value.id,
+    name,
+    description: clanForm.value.description,
+    iconName: clanForm.value.iconName,
+    color: clanForm.value.color,
+  }
+  if (isNewClanMode.value) {
+    towerStore.createClan(payload)
+  } else if (clanForm.value.id) {
+    towerStore.updateClan(clanForm.value.id, payload)
+  }
+  isClanModalOpen.value = false
+}
+
+function confirmDeleteClan(clanId: string) {
+  if (towerStore.clans.length <= 1) return
+  if (window.confirm(t('clans.deleteClanConfirm'))) {
+    towerStore.deleteClan(clanId)
+  }
+}
+
+function openCreateTowerModal() {
+  towerStore.isCreateTowerModalOpen = true
+}
+
+const variantIconMap: Record<string, any> = {
+  Shield,
+  Flame,
+  Snowflake,
+  Skull,
+  Ghost,
+  Zap,
+  Droplet,
+  Crown
+}
+
+function getVariantIcon(iconName: string) {
+  return variantIconMap[iconName] || Shield
+}
+
 const configTabItems = computed<TabItem[]>(() => [
-  { id: 'towers', label: t('config.tabTowers') || 'Towers', icon: ShieldAlert, count: towerStore.blueprints.length },
-  { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: Swords, count: characterStore.waveConfigs.length },
+  { id: 'towers', label: t('clans.title') || 'Clans & Towers', icon: Swords, count: towerStore.clans.length },
+  { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: ShieldAlert, count: characterStore.waveConfigs.length },
   { id: 'balance', label: t('config.tabRules') || 'Map Balance', icon: Coins },
   { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: characterStore.detectedDoors.length },
 ])
@@ -1034,9 +1733,55 @@ const configTabItems = computed<TabItem[]>(() => [
 const selectedBp = computed(() => towerStore.selectedBlueprint)
 const selectedWave = computed(() => characterStore.currentWaveConfig)
 
+const splashTypeOptions = computed(() => [
+  { id: 'falloff', label: t('traits.splashFalloff'), icon: TrendingDown },
+  { id: 'constant', label: t('traits.splashConstant'), icon: Equal },
+])
+
+function hasTowerTrait(traitId: TowerTraitType): boolean {
+  if (!selectedBp.value || !selectedBp.value.traits) return false
+  return selectedBp.value.traits.includes(traitId)
+}
+
+function toggleTowerTrait(traitId: TowerTraitType) {
+  if (!selectedBp.value) return
+  const currentTraits = Array.isArray(selectedBp.value.traits) ? [...selectedBp.value.traits] : []
+  const idx = currentTraits.indexOf(traitId)
+  if (idx !== -1) {
+    currentTraits.splice(idx, 1)
+  } else {
+    currentTraits.push(traitId)
+    // Apply default values if not set
+    const traitDef = getTraitDef(traitId)
+    if (traitDef && traitDef.defaultValues) {
+      updateSelectedBp(traitDef.defaultValues)
+    }
+  }
+  updateSelectedBp({ traits: currentTraits })
+}
+
+function hasWaveImmunity(traitId: TowerTraitType): boolean {
+  if (!selectedWave.value || !selectedWave.value.immunities) return false
+  return selectedWave.value.immunities.includes(traitId)
+}
+
+function toggleWaveImmunity(traitId: TowerTraitType) {
+  if (!selectedWave.value) return
+  const currentImmunities = Array.isArray(selectedWave.value.immunities) ? [...selectedWave.value.immunities] : []
+  const idx = currentImmunities.indexOf(traitId)
+  if (idx !== -1) {
+    currentImmunities.splice(idx, 1)
+  } else {
+    currentImmunities.push(traitId)
+  }
+  selectedWave.value.immunities = currentImmunities
+  characterStore.syncWavesToProject()
+}
+
 // Change Unit Appearance Modal State
 const isChangeUnitModalOpen = ref(false)
 const tempSelectedUnitModel = ref('male')
+const tempSelectedVariant = ref<UnitVariantType>('normal')
 
 const availableCharacterModels = computed(() => {
   const models = Object.values(characterManifest) as Array<{
@@ -1070,6 +1815,7 @@ function getUnitBadgeVariant(id?: string): 'brand' | 'amber' | 'rose' | 'emerald
 
 function openChangeUnitModal() {
   tempSelectedUnitModel.value = selectedWave.value?.characterModel || 'male'
+  tempSelectedVariant.value = (selectedWave.value?.unitVariant as UnitVariantType) || 'normal'
   isChangeUnitModalOpen.value = true
 }
 
@@ -1077,18 +1823,31 @@ function saveUnitSelection() {
   if (tempSelectedUnitModel.value) {
     characterStore.setWaveCharacterModel(tempSelectedUnitModel.value)
   }
+  if (tempSelectedVariant.value) {
+    characterStore.setWaveUnitVariant(tempSelectedVariant.value)
+  }
   isChangeUnitModalOpen.value = false
 }
 
-const projectileOptions = [
-  { id: 'fireball', name: 'Fireball', icon: Flame },
-  { id: 'arrow', name: 'Arrow', icon: ArrowRight },
-  { id: 'magic_bolt', name: 'Magic Bolt', icon: Zap },
-  { id: 'cannonball', name: 'Cannonball', icon: CircleDot },
-  { id: 'frost_bolt', name: 'Frost Bolt', icon: Snowflake },
-  { id: 'laser', name: 'Laser Beam', icon: Radio },
-  { id: 'missile', name: 'Missile', icon: Rocket },
-]
+const formationOptions = computed(() => [
+  { id: 'pairs', label: t('config.pairsFormation'), icon: Users },
+  { id: 'single', label: t('config.singleFormation'), icon: User },
+])
+
+const spawnModeOptions = computed(() => [
+  { id: 'all_doors', label: t('config.allDoorsSimultaneously'), icon: Sparkles },
+  { id: 'single_door', label: t('config.selectedDoorOnly'), icon: MapPin },
+])
+
+const projectileOptions = computed(() => [
+  { id: 'fireball', name: t('towers.projectileFireball'), icon: Flame },
+  { id: 'arrow', name: t('towers.projectileArrow'), icon: ArrowRight },
+  { id: 'magic_bolt', name: t('towers.projectileMagic'), icon: Zap },
+  { id: 'cannonball', name: t('towers.projectileCannonball'), icon: CircleDot },
+  { id: 'frost_bolt', name: t('towers.projectileFrost'), icon: Snowflake },
+  { id: 'laser', name: t('towers.projectileLaser'), icon: Radio },
+  { id: 'missile', name: t('towers.projectileMissile'), icon: Rocket },
+])
 
 // Change Sprite Modal State
 const isChangeSpriteModalOpen = ref(false)
@@ -1096,13 +1855,13 @@ const spriteModalSearchQuery = ref('')
 const selectedSpriteCategory = ref('all')
 const tempSelectedAssetId = ref('')
 
-const spriteCategories = [
-  { id: 'all', label: 'All' },
-  { id: 'walls', label: 'Walls & Towers' },
-  { id: 'ground', label: 'Ground' },
-  { id: 'stairs', label: 'Stairs' },
-  { id: 'props', label: 'Props & Objects' },
-]
+const spriteCategories = computed(() => [
+  { id: 'all', label: t('assets.catAll') },
+  { id: 'walls', label: t('assets.catWalls') },
+  { id: 'ground', label: t('assets.catGround') },
+  { id: 'stairs', label: t('assets.catStairs') },
+  { id: 'props', label: t('assets.catProps') },
+])
 
 const filteredModalAssets = computed(() => {
   let list = assetStore.assets
@@ -1155,6 +1914,9 @@ function saveSpriteSelection() {
 function updateSelectedBp(updates: any) {
   if (selectedBp.value) {
     towerStore.updateBlueprint(selectedBp.value.id, updates)
+    if (updates.clanId && updates.clanId !== towerStore.selectedEditorClanId) {
+      towerStore.selectEditorClan(updates.clanId)
+    }
   }
 }
 
@@ -1199,15 +1961,9 @@ function handleStartDrawingRoute() {
 function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
   characterStore.entrySource = 'editor'
+  characterStore.startLoadingScreen(mapStore.project.name || 'Map')
   router.push('/game')
   requestAppFullscreen()
-  characterStore.startLoadingScreen(mapStore.project.name || 'Map')
-  characterStore.setLoadingProgress(30, "Checking assets...")
-  setTimeout(() => {
-    characterStore.setLoadingProgress(100, "Ready!")
-    characterStore.startPlayMode()
-    characterStore.finishLoadingScreen()
-  }, 400)
 }
 </script>
 

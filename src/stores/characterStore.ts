@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { GridCoord } from '../types/map'
+import { GridCoord, UnitVariantType, WaveConfig, TowerTraitType } from '../types/map'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { networkSyncBuffer } from '../services/networkSync'
-import { gridToScreen } from '../utils/isometric'
+import { gridToScreen, expandWaypointsToPath, extractWaypointsFromPath } from '../utils/isometric'
 import characterManifest from '../assets/generated/characterManifest.json'
+
+export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
+export type CharacterModel = 'male' | 'warrior' | (string & {})
+export type { WaveConfig }
 
 export interface DoorInfo {
   id: string
@@ -23,21 +27,14 @@ export interface DoorInfo {
   spawnRow: number
 }
 
-export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
-export type CharacterModel = 'male' | 'warrior' | (string & {})
-
-export interface WaveConfig {
-  waveNumber: number
-  name: string
-  unitHp: number
-  unitSpeed: number
-  unitCount: number
-  isBoss: boolean
-  goldReward: number
-  characterModel?: CharacterModel
-  animSpeed?: number
-  offsetY?: number
-  unitScale?: number
+export interface UnitStatusEffect {
+  type: TowerTraitType
+  duration: number // remaining seconds
+  dps?: number // damage per second
+  slowPercent?: number
+  amplification?: number
+  tickTimer?: number
+  sourceTowerId?: string
 }
 
 export interface CharacterUnit {
@@ -57,6 +54,8 @@ export interface CharacterUnit {
   animSpeed?: number
   offsetY?: number
   unitScale?: number
+  unitVariant?: UnitVariantType
+  variantTint?: number | string
   frameIndex: number
   animTimer: number
   pathIndex: number
@@ -68,6 +67,10 @@ export interface CharacterUnit {
   currentHp: number
   isDead: boolean
   deathFade: number
+  distanceTraveled?: number
+  immunities?: TowerTraitType[]
+  statusEffects?: UnitStatusEffect[]
+  consecutiveHits?: Record<string, number>
 }
 
 export const useCharacterStore = defineStore('characterStore', () => {
@@ -159,7 +162,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function startLoadingScreen(mapTitle = "Game Map") {
     isLoadingGame.value = true
-    loadingProgress.value = 5
+    loadingProgress.value = 0
     loadingMapTitle.value = mapTitle
     loadingMessage.value = "Preparing graphic assets and textures..."
     loadingAssetsCount.value = 0
@@ -179,10 +182,18 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }, 280)
   }
 
-  // Custom Route Drawing State
+  // Custom Route Drawing & Undo/Redo State
   const isDrawingRoute = ref(false)
-  const customRoutes = ref<Record<string, GridCoord[]>>({}) // key: door.id or doorIndex
-  const drawingPath = ref<GridCoord[]>([])
+  const customRoutes = ref<Record<string, GridCoord[]>>({}) // key: door.id or doorIndex (expanded cells)
+  const customWaypoints = ref<Record<string, GridCoord[]>>({}) // key: door.id or doorIndex (waypoint nodes)
+  const drawingWaypoints = ref<GridCoord[]>([])
+  const drawingPath = computed<GridCoord[]>(() => expandWaypointsToPath(drawingWaypoints.value))
+  const selectedWaypointIndex = ref<number | null>(null)
+  const routeUndoStack = ref<GridCoord[][]>([])
+  const routeRedoStack = ref<GridCoord[][]>([])
+
+  const canUndoRoute = computed(() => routeUndoStack.value.length > 1)
+  const canRedoRoute = computed(() => routeRedoStack.value.length > 0)
 
   // Wave distance progress per door
   const doorWaveProgress = ref<Record<number, number>>({})
@@ -194,11 +205,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // Doors
   const detectedDoors = ref<DoorInfo[]>([])
-  const selectedDoorIndex = ref(0)
+  const selectedDoorIndex = ref<number | null>(null)
   const doorRoutesCache = ref<Record<number, GridCoord[]>>({})
 
   const selectedDoor = computed<DoorInfo | null>(() => {
-    if (detectedDoors.value.length === 0) return null
+    if (detectedDoors.value.length === 0 || selectedDoorIndex.value === null || selectedDoorIndex.value < 0) return null
     const idx = Math.max(0, Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value))
     return detectedDoors.value[idx] || null
   })
@@ -207,7 +218,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (isDrawingRoute.value) {
       return drawingPath.value
     }
-    return getRouteForDoor(selectedDoorIndex.value)
+    if (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) {
+      return getRouteForDoor(selectedDoorIndex.value)
+    }
+    return detectedDoors.value.length > 0 ? getRouteForDoor(0) : []
   })
 
   const spawnedUnitsCount = computed(() => {
@@ -280,15 +294,15 @@ export const useCharacterStore = defineStore('characterStore', () => {
           spawnCol: c,
           spawnRow: r,
           assetId: s.assetId || '',
-          name: s.name || `Spawn Point (${c}, ${r})`,
+          name: s.name ? s.name.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() : `Route ${s.id ? s.id : '1'}`,
           layerId: s.layerId || 'layer-ground',
           quadrant: s.quadrant ?? 0,
           isCorner: s.isCorner ?? true,
           cornerName: s.cornerName,
         }
       })
-      if (selectedDoorIndex.value >= detectedDoors.value.length || selectedDoorIndex.value < 0) {
-        selectedDoorIndex.value = 0
+      if (selectedDoorIndex.value !== null && (selectedDoorIndex.value >= detectedDoors.value.length || selectedDoorIndex.value < 0)) {
+        selectedDoorIndex.value = null
       }
       if (p.customRoutes) {
         customRoutes.value = { ...p.customRoutes }
@@ -302,7 +316,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     // 2. Otherwise: start with empty spawn points on new maps (user adds them explicitly)
     detectedDoors.value = []
-    selectedDoorIndex.value = 0
+    selectedDoorIndex.value = null
     doorRoutesCache.value = {}
     units.value = []
     return []
@@ -342,7 +356,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       cornerName,
       assetId: '',
       layerId: 'layer-ground',
-      name: customName || `Spawn Point ${num} (${col}, ${row})`,
+      name: customName || `Route ${num}`,
     }
 
     detectedDoors.value.push(newPoint)
@@ -359,14 +373,16 @@ export const useCharacterStore = defineStore('characterStore', () => {
       addSpawnPoint(col, row)
       return
     }
-    const idx = Math.max(0, Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value))
+    const idx = (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) 
+      ? Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value) 
+      : 0
     const pt = detectedDoors.value[idx]
     if (pt) {
       pt.col = col
       pt.row = row
       pt.spawnCol = col
       pt.spawnRow = row
-      pt.name = `Spawn Point ${idx + 1} (${col}, ${row})`
+      pt.name = `Route ${idx + 1}`
       syncSpawnPointsToProject()
       doorRoutesCache.value = {}
       spawnAtDoor(idx)
@@ -379,18 +395,18 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const removed = detectedDoors.value[idx]
     detectedDoors.value.splice(idx, 1)
     if (detectedDoors.value.length === 0) {
-      selectedDoorIndex.value = 0
+      selectedDoorIndex.value = null
       units.value = []
       statusMessage.value = "No spawn point configured"
-    } else {
+    } else if (selectedDoorIndex.value !== null) {
       selectedDoorIndex.value = Math.max(0, Math.min(detectedDoors.value.length - 1, idx > 0 ? idx - 1 : 0))
     }
     syncSpawnPointsToProject()
     doorRoutesCache.value = {}
-    if (detectedDoors.value.length > 0) {
+    if (detectedDoors.value.length > 0 && selectedDoorIndex.value !== null) {
       spawnAtDoor(selectedDoorIndex.value)
     }
-    mapStore.pushHistory(`Deleted ${removed ? removed.name : 'spawn point'}`)
+    mapStore.pushHistory(`Deleted ${removed ? removed.name : 'route'}`)
   }
 
   function syncSpawnPointsToProject() {
@@ -463,9 +479,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // --- CUSTOM ROUTE DRAWING ACTIONS ---
 
+  function pushRouteState() {
+    routeUndoStack.value.push(JSON.parse(JSON.stringify(drawingWaypoints.value)))
+    if (routeUndoStack.value.length > 50) {
+      routeUndoStack.value.shift()
+    }
+    routeRedoStack.value = []
+  }
+
   function startDrawingCustomRoute() {
     pauseTour()
     isDrawingRoute.value = true
+    selectedWaypointIndex.value = null
+    routeUndoStack.value = []
+    routeRedoStack.value = []
     toolStore.setTool('select')
 
     const startPt = selectedDoor.value 
@@ -474,57 +501,140 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
     
-    // If a route already exists for this door, start from it, otherwise start with the spawn point
-    if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
-      drawingPath.value = [...customRoutes.value[doorKey]]
+    // Load existing waypoints or extract from route
+    if (customWaypoints.value[doorKey] && customWaypoints.value[doorKey].length > 0) {
+      drawingWaypoints.value = JSON.parse(JSON.stringify(customWaypoints.value[doorKey]))
+    } else if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
+      drawingWaypoints.value = extractWaypointsFromPath(customRoutes.value[doorKey])
     } else {
-      drawingPath.value = [startPt]
+      drawingWaypoints.value = [startPt]
     }
     
-    statusMessage.value = "Click consecutive cells on the map to draw. Finish your route anywhere!"
+    routeUndoStack.value = [JSON.parse(JSON.stringify(drawingWaypoints.value))]
+    statusMessage.value = "Click map to add points. Click any circle to select/move it. Ctrl+Z to undo."
+  }
+
+  function selectWaypoint(index: number | null) {
+    if (index === null || index === selectedWaypointIndex.value) {
+      selectedWaypointIndex.value = null
+    } else if (index >= 0 && index < drawingWaypoints.value.length) {
+      selectedWaypointIndex.value = index
+      const pt = drawingWaypoints.value[index]
+      statusMessage.value = `Point #${index + 1} (${pt.col}, ${pt.row}) selected. Click any cell to relocate it.`
+    }
+  }
+
+  function moveSelectedWaypoint(coord: GridCoord) {
+    if (selectedWaypointIndex.value === null) return
+    const idx = selectedWaypointIndex.value
+    if (idx >= 0 && idx < drawingWaypoints.value.length) {
+      const old = drawingWaypoints.value[idx]
+      if (old.col === coord.col && old.row === coord.row) {
+        selectedWaypointIndex.value = null
+        return
+      }
+      drawingWaypoints.value[idx] = { col: coord.col, row: coord.row }
+      pushRouteState()
+      statusMessage.value = `Moved Point #${idx + 1} to (${coord.col}, ${coord.row})`
+      selectedWaypointIndex.value = null
+    }
+  }
+
+  function setWaypointPosition(index: number, coord: GridCoord) {
+    if (index >= 0 && index < drawingWaypoints.value.length) {
+      drawingWaypoints.value[index] = { col: coord.col, row: coord.row }
+    }
+  }
+
+  function commitRouteState() {
+    pushRouteState()
+  }
+
+  function deleteSelectedWaypoint() {
+    if (selectedWaypointIndex.value === null) return
+    deleteWaypoint(selectedWaypointIndex.value)
+  }
+
+  function deleteWaypoint(index: number) {
+    if (drawingWaypoints.value.length > 1 && index >= 0 && index < drawingWaypoints.value.length) {
+      drawingWaypoints.value.splice(index, 1)
+      selectedWaypointIndex.value = null
+      pushRouteState()
+      statusMessage.value = `Deleted Point #${index + 1}`
+    }
+  }
+
+  function addWaypoint(coord: GridCoord) {
+    if (!isDrawingRoute.value) return
+
+    // 1. If user clicked directly on an existing waypoint, toggle select it!
+    const existingIdx = drawingWaypoints.value.findIndex(p => p.col === coord.col && p.row === coord.row)
+    if (existingIdx !== -1) {
+      selectWaypoint(existingIdx)
+      return
+    }
+
+    // 2. If a waypoint was previously selected, move it to this clicked cell!
+    if (selectedWaypointIndex.value !== null) {
+      moveSelectedWaypoint(coord)
+      return
+    }
+
+    // 3. Normal path addition
+    const len = drawingWaypoints.value.length
+    if (len > 0) {
+      const last = drawingWaypoints.value[len - 1]
+      if (last.col === coord.col && last.row === coord.row) return
+    }
+    drawingWaypoints.value.push({ col: coord.col, row: coord.row })
+    pushRouteState()
+    statusMessage.value = `Added Point #${drawingWaypoints.value.length} at (${coord.col}, ${coord.row})`
   }
 
   function addPathTile(coord: GridCoord) {
-    if (!isDrawingRoute.value) return
-    const len = drawingPath.value.length
+    addWaypoint(coord)
+  }
 
-    if (len > 0) {
-      const last = drawingPath.value[len - 1]
-      if (last.col === coord.col && last.row === coord.row) return
+  function undoRoute() {
+    if (routeUndoStack.value.length > 1) {
+      const current = routeUndoStack.value.pop()!
+      routeRedoStack.value.push(current)
+      const prev = routeUndoStack.value[routeUndoStack.value.length - 1]
+      drawingWaypoints.value = JSON.parse(JSON.stringify(prev))
+      selectedWaypointIndex.value = null
+      statusMessage.value = `Undo route (${drawingWaypoints.value.length} points)`
+    }
+  }
 
-      // Connect straight line if adjacent or clicked ahead
-      const dc = Math.sign(coord.col - last.col)
-      const dr = Math.sign(coord.row - last.row)
-      
-      let currC = last.col
-      let currR = last.row
-      while (currC !== coord.col || currR !== coord.row) {
-        if (currC !== coord.col) currC += dc
-        if (currR !== coord.row) currR += dr
-        drawingPath.value.push({ col: currC, row: currR })
-      }
-    } else {
-      drawingPath.value.push(coord)
+  function redoRoute() {
+    if (routeRedoStack.value.length > 0) {
+      const next = routeRedoStack.value.pop()!
+      routeUndoStack.value.push(next)
+      drawingWaypoints.value = JSON.parse(JSON.stringify(next))
+      selectedWaypointIndex.value = null
+      statusMessage.value = `Redo route (${drawingWaypoints.value.length} points)`
     }
   }
 
   function undoLastPathTile() {
-    if (drawingPath.value.length > 1) {
-      drawingPath.value.pop()
-    }
+    undoRoute()
   }
 
   function clearDrawnRoute() {
     const startPt = selectedDoor.value 
       ? { col: selectedDoor.value.spawnCol ?? selectedDoor.value.col, row: selectedDoor.value.spawnRow ?? selectedDoor.value.row } 
       : { col: 2, row: 2 }
-    drawingPath.value = [startPt]
+    drawingWaypoints.value = [startPt]
+    selectedWaypointIndex.value = null
+    pushRouteState()
+    statusMessage.value = "Route reset to start point"
   }
 
   function finishDrawingRoute() {
-    if (drawingPath.value.length > 1) {
+    if (drawingWaypoints.value.length > 1) {
       const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
-      customRoutes.value[doorKey] = [...drawingPath.value]
+      customWaypoints.value[doorKey] = [...drawingWaypoints.value]
+      customRoutes.value[doorKey] = expandWaypointsToPath(drawingWaypoints.value)
       mapStore.project.customRoutes = { ...customRoutes.value }
       mapStore.project.characterConfig = {
         spawnCount: spawnCount.value,
@@ -538,27 +648,32 @@ export const useCharacterStore = defineStore('characterStore', () => {
         autoLoop: autoLoop.value,
       }
       isDrawingRoute.value = false
+      selectedWaypointIndex.value = null
       doorRoutesCache.value = {}
       spawnAtDoor(selectedDoorIndex.value)
-      mapStore.pushHistory(`Saved route (${drawingPath.value.length} cells)`)
-      statusMessage.value = `Route saved (${drawingPath.value.length} cells)! Ready to begin movement.`
+      mapStore.pushHistory(`Saved route (${drawingWaypoints.value.length} waypoints, ${customRoutes.value[doorKey].length} cells)`)
+      statusMessage.value = `Route saved (${drawingWaypoints.value.length} points)! Ready to begin.`
     } else {
       isDrawingRoute.value = false
-      statusMessage.value = "Route drawing cancelled (at least 2 cells required)"
+      selectedWaypointIndex.value = null
+      statusMessage.value = "Route drawing cancelled (at least 2 points required)"
     }
   }
 
   function cancelDrawingRoute() {
     isDrawingRoute.value = false
+    selectedWaypointIndex.value = null
     statusMessage.value = "Route drawing cancelled"
   }
 
   function deleteCurrentRoute() {
     const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
     delete customRoutes.value[doorKey]
+    delete customWaypoints.value[doorKey]
     if (mapStore.project.customRoutes) {
       delete mapStore.project.customRoutes[doorKey]
     }
+    selectedWaypointIndex.value = null
     doorRoutesCache.value = {}
     spawnAtDoor(selectedDoorIndex.value)
     mapStore.pushHistory("Route deleted")
@@ -590,11 +705,23 @@ export const useCharacterStore = defineStore('characterStore', () => {
     syncWavesToProject()
   }
 
-  function setWaveGoldReward(reward: number) {
+  function setWaveUnitBonus(bonus: number) {
     if (currentWaveConfig.value) {
-      currentWaveConfig.value.goldReward = Math.min(100, Math.max(1, reward))
+      currentWaveConfig.value.unitBonus = Math.max(0, Math.round(bonus))
+      currentWaveConfig.value.goldReward = currentWaveConfig.value.unitBonus
     }
     syncWavesToProject()
+  }
+
+  function setWaveEndBonus(bonus: number) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.endWaveBonus = Math.max(0, Math.round(bonus))
+    }
+    syncWavesToProject()
+  }
+
+  function setWaveGoldReward(reward: number) {
+    setWaveUnitBonus(reward)
   }
 
   function setWaveCharacterModel(model: CharacterModel) {
@@ -624,6 +751,22 @@ export const useCharacterStore = defineStore('characterStore', () => {
       currentWaveConfig.value.unitScale = Math.min(4.0, Math.max(0.3, Math.round(scale * 100) / 100))
     }
     syncWavesToProject()
+  }
+
+  function setWaveUnitVariant(variant: UnitVariantType) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.unitVariant = variant
+    }
+    syncWavesToProject()
+    resetTour()
+  }
+
+  function setWaveVariantTint(tint?: number | string) {
+    if (currentWaveConfig.value) {
+      currentWaveConfig.value.variantTint = tint
+    }
+    syncWavesToProject()
+    resetTour()
   }
 
   function updateWaveConfig(idx: number, updates: Partial<WaveConfig>) {
@@ -694,10 +837,15 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (waves && Array.isArray(waves) && waves.length > 0) {
       waveConfigs.value = waves.map((w: any) => ({
         ...w,
+        unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
+        endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
         characterModel: w.characterModel || 'male',
         animSpeed: Number(w.animSpeed) || 1.0,
         offsetY: Number(w.offsetY) || 0,
         unitScale: Number(w.unitScale) || 1.0,
+        unitVariant: w.unitVariant || 'normal',
+        variantTint: w.variantTint,
+        immunities: Array.isArray(w.immunities) ? w.immunities : [],
       }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
@@ -709,7 +857,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const prevWave = waveConfigs.value[waveConfigs.value.length - 1]
     const baseHp = prevWave ? Math.round(prevWave.unitHp * 1.5) : 200
     const baseCount = prevWave ? Math.min(50, prevWave.unitCount + 2) : 10
-    const baseReward = prevWave ? Math.min(100, Math.max(1, Math.round(prevWave.goldReward * 1.4))) : 50
+    const baseUnitBonus = prevWave?.unitBonus ?? prevWave?.goldReward ?? 1
+    const baseEndBonus = prevWave ? Math.min(500, Math.max(10, Math.round((prevWave.endWaveBonus ?? 50) * 1.25))) : 50
 
     waveConfigs.value.push({
       waveNumber: nextNum,
@@ -718,11 +867,16 @@ export const useCharacterStore = defineStore('characterStore', () => {
       unitSpeed: 3.5,
       unitCount: baseCount,
       isBoss: nextNum % 5 === 0,
-      goldReward: baseReward,
+      goldReward: baseUnitBonus,
+      unitBonus: baseUnitBonus,
+      endWaveBonus: baseEndBonus,
       characterModel: prevWave?.characterModel || 'male',
       animSpeed: prevWave?.animSpeed || 1.0,
       offsetY: prevWave?.offsetY || 0,
       unitScale: prevWave?.unitScale || 1.0,
+      unitVariant: prevWave?.unitVariant || 'normal',
+      variantTint: prevWave?.variantTint,
+      immunities: prevWave?.immunities ? [...prevWave.immunities] : [],
     })
 
     syncWavesToProject()
@@ -775,7 +929,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     const activeDoorsToSpawn = (spawnMode.value === 'all_doors' && detectedDoors.value.length > 1)
       ? detectedDoors.value.map((_, idx) => idx)
-      : [selectedDoorIndex.value]
+      : [selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 ? selectedDoorIndex.value : 0]
 
     const progressMap: Record<number, number> = {}
     const baseHp = waveCfg ? waveCfg.unitHp : 100
@@ -791,6 +945,15 @@ export const useCharacterStore = defineStore('characterStore', () => {
       for (let i = 0; i < count; i++) {
         const pairIndex = isPairFormation ? Math.floor(i / 2) : i
         const sideOffset = isPairFormation ? (i % 2 === 0 ? -1 : 1) : 0
+
+        const waveImmunities = waveCfg?.immunities || []
+        const effectiveImmunities = [...waveImmunities]
+        if (effectiveImmunities.length === 0 && waveCfg?.unitVariant) {
+          const varType = String(waveCfg.unitVariant).toLowerCase()
+          if (['fire', 'frost', 'poison', 'blood', 'electric', 'void'].includes(varType)) {
+            effectiveImmunities.push(varType as TowerTraitType)
+          }
+        }
 
         list.push({
           id: `unit-d${dIdx}-${i}-${Date.now()}`,
@@ -809,6 +972,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
           animSpeed: waveCfg?.animSpeed || 1.0,
           offsetY: waveCfg?.offsetY || 0,
           unitScale: waveCfg?.unitScale || 1.0,
+          unitVariant: waveCfg?.unitVariant || 'normal',
+          variantTint: waveCfg?.variantTint,
           frameIndex: (i * 2) % initialMaxFrames,
           animTimer: 0,
           pathIndex: 0,
@@ -820,6 +985,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
           currentHp: baseHp,
           isDead: false,
           deathFade: 1.0,
+          distanceTraveled: 0,
+          immunities: effectiveImmunities,
+          statusEffects: [],
+          consecutiveHits: {},
         })
       }
     }
@@ -828,7 +997,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     units.value = list
   }
 
-  function spawnAtDoor(doorIdx?: number) {
+  function spawnAtDoor(doorIdx?: number | null) {
     if (doorIdx !== undefined) {
       selectedDoorIndex.value = doorIdx
     }
@@ -969,11 +1138,69 @@ export const useCharacterStore = defineStore('characterStore', () => {
         continue
       }
 
+      // --- 1. PROCESS STATUS EFFECTS (DoTs, Slows, Stuns, Buffs) ---
+      let maxSlowPercent = 0
+      if (unit.statusEffects && unit.statusEffects.length > 0) {
+        let activeEffectsCount = 0
+        for (let eIdx = 0; eIdx < unit.statusEffects.length; eIdx++) {
+          const effect = unit.statusEffects[eIdx]
+          effect.duration -= deltaSec
+
+          if (effect.slowPercent && effect.slowPercent > maxSlowPercent) {
+            maxSlowPercent = effect.slowPercent
+          }
+
+          // DoT Tick Damage (e.g. burn, poison, bleed)
+          if (effect.dps && effect.dps > 0 && !unit.isDead) {
+            effect.tickTimer = (effect.tickTimer || 0) + deltaSec
+            if (effect.tickTimer >= 0.5) {
+              const tickDmg = Math.max(1, Math.round(effect.dps * effect.tickTimer))
+              effect.tickTimer = 0
+              unit.currentHp = Math.max(0, unit.currentHp - tickDmg)
+
+              let dotColor = 0xf97316
+              let dotText = `-${tickDmg}`
+              if (effect.type === 'fire') { dotColor = 0xef4444; dotText = `-${tickDmg} 🔥` }
+              else if (effect.type === 'poison') { dotColor = 0x10b981; dotText = `-${tickDmg} 🧪` }
+              else if (effect.type === 'blood') { dotColor = 0xf43f5e; dotText = `-${tickDmg} 🩸` }
+
+              towerStore.damageFloaters.push({
+                id: `dot-${Date.now()}-${Math.random()}`,
+                text: dotText,
+                x: unit.screenX + (Math.random() * 16 - 8),
+                y: unit.screenY - tileHeight * 1.05,
+                color: dotColor,
+                alpha: 1.0,
+                lifeTimer: 0,
+              })
+
+              if (unit.currentHp <= 0) {
+                unit.isDead = true
+                unit.action = 'Pickup'
+                unit.frameIndex = 0
+                unit.animTimer = 0
+                unit.deathFade = 1.0
+                totalKills.value++
+              }
+            }
+          }
+
+          if (effect.duration > 0) {
+            unit.statusEffects[activeEffectsCount++] = effect
+          }
+        }
+        unit.statusEffects.length = activeEffectsCount
+      }
+
+      if (unit.isDead) continue
+
+      const speedMultiplier = Math.max(0.15, 1.0 - (Math.min(85, maxSlowPercent) / 100))
+
       const waveDist = doorWaveProgress.value[unit.doorIndex] ?? 0
-      const unitDist = waveDist - (unit.pairIndex * spacingInTiles)
+      const targetSpawnDist = unit.pairIndex * spacingInTiles
 
       // Unit has not emerged from door yet
-      if (unitDist < 0) {
+      if (waveDist < targetSpawnDist && (unit.distanceTraveled === undefined || unit.distanceTraveled === 0)) {
         unit.isSpawned = false
         unit.action = 'Idle'
         allCompletedOrDead = false
@@ -981,6 +1208,15 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
 
       unit.isSpawned = true
+
+      // Advance individual unit distance along path accounting for slow effects!
+      if (unit.distanceTraveled === undefined) {
+        unit.distanceTraveled = Math.max(0, waveDist - targetSpawnDist)
+      } else {
+        unit.distanceTraveled += (unitBaseSpeed * speedMultiplier) * deltaSec
+      }
+
+      const unitDist = unit.distanceTraveled
 
       // Unit has reached the center/destination
       if (unitDist >= route.length - 1) {
@@ -1081,7 +1317,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (allCompletedOrDead && units.value.length > 0) {
       lapCount.value++
       const completedWave = currentWaveConfig.value
-      const reward = completedWave ? completedWave.goldReward : 50
+      const reward = completedWave ? (completedWave.endWaveBonus ?? completedWave.goldReward ?? 50) : 50
 
       if (isGameMode.value) {
         if (playerLives.value > 0) {
@@ -1167,6 +1403,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     gameState.value = 'ready'
     isPlaying.value = false
     followCamera.value = false
+    isLoadingGame.value = false
+    loadingProgress.value = 0
+    loadingMessage.value = ''
     resetTour()
     towerStore.restoreEditorTowersSnapshot()
   }
@@ -1288,7 +1527,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
     showSpawnPoints,
     autoLoop,
     isDrawingRoute,
+    drawingWaypoints,
     drawingPath,
+    customWaypoints,
+    selectedWaypointIndex,
+    routeUndoStack,
+    routeRedoStack,
+    canUndoRoute,
+    canRedoRoute,
     customRoutes,
     units,
     spawnedUnitsCount,
@@ -1303,7 +1549,16 @@ export const useCharacterStore = defineStore('characterStore', () => {
     detectDoors,
     getRouteForDoor,
     startDrawingCustomRoute,
+    selectWaypoint,
+    moveSelectedWaypoint,
+    setWaypointPosition,
+    commitRouteState,
+    deleteSelectedWaypoint,
+    deleteWaypoint,
+    addWaypoint,
     addPathTile,
+    undoRoute,
+    redoRoute,
     undoLastPathTile,
     clearDrawnRoute,
     finishDrawingRoute,
@@ -1324,10 +1579,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
     setWaveUnitHp,
     setWaveSpeed,
     setWaveGoldReward,
+    setWaveUnitBonus,
+    setWaveEndBonus,
     setWaveCharacterModel,
     setWaveAnimSpeed,
     setWaveOffsetY,
     setWaveUnitScale,
+    setWaveUnitVariant,
+    setWaveVariantTint,
     updateWaveConfig,
     addNewWave,
     deleteWave,

@@ -47,7 +47,7 @@
         <button 
           type="button"
           class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0 mt-0.5"
-          title="Yopish"
+          :title="$t('common.close')"
           @click.stop="notificationStore.dismiss(toast.id)"
         >
           <X class="w-3.5 h-3.5" />

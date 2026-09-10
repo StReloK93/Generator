@@ -6,13 +6,17 @@ import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { IsoEngine } from '../engine/IsoEngine'
+import { TowerTraitType, TowerTraitsConfig, TowerClan } from '../types/map'
+import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 
 export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
 export type SplashType = 'constant' | 'falloff'
+export type TargetStrategy = 'first' | 'last' | 'strongest' | 'weakest' | 'closest'
 
-export interface TowerBlueprint {
+export interface TowerBlueprint extends TowerTraitsConfig {
   id: string
   name: string
+  clanId?: string
   assetId?: string
   assetName: string
   assetPath: string
@@ -27,9 +31,10 @@ export interface TowerBlueprint {
   splashRadius: number // in grid tiles (e.g. 1.5 tiles)
   splashType: SplashType
   cost: number
+  targetStrategy?: TargetStrategy
 }
 
-export interface PlacedTower {
+export interface PlacedTower extends TowerTraitsConfig {
   id: string
   blueprintId: string
   name: string
@@ -53,6 +58,8 @@ export interface PlacedTower {
   builderId?: string
   builderName?: string
   builderColor?: string
+  targetUnitId?: string | null // Current focused locked target
+  targetStrategy?: TargetStrategy
 }
 
 export interface Projectile {
@@ -101,6 +108,12 @@ export const useTowerStore = defineStore('towerStore', () => {
   // User-created Tower Blueprints (Starts empty so user defines all towers)
   const blueprints = ref<TowerBlueprint[]>([])
 
+  // Clans / Factions
+  const clans = ref<TowerClan[]>([])
+  const selectedClanId = ref<string>('') // Player's faction in game
+  const selectedEditorClanId = ref<string>('') // Editor's selected clan in GameConfigModal
+  const isClanSelectModalOpen = ref<boolean>(false)
+
   // Placed towers on map
   const placedTowers = ref<PlacedTower[]>([])
   const activeBuildTowerId = ref<string | null>(null) // When placing a new tower
@@ -131,9 +144,39 @@ export const useTowerStore = defineStore('towerStore', () => {
     return placedTowers.value.find(t => t.id === selectedPlacedTowerId.value) || null
   })
 
+  const selectedClan = computed<TowerClan | null>(() => {
+    if (clans.value.length === 0) return null
+    return clans.value.find(c => c.id === selectedClanId.value) || clans.value[0] || null
+  })
+
+  const selectedEditorClan = computed<TowerClan | null>(() => {
+    if (clans.value.length === 0) return null
+    return clans.value.find(c => c.id === selectedEditorClanId.value) || clans.value[0] || null
+  })
+
+  // Towers belonging to the player's active clan in game
+  const playerClanBlueprints = computed<TowerBlueprint[]>(() => {
+    if (clans.value.length <= 1) {
+      return blueprints.value
+    }
+    const targetClanId = selectedClanId.value || clans.value[0]?.id
+    if (!targetClanId) return blueprints.value
+    return blueprints.value.filter(bp => bp.clanId === targetClanId || (!bp.clanId && targetClanId === clans.value[0]?.id))
+  })
+
+  // Towers belonging to the selected clan in Editor
+  const editorClanBlueprints = computed<TowerBlueprint[]>(() => {
+    if (!selectedEditorClanId.value) return blueprints.value
+    return blueprints.value.filter(bp => bp.clanId === selectedEditorClanId.value || (!bp.clanId && selectedEditorClanId.value === clans.value[0]?.id))
+  })
+
   const selectedBlueprint = computed<TowerBlueprint | null>(() => {
     if (blueprints.value.length === 0) return null
-    return blueprintMap.value.get(selectedBlueprintId.value) || blueprints.value[0] || null
+    const currentClanTowers = editorClanBlueprints.value
+    if (currentClanTowers.length > 0) {
+      return currentClanTowers.find(bp => bp.id === selectedBlueprintId.value) || currentClanTowers[0]
+    }
+    return null
   })
 
   const activeBlueprint = computed<TowerBlueprint | null>(() => {
@@ -181,6 +224,25 @@ export const useTowerStore = defineStore('towerStore', () => {
         t.projectileType = bp.projectileType
         t.projectileSpeed = bp.projectileSpeed
         t.projectileColor = bp.projectileColor
+        t.traits = bp.traits ? [...bp.traits] : []
+        t.fireBonusDamage = bp.fireBonusDamage
+        t.burnDps = bp.burnDps
+        t.burnDuration = bp.burnDuration
+        t.slowPercent = bp.slowPercent
+        t.slowDuration = bp.slowDuration
+        t.frostBonusDamage = bp.frostBonusDamage
+        t.poisonDps = bp.poisonDps
+        t.poisonDuration = bp.poisonDuration
+        t.poisonSlowPercent = bp.poisonSlowPercent
+        t.stackBonusDamage = bp.stackBonusDamage
+        t.maxStacks = bp.maxStacks
+        t.bleedDps = bp.bleedDps
+        t.bleedDuration = bp.bleedDuration
+        t.electricBonusDamage = bp.electricBonusDamage
+        t.chainTargets = bp.chainTargets
+        t.stunDuration = bp.stunDuration
+        t.voidVulnPercent = bp.voidVulnPercent
+        t.voidDuration = bp.voidDuration
       }
     }
 
@@ -217,7 +279,121 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   const isCreateTowerModalOpen = ref(false)
 
+  function ensureDefaultClan(): TowerClan {
+    if (clans.value.length === 0) {
+      const defaultClan = createDefaultClan('clan-iron', 'Iron Citadel')
+      clans.value = [defaultClan]
+    }
+    if (!selectedEditorClanId.value && clans.value.length > 0) {
+      selectedEditorClanId.value = clans.value[0].id
+    }
+    const fallbackClanId = clans.value[0].id
+    for (const bp of blueprints.value) {
+      if (!bp.clanId) {
+        bp.clanId = fallbackClanId
+      }
+    }
+    return clans.value[0]
+  }
+
+  function createClan(data: Partial<TowerClan>): TowerClan {
+    const newClan: TowerClan = {
+      id: data.id || `clan-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: data.name || 'New Clan',
+      description: data.description || '',
+      iconName: data.iconName || 'Castle',
+      color: data.color || '#38bdf8',
+      bannerColor: data.bannerColor || '',
+      isDefault: clans.value.length === 0,
+    }
+    clans.value.push(newClan)
+    selectedEditorClanId.value = newClan.id
+    syncToProject()
+    mapStore.pushHistory(`Created clan: ${newClan.name}`)
+    return newClan
+  }
+
+  function updateClan(clanId: string, updates: Partial<TowerClan>) {
+    const clan = clans.value.find(c => c.id === clanId)
+    if (!clan) return
+    Object.assign(clan, updates)
+    syncToProject()
+  }
+
+  function deleteClan(clanId: string) {
+    if (clans.value.length <= 1) {
+      return
+    }
+    const idx = clans.value.findIndex(c => c.id === clanId)
+    if (idx === -1) return
+    const deletedName = clans.value[idx].name
+    clans.value.splice(idx, 1)
+
+    const fallbackClanId = clans.value[0].id
+    for (const bp of blueprints.value) {
+      if (bp.clanId === clanId) {
+        bp.clanId = fallbackClanId
+      }
+    }
+
+    if (selectedEditorClanId.value === clanId) {
+      selectedEditorClanId.value = fallbackClanId
+    }
+    if (selectedClanId.value === clanId) {
+      selectedClanId.value = fallbackClanId
+    }
+    syncToProject()
+    mapStore.pushHistory(`Deleted clan: ${deletedName}`)
+  }
+
+  function selectEditorClan(clanId: string) {
+    selectedEditorClanId.value = clanId
+    const clanTowers = blueprints.value.filter(bp => bp.clanId === clanId || (!bp.clanId && clanId === clans.value[0]?.id))
+    if (clanTowers.length > 0) {
+      if (!clanTowers.some(bp => bp.id === selectedBlueprintId.value)) {
+        selectedBlueprintId.value = clanTowers[0].id
+      }
+    } else {
+      selectedBlueprintId.value = ''
+    }
+  }
+
+  function setPlayerClan(clanId: string) {
+    selectedClanId.value = clanId
+    isClanSelectModalOpen.value = false
+    if (activeBuildTowerId.value) {
+      const activeBp = blueprintMap.value.get(activeBuildTowerId.value)
+      if (activeBp && activeBp.clanId !== clanId && (activeBp.clanId || clanId !== clans.value[0]?.id)) {
+        activeBuildTowerId.value = null
+      }
+    }
+  }
+
+  function openClanSelectModal() {
+    isClanSelectModalOpen.value = true
+  }
+
+  function closeClanSelectModal() {
+    isClanSelectModalOpen.value = false
+  }
+
+  function initGameClanSelection() {
+    ensureDefaultClan()
+    if (clans.value.length <= 1) {
+      selectedClanId.value = clans.value[0]?.id || 'clan-default'
+      isClanSelectModalOpen.value = false
+    } else {
+      if (!selectedClanId.value) {
+        isClanSelectModalOpen.value = true
+      }
+    }
+  }
+
   function addNewBlueprint(customBp: TowerBlueprint) {
+    ensureDefaultClan()
+    if (!customBp.clanId) {
+      customBp.clanId = selectedEditorClanId.value || clans.value[0]?.id || 'clan-default'
+    }
     blueprints.value.push(customBp)
     selectedBlueprintId.value = customBp.id
     syncBlueprintChanges(customBp.id)
@@ -299,12 +475,33 @@ export const useTowerStore = defineStore('towerStore', () => {
       isSplash: bp.isSplash,
       splashRadius: bp.splashRadius,
       splashType: bp.splashType,
+      traits: bp.traits ? [...bp.traits] : [],
+      fireBonusDamage: bp.fireBonusDamage,
+      burnDps: bp.burnDps,
+      burnDuration: bp.burnDuration,
+      slowPercent: bp.slowPercent,
+      slowDuration: bp.slowDuration,
+      frostBonusDamage: bp.frostBonusDamage,
+      poisonDps: bp.poisonDps,
+      poisonDuration: bp.poisonDuration,
+      poisonSlowPercent: bp.poisonSlowPercent,
+      stackBonusDamage: bp.stackBonusDamage,
+      maxStacks: bp.maxStacks,
+      bleedDps: bp.bleedDps,
+      bleedDuration: bp.bleedDuration,
+      electricBonusDamage: bp.electricBonusDamage,
+      chainTargets: bp.chainTargets,
+      stunDuration: bp.stunDuration,
+      voidVulnPercent: bp.voidVulnPercent,
+      voidDuration: bp.voidDuration,
       cooldownTimer: Math.random() * 0.3, // slight initial offset
       totalDamageDealt: 0,
       killsCount: 0,
       builderId: multiplayerStore.myPlayerId,
       builderName: multiplayerStore.myPlayerName,
       builderColor: multiplayerStore.myPlayerColor,
+      targetUnitId: null,
+      targetStrategy: bp.targetStrategy || 'first',
     }
 
     placedTowers.value.push(newTower)
@@ -473,6 +670,21 @@ export const useTowerStore = defineStore('towerStore', () => {
     projectiles.value = []
     damageFloaters.value = []
     explosionRings.value = []
+    for (let i = 0; i < placedTowers.value.length; i++) {
+      placedTowers.value[i].targetUnitId = null
+    }
+  }
+
+  /**
+   * Sets target strategy on a placed tower
+   */
+  function setTowerTargetStrategy(towerId: string, strategy: TargetStrategy) {
+    const t = placedTowers.value.find(tw => tw.id === towerId)
+    if (t) {
+      t.targetStrategy = strategy
+      t.targetUnitId = null
+      syncToProject()
+    }
   }
 
   /**
@@ -490,6 +702,7 @@ export const useTowerStore = defineStore('towerStore', () => {
    */
   function syncToProject() {
     if (!mapStore.project) return
+    ;(mapStore.project as any).clans = clans.value.map(c => ({ ...c }))
     ;(mapStore.project as any).placedTowers = placedTowers.value.map(t => ({ ...t }))
     ;(mapStore.project as any).towerBlueprints = blueprints.value.map(b => ({ ...b }))
   }
@@ -499,6 +712,15 @@ export const useTowerStore = defineStore('towerStore', () => {
    */
   function restoreFromProject() {
     const p = mapStore.project as any
+
+    const rawClans = p.clans || p.towerData?.clans || []
+    if (rawClans && Array.isArray(rawClans) && rawClans.length > 0) {
+      clans.value = rawClans.map((c: any) => ({ ...c }))
+    } else {
+      clans.value = [createDefaultClan('clan-iron', 'Iron Citadel')]
+    }
+    selectedEditorClanId.value = clans.value[0]?.id || ''
+
     const rawTowers = p.placedTowers || p.towerData?.placedTowers || []
     if (rawTowers && Array.isArray(rawTowers)) {
       const { tileWidth, tileHeight } = mapStore.project
@@ -514,11 +736,14 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
     const rawBlueprints = p.towerBlueprints || p.towerData?.towerBlueprints || []
     if (rawBlueprints && Array.isArray(rawBlueprints) && rawBlueprints.length > 0) {
+      const defaultClanId = clans.value[0]?.id || 'clan-default'
       blueprints.value = rawBlueprints.map((bp: any) => ({
         ...bp,
+        clanId: bp.clanId || defaultClanId,
         assetId: bp.assetId || (bp.assetName ? `sprite-${bp.assetName.replace(/\.[^/.]+$/, '')}` : ''),
       }))
     }
+    ensureDefaultClan()
   }
 
   /**
@@ -570,23 +795,57 @@ export const useTowerStore = defineStore('towerStore', () => {
       tower.cooldownTimer -= deltaSec
 
       if (tower.cooldownTimer <= 0) {
-        // Find best target within range (closest to finish line / furthest along path)
         let bestTarget: any = null
-        let maxPathDistance = -1
 
-        for (let uIdx = 0; uIdx < activeUnits.length; uIdx++) {
-          const unit = activeUnits[uIdx]
-          // Fast box pre-filter to eliminate sqrt/hypot for out-of-range units
-          if (Math.abs(unit.currentCol - tower.col) > tower.range || Math.abs(unit.currentRow - tower.row) > tower.range) {
-            continue
-          }
-          const distInTiles = Math.hypot(unit.currentCol - tower.col, unit.currentRow - tower.row)
-          if (distInTiles <= tower.range) {
-            const pathProgress = unit.pathIndex + unit.pathInterpolation
-            if (pathProgress > maxPathDistance) {
-              maxPathDistance = pathProgress
-              bestTarget = unit
+        // 1. Check existing target lock (Sticky Target Focus)
+        // Stays focused on the same enemy until it dies or escapes range
+        if (tower.targetUnitId) {
+          const lockedUnit = activeUnits.find((u: any) => u.id === tower.targetUnitId)
+          if (lockedUnit && !lockedUnit.isDead && !lockedUnit.hasReachedEnd) {
+            if (Math.abs(lockedUnit.currentCol - tower.col) <= tower.range && Math.abs(lockedUnit.currentRow - tower.row) <= tower.range) {
+              const distInTiles = Math.hypot(lockedUnit.currentCol - tower.col, lockedUnit.currentRow - tower.row)
+              if (distInTiles <= tower.range) {
+                bestTarget = lockedUnit
+              }
             }
+          }
+        }
+
+        // 2. If no valid locked target, acquire new target according to strategy
+        if (!bestTarget) {
+          tower.targetUnitId = null
+          let bestScore = -Infinity
+          const strategy = tower.targetStrategy || 'first'
+
+          for (let uIdx = 0; uIdx < activeUnits.length; uIdx++) {
+            const unit = activeUnits[uIdx]
+            if (Math.abs(unit.currentCol - tower.col) > tower.range || Math.abs(unit.currentRow - tower.row) > tower.range) {
+              continue
+            }
+            const distInTiles = Math.hypot(unit.currentCol - tower.col, unit.currentRow - tower.row)
+            if (distInTiles <= tower.range) {
+              let score = 0
+              if (strategy === 'first') {
+                score = unit.pathIndex + (unit.pathInterpolation || 0)
+              } else if (strategy === 'last') {
+                score = -(unit.pathIndex + (unit.pathInterpolation || 0))
+              } else if (strategy === 'strongest') {
+                score = unit.currentHp || 0
+              } else if (strategy === 'weakest') {
+                score = -(unit.currentHp || 0)
+              } else if (strategy === 'closest') {
+                score = -distInTiles
+              }
+
+              if (score > bestScore) {
+                bestScore = score
+                bestTarget = unit
+              }
+            }
+          }
+
+          if (bestTarget) {
+            tower.targetUnitId = bestTarget.id
           }
         }
 
@@ -789,15 +1048,146 @@ export const useTowerStore = defineStore('towerStore', () => {
       unit.currentHp = unit.maxHp
     }
 
-    unit.currentHp = Math.max(0, unit.currentHp - damage)
+    // 1. Check unit vulnerability amplifier (e.g. from Void trait)
+    let vulnMultiplier = 1.0
+    if (unit.statusEffects && Array.isArray(unit.statusEffects)) {
+      const voidEffect = unit.statusEffects.find((e: any) => e.type === 'void')
+      if (voidEffect && voidEffect.amplification) {
+        vulnMultiplier += voidEffect.amplification / 100
+      }
+    }
+
+    let finalDamage = Math.round(damage * vulnMultiplier)
+    const unitImmunities: TowerTraitType[] = unit.immunities || []
+
+    // 2. Trait-specific calculations if sourceTower is present
+    if (sourceTower && sourceTower.traits && sourceTower.traits.length > 0) {
+      for (const trait of sourceTower.traits) {
+        // --- IMMUNITY CHECK ---
+        if (unitImmunities.includes(trait)) {
+          // Unit resists this element! Show silver/gold RESIST floater
+          damageFloaters.value.push({
+            id: `resist-${Date.now()}-${Math.random()}`,
+            text: `RESIST (${trait.toUpperCase()})`,
+            x: unit.screenX + (Math.random() * 20 - 10),
+            y: unit.screenY - mapStore.project.tileHeight * 1.3,
+            color: 0x94a3b8,
+            alpha: 1.0,
+            lifeTimer: 0,
+          })
+          continue
+        }
+
+        // --- TRAIT APPLIED ---
+        if (trait === 'fire') {
+          const fireBonus = Math.round((sourceTower.fireBonusDamage ?? 5) * vulnMultiplier)
+          finalDamage += fireBonus
+          
+          // Apply / refresh Burn DoT
+          const burnDps = sourceTower.burnDps ?? 4
+          const burnDur = sourceTower.burnDuration ?? 3.0
+          if (!unit.statusEffects) unit.statusEffects = []
+          const existing = unit.statusEffects.find((e: any) => e.type === 'fire')
+          if (existing) {
+            existing.duration = Math.max(existing.duration, burnDur)
+            existing.dps = Math.max(existing.dps || 0, burnDps)
+          } else {
+            unit.statusEffects.push({ type: 'fire', duration: burnDur, dps: burnDps, tickTimer: 0 })
+          }
+        } else if (trait === 'frost') {
+          const frostBonus = Math.round((sourceTower.frostBonusDamage ?? 2) * vulnMultiplier)
+          finalDamage += frostBonus
+
+          // Apply / refresh Frost Slow
+          const slowPct = sourceTower.slowPercent ?? 30
+          const slowDur = sourceTower.slowDuration ?? 2.5
+          if (!unit.statusEffects) unit.statusEffects = []
+          const existing = unit.statusEffects.find((e: any) => e.type === 'frost')
+          if (existing) {
+            existing.duration = Math.max(existing.duration, slowDur)
+            existing.slowPercent = Math.max(existing.slowPercent || 0, slowPct)
+          } else {
+            unit.statusEffects.push({ type: 'frost', duration: slowDur, slowPercent: slowPct })
+          }
+        } else if (trait === 'poison') {
+          const poisonDps = sourceTower.poisonDps ?? 6
+          const poisonDur = sourceTower.poisonDuration ?? 4.0
+          const poisonSlow = sourceTower.poisonSlowPercent ?? 10
+          if (!unit.statusEffects) unit.statusEffects = []
+          const existing = unit.statusEffects.find((e: any) => e.type === 'poison')
+          if (existing) {
+            existing.duration = Math.max(existing.duration, poisonDur)
+            existing.dps = Math.max(existing.dps || 0, poisonDps)
+            existing.slowPercent = Math.max(existing.slowPercent || 0, poisonSlow)
+          } else {
+            unit.statusEffects.push({ type: 'poison', duration: poisonDur, dps: poisonDps, slowPercent: poisonSlow, tickTimer: 0 })
+          }
+        } else if (trait === 'stacking') {
+          // Consecutive hit stacking ramping damage!
+          if (!unit.consecutiveHits) unit.consecutiveHits = {}
+          const currentHits = (unit.consecutiveHits[sourceTower.id] || 0) + 1
+          unit.consecutiveHits[sourceTower.id] = currentHits
+          const stackBonus = sourceTower.stackBonusDamage ?? 4
+          const maxSt = sourceTower.maxStacks ?? 10
+          const activeStacks = Math.min(maxSt, currentHits)
+          const extraStackDmg = Math.round(activeStacks * stackBonus * vulnMultiplier)
+          finalDamage += extraStackDmg
+
+          // Show stacking floater badge (e.g. "x3 Hit!")
+          if (activeStacks > 1) {
+            damageFloaters.value.push({
+              id: `stack-${Date.now()}-${Math.random()}`,
+              text: `x${activeStacks} RAMP!`,
+              x: unit.screenX,
+              y: unit.screenY - mapStore.project.tileHeight * 1.35,
+              color: 0xfbbf24,
+              alpha: 0.9,
+              lifeTimer: 0.3,
+            })
+          }
+        } else if (trait === 'blood') {
+          const bleedDps = sourceTower.bleedDps ?? 7
+          const bleedDur = sourceTower.bleedDuration ?? 3.5
+          if (!unit.statusEffects) unit.statusEffects = []
+          const existing = unit.statusEffects.find((e: any) => e.type === 'blood')
+          if (existing) {
+            existing.duration = Math.max(existing.duration, bleedDur)
+            existing.dps = Math.max(existing.dps || 0, bleedDps)
+          } else {
+            unit.statusEffects.push({ type: 'blood', duration: bleedDur, dps: bleedDps, tickTimer: 0 })
+          }
+        } else if (trait === 'electric') {
+          const electricBonus = Math.round((sourceTower.electricBonusDamage ?? 6) * vulnMultiplier)
+          finalDamage += electricBonus
+          // Micro stun / zap
+          const stunDur = sourceTower.stunDuration ?? 0.3
+          if (!unit.statusEffects) unit.statusEffects = []
+          unit.statusEffects.push({ type: 'electric', duration: stunDur, slowPercent: 90 })
+        } else if (trait === 'void') {
+          // Void damage amplification curse
+          const vuln = sourceTower.voidVulnPercent ?? 25
+          const dur = sourceTower.voidDuration ?? 4.0
+          if (!unit.statusEffects) unit.statusEffects = []
+          const existing = unit.statusEffects.find((e: any) => e.type === 'void')
+          if (existing) {
+            existing.duration = Math.max(existing.duration, dur)
+            existing.amplification = Math.max(existing.amplification || 0, vuln)
+          } else {
+            unit.statusEffects.push({ type: 'void', duration: dur, amplification: vuln })
+          }
+        }
+      }
+    }
+
+    unit.currentHp = Math.max(0, unit.currentHp - finalDamage)
 
     // Damage text floater
     damageFloaters.value.push({
       id: `df-${Date.now()}-${Math.random()}`,
-      text: `-${damage}`,
+      text: `-${finalDamage}`,
       x: unit.screenX + (Math.random() * 20 - 10),
       y: unit.screenY - mapStore.project.tileHeight * 1.1,
-      color: damage >= 70 ? 0xef4444 : 0xfbbf24,
+      color: finalDamage >= 70 ? 0xef4444 : 0xfbbf24,
       alpha: 1.0,
       lifeTimer: 0,
     })
@@ -809,19 +1199,25 @@ export const useTowerStore = defineStore('towerStore', () => {
         unitId: unit.id,
         targetX: unit.screenX,
         targetY: unit.screenY,
-        damage,
+        damage: finalDamage,
         currentHp: unit.currentHp,
-        isCrit: damage >= 70,
+        isCrit: finalDamage >= 70,
       })
     }
 
     if (sourceTower) {
-      sourceTower.totalDamageDealt += damage
+      sourceTower.totalDamageDealt += finalDamage
     }
 
     // Unit died!
     if (unit.currentHp <= 0) {
       unit.isDead = true
+      // Clear target locks for all towers aiming at this deceased unit
+      for (let i = 0; i < placedTowers.value.length; i++) {
+        if (placedTowers.value[i].targetUnitId === unit.id) {
+          placedTowers.value[i].targetUnitId = null
+        }
+      }
       unit.action = 'Pickup'
       unit.frameIndex = 0
       unit.animTimer = 0
@@ -829,7 +1225,7 @@ export const useTowerStore = defineStore('towerStore', () => {
       characterStore.totalKills++
 
       const waveCfg = characterStore.currentWaveConfig
-      const killGold = Math.max(1, Number(waveCfg?.goldReward) || 10)
+      const killGold = Math.max(0, Number(waveCfg?.unitBonus ?? waveCfg?.goldReward) ?? 1)
 
       if (sourceTower) {
         sourceTower.killsCount++
@@ -912,6 +1308,23 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   return {
     blueprints,
+    clans,
+    selectedClanId,
+    selectedEditorClanId,
+    selectedClan,
+    selectedEditorClan,
+    playerClanBlueprints,
+    editorClanBlueprints,
+    isClanSelectModalOpen,
+    ensureDefaultClan,
+    createClan,
+    updateClan,
+    deleteClan,
+    selectEditorClan,
+    setPlayerClan,
+    openClanSelectModal,
+    closeClanSelectModal,
+    initGameClanSelection,
     selectedBlueprintId,
     selectedBlueprint,
     updateBlueprint,
@@ -934,6 +1347,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     placeTowerAt,
     removePlacedTower,
     upgradePlacedTower,
+    setTowerTargetStrategy,
     clearAllTowers,
     saveEditorTowersSnapshot,
     restoreEditorTowersSnapshot,

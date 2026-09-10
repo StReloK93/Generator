@@ -232,3 +232,54 @@ export function floodFill(
 
   return result
 }
+
+/**
+ * Expands an array of key Waypoints into a full continuous cell-by-cell path using Bresenham lines.
+ */
+export function expandWaypointsToPath(waypoints: GridCoord[]): GridCoord[] {
+  if (!waypoints || waypoints.length === 0) return []
+  if (waypoints.length === 1) return [{ col: waypoints[0].col, row: waypoints[0].row }]
+
+  const fullPath: GridCoord[] = []
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    const from = waypoints[i]
+    const to = waypoints[i + 1]
+    const line = getBresenhamLine(from.col, from.row, to.col, to.row)
+    for (let s = 0; s < line.length; s++) {
+      if (fullPath.length > 0 && s === 0) {
+        const last = fullPath[fullPath.length - 1]
+        if (last.col === line[s].col && last.row === line[s].row) continue
+      }
+      fullPath.push({ col: line[s].col, row: line[s].row })
+    }
+  }
+
+  return fullPath.length > 0 ? fullPath : [{ col: waypoints[0].col, row: waypoints[0].row }]
+}
+
+/**
+ * Extracts key turning Waypoints and endpoints from an existing continuous cell route.
+ */
+export function extractWaypointsFromPath(path: GridCoord[]): GridCoord[] {
+  if (!path || path.length === 0) return []
+  if (path.length <= 2) return path.map(p => ({ col: p.col, row: p.row }))
+
+  const waypoints: GridCoord[] = [{ col: path[0].col, row: path[0].row }]
+  for (let i = 1; i < path.length - 1; i++) {
+    const prev = path[i - 1]
+    const curr = path[i]
+    const next = path[i + 1]
+
+    const dx1 = Math.sign(curr.col - prev.col)
+    const dy1 = Math.sign(curr.row - prev.row)
+    const dx2 = Math.sign(next.col - curr.col)
+    const dy2 = Math.sign(next.row - curr.row)
+
+    if (dx1 !== dx2 || dy1 !== dy2) {
+      waypoints.push({ col: curr.col, row: curr.row })
+    }
+  }
+
+  waypoints.push({ col: path[path.length - 1].col, row: path[path.length - 1].row })
+  return waypoints
+}

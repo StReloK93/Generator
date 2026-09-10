@@ -30,7 +30,7 @@
             variant="ghost"
             size="sm"
             :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
-            title="Toggle Fullscreen"
+            :title="$t('game.fullscreen')"
             @click="handleToggleFullscreen"
           />
 
@@ -39,7 +39,7 @@
             variant="ghost"
             size="sm"
             :leading-icon="Crosshair"
-            title="Reset View to Center"
+            :title="$t('header.centerToggle')"
             @click="handleFocusCenter"
           />
 
@@ -51,13 +51,13 @@
       <!-- Singleplayer User Stats -->
       <UiCard v-if="!multiplayerStore.roomId" class="px-2.5 landscape:py-0.5 flex gap-3">
         <!-- Gold -->
-        <div class="flex items-center gap-1" title="Current gold balance">
+        <div class="flex items-center gap-1" :title="$t('game.gold')">
           <DollarSign class="size-4 text-amber-400" />
           <span class="font-bold text-amber-400">{{ characterStore.gold }}</span>
         </div>
 
         <!-- Total Kills -->
-        <div class="flex items-center gap-1" title="Total enemies killed">
+        <div class="flex items-center gap-1" :title="$t('game.kills')">
           <Skull class="size-4 text-rose-400" />
           <span class="font-bold text-rose-300">{{ characterStore.totalKills }}</span>
         </div>
@@ -65,7 +65,7 @@
         <!-- Base Lives -->
         <div class="flex items-center gap-1"
           :class="characterStore.playerLives <= 5 ? 'text-rose-400 animate-pulse font-black' : 'text-slate-200'"
-          title="Remaining base lives">
+          :title="$t('game.lives')">
           <Heart class="size-4 text-rose-500 fill-rose-500" />
           <span class="font-bold">
             {{ characterStore.playerLives }}
@@ -74,7 +74,7 @@
 
 
         <!-- Wave -->
-        <div class="flex items-center gap-1 shrink-0" title="Current wave">
+        <div class="flex items-center gap-1 shrink-0" :title="$t('game.wave')">
           <Swords class="size-4 text-purple-400 shrink-0" />
           <span class="font-mono font-bold text-xs text-purple-200">
             {{ characterStore.currentWaveIndex + 1 }}<span class="text-slate-500 font-normal text-[10px]">/{{
@@ -177,41 +177,43 @@
       @mousedown.stop @mouseup.stop @click.stop @touchstart.stop @touchend.stop @touchmove.stop>
       <div class="flex items-center justify-between pb-1 border-b border-slate-800 font-bold text-sky-400">
         <span class="flex items-center gap-1.5">
-          <Activity class="size-5" /> Performance Telemetry
+          <Activity class="size-5" /> {{ $t('hud.telemetry') }}
         </span>
-        <button type="button" class="text-slate-400 hover:text-white cursor-pointer"
-          @click="showDiagnostics = false">
-          <X class="w-3.5 h-3.5" />
-        </button>
+        <UiIconButton 
+          :icon="X"
+          size="xs"
+          variant="ghost"
+          @click="showDiagnostics = false"
+        />
       </div>
 
       <div class="flex justify-between">
-        <span class="text-slate-400">FPS:</span>
+        <span class="text-slate-400">{{ $t('hud.fps') }}</span>
         <span :class="characterStore.fps >= 50 ? 'text-emerald-400' : 'text-rose-400'">{{ characterStore.fps }} fps ({{
           (1000 / Math.max(1, characterStore.fps)).toFixed(1) }}ms)</span>
       </div>
       <div class="flex justify-between">
-        <span class="text-slate-400">Units on Field:</span>
+        <span class="text-slate-400">{{ $t('hud.unitsOnField') }}</span>
         <span class="text-white">{{ (networkSyncBuffer.renderUnitsList.length > 0 ?
           networkSyncBuffer.renderUnitsList.length
           : characterStore.units.length) }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="text-slate-400">Towers:</span>
+        <span class="text-slate-400">{{ $t('hud.towers') }}</span>
         <span class="text-amber-400">{{ towerStore.placedTowers.length }}</span>
       </div>
       <template v-if="multiplayerStore.roomId">
         <div class="flex justify-between">
-          <span class="text-slate-400">Role:</span>
+          <span class="text-slate-400">{{ $t('hud.role') }}</span>
           <span class="text-amber-300 font-bold">{{ multiplayerStore.isHost ? 'Host (Authoritative)' : 'Client (P2P)'
             }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-slate-400">Packets In/Out:</span>
+          <span class="text-slate-400">{{ $t('hud.packets') }}</span>
           <span>{{ networkSyncBuffer.packetsReceived }} / {{ networkSyncBuffer.packetsSent }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-slate-400">Data Received:</span>
+          <span class="text-slate-400">{{ $t('hud.dataReceived') }}</span>
           <span>{{ (networkSyncBuffer.bytesReceived / 1024).toFixed(1) }} KB</span>
         </div>
       </template>
@@ -225,7 +227,7 @@ import { useRouter } from 'vue-router'
 import {
   Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
-import { UiButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
+import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'

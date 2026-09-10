@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-800 shrink-0">
       <div class="flex items-center gap-2">
         <Layers class="w-4 h-4 text-amber-400" />
-        <span class="font-bold text-xs text-white">Layers & Z-Index</span>
+        <span class="font-bold text-xs text-white">{{ $t('assetEditor.layersZIndex') }}</span>
         <UiBadge variant="amber" size="xs">
           {{ store.parts.length }}
         </UiBadge>
@@ -17,28 +17,28 @@
           :icon="ChevronsUp" 
           size="sm" 
           variant="ghost" 
-          title="Bring to Front" 
+          :title="$t('assetEditor.bringToFront')" 
           @click="store.bringToFront()" 
         />
         <UiIconButton 
           :icon="ChevronUp" 
           size="sm" 
           variant="ghost" 
-          title="Move Up" 
+          :title="$t('assetEditor.moveUp')" 
           @click="store.moveUp()" 
         />
         <UiIconButton 
           :icon="ChevronDown" 
           size="sm" 
           variant="ghost" 
-          title="Move Down" 
+          :title="$t('assetEditor.moveDown')" 
           @click="store.moveDown()" 
         />
         <UiIconButton 
           :icon="ChevronsDown" 
           size="sm" 
           variant="ghost" 
-          title="Send to Back" 
+          :title="$t('assetEditor.sendToBack')" 
           @click="store.sendToBack()" 
         />
       </div>
@@ -51,25 +51,25 @@
     >
       <div class="flex items-center gap-1.5 font-bold text-brand-300">
         <CheckSquare class="w-3.5 h-3.5" />
-        <span>{{ store.selectedParts.length }} selected</span>
+        <span>{{ $t('assetEditor.selectedCount', { count: store.selectedParts.length }) }}</span>
       </div>
 
       <div class="flex items-center gap-1">
         <UiButton 
           variant="secondary"
           size="xs"
-          title="Copy (Ctrl+C)"
+          :title="$t('common.copy') + ' (Ctrl+C)'"
           @click="store.copySelection()"
         >
-          Copy
+          {{ $t('common.copy') }}
         </UiButton>
         <UiButton 
           variant="danger"
           size="xs"
-          title="Delete"
+          :title="$t('common.delete')"
           @click="store.deleteSelected()"
         >
-          Delete
+          {{ $t('common.delete') }}
         </UiButton>
       </div>
     </div>
@@ -80,8 +80,8 @@
       class="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-500 gap-2 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40"
     >
       <Layers class="w-8 h-8 text-slate-600" />
-      <span class="text-xs font-semibold text-slate-400">No elements on canvas</span>
-      <p class="text-[10px] text-slate-500">Select and add sprites from the left library panel</p>
+      <span class="text-xs font-semibold text-slate-400">{{ $t('assetEditor.noElements') }}</span>
+      <p class="text-[10px] text-slate-500">{{ $t('assetEditor.noElementsDesc') }}</p>
     </div>
 
     <!-- Layers List (Reversed so top Z-index is visually at top) -->
@@ -118,7 +118,7 @@
             :icon="part.visible ? Eye : EyeOff"
             size="xs"
             variant="ghost"
-            :title="part.visible ? 'Hide' : 'Show'"
+            :title="part.visible ? $t('common.hide') : $t('common.show')"
             :custom-class="part.visible ? 'text-slate-300' : 'text-slate-600'"
             @click="store.updatePartProperties(part.id, { visible: !part.visible })"
           />
@@ -128,7 +128,7 @@
             :icon="part.locked ? Lock : Unlock"
             size="xs"
             variant="ghost"
-            :title="part.locked ? 'Unlock' : 'Lock'"
+            :title="part.locked ? $t('common.unlock') : $t('common.lock')"
             :custom-class="part.locked ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'"
             @click="store.updatePartProperties(part.id, { locked: !part.locked })"
           />
@@ -138,7 +138,7 @@
             :icon="Copy"
             size="xs"
             variant="ghost"
-            title="Duplicate (Ctrl+D)"
+            :title="$t('assetEditor.duplicate') + ' (Ctrl+D)'"
             custom-class="text-slate-400 hover:text-sky-300"
             @click="store.duplicatePart(part.id)"
           />
@@ -148,7 +148,7 @@
             :icon="Trash2"
             size="xs"
             variant="danger"
-            title="Delete (Delete)"
+            :title="$t('common.delete') + ' (Delete)'"
             @click="store.removePart(part.id)"
           />
         </div>
@@ -163,18 +163,18 @@
           size="xs" 
           :leading-icon="ClipboardPaste"
           :disabled="store.clipboard.length === 0"
-          title="Paste from clipboard (Ctrl+V)"
+          :title="$t('assetEditor.pasteTitle')"
           @click="store.pasteSelection()"
         >
-          Paste
+          {{ $t('assetEditor.paste') }}
         </UiButton>
         <UiButton 
           variant="secondary" 
           size="xs" 
-          title="Select all (Ctrl+A)"
+          :title="$t('assetEditor.selectAllTitle')"
           @click="store.selectAll()"
         >
-          Select All
+          {{ $t('assetEditor.selectAll') }}
         </UiButton>
       </div>
 
@@ -184,7 +184,7 @@
         :leading-icon="Trash2" 
         @click="store.clearAll()"
       >
-        Clear All
+        {{ $t('assetEditor.clearAll') }}
       </UiButton>
     </div>
 

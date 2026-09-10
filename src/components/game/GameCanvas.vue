@@ -30,6 +30,7 @@ import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
+import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import { GridCoord, AssetItem } from '../../types/map'
@@ -43,6 +44,7 @@ const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
+const { t } = useI18n()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
@@ -81,15 +83,15 @@ onMounted(async () => {
   camera.updateViewportRect(viewportContainerRef.value)
   const rect = camera.getViewportRect(viewportContainerRef.value)
   
-  characterStore.setLoadingProgress(20, "Initializing isometric engine and shaders...")
+  characterStore.setLoadingProgress(15, t('loader.initShaders'))
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise(resolve => setTimeout(resolve, 150))
 
   // Fast PixiJS 8 Asset Bundle Loading (Core + Game bundles)
-  characterStore.setLoadingProgress(50, "Loading textures and character models...")
+  characterStore.setLoadingProgress(50, t('loader.loadTexturesModels'))
   await assetManager.loadGame()
   await assetStore.loadBuiltinSprites()
-  await new Promise(resolve => setTimeout(resolve, 400))
+  await new Promise(resolve => setTimeout(resolve, 150))
 
   // Restore placed towers from map
   towerStore.restoreFromProject()
@@ -98,8 +100,8 @@ onMounted(async () => {
   camera.focusOnCenter(viewportContainerRef.value)
   updateEngineState()
 
-  characterStore.setLoadingProgress(85, "Syncing layers and defense grid...")
-  await new Promise(resolve => setTimeout(resolve, 400))
+  characterStore.setLoadingProgress(85, t('loader.syncLayersGrid'))
+  await new Promise(resolve => setTimeout(resolve, 150))
 
   // Render initial frame to eliminate initial WebGL pipeline compile hiccups
   if (engine.app?.renderer) {
@@ -132,10 +134,10 @@ onMounted(async () => {
     engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
   }
 
-  characterStore.setLoadingProgress(100, "Battlefield ready!")
+  characterStore.setLoadingProgress(100, t('loader.battlefieldReady'))
   // Double requestAnimationFrame ensures that GPU has completed drawing the frame buffer
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  await new Promise(resolve => setTimeout(resolve, 350))
+  await new Promise(resolve => setTimeout(resolve, 250))
 
   characterStore.finishLoadingScreen()
   emit('ready')
@@ -225,7 +227,7 @@ function handleGameCellClick(gridCoord: GridCoord) {
     const bp = towerStore.blueprints.find(b => b.id === towerStore.activeBuildTowerId)
     if (bp) {
       if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
-        notify.warning("Bu katakka minora qurib bo'lmaydi (Spawn yoki yurish yo'li)!", "Taqiqlangan joy")
+        notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
         return
       }
 
@@ -236,7 +238,7 @@ function handleGameCellClick(gridCoord: GridCoord) {
       }
 
       if (currentGold < bp.cost) {
-        notify.gold(`Ushbu minorani qurish uchun ${bp.cost} oltin kerak (Sizda: ${currentGold} oltin).`, 'Oltin yetarli emas')
+        notify.gold(t('game.needGoldForTower', { cost: bp.cost, current: currentGold }), t('game.notEnoughGold'))
         return
       }
     }

@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="isOpen"
-    title="Host New Game Room"
-    subtitle="Select a map preset and launch a cooperative defense lobby"
+    :title="$t('multiplayer.hostTitle')"
+    :subtitle="$t('multiplayer.hostSubtitle')"
     :icon="Gamepad2"
     icon-color="amber"
     size="2xl"
@@ -13,15 +13,15 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <UiInput
           v-model="playerName"
-          label="Player Nickname:"
-          placeholder="Enter your commander name"
+          :label="$t('multiplayer.playerNickname')"
+          :placeholder="$t('multiplayer.nicknamePlaceholder')"
           :maxlength="16"
         />
 
         <UiColorPicker
           v-model="selectedColor"
           :colors="PLAYER_COLORS"
-          label="Player Color:"
+          :label="$t('multiplayer.playerColor')"
         />
       </div>
     </UiCard>
@@ -29,8 +29,8 @@
     <!-- Room Name Input -->
     <UiInput
       v-model="customRoomName"
-      label="Room Name:"
-      placeholder="e.g. Burbenog TD Co-op"
+      :label="$t('multiplayer.roomName')"
+      :placeholder="$t('multiplayer.roomNamePlaceholder')"
       :maxlength="32"
     />
 
@@ -38,9 +38,9 @@
     <div class="space-y-2 sm:space-y-2.5">
       <div class="flex items-center justify-between">
         <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-          Available Maps ({{ availableMapPresets.length }}):
+          {{ $t('multiplayer.availableMaps', { count: availableMapPresets.length }) }}
         </label>
-        <span class="text-[10px] sm:text-[11px] text-amber-400 font-medium">Doors = Player Slots</span>
+        <span class="text-[10px] sm:text-[11px] text-amber-400 font-medium">{{ $t('multiplayer.doorsEqualSlots') }}</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
@@ -61,7 +61,7 @@
                   {{ mapPreset.name }}
                 </h3>
                 <UiBadge v-if="index === 0" variant="amber" size="xs">
-                  Primary
+                  {{ $t('multiplayer.primary') }}
                 </UiBadge>
               </div>
               <p class="text-[11px] sm:text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">
@@ -80,12 +80,12 @@
           <!-- Map Metadata & Properties -->
           <div class="flex items-center flex-wrap gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-300 font-mono pt-2 mt-2 border-t border-slate-800/80">
             <span class="flex items-center gap-1 text-emerald-400 font-semibold">
-              <Users class="w-3.5 h-3.5" /> {{ mapPreset.doorsCount }} Slots
+              <Users class="w-3.5 h-3.5" /> {{ $t('multiplayer.slots', { count: mapPreset.doorsCount }) }}
             </span>
             <span>•</span>
             <span class="text-slate-400">{{ mapPreset.cols }}x{{ mapPreset.rows }}</span>
             <span>•</span>
-            <span class="text-amber-300">{{ mapPreset.waveCount }} Waves</span>
+            <span class="text-amber-300">{{ $t('multiplayer.waves', { count: mapPreset.waveCount }) }}</span>
           </div>
         </UiCard>
       </div>
@@ -99,7 +99,7 @@
           size="sm"
           @click="close"
         >
-          Cancel
+          {{ $t('common.cancel') }}
         </UiButton>
 
         <UiButton
@@ -109,7 +109,7 @@
           :leading-icon="Sparkles"
           @click="handleCreateGame"
         >
-          {{ isCreating ? 'Creating Room...' : 'Host Game' }}
+          {{ isCreating ? $t('multiplayer.creatingRoom') : $t('multiplayer.hostGame') }}
         </UiButton>
       </div>
     </template>

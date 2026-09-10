@@ -93,7 +93,7 @@ interface Props {
   hint?: string
   disabled?: boolean
   readonly?: boolean
-  maxlength?: number
+  maxlength?: number | string
   clearable?: boolean
   size?: InputSize
   customClass?: string | string[] | Record<string, any>

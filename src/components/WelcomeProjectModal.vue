@@ -38,15 +38,15 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <UiCard
             v-for="preset in presets" 
-            :key="preset.name"
-            :selected="selectedPreset === preset.name"
+            :key="preset.id"
+            :selected="selectedPreset === preset.id"
             interactive
             padding="sm"
             variant="default"
             custom-class="text-center flex flex-col items-center justify-center gap-0.5"
             @click="applyPreset(preset)"
           >
-            <span class="text-xs font-bold">{{ preset.name }}</span>
+            <span class="text-xs font-bold">{{ $t(preset.nameKey) }}</span>
             <span class="text-[11px] font-mono opacity-80 text-brand-300">{{ preset.cols }}×{{ preset.rows }}</span>
           </UiCard>
         </div>
@@ -268,20 +268,21 @@ const canClose = computed(() => {
 })
 
 interface Preset {
-  name: string
+  id: string
+  nameKey: string
   cols: number
   rows: number
 }
 
 const presets: Preset[] = [
-  { name: 'Small', cols: 30, rows: 30 },
-  { name: 'Medium', cols: 60, rows: 60 },
-  { name: 'Large', cols: 90, rows: 90 },
-  { name: 'Huge', cols: 120, rows: 120 },
+  { id: 'small', nameKey: 'welcome.presetSmall', cols: 30, rows: 30 },
+  { id: 'medium', nameKey: 'welcome.presetMedium', cols: 60, rows: 60 },
+  { id: 'large', nameKey: 'welcome.presetLarge', cols: 90, rows: 90 },
+  { id: 'huge', nameKey: 'welcome.presetHuge', cols: 120, rows: 120 },
 ]
 
 function applyPreset(preset: Preset) {
-  selectedPreset.value = preset.name
+  selectedPreset.value = preset.id
   cols.value = preset.cols
   rows.value = preset.rows
 }
@@ -382,11 +383,15 @@ async function applyMapProject(rawData: any) {
     }
 
     // Restore character custom routes and settings
-    if (data.characterData || (project as any).customRoutes || (project as any).characterConfig) {
+    if (data.characterData || (project as any).customRoutes || (project as any).customWaypoints || (project as any).characterConfig) {
       const cfg = data.characterData || {}
       if (cfg.customRoutes || (project as any).customRoutes) {
         characterStore.customRoutes = JSON.parse(JSON.stringify(cfg.customRoutes || (project as any).customRoutes || {}))
         ;(mapStore.project as any).customRoutes = JSON.parse(JSON.stringify(characterStore.customRoutes))
+      }
+      if (cfg.customWaypoints || (project as any).customWaypoints) {
+        characterStore.customWaypoints = JSON.parse(JSON.stringify(cfg.customWaypoints || (project as any).customWaypoints || {}))
+        ;(mapStore.project as any).customWaypoints = JSON.parse(JSON.stringify(characterStore.customWaypoints))
       }
       if (cfg.speed !== undefined) characterStore.speed = cfg.speed
       if (cfg.formation !== undefined) characterStore.formation = cfg.formation
@@ -397,11 +402,13 @@ async function applyMapProject(rawData: any) {
       if (cfg.selectedDoorIndex !== undefined) characterStore.selectedDoorIndex = cfg.selectedDoorIndex
     }
 
-    // Restore towers & blueprints
+    // Restore clans, towers & blueprints
     const twrData = data.towerData || {
       placedTowers: (project as any).placedTowers || [],
       towerBlueprints: (project as any).towerBlueprints || [],
+      clans: (project as any).clans || [],
     }
+    ;(mapStore.project as any).clans = twrData.clans || (project as any).clans || []
     ;(mapStore.project as any).placedTowers = twrData.placedTowers || []
     ;(mapStore.project as any).towerBlueprints = twrData.towerBlueprints || []
     towerStore.restoreFromProject()
@@ -414,10 +421,15 @@ async function applyMapProject(rawData: any) {
     if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
       characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({
         ...w,
+        unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
+        endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
         characterModel: w.characterModel || 'male',
         animSpeed: Number(w.animSpeed) || 1.0,
         offsetY: Number(w.offsetY) || 0,
         unitScale: Number(w.unitScale) || 1.0,
+        unitVariant: w.unitVariant || 'normal',
+        variantTint: w.variantTint,
+        immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
       }))
       characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
       ;(mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
@@ -437,7 +449,7 @@ async function applyMapProject(rawData: any) {
     characterStore.restoreGameSettingsFromProject()
 
     characterStore.detectDoors()
-    characterStore.spawnAtDoor(characterStore.selectedDoorIndex || 0)
+    characterStore.spawnAtDoor(characterStore.selectedDoorIndex ?? 0)
 
     assetStore.selectedAssetId = null
     toolStore.activeTool = 'select'
@@ -449,6 +461,7 @@ async function applyMapProject(rawData: any) {
       assetStore.assets, 
       {
         customRoutes: characterStore.customRoutes,
+        customWaypoints: characterStore.customWaypoints,
         spawnPoints: characterStore.detectedDoors,
         characterConfig: {
           spawnCount: characterStore.spawnCount,

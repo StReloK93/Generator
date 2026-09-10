@@ -47,7 +47,7 @@
               size="md"
               @click="notificationStore.confirmState?.resolve(false)"
             >
-              {{ notificationStore.confirmState?.cancelText || 'Bekor qilish' }}
+              {{ notificationStore.confirmState?.cancelText || $t('common.cancel') }}
             </UiButton>
 
             <UiButton
@@ -55,7 +55,7 @@
               size="md"
               @click="notificationStore.confirmState?.resolve(true)"
             >
-              {{ notificationStore.confirmState?.confirmText || 'Tasdiqlash' }}
+              {{ notificationStore.confirmState?.confirmText || $t('common.confirm') }}
             </UiButton>
           </div>
         </div>

@@ -37,9 +37,9 @@
       <!-- 1. List of Elements on / covering this cell -->
       <div class="flex flex-col gap-1.5">
         <div class="flex items-center justify-between text-xs px-0.5">
-          <span class="font-semibold text-slate-300">Elements on this cell:</span>
+          <span class="font-semibold text-slate-300">{{ $t('inspector.elementsOnCell') }}</span>
           <UiBadge variant="brand" size="xs">
-            {{ coveringElements.length }} items
+            {{ $t('inspector.itemsCount', { count: coveringElements.length }) }}
           </UiBadge>
         </div>
 
@@ -72,15 +72,15 @@
             <!-- Meta -->
             <div class="flex-1 min-w-0">
               <div class="text-xs font-semibold text-slate-200 truncate flex items-center justify-between">
-                <span>{{ getAsset(entry.item.assetId)?.name || 'Element' }}</span>
+                <span>{{ getAsset(entry.item.assetId)?.name || $t('common.element') }}</span>
                 <UiBadge variant="brand" size="xs">
                   Z: {{ entry.cellZIndex }}
                 </UiBadge>
               </div>
               <div class="text-[10px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                <span>{{ entry.item.spanX || 1 }}×{{ entry.item.spanY || 1 }} cells</span>
+                <span>{{ $t('inspector.cellsCount', { x: entry.item.spanX || 1, y: entry.item.spanY || 1 }) }}</span>
                 <span v-if="entry.item.depthOffset" class="text-amber-400 text-[9px] font-bold">
-                  (Depth: {{ entry.item.depthOffset > 0 ? '+' : '' }}{{ entry.item.depthOffset }})
+                  ({{ $t('inspector.depthTag', { val: `${entry.item.depthOffset > 0 ? '+' : ''}${entry.item.depthOffset}` }) }})
                 </span>
               </div>
             </div>
@@ -96,7 +96,7 @@
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-brand-300 flex items-center gap-1.5">
               <Layers class="w-4 h-4 text-brand-400" />
-              Relative Depth Offset:
+              {{ $t('inspector.relativeDepthOffset') }}
             </span>
             <UiBadge 
               :variant="(activeItem.depthOffset || 0) > 0 ? 'emerald' : (activeItem.depthOffset || 0) < 0 ? 'amber' : 'slate'"
@@ -113,10 +113,10 @@
               variant="primary"
               size="sm"
               :leading-icon="ArrowDownToLine"
-              title="Render on top of front / bottom neighbor cell (+1 layer)"
+              :title="$t('inspector.aboveFrontDesc')"
               @click="shiftDepth(+1)"
             >
-              Above Front (+1)
+              {{ $t('inspector.aboveFront') }}
             </UiButton>
 
             <!-- Shift backward behind top neighbor -->
@@ -124,16 +124,16 @@
               variant="secondary"
               size="sm"
               :leading-icon="ArrowUpToLine"
-              title="Render behind back / top neighbor cell (-1 layer)"
+              :title="$t('inspector.behindBackDesc')"
               @click="shiftDepth(-1)"
             >
-              Behind Back (-1)
+              {{ $t('inspector.behindBack') }}
             </UiButton>
           </div>
 
           <!-- Stepper & Direct Offset Setting -->
           <div class="flex items-center justify-between gap-2 pt-1 border-t border-brand-500/20 text-xs">
-            <span class="text-[11px] text-slate-400">Shift amount:</span>
+            <span class="text-[11px] text-slate-400">{{ $t('inspector.shiftAmount') }}</span>
             <div class="flex items-center gap-1">
               <UiIconButton 
                 size="sm"
@@ -158,22 +158,22 @@
                 v-if="activeItem.depthOffset !== 0"
                 variant="ghost"
                 size="xs"
-                title="Reset to default depth"
+                :title="$t('inspector.resetDepthDesc')"
                 @click="resetDepth"
               >
-                Reset
+                {{ $t('inspector.reset') }}
               </UiButton>
             </div>
           </div>
           <p class="text-[10px] text-slate-400 leading-tight flex items-center gap-1.5">
             <Lightbulb class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>Click <strong>Above Front</strong> to place this object above overlapping front walls and props.</span>
+            <span v-html="$t('inspector.aboveFrontTip')"></span>
           </p>
         </UiCard>
 
         <!-- 3. Layer Selector -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-slate-300">Layer:</span>
+          <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.layer') }}</span>
           <UiTabs
             :model-value="toolStore.selectedElement?.layerId || ''"
             :items="mapStore.project.layers.map(l => ({ id: l.id, label: l.name }))"
@@ -188,10 +188,10 @@
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Layers class="w-3.5 h-3.5 text-slate-400" />
-              In-Cell Z-Index
+              {{ $t('inspector.inCellZIndex') }}
             </span>
             <div class="flex items-center gap-1">
-              <span class="text-[10px] text-slate-400">Value:</span>
+              <span class="text-[10px] text-slate-400">{{ $t('inspector.value') }}</span>
               <UiNumberInput
                 :model-value="currentInspectedCellZ"
                 variant="compact"
@@ -207,15 +207,15 @@
           <!-- Multi-cell Mini Matrix Grid if span > 1 -->
           <div v-if="(activeItem.spanX || 1) > 1 || (activeItem.spanY || 1) > 1" class="flex flex-col gap-1.5 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
             <div class="flex justify-between items-center text-[10px]">
-              <span class="text-slate-400 font-medium">Per-cell Z-Index:</span>
+              <span class="text-slate-400 font-medium">{{ $t('inspector.perCellZIndex') }}</span>
               <UiButton 
                 variant="ghost"
                 size="xs"
-                title="Apply current Z-Index to all spanned cells"
+                :title="$t('inspector.applyToAllDesc')"
                 custom-class="text-brand-400! hover:text-brand-300! p-0!"
                 @click="applyCurrentZToAllCells"
               >
-                Apply to all
+                {{ $t('inspector.applyToAll') }}
               </UiButton>
             </div>
 
@@ -269,41 +269,41 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowUpToLine"
-              title="Bring 1 step forward in cell (+1)"
+              :title="$t('inspector.bringForwardDesc')"
               custom-class="flex-col! py-2! gap-0.5!"
               @click="handleBringForward"
             >
-              <span class="text-[10px] font-semibold text-emerald-400">Z+ (+1)</span>
+              <span class="text-[10px] font-semibold text-emerald-400">{{ $t('inspector.zStepUp') }}</span>
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ArrowDownToLine"
-              title="Send 1 step backward in cell (-1)"
+              :title="$t('inspector.sendBackwardDesc')"
               custom-class="flex-col! py-2! gap-0.5!"
               @click="handleSendBackward"
             >
-              <span class="text-[10px] font-semibold text-amber-400">Z- (-1)</span>
+              <span class="text-[10px] font-semibold text-amber-400">{{ $t('inspector.zStepDown') }}</span>
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ChevronsUp"
-              title="Bring to top in cell"
+              :title="$t('inspector.bringToTopDesc')"
               custom-class="flex-col! py-2! gap-0.5!"
               @click="handleBringToTop"
             >
-              <span class="text-[10px] font-semibold text-brand-400">Top</span>
+              <span class="text-[10px] font-semibold text-brand-400">{{ $t('inspector.top') }}</span>
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ChevronsDown"
-              title="Send to bottom in cell"
+              :title="$t('inspector.sendToBottomDesc')"
               custom-class="flex-col! py-2! gap-0.5!"
               @click="handleSendToBottom"
             >
-              <span class="text-[10px] font-semibold text-slate-400">Bottom</span>
+              <span class="text-[10px] font-semibold text-slate-400">{{ $t('inspector.bottom') }}</span>
             </UiButton>
           </div>
         </UiCard>
@@ -313,7 +313,7 @@
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Crosshair class="w-3.5 h-3.5 text-brand-400" />
-              Anchor (Base Point):
+              {{ $t('inspector.anchor') }}
             </span>
             <UiBadge variant="brand" size="xs">{{ Math.round(currentAnchorY * 100) }}%</UiBadge>
           </div>
@@ -321,9 +321,9 @@
           <UiTabs
             :model-value="Math.abs(currentAnchorY - 0.5) < 0.05 ? 0.5 : Math.abs(currentAnchorY - 0.88) < 0.05 ? 0.88 : Math.abs(currentAnchorY - 1.0) < 0.05 ? 1.0 : currentAnchorY"
             :items="[
-              { id: 0.5, label: 'Tile (50%)' },
-              { id: 0.88, label: 'Wall (88%)' },
-              { id: 1.0, label: 'Base (100%)' }
+              { id: 0.5, label: $t('inspector.tileAnchor') },
+              { id: 0.88, label: $t('inspector.wallAnchor') },
+              { id: 1.0, label: $t('inspector.baseAnchor') }
             ]"
             size="xs"
             fill
@@ -332,7 +332,7 @@
 
           <UiSlider
             :model-value="currentAnchorY"
-            label="Fine Y"
+            :label="$t('inspector.fineY')"
             :min="0.2"
             :max="1.0"
             :step="0.02"
@@ -344,7 +344,7 @@
         <!-- 6. Scaling -->
         <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
           <div class="flex justify-between items-center text-xs">
-            <span class="font-semibold text-slate-300">Scale:</span>
+            <span class="font-semibold text-slate-300">{{ $t('inspector.scale') }}</span>
             <UiBadge variant="brand" size="xs">{{ Math.round((activeItem.scale || 1.0) * 100) }}%</UiBadge>
           </div>
           <div class="flex items-center gap-2">
@@ -370,7 +370,7 @@
         <!-- 7. Pixel Offset (Nudge) -->
         <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-medium">Pixel Offset (Nudge):</span>
+            <span class="text-slate-400 font-medium">{{ $t('inspector.pixelOffset') }}</span>
             <span class="font-mono text-slate-300 text-[11px]">
               X: {{ activeItem.offsetX || 0 }}px | Y: {{ activeItem.offsetY || 0 }}px
             </span>
@@ -382,7 +382,7 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowLeft"
-              title="Nudge Left 2px"
+              :title="$t('inspector.nudgeLeftDesc')"
               @click="nudge(-2, 0)"
             >
               2px
@@ -391,7 +391,7 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowUp"
-              title="Nudge Up 2px"
+              :title="$t('inspector.nudgeUpDesc')"
               @click="nudge(0, -2)"
             >
               2px
@@ -400,7 +400,7 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowDown"
-              title="Nudge Down 2px"
+              :title="$t('inspector.nudgeDownDesc')"
               @click="nudge(0, 2)"
             >
               2px
@@ -409,7 +409,7 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowRight"
-              title="Nudge Right 2px"
+              :title="$t('inspector.nudgeRightDesc')"
               @click="nudge(2, 0)"
             >
               2px
@@ -417,7 +417,7 @@
             <UiButton 
               variant="secondary"
               size="xs"
-              title="Reset offset"
+              :title="$t('inspector.resetOffsetDesc')"
               @click="resetOffset"
             >
               0
@@ -435,7 +435,7 @@
             :custom-class="toolStore.isMovingElement ? 'animate-pulse' : ''"
             @click="handleMoveMode"
           >
-            {{ toolStore.isMovingElement ? 'Click Target Cell' : 'Move' }}
+            {{ toolStore.isMovingElement ? $t('inspector.moveTarget') : $t('inspector.move') }}
           </UiButton>
 
           <UiButton 
@@ -445,7 +445,7 @@
             :leading-icon="Trash2"
             @click="handleDelete"
           >
-            Delete
+            {{ $t('inspector.delete') }}
           </UiButton>
         </div>
       </div>
@@ -453,8 +453,8 @@
 
     <!-- Footer Help -->
     <div class="p-2.5 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-400 flex items-center justify-between">
-      <span>Deselect: <strong class="text-slate-300">Right-click</strong></span>
-      <span>Delete: <strong class="text-slate-300">Delete key</strong></span>
+      <span v-html="$t('inspector.deselectHint')"></span>
+      <span v-html="$t('inspector.deleteHint')"></span>
     </div>
   </aside>
 </template>
@@ -478,12 +478,14 @@ import {
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
+import { useI18nStore } from '../stores/i18nStore'
 import { TileItem } from '../types/map'
 import { cellKey } from '../utils/isometric'
 
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
+const i18nStore = useI18nStore()
 
 const activeCellInMatrix = ref<{ col: number; row: number } | null>(null)
 
@@ -547,9 +549,9 @@ const currentAnchorY = computed(() => {
 const depthOffsetStatusText = computed(() => {
   if (!activeItem.value) return '0'
   const off = activeItem.value.depthOffset || 0
-  if (off === 0) return 'Default depth (0)'
-  if (off > 0) return `+${off} above front cell`
-  return `${off} behind back cell`
+  if (off === 0) return i18nStore.t('inspector.depthStatusDefault')
+  if (off > 0) return i18nStore.t('inspector.depthStatusAbove', { val: off })
+  return i18nStore.t('inspector.depthStatusBehind', { val: off })
 })
 
 function selectElementEntry(entry: { item: TileItem; originCol: number; originRow: number }) {

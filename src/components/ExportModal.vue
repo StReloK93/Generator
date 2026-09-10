@@ -21,26 +21,26 @@
     <div v-if="exportType === 'json'" class="flex flex-col gap-3 text-xs">
       <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-2">
         <div class="flex justify-between items-center">
-          <span class="text-slate-400">Project Name:</span>
+          <span class="text-slate-400">{{ $t('export.projectName') }}</span>
           <span class="font-mono text-brand-300 font-semibold truncate max-w-50">{{ mapStore.project.name }}</span>
         </div>
         <div class="flex justify-between items-center">
-          <span class="text-slate-400">Map Dimensions:</span>
-          <span class="font-mono text-slate-200">{{ mapStore.project.cols }}×{{ mapStore.project.rows }} cells</span>
+          <span class="text-slate-400">{{ $t('export.mapDimensions') }}</span>
+          <span class="font-mono text-slate-200">{{ $t('export.cellsCount', { cols: mapStore.project.cols, rows: mapStore.project.rows }) }}</span>
         </div>
         <div class="flex justify-between items-center">
-          <span class="text-slate-400">Placed Elements:</span>
-          <span class="font-mono text-emerald-400 font-semibold">{{ mapStore.totalTilesCount }} items</span>
+          <span class="text-slate-400">{{ $t('export.placedElements') }}</span>
+          <span class="font-mono text-emerald-400 font-semibold">{{ $t('export.itemsCount', { count: mapStore.totalTilesCount }) }}</span>
         </div>
         <div class="flex justify-between items-center">
-          <span class="text-slate-400">Custom Assets (Sprites):</span>
-          <span class="font-mono text-indigo-400 font-semibold">{{ assetStore.assets.length }} items</span>
+          <span class="text-slate-400">{{ $t('export.customAssets') }}</span>
+          <span class="font-mono text-indigo-400 font-semibold">{{ $t('export.itemsCount', { count: assetStore.assets.length }) }}</span>
         </div>
       </div>
 
       <div class="text-[11px] leading-relaxed bg-brand-950/20 p-3 rounded-xl border border-brand-500/20 text-brand-200/90 flex items-start gap-2">
         <Lightbulb class="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-        <span><strong>Complete Project Backup:</strong> This file embeds all layers, coordinates, and custom uploaded sprites. You can import and resume editing anytime!</span>
+        <span v-html="$t('export.projectBackupTip')"></span>
       </div>
     </div>
 
@@ -48,18 +48,18 @@
     <div v-else class="flex flex-col gap-3 text-xs">
       <UiSwitch
         v-model="includeGrid"
-        label="Include Grid Lines"
-        description="Renders isometric grid lines in the exported image"
+        :label="$t('export.includeGrid')"
+        :description="$t('export.includeGridDesc')"
       />
 
       <UiSwitch
         v-model="transparentBg"
-        label="Transparent Background"
-        description="Exports with a transparent alpha channel background"
+        :label="$t('export.transparentBg')"
+        :description="$t('export.transparentBgDesc')"
       />
 
       <div class="text-[11px] text-slate-400 leading-relaxed bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/40">
-        PNG export is ideal for direct use in game engines (Unity, Godot, Web games) or graphic design.
+        {{ $t('export.pngDesc') }}
       </div>
     </div>
 
@@ -70,7 +70,7 @@
         size="sm"
         @click="closeModal"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </UiButton>
       <UiButton
         variant="primary"
@@ -79,7 +79,7 @@
         :leading-icon="Download"
         @click="handleExport"
       >
-        {{ isExporting ? 'Exporting...' : 'Download' }}
+        {{ isExporting ? $t('common.exporting') : $t('common.download') }}
       </UiButton>
     </template>
   </UiModal>
@@ -145,6 +145,7 @@ async function handleExport() {
         assetStore.assets, 
         {
           customRoutes: characterStore.customRoutes,
+          customWaypoints: characterStore.customWaypoints,
           spawnPoints: characterStore.detectedDoors,
           characterConfig: {
             spawnCount: characterStore.spawnCount,

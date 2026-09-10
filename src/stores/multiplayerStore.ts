@@ -385,6 +385,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             animSpeed: Number(w.animSpeed) || 1.0,
             offsetY: Number(w.offsetY) || 0,
             unitScale: Number(w.unitScale) || 1.0,
+            unitVariant: w.unitVariant || 'normal',
+            variantTint: w.variantTint,
           }))
         }
         if (msg.payload.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
@@ -442,10 +444,14 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (msg.payload?.waveConfigs && msg.payload.waveConfigs.length > 0) {
           characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
             ...w,
+            unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
+            endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
             characterModel: w.characterModel || 'male',
             animSpeed: Number(w.animSpeed) || 1.0,
             offsetY: Number(w.offsetY) || 0,
             unitScale: Number(w.unitScale) || 1.0,
+            unitVariant: w.unitVariant || 'normal',
+            variantTint: w.variantTint,
           }))
         }
         if (msg.payload?.towerBlueprints && msg.payload.towerBlueprints.length > 0) {

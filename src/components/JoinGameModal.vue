@@ -1,8 +1,8 @@
 <template>
   <UiModal
     :is-open="isOpen"
-    title="Online Games"
-    subtitle="Select an active room or enter a room code"
+    :title="$t('multiplayer.joinTitle')"
+    :subtitle="$t('multiplayer.joinSubtitle')"
     :icon="Radio"
     icon-color="brand"
     size="2xl"
@@ -13,13 +13,13 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-center">
         <UiInput
           v-model="playerName"
-          label="Your Nickname:"
-          placeholder="Enter your commander name"
+          :label="$t('multiplayer.yourNickname')"
+          :placeholder="$t('multiplayer.nicknamePlaceholder')"
           :maxlength="16"
         />
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-slate-300">Your Color:</label>
+          <label class="text-xs font-semibold text-slate-300">{{ $t('multiplayer.yourColor') }}</label>
           <UiColorPicker
             v-model="selectedColor"
             :colors="PLAYER_COLORS"
@@ -35,7 +35,7 @@
         <div class="flex items-center gap-2">
           <Radio class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 animate-pulse" />
           <h3 class="text-xs font-bold text-white uppercase tracking-wider">
-            Available Public Rooms ({{ activeLobbies.length }})
+            {{ $t('multiplayer.availablePublicRooms', { count: activeLobbies.length }) }}
           </h3>
         </div>
         
@@ -46,7 +46,7 @@
           :loading="isRefreshing"
           @click="handleManualRefresh"
         >
-          Refresh
+          {{ $t('common.refresh') }}
         </UiButton>
       </div>
 
@@ -102,7 +102,7 @@
               :leading-icon="LogIn"
               @click="joinSpecificRoom(room.roomId)"
             >
-              {{ isJoining ? 'Connecting...' : 'Join' }}
+              {{ isJoining ? $t('multiplayer.connecting') : $t('multiplayer.join') }}
             </UiButton>
           </div>
         </UiCard>
@@ -120,9 +120,9 @@
         </div>
 
         <div>
-          <p class="text-xs sm:text-sm font-bold text-white">No active rooms discovered</p>
+          <p class="text-xs sm:text-sm font-bold text-white">{{ $t('multiplayer.noActiveRooms') }}</p>
           <p class="text-[11px] sm:text-xs text-slate-400 max-w-sm mx-auto mt-1">
-            Wait for a host to open a room or create your own!
+            {{ $t('multiplayer.noActiveRoomsDesc') }}
           </p>
         </div>
 
@@ -133,7 +133,7 @@
             :leading-icon="Plus"
             @click="handleCreateGameInstead"
           >
-            Host New Room
+            {{ $t('multiplayer.hostNewRoom') }}
           </UiButton>
         </div>
       </UiCard>
@@ -141,22 +141,23 @@
 
     <!-- Optional: Private Room Code Accordion -->
     <div class="pt-2 border-t border-slate-800/80">
-      <button 
-        type="button"
-        class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer transition-colors touch-target"
+      <UiButton 
+        variant="ghost"
+        size="xs"
+        :leading-icon="ChevronDown"
+        :custom-class="showCodeInput ? 'text-amber-300!' : 'text-slate-400!'"
         @click="showCodeInput = !showCodeInput"
       >
-        <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="showCodeInput ? 'rotate-180' : ''" />
-        <span>Enter private room code manually</span>
-      </button>
+        <span>{{ $t('multiplayer.enterPrivateCode') }}</span>
+      </UiButton>
 
       <div v-if="showCodeInput" class="mt-2.5 flex items-center gap-2 animate-in fade-in duration-150">
-        <input 
+        <UiInput 
           v-model="roomCode"
-          type="text"
-          maxlength="8"
-          placeholder="e.g. 7X9K2A"
-          class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-center text-xs sm:text-sm font-mono font-bold text-amber-300 tracking-widest uppercase focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50"
+          :placeholder="$t('multiplayer.roomCodePlaceholder')"
+          :maxlength="8"
+          size="sm"
+          class="flex-1 font-mono uppercase text-amber-300 font-bold"
           @keyup.enter="handleJoinGame"
         />
         <UiButton
@@ -165,7 +166,7 @@
           :disabled="!roomCode.trim() || isJoining"
           @click="handleJoinGame"
         >
-          Connect
+          {{ $t('multiplayer.connect') }}
         </UiButton>
       </div>
     </div>
@@ -178,7 +179,7 @@
           size="xs"
           @click="close"
         >
-          Close
+          {{ $t('common.close') }}
         </UiButton>
 
         <span class="font-mono text-[10px] sm:text-[11px] text-slate-500">

@@ -27,6 +27,55 @@ export interface Layer {
   tiles: Record<string, TileItem[]> // key: `${x},${y}` -> array of stacked TileItems
 }
 
+export type UnitVariantType = 
+  | 'normal' 
+  | 'fire' 
+  | 'frost' 
+  | 'poison' 
+  | 'void' 
+  | 'electric' 
+  | 'blood' 
+  | 'golden'
+  | 'demon'
+
+export type TowerTraitType = 
+  | 'fire' 
+  | 'frost' 
+  | 'poison' 
+  | 'stacking' 
+  | 'blood' 
+  | 'electric' 
+  | 'void'
+
+export interface TowerTraitsConfig {
+  traits?: TowerTraitType[]
+  // Fire trait
+  fireBonusDamage?: number
+  burnDps?: number
+  burnDuration?: number
+  // Frost trait
+  slowPercent?: number
+  slowDuration?: number
+  frostBonusDamage?: number
+  // Poison trait
+  poisonDps?: number
+  poisonDuration?: number
+  poisonSlowPercent?: number
+  // Stacking (Ramping) damage on consecutive hits
+  stackBonusDamage?: number
+  maxStacks?: number
+  // Blood / Bleed trait
+  bleedDps?: number
+  bleedDuration?: number
+  // Electric trait
+  electricBonusDamage?: number
+  chainTargets?: number
+  stunDuration?: number
+  // Void trait
+  voidVulnPercent?: number
+  voidDuration?: number
+}
+
 export interface WaveConfig {
   waveNumber: number
   name: string
@@ -35,10 +84,25 @@ export interface WaveConfig {
   unitCount: number
   isBoss: boolean
   goldReward: number
+  unitBonus?: number
+  endWaveBonus?: number
   characterModel?: string
   animSpeed?: number
   offsetY?: number
   unitScale?: number
+  unitVariant?: UnitVariantType
+  variantTint?: number | string
+  immunities?: TowerTraitType[]
+}
+
+export interface TowerClan {
+  id: string
+  name: string
+  description?: string
+  iconName?: string // Lucide icon name: Castle, Flame, Snowflake, Skull, Zap, Ghost, Droplet, Shield, Swords, Crown, etc.
+  color?: string // Theme hex or CSS color
+  bannerColor?: string // Gradient or accent color
+  isDefault?: boolean
 }
 
 export interface MapGameSettings {
@@ -60,6 +124,7 @@ export interface MapProject {
   gridColor: string
   layers: Layer[]
   customRoutes?: Record<string, GridCoord[]>
+  customWaypoints?: Record<string, GridCoord[]>
   characterConfig?: {
     spawnCount?: number
     speed?: number
@@ -69,9 +134,10 @@ export interface MapProject {
     followCamera?: boolean
     showPathTrail?: boolean
     autoLoop?: boolean
-    selectedDoorIndex?: number
+    selectedDoorIndex?: number | null
   }
   gameSettings?: MapGameSettings
+  clans?: TowerClan[]
   placedTowers?: any[]
   towerBlueprints?: any[]
   waveConfigs?: WaveConfig[]

@@ -5,7 +5,8 @@
       'cursor-grab!': toolStore.activeTool === 'pan' && !camera.isPanning.value,
       'cursor-grabbing!': camera.isPanning.value,
       'cursor-cell!': toolStore.activeTool === 'picker',
-      'cursor-pointer!': !assetStore.selectedAssetId || toolStore.activeTool === 'select',
+      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingSpawnPoint,
+      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingSpawnPoint,
       'cursor-move!': toolStore.isMovingElement,
       'cursor-not-allowed!': mapStore.activeLayer?.locked
     }" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
@@ -25,40 +26,101 @@
       <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
       <span class="flex items-center gap-1.5">
         <component :is="characterStore.spawnPointPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
-        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? 'New Spawn Point' : 'Relocate Spawn Point' }}:</strong>
-        Click any cell on the map
+        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? $t('editor.newSpawnPoint') : $t('editor.relocateSpawnPoint') }}:</strong>
+        {{ $t('editor.clickAnyCell') }}
       </span>
       <UiButton
         variant="secondary"
         size="xs"
         @click="characterStore.isSettingSpawnPoint = false"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </UiButton>
     </div>
 
     <!-- Floating HUD when Drawing Custom Route -->
     <div v-if="characterStore.isDrawingRoute"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2">
-      <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
-      <span>
-        <strong>Drawing Route:</strong> Click cells sequentially (Points: {{
-          characterStore.drawingPath.length }})
-      </span>
-      <UiButton
-        variant="game-green"
-        size="xs"
-        @click="characterStore.finishDrawingRoute()"
-      >
-        Finish
-      </UiButton>
-      <UiButton
-        variant="secondary"
-        size="xs"
-        @click="characterStore.cancelDrawingRoute()"
-      >
-        Cancel
-      </UiButton>
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3.5 py-2 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center flex-wrap gap-2 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2">
+      
+      <!-- Icon & Status text -->
+      <div class="flex items-center gap-2 pr-1">
+        <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
+        <template v-if="characterStore.selectedWaypointIndex !== null">
+          <span class="font-medium text-amber-300">
+            <strong>{{ $t('editor.pointSelected', { num: characterStore.selectedWaypointIndex + 1 }) }}</strong> {{ $t('editor.clickMapToMove') }}
+          </span>
+          <UiButton
+            variant="ghost"
+            size="xs"
+            :title="$t('editor.deselectPoint')"
+            @click="characterStore.selectedWaypointIndex = null; engine.renderCharacter(characterStore, mapStore.project)"
+          >
+            {{ $t('editor.deselect') }}
+          </UiButton>
+          <UiIconButton
+            variant="danger"
+            size="xs"
+            :icon="Trash2"
+            :title="$t('editor.deleteWaypoint')"
+            @click="characterStore.deleteSelectedWaypoint(); engine.renderCharacter(characterStore, mapStore.project)"
+          />
+        </template>
+        <template v-else>
+          <span>
+            <strong>{{ $t('editor.waypoints') }}</strong> {{ characterStore.drawingWaypoints.length }} <span class="text-slate-400 font-mono">({{ $t('editor.tilesCount', { count: characterStore.drawingPath.length }) }})</span>
+          </span>
+        </template>
+      </div>
+
+      <div class="h-4 w-px bg-slate-700/80"></div>
+
+      <!-- Undo / Redo / Reset for Route -->
+      <div class="flex items-center gap-1">
+        <UiIconButton
+          variant="ghost"
+          size="xs"
+          :icon="Undo2"
+          :disabled="!characterStore.canUndoRoute"
+          :title="$t('editor.undoStep')"
+          @click="characterStore.undoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+        />
+        <UiIconButton
+          variant="ghost"
+          size="xs"
+          :icon="Redo2"
+          :disabled="!characterStore.canRedoRoute"
+          :title="$t('editor.redoStep')"
+          @click="characterStore.redoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+        />
+        <UiIconButton
+          variant="ghost"
+          size="xs"
+          :icon="RotateCcw"
+          :title="$t('editor.resetStartPoint')"
+          @click="characterStore.clearDrawnRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+        />
+      </div>
+
+      <div class="h-4 w-px bg-slate-700/80"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1.5">
+        <UiButton
+          variant="game-green"
+          size="xs"
+          :leading-icon="Check"
+          @click="characterStore.finishDrawingRoute()"
+        >
+          {{ $t('editor.finish') }}
+        </UiButton>
+        <UiButton
+          variant="secondary"
+          size="xs"
+          @click="characterStore.cancelDrawingRoute()"
+        >
+          {{ $t('common.cancel') }}
+        </UiButton>
+      </div>
     </div>
 
     <!-- Drag & Drop Overlay Indicator -->
@@ -67,7 +129,7 @@
       <div
         class="glass-panel px-6 py-3 rounded-2xl border border-brand-400 text-brand-300 font-semibold text-sm shadow-2xl flex items-center gap-2">
         <PlusCircle class="w-5 h-5 animate-bounce" />
-        <span>Drop sprite tile here</span>
+        <span>{{ $t('editor.dropSpriteHere') }}</span>
       </div>
     </div>
 
@@ -78,7 +140,7 @@
         class="glass-panel px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2.5 border border-slate-800/90 shadow-xl text-slate-300 backdrop-blur-xl bg-slate-900/90">
         <!-- Hover Grid Coordinates -->
         <div class="flex items-center gap-1.5">
-          <span class="text-slate-500 font-sans text-[11px]">Cell:</span>
+          <span class="text-slate-500 font-sans text-[11px]">{{ $t('inspector.gridPosition') }}:</span>
           <span v-if="toolStore.hoveredCell"
             class="text-brand-300 font-bold bg-brand-500/20 px-1.5 py-0.5 rounded border border-brand-500/30">
             ({{ toolStore.hoveredCell.col }}, {{ toolStore.hoveredCell.row }})
@@ -90,9 +152,9 @@
 
         <!-- Active Layer Name -->
         <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-sans text-[11px]">Layer:</span>
+          <span class="text-slate-500 font-sans text-[11px]">{{ $t('inspector.layer') }}</span>
           <span class="text-emerald-400 font-sans font-medium truncate max-w-27.5">
-            {{ mapStore.activeLayer?.name || 'Layer' }}
+            {{ mapStore.activeLayer?.name || $t('inspector.layer') }}
           </span>
         </div>
 
@@ -100,7 +162,7 @@
           <div class="h-3 w-px bg-slate-800 hidden sm:block"></div>
           <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-amber-300 font-sans">
             <Package class="w-3.5 h-3.5 text-amber-400" />
-            <span>{{ hoveredCellItemsCount }} items</span>
+            <span>{{ $t('editor.itemsCount', { count: hoveredCellItemsCount }) }}</span>
           </div>
         </template>
 
@@ -108,13 +170,13 @@
         <template v-if="isCtrlPressed">
           <div class="h-3 w-px bg-slate-800"></div>
           <span class="bg-rose-500/25 text-rose-300 font-bold px-1.5 py-0.5 rounded border border-rose-500/40 text-[10px] uppercase font-sans">
-            Ctrl: Replace
+            {{ $t('editor.ctrlReplace') }}
           </span>
         </template>
         <template v-else-if="isShiftPressed">
           <div class="h-3 w-px bg-slate-800"></div>
           <span class="bg-cyan-500/25 text-cyan-300 font-bold px-1.5 py-0.5 rounded border border-cyan-500/40 text-[10px] uppercase font-sans">
-            Shift: Stack
+            {{ $t('editor.shiftStack') }}
           </span>
         </template>
       </div>
@@ -127,14 +189,14 @@
         {{ Math.round(camera.localZoom.value * 100) }}%
       </div>
       <div class="pointer-events-auto flex items-center gap-1.5">
-        <!-- Spawn Points Toggle Button -->
+        <!-- Route Lines Toggle Button (Top of the map) -->
         <UiIconButton
           variant="tool"
           size="sm"
-          :active="characterStore.showSpawnPoints"
-          :icon="MapPin"
-          title="Toggle Spawn Points"
-          @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
+          :active="characterStore.showPathTrail !== false"
+          :icon="Footprints"
+          :title="characterStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
+          @click="characterStore.showPathTrail = !characterStore.showPathTrail"
         />
 
         <!-- Reset View to Center -->
@@ -152,7 +214,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
-import { Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package } from 'lucide-vue-next'
+import { Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, Trash2, Check, Footprints } from 'lucide-vue-next'
 import { UiButton, UiIconButton } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
 import PlacementPromptModal from '../PlacementPromptModal.vue'
@@ -310,6 +372,7 @@ watch(() => [
   characterStore.showPathTrail,
   characterStore.isDrawingRoute,
   characterStore.drawingPath.length,
+  characterStore.selectedWaypointIndex,
   characterStore.detectedDoors.length,
   characterStore.selectedDoorIndex,
   characterStore.spawnMode,
@@ -322,6 +385,10 @@ watch(() => [
 // Track modifier keys for strict replace (Ctrl) vs stack (Shift) placement
 const isCtrlPressed = ref(false)
 const isShiftPressed = ref(false)
+
+// Track waypoint dragging during route draw
+const isDraggingWaypoint = ref(false)
+const draggedWaypointIndex = ref<number | null>(null)
 
 // Track last drawn cell during mouse drag to prevent duplicate placement in the same cell
 const lastDrawnCell = ref<GridCoord | null>(null)
@@ -353,6 +420,24 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
     characterStore.addPathTile(gridCoord)
     engine.renderCharacter(characterStore, mapStore.project)
     return
+  }
+
+  // Spawn Point / Route Selection & Deselection on canvas
+  if (!characterStore.isDrawingRoute) {
+    const clickedDoorIdx = characterStore.detectedDoors.findIndex(d => {
+      const dc = d.spawnCol ?? d.col
+      const dr = d.spawnRow ?? d.row
+      return dc === gridCoord.col && dr === gridCoord.row
+    })
+
+    if (clickedDoorIdx !== -1 && !assetStore.selectedAssetId && toolStore.activeTool === 'select') {
+      characterStore.selectedDoorIndex = (characterStore.selectedDoorIndex === clickedDoorIdx) ? null : clickedDoorIdx
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    } else if (characterStore.selectedDoorIndex !== null) {
+      characterStore.selectedDoorIndex = null
+      engine.renderCharacter(characterStore, mapStore.project)
+    }
   }
 
   // Moving Element
@@ -514,6 +599,36 @@ function handleMouseDown(e: MouseEvent) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
+
+  // Custom Route Drawing & Point Selection/Relocation Dragging
+  if (characterStore.isDrawingRoute) {
+    const wpList = characterStore.drawingWaypoints
+    const clickedWpIdx = wpList.findIndex(p => p.col === gridCoord.col && p.row === gridCoord.row)
+    
+    if (clickedWpIdx !== -1) {
+      if (characterStore.selectedWaypointIndex === clickedWpIdx) {
+        isDraggingWaypoint.value = true
+        draggedWaypointIndex.value = clickedWpIdx
+      } else {
+        characterStore.selectWaypoint(clickedWpIdx)
+        isDraggingWaypoint.value = true
+        draggedWaypointIndex.value = clickedWpIdx
+      }
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
+
+    if (characterStore.selectedWaypointIndex !== null) {
+      characterStore.moveSelectedWaypoint(gridCoord)
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
+
+    characterStore.addWaypoint(gridCoord)
+    engine.renderCharacter(characterStore, mapStore.project)
+    return
+  }
+
   executeCellClick(gridCoord, false, e)
 }
 
@@ -527,6 +642,18 @@ function handleMouseMove(e: MouseEvent) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   toolStore.setHoveredCell(gridCoord)
+
+  if (characterStore.isDrawingRoute && isDraggingWaypoint.value && draggedWaypointIndex.value !== null) {
+    const idx = draggedWaypointIndex.value
+    if (idx >= 0 && idx < characterStore.drawingWaypoints.length) {
+      const current = characterStore.drawingWaypoints[idx]
+      if (current.col !== gridCoord.col || current.row !== gridCoord.row) {
+        characterStore.setWaypointPosition(idx, gridCoord)
+        engine.renderCharacter(characterStore, mapStore.project)
+      }
+    }
+    return
+  }
 
   if (toolStore.isMouseDown && toolStore.dragStartCell) {
     const isSameAsLast = lastDrawnCell.value && lastDrawnCell.value.col === gridCoord.col && lastDrawnCell.value.row === gridCoord.row
@@ -558,6 +685,15 @@ function handleMouseUp(e?: MouseEvent) {
     isShiftPressed.value = e.shiftKey
   }
   if (camera.isPanning.value) camera.endPan()
+
+  if (isDraggingWaypoint.value) {
+    isDraggingWaypoint.value = false
+    draggedWaypointIndex.value = null
+    characterStore.commitRouteState()
+    engine.renderCharacter(characterStore, mapStore.project)
+    return
+  }
+
   if (toolStore.isMouseDown && toolStore.dragStartCell && assetStore.selectedAssetId) {
     if (toolStore.previewCells.length > 0) {
       const isCtrl = (e && (e.ctrlKey || e.metaKey)) || isCtrlPressed.value
@@ -584,6 +720,22 @@ function handleWheel(e: WheelEvent) {
 }
 
 function handleContextMenu() {
+  if (characterStore.isDrawingRoute) {
+    if (characterStore.selectedWaypointIndex !== null) {
+      characterStore.selectedWaypointIndex = null
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
+  }
+  if (characterStore.selectedDoorIndex !== null) {
+    characterStore.selectedDoorIndex = null
+    engine.renderCharacter(characterStore, mapStore.project)
+    return
+  }
+  if (characterStore.isSettingSpawnPoint) {
+    characterStore.isSettingSpawnPoint = false
+    return
+  }
   if (toolStore.isMovingElement) {
     toolStore.isMovingElement = false
     return
@@ -666,7 +818,53 @@ function handleKeyDown(e: KeyboardEvent) {
   isShiftPressed.value = e.shiftKey
   if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
   if (e.code === 'Space') camera.isSpacePressed.value = true
+
+  // Route & Map Undo (Ctrl+Z) / Redo (Ctrl+Y / Ctrl+Shift+Z)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault()
+    if (e.shiftKey) {
+      if (characterStore.isDrawingRoute) {
+        characterStore.redoRoute()
+        engine.renderCharacter(characterStore, mapStore.project)
+      } else {
+        mapStore.redo()
+      }
+    } else {
+      if (characterStore.isDrawingRoute) {
+        characterStore.undoRoute()
+        engine.renderCharacter(characterStore, mapStore.project)
+      } else {
+        mapStore.undo()
+      }
+    }
+    return
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+    e.preventDefault()
+    if (characterStore.isDrawingRoute) {
+      characterStore.redoRoute()
+      engine.renderCharacter(characterStore, mapStore.project)
+    } else {
+      mapStore.redo()
+    }
+    return
+  }
+
+  if (e.key === 'Escape') {
+    if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
+      characterStore.selectedWaypointIndex = null
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
+  }
+
   if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
+      characterStore.deleteSelectedWaypoint()
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
     if (toolStore.selectedElement) {
       mapStore.removeTileItem(toolStore.selectedElement.col, toolStore.selectedElement.row, toolStore.selectedElement.itemId, toolStore.selectedElement.layerId)
       toolStore.setSelectedElement(null)

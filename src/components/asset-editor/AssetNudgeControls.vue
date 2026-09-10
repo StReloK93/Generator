@@ -5,10 +5,10 @@
     <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
       <div class="flex items-center gap-2">
         <Move class="w-4 h-4 text-brand-400" />
-        <span class="font-bold text-xs text-white">Pixel Nudge & Transform</span>
+        <span class="font-bold text-xs text-white">{{ $t('assetEditor.nudgeTransform') }}</span>
       </div>
       <UiBadge v-if="store.selectedParts.length > 0" variant="brand" size="xs">
-        {{ store.selectedParts.length > 1 ? `${store.selectedParts.length} selected` : 'Selected' }}
+        {{ store.selectedParts.length > 1 ? $t('assetEditor.selectedCount', { count: store.selectedParts.length }) : $t('common.selected') }}
       </UiBadge>
     </div>
 
@@ -18,8 +18,8 @@
       class="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-500 gap-2 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40"
     >
       <MousePointerClick class="w-8 h-8 text-slate-600" />
-      <span class="text-xs font-semibold text-slate-400">No element selected</span>
-      <p class="text-[10px] text-slate-500">Click an element on canvas or layers list to move and transform (Hold Shift for multi-selection)</p>
+      <span class="text-xs font-semibold text-slate-400">{{ $t('assetEditor.noElementSelected') }}</span>
+      <p class="text-[10px] text-slate-500">{{ $t('assetEditor.noElementSelectedDesc') }}</p>
     </div>
 
     <!-- Selected Element Transform Inspector -->
@@ -30,7 +30,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
             <Compass class="w-3.5 h-3.5 text-brand-400" />
-            <span>Directional Nudge</span>
+            <span>{{ $t('assetEditor.directionalNudge') }}</span>
           </span>
           <!-- Step Multiplier Selector -->
           <UiTabs
@@ -52,7 +52,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            title="Nudge Up" 
+            :title="$t('assetEditor.nudgeUp')" 
             @click="store.nudgeSelected(0, -1)"
           >
             <ArrowUp class="w-4 h-4" />
@@ -62,7 +62,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            title="Nudge Left" 
+            :title="$t('assetEditor.nudgeLeft')" 
             @click="store.nudgeSelected(-1, 0)"
           >
             <ArrowLeft class="w-4 h-4" />
@@ -73,7 +73,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            title="Nudge Right" 
+            :title="$t('assetEditor.nudgeRight')" 
             @click="store.nudgeSelected(1, 0)"
           >
             <ArrowRight class="w-4 h-4" />
@@ -83,7 +83,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            title="Nudge Down" 
+            :title="$t('assetEditor.nudgeDown')" 
             @click="store.nudgeSelected(0, 1)"
           >
             <ArrowDown class="w-4 h-4" />
@@ -95,13 +95,13 @@
         <div v-if="store.selectedPart" class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
           <UiNumberInput 
             :model-value="store.selectedPart.x" 
-            label="X Coord" 
+            :label="$t('assetEditor.xCoord')" 
             unit="px"
             @update:model-value="(val) => store.setPartPosition(store.selectedPart!.id, val, store.selectedPart!.y)"
           />
           <UiNumberInput 
             :model-value="store.selectedPart.y" 
-            label="Y Coord" 
+            :label="$t('assetEditor.yCoord')" 
             unit="px"
             @update:model-value="(val) => store.setPartPosition(store.selectedPart!.id, store.selectedPart!.x, val)"
           />
@@ -114,10 +114,10 @@
           variant="secondary" 
           size="sm" 
           :leading-icon="Copy"
-          title="Copy selection (Ctrl+C)"
+          :title="$t('common.copy') + ' (Ctrl+C)'"
           @click="store.copySelection()"
         >
-          Copy
+          {{ $t('common.copy') }}
         </UiButton>
 
         <UiButton 
@@ -125,10 +125,10 @@
           size="sm" 
           :leading-icon="ClipboardPaste"
           :disabled="store.clipboard.length === 0"
-          title="Paste from clipboard (Ctrl+V)"
+          :title="$t('assetEditor.pasteTitle')"
           @click="store.pasteSelection()"
         >
-          Paste
+          {{ $t('assetEditor.paste') }}
         </UiButton>
       </div>
 
@@ -136,7 +136,7 @@
       <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2.5">
         <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
           <RotateCw class="w-3.5 h-3.5 text-amber-400" />
-          <span>Flip & Rotate</span>
+          <span>{{ $t('assetEditor.flipRotate') }}</span>
         </span>
 
         <!-- Flip Buttons -->
@@ -147,7 +147,7 @@
             :leading-icon="FlipHorizontal"
             @click="toggleFlipX"
           >
-            Flip Horizontal
+            {{ $t('assetEditor.flipHorizontal') }}
           </UiButton>
 
           <UiButton 
@@ -156,7 +156,7 @@
             :leading-icon="FlipVertical"
             @click="toggleFlipY"
           >
-            Flip Vertical
+            {{ $t('assetEditor.flipVertical') }}
           </UiButton>
         </div>
 
@@ -164,7 +164,7 @@
         <UiSlider 
           v-if="store.selectedPart"
           :model-value="store.selectedPart.rotation"
-          label="Rotation"
+          :label="$t('common.rotation')"
           :min="0"
           :max="360"
           :step="15"
@@ -192,14 +192,14 @@
       <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2.5">
         <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
           <Scaling class="w-3.5 h-3.5 text-emerald-400" />
-          <span>Scale & Opacity</span>
+          <span>{{ $t('assetEditor.scaleOpacity') }}</span>
         </span>
 
         <!-- Scale Slider -->
         <UiSlider 
           v-if="store.selectedPart"
           :model-value="Number(Math.abs(store.selectedPart.scaleX).toFixed(2))"
-          label="Scale Multiplier"
+          :label="$t('assetEditor.scaleMultiplier')"
           :min="0.1"
           :max="4.0"
           :step="0.05"
@@ -230,7 +230,7 @@
         <UiSlider 
           v-if="store.selectedPart"
           :model-value="Math.round(store.selectedPart.opacity * 100)"
-          label="Opacity"
+          :label="$t('common.opacity')"
           :min="10"
           :max="100"
           :step="5"

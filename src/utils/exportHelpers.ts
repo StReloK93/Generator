@@ -85,11 +85,12 @@ export function buildFullProjectJsonPayload(
     followCamera?: boolean
     showPathTrail?: boolean
     autoLoop?: boolean
-    selectedDoorIndex?: number
+    selectedDoorIndex?: number | null
   },
   towerData?: {
     placedTowers?: any[]
     towerBlueprints?: any[]
+    clans?: any[]
   },
   waveData?: {
     waveConfigs?: any[]
@@ -109,6 +110,7 @@ export function buildFullProjectJsonPayload(
   }
 
   const resolvedCustomRoutes = characterData?.customRoutes || project.customRoutes || {}
+  const resolvedCustomWaypoints = (characterData as any)?.customWaypoints || (project as any).customWaypoints || {}
   const resolvedSpawnPoints = characterData?.spawnPoints || (project as any).spawnPoints || []
   const resolvedCharacterConfig = {
     ...(project.characterConfig || {}),
@@ -119,9 +121,10 @@ export function buildFullProjectJsonPayload(
     followCamera: characterData?.followCamera ?? characterData?.characterConfig?.followCamera ?? project.characterConfig?.followCamera ?? false,
     showPathTrail: characterData?.showPathTrail ?? characterData?.characterConfig?.showPathTrail ?? project.characterConfig?.showPathTrail ?? true,
     autoLoop: characterData?.autoLoop ?? characterData?.characterConfig?.autoLoop ?? project.characterConfig?.autoLoop ?? false,
-    selectedDoorIndex: characterData?.selectedDoorIndex ?? characterData?.characterConfig?.selectedDoorIndex ?? project.characterConfig?.selectedDoorIndex ?? 0,
+    selectedDoorIndex: characterData?.selectedDoorIndex !== undefined ? characterData.selectedDoorIndex : (characterData?.characterConfig?.selectedDoorIndex ?? project.characterConfig?.selectedDoorIndex ?? null),
   }
 
+  const resolvedClans = (project as any).clans || towerData?.clans || []
   const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
   const rawTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
   const resolvedTowerBlueprints = rawTowerBlueprints.map((bp: any) => {
@@ -129,9 +132,12 @@ export function buildFullProjectJsonPayload(
     const fallbackId = rawName ? (rawName.startsWith('sprite-') ? rawName : `sprite-${rawName}`) : 'sprite-stoneColumn_W'
     return {
       ...bp,
+      clanId: bp.clanId || (resolvedClans[0]?.id || 'clan-iron'),
       assetId: bp.assetId || fallbackId,
       assetName: bp.assetName || (rawName ? `${rawName}.webp` : 'stoneColumn_W.webp'),
       assetPath: bp.assetPath && (bp.assetPath.startsWith('http://') || bp.assetPath.startsWith('https://')) ? bp.assetPath : '',
+      splashType: bp.splashType || 'falloff',
+      traits: Array.isArray(bp.traits) ? [...bp.traits] : (bp.trait ? [bp.trait] : []),
     }
   })
   const rawWaveConfigs = waveData?.waveConfigs || (project as any).waveConfigs || []
@@ -142,11 +148,16 @@ export function buildFullProjectJsonPayload(
     unitSpeed: Number(w.unitSpeed) || 2.5,
     unitCount: Number(w.unitCount) || 10,
     isBoss: !!w.isBoss,
-    goldReward: Number(w.goldReward) || 25,
+    goldReward: Number(w.goldReward) || (Number(w.unitBonus) || 1),
+    unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
+    endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
     characterModel: w.characterModel || 'male',
     animSpeed: Number(w.animSpeed) || 1.0,
     offsetY: Number(w.offsetY) || 0,
     unitScale: Number(w.unitScale) || 1.0,
+    unitVariant: w.unitVariant || 'normal',
+    variantTint: w.variantTint,
+    immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
   }))
   const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
 
@@ -213,7 +224,9 @@ export function buildFullProjectJsonPayload(
       gridColor: project.gridColor,
       layers: compactedLayers,
       gameSettings: resolvedGameSettings,
+      clans: resolvedClans.map((c: any) => ({ ...c })),
       customRoutes: resolvedCustomRoutes,
+      customWaypoints: resolvedCustomWaypoints,
       spawnPoints: resolvedSpawnPoints,
       characterConfig: resolvedCharacterConfig,
       placedTowers: resolvedPlacedTowers,
@@ -308,11 +321,13 @@ export function importProjectFromJson(
         
         const characterData = data.characterData || {
           customRoutes: project.customRoutes || {},
+          customWaypoints: project.customWaypoints || (data.characterData as any)?.customWaypoints || {},
           spawnPoints: project.spawnPoints || [],
           characterConfig: project.characterConfig || {},
         }
 
         const towerData = data.towerData || {
+          clans: project.clans || data.clans || [],
           placedTowers: project.placedTowers || [],
           towerBlueprints: project.towerBlueprints || [],
         }

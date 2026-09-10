@@ -12,7 +12,7 @@
           :leading-icon="ArrowLeft" 
           @click="handleBackToHome"
         >
-          <span class="hidden sm:inline">Home</span>
+          <span class="hidden sm:inline">{{ $t('common.home') }}</span>
         </UiButton>
 
         <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
@@ -24,14 +24,14 @@
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <h1 class="font-black text-xs sm:text-sm text-white tracking-wide truncate">
-                Asset Editor (Studio)
+                {{ $t('assetEditor.title') }}
               </h1>
               <UiBadge variant="amber" size="xs">
                 BETA
               </UiBadge>
             </div>
             <p class="text-[10px] text-slate-400 truncate hidden md:block">
-              Compose custom isometric sprites, towers, and objects
+              {{ $t('assetEditor.subtitle') }}
             </p>
           </div>
         </div>
@@ -42,7 +42,7 @@
         <UiInput 
           v-model="store.assetName"
           size="sm"
-          placeholder="Asset name..."
+          :placeholder="$t('assetEditor.namePlaceholder')"
           :leading-icon="FileText"
         />
 
@@ -52,7 +52,7 @@
             size="sm" 
             variant="ghost" 
             :disabled="store.historyIndex <= 0"
-            title="Undo (Ctrl+Z)" 
+            :title="$t('common.undo') + ' (Ctrl+Z)'" 
             @click="store.undo()" 
           />
           <UiIconButton 
@@ -60,7 +60,7 @@
             size="sm" 
             variant="ghost" 
             :disabled="store.historyIndex >= store.history.length - 1"
-            title="Redo (Ctrl+Shift+Z)" 
+            :title="$t('common.redo') + ' (Ctrl+Shift+Z)'" 
             @click="store.redo()" 
           />
         </div>
@@ -76,8 +76,8 @@
           :disabled="store.parts.length === 0"
           @click="handleSaveToProject"
         >
-          <span class="hidden sm:inline">Add to Library</span>
-          <span class="sm:hidden">Add</span>
+          <span class="hidden sm:inline">{{ $t('assetEditor.addToLibrary') }}</span>
+          <span class="sm:hidden">{{ $t('common.add') }}</span>
         </UiButton>
 
         <!-- Download Transparent PNG -->
@@ -88,7 +88,7 @@
           :disabled="store.parts.length === 0"
           @click="handleDownloadPng"
         >
-          <span class="hidden md:inline">Download Transparent PNG</span>
+          <span class="hidden md:inline">{{ $t('assetEditor.downloadPng') }}</span>
           <span class="md:hidden">PNG</span>
         </UiButton>
       </div>
@@ -113,10 +113,7 @@
         <!-- Right Navigation Tabs -->
         <UiTabs 
           v-model="rightActiveTab"
-          :items="[
-            { id: 'layers', label: 'Layers', icon: Layers, count: store.parts.length },
-            { id: 'transform', label: 'Nudge & Transform', icon: Move },
-          ]"
+          :items="rightSidebarTabs"
           fill
           size="sm"
           custom-class="mb-3"
@@ -149,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   ArrowLeft, 
@@ -163,22 +160,29 @@ import {
   Move, 
   CheckCircle2 
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiInput, UiBadge, UiTabs } from '../components/ui'
+import { UiButton, UiIconButton, UiInput, UiBadge, UiTabs, TabItem } from '../components/ui'
 import AssetCanvas from '../components/asset-editor/AssetCanvas.vue'
 import AssetGallerySidebar from '../components/asset-editor/AssetGallerySidebar.vue'
 import AssetLayersPanel from '../components/asset-editor/AssetLayersPanel.vue'
 import AssetNudgeControls from '../components/asset-editor/AssetNudgeControls.vue'
 import { useAssetEditorStore } from '../stores/assetEditorStore'
 import { useAssetStore } from '../stores/assetStore'
+import { useI18n } from '../stores/i18nStore'
 import { assetManager } from '../services/assetManager'
 
 const router = useRouter()
 const store = useAssetEditorStore()
 const assetStore = useAssetStore()
+const { t } = useI18n()
 
 const canvasComponentRef = ref<any>(null)
 const rightActiveTab = ref<'layers' | 'transform'>('layers')
 const toastMessage = ref('')
+
+const rightSidebarTabs = computed<TabItem[]>(() => [
+  { id: 'layers', label: t('assetEditor.layersTab'), icon: Layers, count: store.parts.length },
+  { id: 'transform', label: t('assetEditor.transformTab'), icon: Move },
+])
 
 onMounted(async () => {
   try {

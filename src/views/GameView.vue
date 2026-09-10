@@ -5,14 +5,7 @@
       <GameCanvas v-if="isMapLoaded" ref="canvasRef" @ready="handleCanvasReady" />
 
       <!-- Seamless Canvas Readiness Preloader (Covers everything until PixiJS canvas is 100% rendered) -->
-      <Transition
-        enter-active-class="transition duration-150 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition duration-400 ease-in-out"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-102 pointer-events-none"
-      >
+      <Transition name="preloader-fade">
         <div 
           v-if="!isCanvasReady" 
           class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
@@ -28,7 +21,7 @@
 
             <!-- Prominent Map Title -->
             <h2 class="text-xl sm:text-2xl font-black tracking-wider text-white uppercase mb-1 drop-shadow-md">
-              {{ mapStore.project.name || 'Battlefield' }}
+              {{ mapStore.project.name || $t('game.battlefield') }}
             </h2>
             <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
@@ -38,27 +31,37 @@
             <!-- Minimal Linear Progress Bar -->
             <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
               <div 
-                class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-200 rounded-full shadow-sm shadow-amber-500/50"
-                :style="{ width: `${characterStore.loadingProgress || 50}%` }"
+                class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-300 ease-out rounded-full shadow-sm shadow-amber-500/50"
+                :style="{ width: `${characterStore.loadingProgress}%` }"
               ></div>
             </div>
             <span class="font-mono text-xs text-slate-500 font-bold">
-              {{ Math.round(characterStore.loadingProgress || 50) }}%
+              {{ Math.round(characterStore.loadingProgress) }}%
             </span>
           </div>
         </div>
       </Transition>
     </div>
 
-    <!-- 2. FLOATING TOP IN-GAME HUD (Semi-transparent, compact) -->
-    <div class="absolute top-0 inset-x-0 z-30 pointer-events-none pt-safe">
-      <GameHud />
-    </div>
+    <!-- 2. FLOATING TOP IN-GAME HUD (Slides smoothly in from top when canvas is ready) -->
+    <Transition name="hud-slide-top">
+      <div 
+        v-if="isCanvasReady" 
+        class="absolute top-0 inset-x-0 z-30 pointer-events-none pt-safe"
+      >
+        <GameHud />
+      </div>
+    </Transition>
 
-    <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Semi-transparent, compact) -->
-    <div class="absolute bottom-0 inset-x-0 z-30 pointer-events-none pb-safe">
-      <GameControls />
-    </div>
+    <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Slides smoothly in from bottom when canvas is ready) -->
+    <Transition name="controls-slide-bottom">
+      <div 
+        v-if="isCanvasReady" 
+        class="absolute bottom-0 inset-x-0 z-30 pointer-events-none pb-safe"
+      >
+        <GameControls />
+      </div>
+    </Transition>
 
     <!-- Floating In-Game Multiplayer Chat Sidebar -->
     <div 
@@ -85,43 +88,51 @@
       </p>
 
       <div class="flex flex-col gap-2 w-full max-w-xs">
-        <button 
+        <UiButton 
+          variant="game-amber"
+          size="md"
+          :leading-icon="Maximize2"
+          class="w-full justify-center font-black"
           @click="handleEnableFullscreen" 
-          class="w-full py-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95 touch-target"
         >
-          <Maximize2 class="w-4 h-4" />
-          <span>{{ $t('game.fullscreen') }}</span>
-        </button>
-        <button 
+          {{ $t('game.fullscreen') }}
+        </UiButton>
+        <UiButton 
+          variant="secondary"
+          size="sm"
+          class="w-full justify-center"
           @click="dismissOrientationAlert = true" 
-          class="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white font-bold text-xs cursor-pointer active:scale-95 touch-target"
         >
           {{ $t('game.continue') }}
-        </button>
+        </UiButton>
       </div>
     </div>
 
-    <!-- 5. Game Over & Victory Modals -->
+    <!-- 5. Game Over, Victory & Clan Select Modals -->
     <GameOverModal />
     <GameVictoryModal />
+    <ClanSelectModal />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { MessageSquare, Map, Shield, Smartphone, Maximize2 } from 'lucide-vue-next'
+import { Shield, Smartphone, Maximize2 } from 'lucide-vue-next'
+import { UiButton } from '../components/ui'
 import GameCanvas from '../components/game/GameCanvas.vue'
 import GameHud from '../components/game/GameHud.vue'
 import GameControls from '../components/game/GameControls.vue'
 import GameOverModal from '../components/game/GameOverModal.vue'
 import GameVictoryModal from '../components/game/GameVictoryModal.vue'
+import ClanSelectModal from '../components/game/ClanSelectModal.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useAssetStore } from '../stores/assetStore'
+import { useI18n } from '../stores/i18nStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { toggleAppFullscreen } from '../utils/fullscreen'
 
@@ -131,6 +142,7 @@ const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
+const { t } = useI18n()
 
 const canvasRef = ref<any>(null)
 const isCanvasReady = ref(false)
@@ -163,12 +175,16 @@ onMounted(async () => {
   window.addEventListener('resize', checkOrientation)
   window.addEventListener('orientationchange', checkOrientation)
 
+  isCanvasReady.value = false
+  characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
+
   mapStore.isGameMap = true
   multiplayerStore.setRouter(router)
   await assetStore.loadBuiltinSprites()
 
   if (isMapLoaded.value) {
     characterStore.detectDoors()
+    towerStore.initGameClanSelection()
     if (!multiplayerStore.roomId || multiplayerStore.isHost) {
       characterStore.startPlayMode()
     } else {
@@ -183,6 +199,7 @@ watch(isMapLoaded, async (loaded) => {
   if (loaded) {
     await assetStore.loadBuiltinSprites()
     characterStore.detectDoors()
+    towerStore.initGameClanSelection()
     if (!multiplayerStore.roomId || multiplayerStore.isHost) {
       characterStore.startPlayMode()
     } else {
@@ -195,11 +212,15 @@ watch(isMapLoaded, async (loaded) => {
 
 // Full lifecycle teardown when leaving the game
 function cleanupGameSession() {
+  isCanvasReady.value = false
   characterStore.exitPlayMode()
   characterStore.isPlaying = false
   characterStore.isGameMode = false
   characterStore.gameState = 'ready'
   characterStore.units = []
+  characterStore.loadingProgress = 0
+  characterStore.isLoadingGame = false
+  characterStore.loadingMessage = ''
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
   if (typeof window !== 'undefined') {
@@ -232,3 +253,58 @@ watch(isChatOpen, (open) => {
   }
 })
 </script>
+
+<style scoped>
+/* Preloader Smooth Fade Out */
+.preloader-fade-leave-active {
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.preloader-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+/* Top In-Game HUD slide-down from top with smooth spring-like curve */
+.hud-slide-top-enter-active {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+  transition-delay: 80ms;
+}
+.hud-slide-top-enter-from {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+.hud-slide-top-enter-to {
+  transform: translateY(0);
+  opacity: 1;
+}
+.hud-slide-top-leave-active {
+  transition: transform 0.25s ease-in, opacity 0.25s ease-in;
+}
+.hud-slide-top-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Bottom Controls slide-up from bottom with smooth spring-like curve */
+.controls-slide-bottom-enter-active {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+  transition-delay: 150ms;
+}
+.controls-slide-bottom-enter-from {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.controls-slide-bottom-enter-to {
+  transform: translateY(0);
+  opacity: 1;
+}
+.controls-slide-bottom-leave-active {
+  transition: transform 0.25s ease-in, opacity 0.25s ease-in;
+}
+.controls-slide-bottom-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+</style>
+

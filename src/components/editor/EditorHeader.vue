@@ -10,7 +10,7 @@
         :title="$t('header.home')"
         @click="router.push('/')"
       >
-        <span class="hidden md:inline font-bold">Isocraft</span>
+        <span class="hidden md:inline font-bold">Defensor</span>
       </UiButton>
 
       <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
@@ -66,7 +66,7 @@
         :title="$t('header.gridToggle')"
         @click="toolStore.showGrid = !toolStore.showGrid"
       >
-        <span class="hidden md:inline text-[11px]">{{ $t('sidebar.layerManagement').split(' ')[0] }}</span>
+        <span class="hidden md:inline text-[11px]">{{ $t('header.gridToggle') }}</span>
       </UiButton>
 
       <!-- Coordinates Toggle -->
@@ -81,18 +81,6 @@
         <span class="hidden md:inline text-[11px]">{{ $t('common.position') }}</span>
       </UiButton>
 
-      <!-- Spawn Points Overlay Toggle -->
-      <UiButton
-        variant="tool"
-        size="xs"
-        :active="characterStore.showSpawnPoints"
-        :leading-icon="MapPin"
-        :title="$t('config.tabRoutes')"
-        @click="characterStore.showSpawnPoints = !characterStore.showSpawnPoints"
-      >
-        <span class="hidden md:inline text-[11px]">{{ $t('config.tabRoutes').split(' ')[0] }}</span>
-      </UiButton>
-
       <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
       <!-- Undo -->
@@ -100,9 +88,9 @@
         variant="ghost"
         size="sm"
         :icon="Undo2"
-        :disabled="!mapStore.canUndo"
+        :disabled="characterStore.isDrawingRoute ? !characterStore.canUndoRoute : !mapStore.canUndo"
         :title="$t('header.undo')"
-        @click="mapStore.undo()"
+        @click="handleUndo"
       />
 
       <!-- Redo -->
@@ -110,9 +98,9 @@
         variant="ghost"
         size="sm"
         :icon="Redo2"
-        :disabled="!mapStore.canRedo"
+        :disabled="characterStore.isDrawingRoute ? !characterStore.canRedoRoute : !mapStore.canRedo"
         :title="$t('header.redo')"
-        @click="mapStore.redo()"
+        @click="handleRedo"
       />
     </div>
 
@@ -189,8 +177,25 @@ const emit = defineEmits<{
   (e: 'open-export'): void
 }>()
 
+function handleUndo() {
+  if (characterStore.isDrawingRoute) {
+    characterStore.undoRoute()
+  } else {
+    mapStore.undo()
+  }
+}
+
+function handleRedo() {
+  if (characterStore.isDrawingRoute) {
+    characterStore.redoRoute()
+  } else {
+    mapStore.redo()
+  }
+}
+
 function handleStartGame() {
   characterStore.entrySource = 'editor'
+  characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
   router.push('/game')
 }
 </script>

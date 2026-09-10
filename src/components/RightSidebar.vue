@@ -5,7 +5,7 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="glass-panel border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 right-0"
+    class="border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 right-0"
     :class="{ 'w-10 sm:w-12 min-w-10! sm:min-w-12! relative!': isCollapsed }"
   >
     <!-- Collapsed Toggle Strip -->
@@ -13,19 +13,19 @@
       <UiIconButton 
         :icon="ChevronLeft"
         size="sm"
-        title="Expand Right Panel"
+        :title="$t('sidebar.expandPanel')"
         @click="isCollapsed = false"
       />
 
       <div class="writing-mode-vertical text-xs font-bold text-slate-400 tracking-wider flex items-center gap-2">
         <Boxes class="w-3.5 h-3.5 text-brand-400" />
-        <span>Objects & Assets ({{ mapStore.allPlacedElements.length }} / {{ assetStore.assets.length }})</span>
+        <span>{{ $t('sidebar.objectsAndAssets') }} ({{ mapStore.allPlacedElements.length }} / {{ assetStore.assets.length }})</span>
       </div>
 
       <UiIconButton 
         :icon="FolderOpen"
         size="sm"
-        title="Open"
+        :title="$t('common.open')"
         @click="isCollapsed = false"
       />
     </div>
@@ -54,7 +54,7 @@
             :icon="ChevronRight"
             size="sm"
             variant="ghost"
-            title="Collapse Panel"
+            :title="$t('sidebar.collapsePanel')"
             @click="isCollapsed = true"
           />
         </div>
@@ -65,7 +65,7 @@
           <UiInput 
             v-model="elementSearchQuery"
             size="sm"
-            placeholder="Search placed objects..."
+            :placeholder="$t('sidebar.searchObjects')"
             :leading-icon="Search"
             clearable
           />
@@ -118,7 +118,7 @@
                   :icon="Crosshair"
                   size="sm"
                   variant="ghost"
-                  title="Focus on Map"
+                  :title="$t('sidebar.focusOnMap')"
                   custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleFocusOnly(entry)"
                 />
@@ -126,7 +126,7 @@
                   :icon="Trash2"
                   size="sm"
                   variant="danger"
-                  title="Delete Object"
+                  :title="$t('sidebar.deleteObject')"
                   custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleDeleteItem(entry)"
                 />
@@ -140,23 +140,23 @@
             class="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 p-3 text-center"
           >
             <Boxes class="w-6 h-6 text-slate-600 mb-1" />
-            <p class="text-[11px] font-bold text-slate-300">No objects placed</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">Select a sprite from the library below to place on the map</p>
+            <p class="text-[11px] font-bold text-slate-300">{{ $t('sidebar.noObjectsPlaced') }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">{{ $t('sidebar.selectSpritePrompt') }}</p>
           </div>
         </div>
 
         <!-- TAB 2: LAYERS LIST -->
-        <div v-else class="flex-1 overflow-hidden flex flex-col p-2 gap-1.5 custom-scrollbar">
+        <div v-else-if="activeTopTab === 'layers'" class="flex-1 overflow-hidden flex flex-col p-2 gap-1.5 custom-scrollbar">
           <!-- Add Layer Action Row -->
           <div class="flex items-center justify-between px-1 shrink-0">
-            <span class="text-[11px] font-semibold text-slate-300">Layers List</span>
+            <span class="text-[11px] font-semibold text-slate-300">{{ $t('sidebar.layersList') }}</span>
             <UiButton 
               variant="primary"
               size="xs"
               :leading-icon="Plus"
               @click="mapStore.addLayer()"
             >
-              New Layer
+              {{ $t('sidebar.newLayer') }}
             </UiButton>
           </div>
 
@@ -177,7 +177,7 @@
                     :icon="layer.visible ? Eye : EyeOff"
                     size="sm"
                     variant="ghost"
-                    :title="layer.visible ? 'Hide Layer' : 'Show Layer'"
+                    :title="layer.visible ? $t('sidebar.hideLayer') : $t('sidebar.showLayer')"
                     :custom-class="layer.visible ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-600'"
                     @click.stop="mapStore.toggleLayerVisibility(layer.id)"
                   />
@@ -195,7 +195,7 @@
                     :icon="layer.locked ? Lock : Unlock"
                     size="sm"
                     variant="ghost"
-                    :title="layer.locked ? 'Unlock Layer' : 'Lock Layer'"
+                    :title="layer.locked ? $t('sidebar.unlockLayer') : $t('sidebar.lockLayer')"
                     :custom-class="layer.locked ? 'text-amber-400' : 'text-slate-500'"
                     @click.stop="mapStore.toggleLayerLock(layer.id)"
                   />
@@ -203,14 +203,14 @@
                     :icon="ArrowUp"
                     size="sm"
                     variant="ghost"
-                    title="Move Up"
+                    :title="$t('sidebar.moveUp')"
                     @click.stop="mapStore.moveLayer(layer.id, 'up')"
                   />
                   <UiIconButton 
                     :icon="ArrowDown"
                     size="sm"
                     variant="ghost"
-                    title="Move Down"
+                    :title="$t('sidebar.moveDown')"
                     @click.stop="mapStore.moveLayer(layer.id, 'down')"
                   />
                   <UiIconButton 
@@ -218,30 +218,166 @@
                     :icon="Trash2"
                     size="sm"
                     variant="danger"
-                    title="Delete Layer"
+                    :title="$t('sidebar.deleteLayer')"
                     @click.stop="mapStore.removeLayer(layer.id)"
                   />
                 </div>
               </div>
 
               <!-- Layer Opacity -->
-              <div class="flex items-center justify-between gap-2 text-[9px] text-slate-400 pt-0.5 border-t border-slate-800/50">
-                <div class="flex items-center gap-1.5 flex-1" @click.stop>
-                  <span>Opacity:</span>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    :value="layer.opacity"
-                    @input="(e) => mapStore.setLayerOpacity(layer.id, parseFloat((e.target as HTMLInputElement).value))"
-                    class="flex-1 accent-brand-500 cursor-pointer h-1 bg-slate-800 rounded"
+              <div class="flex items-center justify-between gap-2 text-[9px] text-slate-400 pt-1 border-t border-slate-800/50" @click.stop>
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span class="text-[9px] shrink-0">{{ $t('common.opacity') }}:</span>
+                  <UiSlider 
+                    :model-value="layer.opacity"
+                    :min="0"
+                    :max="1"
+                    :step="0.05"
+                    class="flex-1"
+                    @update:model-value="(val) => mapStore.setLayerOpacity(layer.id, val)"
                   />
-                  <span class="font-mono w-6 text-right">{{ Math.round(layer.opacity * 100) }}%</span>
+                  <span class="font-mono w-7 text-right shrink-0 text-slate-300 font-bold">{{ Math.round(layer.opacity * 100) }}%</span>
                 </div>
-                <span class="font-mono text-slate-500">{{ Object.keys(layer.tiles).length }} items</span>
+                <span class="font-mono text-slate-500 shrink-0">{{ $t('sidebar.tileCount', { count: Object.keys(layer.tiles).length }) }}</span>
               </div>
             </UiCard>
+          </div>
+        </div>
+
+        <!-- TAB 3: ROUTES LIST & MANAGER -->
+        <div v-else-if="activeTopTab === 'routes'" class="flex-1 overflow-hidden flex flex-col p-2 gap-1.5 custom-scrollbar">
+          <!-- Top Action Row: Spawn Routes Header & Add Route -->
+          <div class="flex items-center justify-between px-1.5 shrink-0 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 pl-1">
+              <Footprints class="w-3.5 h-3.5 text-emerald-400" />
+              <span>{{ $t('sidebar.spawnRoutes') }} ({{ characterStore.detectedDoors.length }})</span>
+            </div>
+
+            <!-- New Route Button -->
+            <UiButton 
+              variant="game-green"
+              size="xs"
+              :leading-icon="Plus"
+              @click="handleAddNewRoute"
+            >
+              {{ $t('sidebar.newRoute') }}
+            </UiButton>
+          </div>
+
+          <!-- Active Route Drawing Banner if drawing -->
+          <div 
+            v-if="characterStore.isDrawingRoute"
+            class="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-between gap-2 shrink-0 animate-pulse"
+          >
+            <div class="flex items-center gap-1.5 text-xs text-amber-300 font-semibold">
+              <PenTool class="w-4 h-4 text-amber-400" />
+              <span>{{ $t('sidebar.drawingRoute', { number: (characterStore.selectedDoorIndex ?? 0) + 1 }) }}</span>
+            </div>
+            <UiButton
+              variant="secondary"
+              size="xs"
+              @click="characterStore.finishDrawingRoute()"
+            >
+              {{ $t('common.done') }}
+            </UiButton>
+          </div>
+
+          <!-- Scrollable Routes List (Route 1, Route 2, Route 3...) -->
+          <div 
+            v-if="characterStore.detectedDoors.length > 0"
+            class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar p-0.5"
+          >
+            <UiCard 
+              v-for="(door, idx) in characterStore.detectedDoors" 
+              :key="door.id || idx"
+              :selected="characterStore.selectedDoorIndex === idx"
+              variant="default"
+              padding="sm"
+              custom-class="p-2! flex flex-col gap-1.5 cursor-pointer shrink-0 transition-all hover:border-slate-700"
+              :class="{ 'border-emerald-500/80! bg-emerald-950/20! shadow-[0_0_15px_rgba(16,185,129,0.15)]': characterStore.selectedDoorIndex === idx }"
+              @click="handleSelectRoute(idx)"
+            >
+              <!-- Route Top Row: Index Badge, Name, and Draw / Action Buttons -->
+              <div class="flex items-center justify-between gap-1.5">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <!-- Numbered Badge (1, 2, 3...) -->
+                  <div 
+                    class="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 border font-mono"
+                    :class="characterStore.selectedDoorIndex === idx 
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm' 
+                      : 'bg-slate-800 text-slate-300 border-slate-700'"
+                  >
+                    {{ idx + 1 }}
+                  </div>
+
+                  <!-- Route Name (Clean without duplicated coords) -->
+                  <span 
+                    class="text-xs font-bold truncate"
+                    :class="characterStore.selectedDoorIndex === idx ? 'text-emerald-300 font-semibold' : 'text-slate-200'"
+                  >
+                    {{ (door.name || `Route ${idx + 1}`).replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${idx + 1}` }}
+                  </span>
+                </div>
+
+                <!-- Draw / Edit / Focus / Delete Buttons -->
+                <div class="flex items-center gap-1 shrink-0">
+                  <!-- Draw Button with Pen Icon -->
+                  <UiButton
+                    :variant="characterStore.isDrawingRoute && characterStore.selectedDoorIndex === idx ? 'game-amber' : 'primary'"
+                    size="xs"
+                    :leading-icon="PenTool"
+                    custom-class="px-2! py-0.5! text-[10px]!"
+                    :title="$t('sidebar.drawEditRoute', { number: idx + 1 })"
+                    @click.stop="handleStartDrawing(idx)"
+                  >
+                    {{ $t('sidebar.draw') }}
+                  </UiButton>
+
+                  <!-- Focus on Start -->
+                  <UiIconButton 
+                    :icon="Crosshair"
+                    size="sm"
+                    variant="ghost"
+                    :title="$t('sidebar.focusOnStart')"
+                    custom-class="p-0.5! w-6! h-6!"
+                    @click.stop="handleFocusRoute(door)"
+                  />
+
+                  <!-- Delete Route -->
+                  <UiIconButton 
+                    v-if="characterStore.detectedDoors.length > 1"
+                    :icon="Trash2"
+                    size="sm"
+                    variant="danger"
+                    :title="$t('sidebar.deleteRoute')"
+                    custom-class="p-0.5! w-6! h-6!"
+                    @click.stop="handleDeleteRoute(idx)"
+                  />
+                </div>
+              </div>
+
+              <!-- Route Bottom Row: Coordinates & Waypoint Stats -->
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pl-7">
+                <span class="text-amber-400/90 font-medium">
+                  {{ $t('sidebar.startCoord') }}: ({{ door.spawnCol ?? door.col }}, {{ door.spawnRow ?? door.row }})
+                </span>
+                <span class="text-slate-500">
+                  {{ getRouteStats(door, idx) }}
+                </span>
+              </div>
+            </UiCard>
+          </div>
+
+          <!-- Empty State if no routes detected -->
+          <div 
+            v-else 
+            class="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 p-4 text-center"
+          >
+            <Footprints class="w-7 h-7 text-slate-600 mb-1.5 animate-pulse" />
+            <p class="text-xs font-bold text-slate-300">{{ $t('sidebar.noRoutesFound') }}</p>
+            <p class="text-[11px] text-slate-500 mt-1 max-w-48">
+              {{ $t('sidebar.noRoutesPrompt') }}
+            </p>
           </div>
         </div>
       </div>
@@ -257,7 +393,7 @@
             <div class="flex items-center gap-2">
               <FolderOpen class="w-4 h-4 text-brand-400" />
               <span class="text-xs font-bold text-slate-200">
-                Asset Library
+                {{ $t('sidebar.assetLibrary') }}
               </span>
               <UiBadge variant="brand" size="xs">
                 {{ assetStore.assets.length }}
@@ -270,7 +406,7 @@
                 variant="primary"
                 size="sm"
                 :leading-icon="FolderUp"
-                title="Upload sprite folder"
+                :title="$t('sidebar.uploadFolder')"
                 @click="triggerFolderUpload"
               />
 
@@ -278,7 +414,7 @@
                 variant="secondary"
                 size="sm"
                 :leading-icon="ImagePlus"
-                title="Upload sprite image files"
+                :title="$t('sidebar.uploadImages')"
                 @click="triggerFilesUpload"
               />
 
@@ -287,7 +423,7 @@
                 :leading-icon="Trash2"
                 size="sm"
                 variant="danger"
-                title="Clear all assets"
+                :title="$t('sidebar.clearAssets')"
                 @click="assetStore.clearAllAssets()"
               />
             </div>
@@ -316,7 +452,7 @@
           <UiInput 
             v-model="assetStore.searchQuery"
             size="sm"
-            placeholder="Search asset library..."
+            :placeholder="$t('sidebar.searchAssets')"
             :leading-icon="Search"
             clearable
           />
@@ -325,7 +461,7 @@
           <div class="overflow-x-auto pb-0.5 custom-scrollbar shrink-0">
             <UiTabs
               v-model="assetStore.selectedCategory"
-              :items="assetStore.categories"
+              :items="assetCategoryItems"
               variant="pills"
               size="xs"
             />
@@ -372,7 +508,7 @@
                   :icon="Crosshair"
                   size="xs"
                   variant="ghost"
-                  title="Adjust Anchor"
+                  :title="$t('sidebar.adjustAnchor')"
                   custom-class=" rounded-xs!"
                   @click.stop="openAnchorModal(asset)"
                 />
@@ -380,7 +516,7 @@
                   :icon="Trash2"
                   size="xs"
                   variant="danger"
-                  title="Delete Asset"
+                  :title="$t('sidebar.deleteAsset')"
                   custom-class="p-0.5! rounded-xs!"
                   @click.stop="assetStore.deleteAsset(asset.id)"
                 />
@@ -394,8 +530,8 @@
             class="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-800/80 rounded-3xl bg-slate-950/40 p-4 text-center"
           >
             <UploadCloud class="w-8 h-8 text-brand-400/60 mb-2" />
-            <p class="text-xs font-bold text-slate-300">Asset library is empty</p>
-            <p class="text-[10px] text-slate-500 max-w-45 mt-0.5 mb-3">Upload sprite images or folders to use on your map</p>
+            <p class="text-xs font-bold text-slate-300">{{ $t('sidebar.emptyLibrary') }}</p>
+            <p class="text-[10px] text-slate-500 max-w-45 mt-0.5 mb-3">{{ $t('sidebar.emptyLibraryDesc') }}</p>
             <div class="flex items-center gap-1.5">
               <UiButton 
                 variant="primary"
@@ -403,7 +539,7 @@
                 :leading-icon="FolderUp"
                 @click="triggerFolderUpload"
               >
-                Upload Folder
+                {{ $t('sidebar.uploadFolder') }}
               </UiButton>
               <UiButton 
                 variant="secondary"
@@ -411,7 +547,7 @@
                 :leading-icon="ImagePlus"
                 @click="triggerFilesUpload"
               >
-                Images
+                {{ $t('sidebar.images') }}
               </UiButton>
             </div>
           </div>
@@ -434,7 +570,7 @@
               />
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="text-[9px] text-slate-400 font-semibold">Selected:</span>
+              <span class="text-[9px] text-slate-400 font-semibold">{{ $t('sidebar.selected') }}:</span>
               <span class="text-xs font-bold text-brand-300 truncate max-w-35">{{ assetStore.selectedAsset.name }}</span>
             </div>
           </div>
@@ -446,14 +582,14 @@
               :leading-icon="Crosshair"
               @click="openAnchorModal(assetStore.selectedAsset)"
             >
-              Anchor
+              {{ $t('sidebar.adjustAnchor') }}
             </UiButton>
 
             <UiIconButton 
               :icon="X"
               size="sm"
               variant="ghost"
-              title="Deselect"
+              :title="$t('sidebar.deselect')"
               @click="assetStore.selectAsset(null)"
             />
           </div>
@@ -479,7 +615,7 @@ import {
   Boxes, Layers, ChevronLeft, ChevronRight, Search, 
   Crosshair, Trash2, FolderOpen, FolderUp, ImagePlus, 
   UploadCloud, Plus, Eye, EyeOff, Lock, Unlock, 
-  ArrowUp, ArrowDown, X 
+  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -488,11 +624,13 @@ import {
   UiCard, 
   UiTabs, 
   UiBadge, 
+  UiSlider,
   TabItem 
 } from './ui'
 import { useMapStore, PlacedElementEntry } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
+import { useCharacterStore } from '../stores/characterStore'
 import { AssetItem } from '../types/map'
 import AnchorAdjustModal from './AnchorAdjustModal.vue'
 import { useI18n } from '../stores/i18nStore'
@@ -504,16 +642,62 @@ const emit = defineEmits<{
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
+const characterStore = useCharacterStore()
 const { t } = useI18n()
 
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
-const activeTopTab = ref<'elements' | 'layers'>('elements')
+const activeTopTab = ref<'elements' | 'layers' | 'routes'>('elements')
 const elementSearchQuery = ref('')
 
 const topTabItems = computed<TabItem[]>(() => [
-  { id: 'elements', label: t('sidebar.layersTab').split(' ')[0] || 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
-  { id: 'layers', label: t('header.layerManager') || 'Layers', icon: Layers, count: mapStore.project.layers.length }
+  { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
+  { id: 'layers', label: t('sidebar.layersTab') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
+  { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: characterStore.detectedDoors.length }
 ])
+
+const assetCategoryItems = computed<TabItem[]>(() => {
+  return assetStore.categories.map(cat => ({
+    id: cat,
+    label: cat === 'All' ? (t('sidebar.allCategories') || 'All') : (t(`assets.cat${cat}`) !== `assets.cat${cat}` ? t(`assets.cat${cat}`) : cat)
+  }))
+})
+
+function handleAddNewRoute() {
+  characterStore.isSettingSpawnPoint = true
+  characterStore.spawnPointPlacementMode = 'add'
+  characterStore.statusMessage = t('sidebar.clickPlaceRouteStart', { number: characterStore.detectedDoors.length + 1 })
+}
+
+function handleSelectRoute(idx: number) {
+  if (characterStore.selectedDoorIndex === idx) {
+    characterStore.selectedDoorIndex = null
+  } else {
+    characterStore.selectedDoorIndex = idx
+    characterStore.spawnAtDoor(idx)
+  }
+}
+
+function handleStartDrawing(idx: number) {
+  characterStore.selectedDoorIndex = idx
+  characterStore.startDrawingCustomRoute()
+}
+
+function handleFocusRoute(door: any) {
+  emit('focus-cell', { col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row })
+}
+
+function handleDeleteRoute(idx: number) {
+  characterStore.removeSpawnPoint(idx)
+}
+
+function getRouteStats(door: any, idx: number): string {
+  const doorKey = door.id || `door-${idx}`
+  const waypoints = characterStore.customWaypoints[doorKey] || []
+  const path = characterStore.customRoutes[doorKey] || []
+  if (waypoints.length > 0) return `${waypoints.length} pts (${path.length} tiles)`
+  if (path.length > 1) return `${path.length} tiles`
+  return '1 pt (default)'
+}
 
 const folderInputRef = ref<HTMLInputElement | null>(null)
 const filesInputRef = ref<HTMLInputElement | null>(null)
