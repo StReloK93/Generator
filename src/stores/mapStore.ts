@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { MapProject, Layer, TileItem, ProjectHistoryItem } from '../types/map'
+import { MapProject, Layer, TileItem, ProjectHistoryItem, BoxClearModalData, BoxAssetSummary } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
 import { useAssetStore } from './assetStore'
 
@@ -435,19 +435,39 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const key = cellKey(col, row)
     const items = getCellItems(col, row, layerId)
-    if (items.length === 0) return
-
-    if (items.length > 1) {
-      items.pop()
-      layer.tiles[key] = [...items]
-    } else {
-      delete layer.tiles[key]
+    if (items.length > 0) {
+      if (items.length > 1) {
+        items.pop()
+        layer.tiles[key] = [...items]
+      } else {
+        delete layer.tiles[key]
+      }
+      if (pushHist) {
+        pushHistory(`Deleted element (${col}, ${row})`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+      return
     }
 
-    if (pushHist) {
-      pushHistory(`Deleted element (${col}, ${row})`)
-    } else {
-      project.value.updatedAt = Date.now()
+    // Also check covering multi-cell elements on active layer
+    const covering = getElementsAtOrCoveringCell(col, row, layerId)
+    if (covering.length > 0) {
+      const top = covering[0]
+      removeTileItem(top.originCol, top.originRow, top.item.id, layerId)
+      return
+    }
+
+    // If nothing on active layer, search across visible unlocked layers
+    for (let i = project.value.layers.length - 1; i >= 0; i--) {
+      const otherLayer = project.value.layers[i]
+      if (otherLayer.id === layerId || !otherLayer.visible || otherLayer.locked) continue
+      const otherCovering = getElementsAtOrCoveringCell(col, row, otherLayer.id)
+      if (otherCovering.length > 0) {
+        const top = otherCovering[0]
+        removeTileItem(top.originCol, top.originRow, top.item.id, otherLayer.id)
+        break
+      }
     }
   }
 
@@ -858,6 +878,463 @@ export const useMapStore = defineStore('mapStore', () => {
     pushHistory(mode === 'stack' ? `Stacked ${cells.length} tiles` : `Placed ${cells.length} tiles`)
   }
 
+  function fillEmptyCells(
+    assetId: string,
+    layerId = activeLayerId.value,
+    pushHist = true
+  ): number {
+    const layer = project.value.layers.find(l => l.id === layerId)
+    if (!layer || layer.locked) return 0
+
+    const assetStore = useAssetStore()
+    const asset = assetStore.assets.find(a => a.id === assetId)
+    if (!asset) return 0
+
+    const spanX = asset.spanX || 1
+    const spanY = asset.spanY || 1
+    const scale = asset.scale || 1.0
+    const anchorX = asset.anchorX ?? 0.5
+    const anchorY = asset.anchorY ?? 0.5
+
+    const { cols, rows } = project.value
+    let filledCount = 0
+
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        const key = cellKey(c, r)
+        const existing = layer.tiles[key]
+        if (existing && (Array.isArray(existing) ? existing.length > 0 : true)) {
+          continue
+        }
+
+        const cellZIndex: Record<string, number> = {}
+        for (let cx = c; cx < c + spanX; cx++) {
+          for (let cy = r; cy < r + spanY; cy++) {
+            cellZIndex[cellKey(cx, cy)] = 0
+          }
+        }
+
+        const newItem: TileItem = {
+          id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
+          x: c,
+          y: r,
+          assetId,
+          zIndex: 0,
+          depthOffset: 0,
+          cellZIndex,
+          spanX,
+          spanY,
+          scale,
+          anchorX,
+          anchorY,
+          flipX: false,
+          rotation: 0,
+          offsetX: 0,
+          offsetY: 0,
+        }
+
+        layer.tiles[key] = [newItem]
+        filledCount++
+      }
+    }
+
+    if (filledCount > 0) {
+      if (pushHist) {
+        pushHistory(`Filled ${filledCount} empty cells on ${layer.name} with ${asset.name}`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return filledCount
+  }
+
+  function fillLayerCells(
+    assetId: string,
+    layerId = activeLayerId.value,
+    mode: 'replace' | 'stack' | 'empty-only' = 'empty-only',
+    pushHist = true
+  ): number {
+    if (mode === 'empty-only') {
+      return fillEmptyCells(assetId, layerId, pushHist)
+    }
+
+    const layer = project.value.layers.find(l => l.id === layerId)
+    if (!layer || layer.locked) return 0
+
+    const assetStore = useAssetStore()
+    const asset = assetStore.assets.find(a => a.id === assetId)
+    if (!asset) return 0
+
+    const spanX = asset.spanX || 1
+    const spanY = asset.spanY || 1
+    const scale = asset.scale || 1.0
+    const anchorX = asset.anchorX ?? 0.5
+    const anchorY = asset.anchorY ?? 0.5
+
+    const { cols, rows } = project.value
+    let count = 0
+
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        const key = cellKey(c, r)
+        const existing = getCellItems(c, r, layerId)
+
+        if (mode === 'replace') {
+          const cellZIndex: Record<string, number> = {}
+          for (let cx = c; cx < c + spanX; cx++) {
+            for (let cy = r; cy < r + spanY; cy++) {
+              cellZIndex[cellKey(cx, cy)] = 0
+            }
+          }
+
+          const newItem: TileItem = {
+            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
+            x: c,
+            y: r,
+            assetId,
+            zIndex: 0,
+            depthOffset: 0,
+            cellZIndex,
+            spanX,
+            spanY,
+            scale,
+            anchorX,
+            anchorY,
+            flipX: false,
+            rotation: 0,
+            offsetX: 0,
+            offsetY: 0,
+          }
+          layer.tiles[key] = [newItem]
+          count++
+        } else if (mode === 'stack') {
+          const alreadyHasSame = existing.some(item => item.assetId === assetId)
+          if (alreadyHasSame) continue
+
+          const initialZ = existing.length > 0 ? Math.max(...existing.map(i => i.zIndex)) + 1 : 0
+          const cellZIndex: Record<string, number> = {}
+          for (let cx = c; cx < c + spanX; cx++) {
+            for (let cy = r; cy < r + spanY; cy++) {
+              cellZIndex[cellKey(cx, cy)] = initialZ
+            }
+          }
+
+          const newItem: TileItem = {
+            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
+            x: c,
+            y: r,
+            assetId,
+            zIndex: initialZ,
+            depthOffset: 0,
+            cellZIndex,
+            spanX,
+            spanY,
+            scale,
+            anchorX,
+            anchorY,
+            flipX: false,
+            rotation: 0,
+            offsetX: 0,
+            offsetY: 0,
+          }
+          layer.tiles[key] = [...existing, newItem]
+          count++
+        }
+      }
+    }
+
+    if (count > 0) {
+      if (pushHist) {
+        pushHistory(`${mode === 'replace' ? 'Replaced' : 'Stacked'} ${count} cells on ${layer.name} with ${asset.name}`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return count
+  }
+
+  function getLayerCellStats(layerId = activeLayerId.value): { total: number; empty: number; occupied: number } {
+    const layer = project.value.layers.find(l => l.id === layerId)
+    const total = project.value.cols * project.value.rows
+    if (!layer) return { total, empty: total, occupied: 0 }
+
+    let occupied = 0
+    for (let c = 0; c < project.value.cols; c++) {
+      for (let r = 0; r < project.value.rows; r++) {
+        const items = layer.tiles[cellKey(c, r)]
+        if (items && (Array.isArray(items) ? items.length > 0 : true)) {
+          occupied++
+        }
+      }
+    }
+    return {
+      total,
+      empty: Math.max(0, total - occupied),
+      occupied,
+    }
+  }
+
+  function fillEmptyCellsInBox(
+    col0: number,
+    row0: number,
+    col1: number,
+    row1: number,
+    assetId: string,
+    layerId = activeLayerId.value,
+    pushHist = true
+  ): number {
+    const layer = project.value.layers.find(l => l.id === layerId)
+    if (!layer || layer.locked) return 0
+
+    const assetStore = useAssetStore()
+    const asset = assetStore.assets.find(a => a.id === assetId)
+    if (!asset) return 0
+
+    const spanX = asset.spanX || 1
+    const spanY = asset.spanY || 1
+    const scale = asset.scale || 1.0
+    const anchorX = asset.anchorX ?? 0.5
+    const anchorY = asset.anchorY ?? 0.5
+
+    const minCol = Math.max(0, Math.min(col0, col1))
+    const maxCol = Math.min(project.value.cols - 1, Math.max(col0, col1))
+    const minRow = Math.max(0, Math.min(row0, row1))
+    const maxRow = Math.min(project.value.rows - 1, Math.max(row0, row1))
+
+    let filledCount = 0
+
+    for (let c = minCol; c <= maxCol; c++) {
+      for (let r = minRow; r <= maxRow; r++) {
+        const key = cellKey(c, r)
+        const existing = layer.tiles[key]
+        if (existing && (Array.isArray(existing) ? existing.length > 0 : true)) {
+          // Keep existing occupied cells 100% untouched
+          continue
+        }
+
+        const cellZIndex: Record<string, number> = {}
+        for (let cx = c; cx < c + spanX; cx++) {
+          for (let cy = r; cy < r + spanY; cy++) {
+            cellZIndex[cellKey(cx, cy)] = 0
+          }
+        }
+
+        const newItem: TileItem = {
+          id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
+          x: c,
+          y: r,
+          assetId,
+          zIndex: 0,
+          depthOffset: 0,
+          cellZIndex,
+          spanX,
+          spanY,
+          scale,
+          anchorX,
+          anchorY,
+          flipX: false,
+          rotation: 0,
+          offsetX: 0,
+          offsetY: 0,
+        }
+
+        layer.tiles[key] = [newItem]
+        filledCount++
+      }
+    }
+
+    if (filledCount > 0) {
+      if (pushHist) {
+        pushHistory(`Filled ${filledCount} empty cells in area [(${minCol}, ${minRow}) -> (${maxCol}, ${maxRow})] on ${layer.name} with ${asset.name}`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return filledCount
+  }
+
+  function getBoxElementSummary(
+    col0: number,
+    row0: number,
+    col1: number,
+    row1: number
+  ): BoxClearModalData {
+    const minCol = Math.max(0, Math.min(col0, col1))
+    const maxCol = Math.min(project.value.cols - 1, Math.max(col0, col1))
+    const minRow = Math.max(0, Math.min(row0, row1))
+    const maxRow = Math.min(project.value.rows - 1, Math.max(row0, row1))
+
+    const totalCells = (maxCol - minCol + 1) * (maxRow - minRow + 1)
+    const assetStore = useAssetStore()
+
+    const assetMap = new Map<string, BoxAssetSummary>()
+    const layerItems: Record<string, { totalItems: number; assets: BoxAssetSummary[] }> = {}
+
+    let totalItems = 0
+
+    for (const layer of project.value.layers) {
+      if (layer.locked) continue
+      const layerAssetMap = new Map<string, BoxAssetSummary>()
+      let layerItemCount = 0
+
+      // Iterate through direct origin tiles in layer
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item || !item.assetId) continue
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+
+          const itemMinCol = originCol
+          const itemMaxCol = originCol + spanX - 1
+          const itemMinRow = originRow
+          const itemMaxRow = originRow + spanY - 1
+
+          const overlaps = (
+            itemMinCol <= maxCol &&
+            itemMaxCol >= minCol &&
+            itemMinRow <= maxRow &&
+            itemMaxRow >= minRow
+          )
+
+          if (overlaps) {
+            totalItems++
+            layerItemCount++
+
+            const asset = assetStore.assets.find(a => a.id === item.assetId)
+            const assetName = asset?.name || item.assetId
+            const category = asset?.category || 'General'
+            const previewSrc = assetStore.getAssetPreview(item.assetId) || asset?.previewSrc || asset?.src || ''
+
+            // Global map
+            if (!assetMap.has(item.assetId)) {
+              assetMap.set(item.assetId, {
+                assetId: item.assetId,
+                assetName,
+                category,
+                previewSrc,
+                totalCount: 0,
+                layerCounts: {},
+              })
+            }
+            const globalEntry = assetMap.get(item.assetId)!
+            globalEntry.totalCount++
+            globalEntry.layerCounts[layer.id] = (globalEntry.layerCounts[layer.id] || 0) + 1
+
+            // Layer specific map
+            if (!layerAssetMap.has(item.assetId)) {
+              layerAssetMap.set(item.assetId, {
+                assetId: item.assetId,
+                assetName,
+                category,
+                previewSrc,
+                totalCount: 0,
+                layerCounts: { [layer.id]: 0 },
+              })
+            }
+            const layerEntry = layerAssetMap.get(item.assetId)!
+            layerEntry.totalCount++
+            layerEntry.layerCounts[layer.id]++
+          }
+        }
+      }
+
+      layerItems[layer.id] = {
+        totalItems: layerItemCount,
+        assets: Array.from(layerAssetMap.values()).sort((a, b) => b.totalCount - a.totalCount),
+      }
+    }
+
+    return {
+      col0: minCol,
+      row0: minRow,
+      col1: maxCol,
+      row1: maxRow,
+      totalCells,
+      totalItems,
+      assets: Array.from(assetMap.values()).sort((a, b) => b.totalCount - a.totalCount),
+      layerItems,
+    }
+  }
+
+  function deleteElementsInBox(
+    col0: number,
+    row0: number,
+    col1: number,
+    row1: number,
+    targetAssetIds: string[],
+    targetLayerIds?: string[],
+    pushHist = true
+  ): number {
+    const minCol = Math.max(0, Math.min(col0, col1))
+    const maxCol = Math.min(project.value.cols - 1, Math.max(col0, col1))
+    const minRow = Math.max(0, Math.min(row0, row1))
+    const maxRow = Math.min(project.value.rows - 1, Math.max(row0, row1))
+
+    const targetAssetSet = new Set(targetAssetIds)
+    const targetLayers = targetLayerIds && targetLayerIds.length > 0
+      ? project.value.layers.filter(l => targetLayerIds.includes(l.id))
+      : [project.value.layers.find(l => l.id === activeLayerId.value) || project.value.layers[0]]
+
+    let deletedCount = 0
+
+    for (const layer of targetLayers) {
+      if (!layer || layer.locked) continue
+
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        const remainingItems: TileItem[] = []
+
+        for (const item of itemArr) {
+          if (!item || !item.assetId) continue
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+
+          const itemMinCol = originCol
+          const itemMaxCol = originCol + spanX - 1
+          const itemMinRow = originRow
+          const itemMaxRow = originRow + spanY - 1
+
+          const overlaps = (
+            itemMinCol <= maxCol &&
+            itemMaxCol >= minCol &&
+            itemMinRow <= maxRow &&
+            itemMaxRow >= minRow
+          )
+
+          if (overlaps && targetAssetSet.has(item.assetId)) {
+            deletedCount++
+          } else {
+            remainingItems.push(item)
+          }
+        }
+
+        if (remainingItems.length === 0) {
+          delete layer.tiles[key]
+        } else {
+          layer.tiles[key] = remainingItems
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      if (pushHist) {
+        pushHistory(`Cleared ${deletedCount} elements in box [(${minCol}, ${minRow}) -> (${maxCol}, ${maxRow})]`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return deletedCount
+  }
+
   function clearLayerTiles(layerId = activeLayerId.value) {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return
@@ -895,6 +1372,7 @@ export const useMapStore = defineStore('mapStore', () => {
     allPlacedElements,
     getCellItems,
     getElementsAtOrCoveringCell,
+    getLayerCellStats,
     pushHistory,
     undo,
     redo,
@@ -929,6 +1407,11 @@ export const useMapStore = defineStore('mapStore', () => {
     updateItemSpan,
     updateTileOffset,
     fillTiles,
+    fillEmptyCells,
+    fillEmptyCellsInBox,
+    fillLayerCells,
+    getBoxElementSummary,
+    deleteElementsInBox,
     clearLayerTiles,
     clearAllTiles,
   }

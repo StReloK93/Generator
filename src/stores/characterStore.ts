@@ -1424,6 +1424,163 @@ export const useCharacterStore = defineStore('characterStore', () => {
     startPlayMode()
   }
 
+  // --- DEV & SANDBOX TEST MODE CONTROLS (ONLY USED WHEN TESTING FROM EDITOR) ---
+  function devResetGame(customStartingGold?: number, clearTowers: boolean = true) {
+    if (clearTowers) {
+      towerStore.clearAllTowers()
+    } else {
+      towerStore.restoreEditorTowersSnapshot()
+    }
+    towerStore.clearCombatEffects()
+    units.value = []
+    lapCount.value = 0
+    currentWaveIndex.value = 0
+    if (customStartingGold !== undefined) {
+      startingGold.value = Math.max(0, customStartingGold)
+      gold.value = startingGold.value
+      syncGameSettingsToProject()
+    } else {
+      gold.value = startingGold.value
+    }
+    const initLives = startingLives.value || 20
+    maxLives.value = initLives
+    playerLives.value = initLives
+    totalKills.value = 0
+    totalGoldEarned.value = 0
+    gameState.value = 'build_prep'
+    prepCountdown.value = wavePrepDuration.value
+    isPlaying.value = false
+    spawnAtDoor(0)
+    statusMessage.value = 'Match reset to Wave 1 with clean battlefield.'
+  }
+
+  function devAddGold(amount: number) {
+    gold.value = Math.max(0, gold.value + amount)
+  }
+
+  function devSetGold(amount: number) {
+    gold.value = Math.max(0, amount)
+  }
+
+  function devSetStartingGold(amount: number) {
+    startingGold.value = Math.max(0, amount)
+    syncGameSettingsToProject()
+  }
+
+  function devAddLives(amount: number) {
+    playerLives.value = Math.min(999, playerLives.value + amount)
+    maxLives.value = Math.max(maxLives.value, playerLives.value)
+  }
+
+  function devSetLives(amount: number) {
+    playerLives.value = Math.max(1, amount)
+    maxLives.value = Math.max(maxLives.value, playerLives.value)
+  }
+
+  function devJumpToWave(waveIdx: number) {
+    if (waveConfigs.value.length === 0) return
+    const targetIdx = Math.max(0, Math.min(waveConfigs.value.length - 1, waveIdx))
+    currentWaveIndex.value = targetIdx
+    gameState.value = 'build_prep'
+    prepCountdown.value = 0
+    isPlaying.value = false
+    towerStore.clearCombatEffects()
+    spawnAtDoor(0)
+  }
+
+  function devRestartCurrentWave() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'build_prep'
+    prepCountdown.value = 0
+    isPlaying.value = false
+    spawnAtDoor(0)
+  }
+
+  function devClearAllCreeps() {
+    for (const u of units.value) {
+      u.isDead = true
+      u.action = 'Pickup'
+      u.deathFade = 0.2
+    }
+    units.value = []
+    towerStore.clearCombatEffects()
+  }
+
+  function devSpawnWaveNow() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'wave_running'
+    prepCountdown.value = 0
+    spawnAtDoor(0)
+    startTour()
+  }
+
+  function devAddWave(): WaveConfig {
+    const nextNum = waveConfigs.value.length + 1
+    const prevWave = waveConfigs.value[waveConfigs.value.length - 1]
+    const newWave: WaveConfig = {
+      waveNumber: nextNum,
+      name: `Wave ${nextNum}`,
+      unitHp: prevWave ? Math.round(prevWave.unitHp * 1.3) : 100,
+      unitSpeed: prevWave ? prevWave.unitSpeed : 2.5,
+      unitCount: prevWave ? Math.min(50, prevWave.unitCount + 2) : 12,
+      isBoss: nextNum % 5 === 0,
+      goldReward: prevWave ? Math.round(prevWave.goldReward * 1.2) : 50,
+      characterModel: prevWave?.characterModel || 'male',
+      unitVariant: prevWave?.unitVariant || 'normal',
+      immunities: prevWave?.immunities ? [...prevWave.immunities] : [],
+    }
+    waveConfigs.value.push(newWave)
+    syncWavesToProject()
+    return newWave
+  }
+
+  function devUpdateActiveWaveHp(hp: number) {
+    const wave = currentWaveConfig.value
+    if (!wave) return
+    wave.unitHp = Math.max(1, hp)
+    for (const u of units.value) {
+      u.maxHp = wave.unitHp
+      u.currentHp = Math.min(u.currentHp, wave.unitHp)
+    }
+    syncWavesToProject()
+  }
+
+  function devUpdateActiveWaveSpeed(speed: number) {
+    const wave = currentWaveConfig.value
+    if (!wave) return
+    wave.unitSpeed = Math.max(0.2, Number(speed.toFixed(2)))
+    syncWavesToProject()
+  }
+
+  function devUpdateActiveWaveCount(count: number) {
+    const wave = currentWaveConfig.value
+    if (!wave) return
+    wave.unitCount = Math.max(1, Math.min(100, count))
+    syncWavesToProject()
+  }
+
+  function devToggleActiveWaveImmunity(trait: TowerTraitType) {
+    const wave = currentWaveConfig.value
+    if (!wave) return
+    if (!wave.immunities) wave.immunities = []
+    const idx = wave.immunities.indexOf(trait)
+    if (idx === -1) {
+      wave.immunities.push(trait)
+    } else {
+      wave.immunities.splice(idx, 1)
+    }
+    for (const u of units.value) {
+      if (!u.immunities) u.immunities = []
+      if (idx === -1) {
+        if (!u.immunities.includes(trait)) u.immunities.push(trait)
+      } else {
+        const uIdx = u.immunities.indexOf(trait)
+        if (uIdx !== -1) u.immunities.splice(uIdx, 1)
+      }
+    }
+    syncWavesToProject()
+  }
+
   /**
    * Authentic 4-player Warcraft Burbenog TD map generator
    */
@@ -1603,6 +1760,21 @@ export const useCharacterStore = defineStore('characterStore', () => {
     exitPlayMode,
     startNextWaveInGame,
     restartGame,
+    devResetGame,
+    devAddGold,
+    devSetGold,
+    devSetStartingGold,
+    devAddLives,
+    devSetLives,
+    devJumpToWave,
+    devRestartCurrentWave,
+    devClearAllCreeps,
+    devSpawnWaveNow,
+    devAddWave,
+    devUpdateActiveWaveHp,
+    devUpdateActiveWaveSpeed,
+    devUpdateActiveWaveCount,
+    devToggleActiveWaveImmunity,
     deleteCurrentRoute,
     isWaveSaveFeedback,
     saveCurrentWave,

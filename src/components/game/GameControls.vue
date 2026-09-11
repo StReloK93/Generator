@@ -49,13 +49,28 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
-          <UiButton v-if="isOwnerOfSelectedTower" variant="game-green" size="sm" :leading-icon="Zap"
-            :disabled="characterStore.gold < upgradeCost" @click="upgradeSelectedTower">
-            <span>+{{ Math.round(towerStore.selectedPlacedTower.damage * 0.3) }}</span>
+          <!-- Upgrade button if next level exists -->
+          <UiButton 
+            v-if="isOwnerOfSelectedTower && nextLevelConfig" 
+            variant="game-green" 
+            size="sm" 
+            :leading-icon="Zap"
+            :disabled="characterStore.gold < upgradeCost" 
+            @click="upgradeSelectedTower"
+          >
+            <span>+{{ Math.max(0, nextLevelConfig.damage - towerStore.selectedPlacedTower.damage) }}</span>
             <span class="font-mono text-amber-300 flex items-center gap-0.5 ml-1">
               <Coins class="w-3 h-3 text-amber-400 inline" />{{ upgradeCost }}
             </span>
           </UiButton>
+          <!-- Max Level badge if no further level configured -->
+          <div 
+            v-else-if="isOwnerOfSelectedTower && !nextLevelConfig"
+            class="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700/80 text-[11px] font-bold text-slate-400 flex items-center gap-1"
+          >
+            <Shield class="w-3.5 h-3.5 text-amber-400" />
+            <span>{{ $t('game.maxLevel') }}</span>
+          </div>
 
           <UiButton v-if="isOwnerOfSelectedTower" variant="danger" size="sm" @click="sellSelectedTower">
             <span>{{ $t('common.sell') }}</span>
@@ -240,7 +255,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Zap, X, Swords, Play, Coins, Flame, Crosshair, Skull, ShieldAlert } from 'lucide-vue-next'
+import { Zap, X, Swords, Play, Coins, Flame, Crosshair, Skull, Shield, ShieldAlert } from 'lucide-vue-next'
 import {
   UiButton,
   UiIconButton,
@@ -340,12 +355,14 @@ const isOwnerOfSelectedTower = computed(() => {
   return tower.builderId === multiplayerStore.myPlayerId
 })
 
-const upgradeCost = computed(() => {
+const nextLevelConfig = computed(() => {
   const tower = towerStore.selectedPlacedTower
-  if (!tower) return 50
-  const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
-  const baseCost = bp ? bp.cost : 100
-  return Math.round(baseCost * 0.6 * tower.level)
+  if (!tower) return null
+  return towerStore.getNextLevelConfig(tower)
+})
+
+const upgradeCost = computed(() => {
+  return nextLevelConfig.value ? (nextLevelConfig.value.cost || 0) : 0
 })
 
 const sellRefund = computed(() => {
@@ -353,7 +370,13 @@ const sellRefund = computed(() => {
   if (!tower) return 50
   const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
   const baseCost = bp ? bp.cost : 100
-  return Math.round(baseCost * 0.7 * (1 + (tower.level - 1) * 0.5))
+  let investedUpgrades = 0
+  if (bp && bp.levels && tower.level > 1) {
+    for (let i = 1; i < Math.min(tower.level, bp.levels.length); i++) {
+      investedUpgrades += bp.levels[i].cost || 0
+    }
+  }
+  return Math.round((baseCost + investedUpgrades) * 0.7)
 })
 
 const isUpgrading = ref(false)

@@ -373,8 +373,8 @@ export class IsoEngine {
     let strokeColor = 0x38bdf8
     let fillColor = 0x38bdf8
 
-    if (activeTool === 'eraser') {
-      strokeColor = 0xef4444
+    if (activeTool === 'eraser' || activeTool === 'box-clear') {
+      strokeColor = 0xf87171
       fillColor = 0xef4444
     } else if (activeTool === 'bucket') {
       strokeColor = 0x10b981
@@ -382,6 +382,9 @@ export class IsoEngine {
     } else if (activeTool === 'picker') {
       strokeColor = 0xf59e0b
       fillColor = 0xf59e0b
+    } else if (activeTool === 'box-fill') {
+      strokeColor = 0x38bdf8
+      fillColor = 0x0284c7
     } else if (!activeAsset) {
       strokeColor = 0xa855f7
       fillColor = 0xa855f7
@@ -389,11 +392,11 @@ export class IsoEngine {
 
     this.hoverGraphics
       .poly(poly)
-      .fill({ color: fillColor, alpha: 0.28 })
+      .fill({ color: fillColor, alpha: (activeTool === 'box-fill' || activeTool === 'box-clear') ? 0.35 : 0.28 })
       .stroke({ width: 2, color: strokeColor, alpha: 0.95 })
 
-    // Ghost preview fitted to 1 tile width
-    if (activeAsset) {
+    // Ghost preview fitted to 1 tile width - ONLY for placing tools (not box-fill, box-clear, eraser, picker)
+    if (activeAsset && activeTool !== 'box-fill' && activeTool !== 'box-clear' && activeTool !== 'eraser' && activeTool !== 'picker') {
       const texture = this.getTexture(activeAsset)
       if (texture) {
         const ghost = new Sprite(texture)
@@ -435,21 +438,27 @@ export class IsoEngine {
     activeAsset: AssetItem | null,
     activeTool: string
   ): void {
+    this.hoverGraphics.clear()
+    this.previewContainer.removeChildren()
+
     if (cells.length === 0) return
 
     const { tileWidth, tileHeight } = project
     const isEraser = activeTool === 'eraser'
-    const color = isEraser ? 0xef4444 : 0x6366f1
+    const isBoxClear = activeTool === 'box-clear'
+    const isBoxFill = activeTool === 'box-fill'
+    const color = (isEraser || isBoxClear) ? 0xef4444 : (isBoxFill ? 0x0284c7 : 0x6366f1)
+    const strokeColor = (isEraser || isBoxClear) ? 0xf87171 : (isBoxFill ? 0x38bdf8 : 0x818cf8)
 
     for (const cell of cells) {
       if (!isInsideGrid(cell.col, cell.row, project.cols, project.rows)) continue
       const poly = getCellPolygon(cell.col, cell.row, tileWidth, tileHeight)
       this.hoverGraphics
         .poly(poly)
-        .fill({ color, alpha: 0.35 })
-        .stroke({ width: 1.5, color, alpha: 0.9 })
+        .fill({ color, alpha: (isBoxFill || isBoxClear) ? 0.38 : 0.35 })
+        .stroke({ width: (isBoxFill || isBoxClear) ? 2.0 : 1.5, color: strokeColor, alpha: 0.95 })
 
-      if (!isEraser && activeAsset) {
+      if (!isEraser && !isBoxClear && !isBoxFill && activeAsset) {
         const texture = this.getTexture(activeAsset)
         if (texture) {
           const ghost = new Sprite(texture)
@@ -745,7 +754,7 @@ export class IsoEngine {
       (assetName ? this.textureCache.get(assetName) : null) ||
       null
 
-    if (!texture && assetPath && assetPath.startsWith('data:') && !this.loadingPromises.has(assetPath)) {
+    if (!texture && assetPath && !this.loadingPromises.has(assetPath)) {
       const promise = new Promise<Texture | null>((resolve) => {
         const img = new window.Image()
         img.crossOrigin = 'anonymous'
@@ -753,8 +762,8 @@ export class IsoEngine {
           try {
             const source = new ImageSource({ resource: img })
             const tex = new Texture({ source })
-            this.towerTextures.set(assetName, tex)
-            this.towerTextures.set(baseName, tex)
+            if (assetName) this.towerTextures.set(assetName, tex)
+            if (baseName) this.towerTextures.set(baseName, tex)
             this.towerTextures.set(assetPath, tex)
             this.textureCache.set(assetPath, tex)
             if (assetId) this.textureCache.set(assetId, tex)

@@ -63,7 +63,7 @@
         size="xs"
         :active="toolStore.showGrid"
         :leading-icon="Grid"
-        :title="$t('header.gridToggle')"
+        :title="`${$t('header.gridToggle')} (H)`"
         @click="toolStore.showGrid = !toolStore.showGrid"
       >
         <span class="hidden md:inline text-[11px]">{{ $t('header.gridToggle') }}</span>
@@ -75,7 +75,7 @@
         size="xs"
         :active="toolStore.showCoordinates"
         :leading-icon="Hash"
-        :title="$t('inspector.gridPosition')"
+        :title="`${$t('inspector.gridPosition')} (K)`"
         @click="toolStore.showCoordinates = !toolStore.showCoordinates"
       >
         <span class="hidden md:inline text-[11px]">{{ $t('common.position') }}</span>
@@ -89,7 +89,7 @@
         size="sm"
         :icon="Undo2"
         :disabled="characterStore.isDrawingRoute ? !characterStore.canUndoRoute : !mapStore.canUndo"
-        :title="$t('header.undo')"
+        :title="`${$t('header.undo')} (Ctrl+Z)`"
         @click="handleUndo"
       />
 
@@ -99,7 +99,7 @@
         size="sm"
         :icon="Redo2"
         :disabled="characterStore.isDrawingRoute ? !characterStore.canRedoRoute : !mapStore.canRedo"
-        :title="$t('header.redo')"
+        :title="`${$t('header.redo')} (Ctrl+Y)`"
         @click="handleRedo"
       />
     </div>
@@ -111,7 +111,7 @@
         :variant="toolStore.isGameConfigModalOpen ? 'game-amber' : 'secondary'"
         size="sm"
         :leading-icon="ShieldAlert"
-        :title="$t('header.gameConfig')"
+        :title="`${$t('header.gameConfig')} (T)`"
         @click="toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen"
       >
         <span class="hidden sm:inline">{{ $t('header.gameConfig') }}</span>
@@ -147,7 +147,7 @@
         variant="ghost"
         size="sm"
         :icon="HelpCircle"
-        :title="$t('header.help')"
+        :title="`${$t('header.help')} (?)`"
         custom-class="hidden sm:inline-flex"
         @click="toolStore.isShortcutsModalOpen = true"
       />
@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, MapPin
+  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'

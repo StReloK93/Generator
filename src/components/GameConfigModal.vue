@@ -183,7 +183,7 @@
       </UiCard>
 
       <!-- Active Selected Blueprint Editor -->
-      <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
+      <div v-else-if="selectedBp" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
         
         <!-- Left Column: Visual Live Preview & Sprite Select -->
         <UiCard variant="amber" padding="md" custom-class="flex flex-col gap-3">
@@ -222,7 +222,7 @@
 
         <!-- Right Column: Attributes Configuration Form -->
         <UiCard variant="default" padding="md" custom-class="md:col-span-2 flex flex-col gap-3">
-          <!-- Name & Cost Row -->
+          <!-- Name & Clan Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UiInput 
               :model-value="selectedBp.name"
@@ -231,72 +231,131 @@
               @update:model-value="(val) => updateSelectedBp({ name: String(val) })"
             />
 
+            <!-- Clan Assignment Selector -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] font-semibold text-slate-300">{{ $t('clans.belongsToClan') }}</label>
+              <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+                <button
+                  v-for="clan in towerStore.clans"
+                  :key="clan.id"
+                  type="button"
+                  :class="[
+                    'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] transition-all cursor-pointer shrink-0',
+                    (selectedBp.clanId === clan.id || (!selectedBp.clanId && clan.id === towerStore.clans[0]?.id))
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ]"
+                  @click="updateSelectedBp({ clanId: clan.id })"
+                >
+                  <component :is="getClanIcon(clan.iconName)" class="w-3 h-3" :style="{ color: clan.color || '#38bdf8' }" />
+                  <span>{{ clan.name }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================================= -->
+          <!-- TOWER UPGRADE LEVEL MANAGER                                               -->
+          <!-- ========================================================================= -->
+          <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2 border-amber-500/30 bg-amber-950/10">
+            <div class="flex items-center justify-between gap-2 flex-wrap pb-1.5 border-b border-slate-800">
+              <div class="flex items-center gap-1.5">
+                <Zap class="w-3.5 h-3.5 text-amber-400" />
+                <span class="text-xs font-bold text-amber-300 uppercase tracking-wide">{{ $t('config.towerLevels') }}</span>
+                <UiBadge variant="amber" size="xs">{{ currentBlueprintLevels.length }}</UiBadge>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <UiButton
+                  variant="game-amber"
+                  size="xs"
+                  :leading-icon="Plus"
+                  @click="handleAddLevel"
+                >
+                  {{ $t('config.addLevel') }}
+                </UiButton>
+                <UiButton
+                  v-if="selectedLevelIndex > 0"
+                  variant="danger"
+                  size="xs"
+                  :leading-icon="Trash2"
+                  @click="handleRemoveLevel"
+                >
+                  {{ $t('config.deleteLevel') }}
+                </UiButton>
+              </div>
+            </div>
+
+            <!-- Level Pills Row -->
+            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+              <button
+                v-for="(lvl, idx) in currentBlueprintLevels"
+                :key="idx"
+                type="button"
+                :class="[
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shrink-0',
+                  selectedLevelIndex === idx
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm ring-1 ring-amber-400/40'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                ]"
+                @click="selectedLevelIndex = idx"
+              >
+                <Zap class="w-3 h-3 text-amber-400" />
+                <span>{{ idx === 0 ? $t('config.levelBase', { lvl: 1 }) : $t('game.lvl', { level: idx + 1 }) }}</span>
+                <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                  {{ lvl.damage }} DMG
+                </span>
+                <span v-if="idx > 0" class="font-mono text-[10px] text-amber-400/90 font-normal">
+                  +{{ lvl.cost }}g
+                </span>
+              </button>
+            </div>
+          </UiCard>
+
+          <!-- Active Level Parameters: Cost, Damage, Speed, Range -->
+          <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <!-- Cost for this level -->
             <UiNumberInput 
-              :model-value="selectedBp.cost"
-              :label="$t('config.buildCost')"
+              :model-value="activeLevelConfig.cost"
+              :label="selectedLevelIndex === 0 ? $t('config.buildCost') : $t('config.upgradeCost')"
               :min="10"
               :max="5000"
               :step="10"
               unit=" gold"
-              @update:model-value="(val) => updateSelectedBp({ cost: val || 50 })"
+              @update:model-value="(val) => updateActiveLevel({ cost: val || (selectedLevelIndex === 0 ? 50 : 100) })"
             />
-          </div>
 
-          <!-- Clan Assignment Selector -->
-          <div class="flex flex-col gap-1">
-            <label class="text-[11px] font-semibold text-slate-300">{{ $t('clans.belongsToClan') }}</label>
-            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
-              <button
-                v-for="clan in towerStore.clans"
-                :key="clan.id"
-                type="button"
-                :class="[
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] transition-all cursor-pointer shrink-0',
-                  (selectedBp.clanId === clan.id || (!selectedBp.clanId && clan.id === towerStore.clans[0]?.id))
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
-                ]"
-                @click="updateSelectedBp({ clanId: clan.id })"
-              >
-                <component :is="getClanIcon(clan.iconName)" class="w-3 h-3" :style="{ color: clan.color || '#38bdf8' }" />
-                <span>{{ clan.name }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Damage, Attack Speed, Range Sliders -->
-          <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <!-- Damage -->
             <UiSlider 
-              :model-value="selectedBp.damage"
+              :model-value="activeLevelConfig.damage"
               :label="$t('config.damage')"
               :min="5"
               :max="500"
               :step="5"
               unit=" DMG"
-              @update:model-value="(val) => updateSelectedBp({ damage: val })"
+              @update:model-value="(val) => updateActiveLevel({ damage: val })"
             />
 
             <!-- Attack Speed -->
             <UiSlider 
-              :model-value="selectedBp.attackSpeed"
+              :model-value="activeLevelConfig.attackSpeed"
               :label="$t('config.attackSpeed')"
               :min="0.1"
               :max="3.0"
               :step="0.1"
               unit="s"
-              @update:model-value="(val) => updateSelectedBp({ attackSpeed: val })"
+              @update:model-value="(val) => updateActiveLevel({ attackSpeed: val })"
             />
 
             <!-- Range -->
             <UiSlider 
-              :model-value="selectedBp.range"
+              :model-value="activeLevelConfig.range"
               :label="$t('config.attackRange')"
               :min="1"
               :max="12"
               :step="1"
               unit=" cells"
-              @update:model-value="(val) => updateSelectedBp({ range: val })"
+              @update:model-value="(val) => updateActiveLevel({ range: val })"
             />
           </UiCard>
 
@@ -307,10 +366,10 @@
               <UiButton 
                 v-for="pType in projectileOptions" 
                 :key="pType.id"
-                :variant="selectedBp.projectileType === pType.id ? 'game-amber' : 'secondary'"
+                :variant="activeLevelConfig.projectileType === pType.id ? 'game-amber' : 'secondary'"
                 size="xs"
                 :leading-icon="pType.icon"
-                @click="updateSelectedBp({ projectileType: pType.id as any })"
+                @click="updateActiveLevel({ projectileType: pType.id as any })"
               >
                 <span>{{ pType.name }}</span>
               </UiButton>
@@ -319,33 +378,33 @@
 
           <!-- Splash Damage Options & Distribution Mode -->
           <UiSwitch
-            :model-value="selectedBp.isSplash"
+            :model-value="!!activeLevelConfig.isSplash"
             :label="$t('config.aoeSplash')"
             :description="$t('config.aoeSplashDesc')"
             variant="amber"
-            @update:model-value="(val) => updateSelectedBp({ isSplash: val })"
+            @update:model-value="(val) => updateActiveLevel({ isSplash: val })"
           />
 
-          <div v-if="selectedBp.isSplash" class="flex flex-col gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+          <div v-if="activeLevelConfig.isSplash" class="flex flex-col gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
               <UiSlider 
-                :model-value="selectedBp.splashRadius || 1.5"
+                :model-value="activeLevelConfig.splashRadius || 1.5"
                 :label="$t('config.splashRadius')"
                 :min="0.5"
                 :max="5.0"
                 :step="0.5"
                 unit=" cells"
-                @update:model-value="(val) => updateSelectedBp({ splashRadius: val })"
+                @update:model-value="(val) => updateActiveLevel({ splashRadius: val })"
               />
 
               <div class="flex flex-col gap-1">
                 <span class="text-[11px] font-semibold text-slate-300">{{ $t('traits.splashType') }}</span>
                 <UiTabs 
-                  :model-value="selectedBp.splashType || 'falloff'"
+                  :model-value="activeLevelConfig.splashType || 'falloff'"
                   :items="splashTypeOptions"
                   variant="amber"
                   size="xs"
-                  @update:model-value="(val) => updateSelectedBp({ splashType: val as any })"
+                  @update:model-value="(val) => updateActiveLevel({ splashType: val as any })"
                 />
               </div>
             </div>
@@ -359,10 +418,10 @@
                 <span class="text-xs font-bold text-slate-200">{{ $t('traits.title') }}</span>
               </div>
               <UiBadge 
-                :variant="(selectedBp.traits && selectedBp.traits.length > 0) ? 'amber' : 'slate'" 
+                :variant="(activeLevelConfig.traits && activeLevelConfig.traits.length > 0) ? 'amber' : 'slate'" 
                 size="xs"
               >
-                {{ (selectedBp.traits && selectedBp.traits.length > 0) ? $t('traits.traitsActiveCount', { count: selectedBp.traits.length }) : $t('traits.noTraitsActive') }}
+                {{ (activeLevelConfig.traits && activeLevelConfig.traits.length > 0) ? $t('traits.traitsActiveCount', { count: activeLevelConfig.traits.length }) : $t('traits.noTraitsActive') }}
               </UiBadge>
             </div>
             <p class="text-[10px] text-slate-400 leading-tight">
@@ -375,21 +434,21 @@
                 v-for="trait in TOWER_TRAITS"
                 :key="trait.id"
                 type="button"
-                @click="toggleTowerTrait(trait.id)"
+                @click="toggleLevelTrait(trait.id)"
                 :title="$t(trait.descKey)"
                 class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all cursor-pointer select-none group"
-                :class="hasTowerTrait(trait.id)
+                :class="hasLevelTrait(trait.id)
                   ? 'ring-1 ring-white/40 shadow-sm scale-102 ' + trait.bgClass + ' ' + trait.borderClass
                   : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800/80 text-slate-400'"
               >
                 <component 
                   :is="trait.icon" 
                   class="w-4 h-4 transition-transform group-hover:scale-110"
-                  :style="{ color: hasTowerTrait(trait.id) ? trait.color : '#94a3b8' }"
+                  :style="{ color: hasLevelTrait(trait.id) ? trait.color : '#94a3b8' }"
                 />
                 <span 
                   class="text-[10px] font-medium truncate max-w-full mt-1"
-                  :class="hasTowerTrait(trait.id) ? 'font-bold text-slate-100' : 'text-slate-400'"
+                  :class="hasLevelTrait(trait.id) ? 'font-bold text-slate-100' : 'text-slate-400'"
                 >
                   {{ $t(trait.nameKey) }}
                 </span>
@@ -397,213 +456,213 @@
             </div>
 
             <!-- Active Trait Parameter Sub-Sliders -->
-            <div v-if="selectedBp.traits && selectedBp.traits.length > 0" class="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
+            <div v-if="activeLevelConfig.traits && activeLevelConfig.traits.length > 0" class="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
               <!-- Fire Parameters -->
-              <UiCard v-if="hasTowerTrait('fire')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-orange-500/30 bg-orange-950/20">
+              <UiCard v-if="hasLevelTrait('fire')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-orange-500/30 bg-orange-950/20">
                 <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
                   <Flame class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.fireName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.fireBonusDamage ?? 5"
+                  :model-value="activeLevelConfig.fireBonusDamage ?? 5"
                   :label="$t('traits.fireBonusDamage')"
                   :min="1"
                   :max="200"
                   :step="1"
                   unit=" DMG"
-                  @update:model-value="(val) => updateSelectedBp({ fireBonusDamage: val })"
+                  @update:model-value="(val) => updateActiveLevel({ fireBonusDamage: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.burnDps ?? 4"
+                  :model-value="activeLevelConfig.burnDps ?? 4"
                   :label="$t('traits.burnDps')"
                   :min="1"
                   :max="100"
                   :step="1"
                   unit="/s"
-                  @update:model-value="(val) => updateSelectedBp({ burnDps: val })"
+                  @update:model-value="(val) => updateActiveLevel({ burnDps: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.burnDuration ?? 3.0"
+                  :model-value="activeLevelConfig.burnDuration ?? 3.0"
                   :label="$t('traits.burnDuration')"
                   :min="0.5"
                   :max="10.0"
                   :step="0.5"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ burnDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ burnDuration: val })"
                 />
               </UiCard>
 
               <!-- Frost Parameters -->
-              <UiCard v-if="hasTowerTrait('frost')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-cyan-500/30 bg-cyan-950/20">
+              <UiCard v-if="hasLevelTrait('frost')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-cyan-500/30 bg-cyan-950/20">
                 <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
                   <Snowflake class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.frostName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.frostBonusDamage ?? 2"
+                  :model-value="activeLevelConfig.frostBonusDamage ?? 2"
                   :label="$t('traits.frostBonusDamage')"
                   :min="0"
                   :max="100"
                   :step="1"
                   unit=" DMG"
-                  @update:model-value="(val) => updateSelectedBp({ frostBonusDamage: val })"
+                  @update:model-value="(val) => updateActiveLevel({ frostBonusDamage: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.slowPercent ?? 30"
+                  :model-value="activeLevelConfig.slowPercent ?? 30"
                   :label="$t('traits.slowPercent')"
                   :min="5"
                   :max="80"
                   :step="5"
                   unit="%"
-                  @update:model-value="(val) => updateSelectedBp({ slowPercent: val })"
+                  @update:model-value="(val) => updateActiveLevel({ slowPercent: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.slowDuration ?? 2.5"
+                  :model-value="activeLevelConfig.slowDuration ?? 2.5"
                   :label="$t('traits.slowDuration')"
                   :min="0.5"
                   :max="10.0"
                   :step="0.5"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ slowDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ slowDuration: val })"
                 />
               </UiCard>
 
               <!-- Poison Parameters -->
-              <UiCard v-if="hasTowerTrait('poison')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-emerald-500/30 bg-emerald-950/20">
+              <UiCard v-if="hasLevelTrait('poison')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-emerald-500/30 bg-emerald-950/20">
                 <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
                   <Skull class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.poisonName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.poisonDps ?? 6"
+                  :model-value="activeLevelConfig.poisonDps ?? 6"
                   :label="$t('traits.poisonDps')"
                   :min="1"
                   :max="100"
                   :step="1"
                   unit="/s"
-                  @update:model-value="(val) => updateSelectedBp({ poisonDps: val })"
+                  @update:model-value="(val) => updateActiveLevel({ poisonDps: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.poisonDuration ?? 4.0"
+                  :model-value="activeLevelConfig.poisonDuration ?? 4.0"
                   :label="$t('traits.poisonDuration')"
                   :min="1.0"
                   :max="15.0"
                   :step="0.5"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ poisonDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ poisonDuration: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.poisonSlowPercent ?? 10"
+                  :model-value="activeLevelConfig.poisonSlowPercent ?? 10"
                   :label="$t('traits.poisonSlowPercent')"
                   :min="0"
                   :max="50"
                   :step="5"
                   unit="%"
-                  @update:model-value="(val) => updateSelectedBp({ poisonSlowPercent: val })"
+                  @update:model-value="(val) => updateActiveLevel({ poisonSlowPercent: val })"
                 />
               </UiCard>
 
               <!-- Stacking Ramp Parameters -->
-              <UiCard v-if="hasTowerTrait('stacking')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-amber-500/30 bg-amber-950/20">
+              <UiCard v-if="hasLevelTrait('stacking')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-amber-500/30 bg-amber-950/20">
                 <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
                   <TrendingUp class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.stackingName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.stackBonusDamage ?? 4"
+                  :model-value="activeLevelConfig.stackBonusDamage ?? 4"
                   :label="$t('traits.stackBonusDamage')"
                   :min="1"
                   :max="100"
                   :step="1"
                   unit=" DMG/hit"
-                  @update:model-value="(val) => updateSelectedBp({ stackBonusDamage: val })"
+                  @update:model-value="(val) => updateActiveLevel({ stackBonusDamage: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.maxStacks ?? 10"
+                  :model-value="activeLevelConfig.maxStacks ?? 10"
                   :label="$t('traits.maxStacks')"
                   :min="2"
                   :max="50"
                   :step="1"
                   unit=" stacks"
-                  @update:model-value="(val) => updateSelectedBp({ maxStacks: val })"
+                  @update:model-value="(val) => updateActiveLevel({ maxStacks: val })"
                 />
               </UiCard>
 
               <!-- Blood Parameters -->
-              <UiCard v-if="hasTowerTrait('blood')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-rose-500/30 bg-rose-950/20">
+              <UiCard v-if="hasLevelTrait('blood')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-rose-500/30 bg-rose-950/20">
                 <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
                   <Droplet class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.bloodName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.bleedDps ?? 7"
+                  :model-value="activeLevelConfig.bleedDps ?? 7"
                   :label="$t('traits.bleedDps')"
                   :min="1"
                   :max="120"
                   :step="1"
                   unit="/s"
-                  @update:model-value="(val) => updateSelectedBp({ bleedDps: val })"
+                  @update:model-value="(val) => updateActiveLevel({ bleedDps: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.bleedDuration ?? 3.5"
+                  :model-value="activeLevelConfig.bleedDuration ?? 3.5"
                   :label="$t('traits.bleedDuration')"
                   :min="1.0"
                   :max="10.0"
                   :step="0.5"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ bleedDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ bleedDuration: val })"
                 />
               </UiCard>
 
               <!-- Electric Parameters -->
-              <UiCard v-if="hasTowerTrait('electric')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-sky-500/30 bg-sky-950/20">
+              <UiCard v-if="hasLevelTrait('electric')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-sky-500/30 bg-sky-950/20">
                 <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
                   <Zap class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.electricName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.electricBonusDamage ?? 6"
+                  :model-value="activeLevelConfig.electricBonusDamage ?? 6"
                   :label="$t('traits.electricBonusDamage')"
                   :min="1"
                   :max="150"
                   :step="1"
                   unit=" DMG"
-                  @update:model-value="(val) => updateSelectedBp({ electricBonusDamage: val })"
+                  @update:model-value="(val) => updateActiveLevel({ electricBonusDamage: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.stunDuration ?? 0.3"
+                  :model-value="activeLevelConfig.stunDuration ?? 0.3"
                   :label="$t('traits.stunDuration')"
                   :min="0.1"
                   :max="2.0"
                   :step="0.1"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ stunDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ stunDuration: val })"
                 />
               </UiCard>
 
               <!-- Void Parameters -->
-              <UiCard v-if="hasTowerTrait('void')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-purple-500/30 bg-purple-950/20">
+              <UiCard v-if="hasLevelTrait('void')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-purple-500/30 bg-purple-950/20">
                 <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
                   <Ghost class="w-3.5 h-3.5" />
                   <span>{{ $t('traits.voidName') }}</span>
                 </div>
                 <UiSlider 
-                  :model-value="selectedBp.voidVulnPercent ?? 25"
+                  :model-value="activeLevelConfig.voidVulnPercent ?? 25"
                   :label="$t('traits.voidVulnPercent')"
                   :min="5"
                   :max="100"
                   :step="5"
                   unit="%"
-                  @update:model-value="(val) => updateSelectedBp({ voidVulnPercent: val })"
+                  @update:model-value="(val) => updateActiveLevel({ voidVulnPercent: val })"
                 />
                 <UiSlider 
-                  :model-value="selectedBp.voidDuration ?? 4.0"
+                  :model-value="activeLevelConfig.voidDuration ?? 4.0"
                   :label="$t('traits.voidDuration')"
                   :min="1.0"
                   :max="15.0"
                   :step="0.5"
                   unit="s"
-                  @update:model-value="(val) => updateSelectedBp({ voidDuration: val })"
+                  @update:model-value="(val) => updateActiveLevel({ voidDuration: val })"
                 />
               </UiCard>
             </div>
@@ -682,7 +741,7 @@
       </UiCard>
 
       <!-- Active Selected Wave Editor Layout (Split Columns) -->
-      <div v-else-if="selectedWave" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
+      <div v-else-if="selectedWave" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
         
         <!-- Left Column (1 col): Character Model & Live Animation Preview -->
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-2.5">
@@ -1584,7 +1643,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
@@ -1612,7 +1671,7 @@ import { useTowerStore } from '../stores/towerStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
-import { AssetItem, UnitVariantType, TowerTraitType, TowerClan } from '../types/map'
+import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevelConfig } from '../types/map'
 import { UNIT_VARIANTS, UnitVariantDef, getVariantDef } from '../utils/unitVariants'
 import { TOWER_TRAITS, TowerTraitDef, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon, CLAN_AVAILABLE_ICONS, CLAN_AVAILABLE_COLORS } from '../utils/towerClans'
@@ -1738,14 +1797,52 @@ const splashTypeOptions = computed(() => [
   { id: 'constant', label: t('traits.splashConstant'), icon: Equal },
 ])
 
-function hasTowerTrait(traitId: TowerTraitType): boolean {
-  if (!selectedBp.value || !selectedBp.value.traits) return false
-  return selectedBp.value.traits.includes(traitId)
+// Tower Blueprint Upgrade Levels State
+const selectedLevelIndex = ref(0)
+
+const currentBlueprintLevels = computed<TowerLevelConfig[]>(() => {
+  if (!selectedBp.value) return []
+  return towerStore.ensureBlueprintLevels(selectedBp.value)
+})
+
+const activeLevelConfig = computed<TowerLevelConfig>(() => {
+  if (!selectedBp.value) return {} as TowerLevelConfig
+  const levels = currentBlueprintLevels.value
+  const validIdx = Math.max(0, Math.min(levels.length - 1, selectedLevelIndex.value))
+  return levels[validIdx] || levels[0] || (selectedBp.value as any)
+})
+
+watch(() => towerStore.selectedBlueprintId, () => {
+  selectedLevelIndex.value = 0
+})
+
+function handleAddLevel() {
+  if (!selectedBp.value) return
+  const newLvl = towerStore.addBlueprintLevel(selectedBp.value.id)
+  if (newLvl) {
+    selectedLevelIndex.value = currentBlueprintLevels.value.length - 1
+  }
 }
 
-function toggleTowerTrait(traitId: TowerTraitType) {
+function handleRemoveLevel() {
+  if (!selectedBp.value || selectedLevelIndex.value <= 0) return
+  towerStore.removeBlueprintLevel(selectedBp.value.id, selectedLevelIndex.value)
+  selectedLevelIndex.value = Math.max(0, selectedLevelIndex.value - 1)
+}
+
+function updateActiveLevel(partial: Partial<TowerLevelConfig>) {
   if (!selectedBp.value) return
-  const currentTraits = Array.isArray(selectedBp.value.traits) ? [...selectedBp.value.traits] : []
+  towerStore.updateBlueprintLevel(selectedBp.value.id, selectedLevelIndex.value, partial)
+}
+
+function hasLevelTrait(traitId: TowerTraitType): boolean {
+  if (!activeLevelConfig.value || !activeLevelConfig.value.traits) return false
+  return activeLevelConfig.value.traits.includes(traitId)
+}
+
+function toggleLevelTrait(traitId: TowerTraitType) {
+  if (!selectedBp.value) return
+  const currentTraits = Array.isArray(activeLevelConfig.value.traits) ? [...activeLevelConfig.value.traits] : []
   const idx = currentTraits.indexOf(traitId)
   if (idx !== -1) {
     currentTraits.splice(idx, 1)
@@ -1754,10 +1851,18 @@ function toggleTowerTrait(traitId: TowerTraitType) {
     // Apply default values if not set
     const traitDef = getTraitDef(traitId)
     if (traitDef && traitDef.defaultValues) {
-      updateSelectedBp(traitDef.defaultValues)
+      updateActiveLevel(traitDef.defaultValues)
     }
   }
-  updateSelectedBp({ traits: currentTraits })
+  updateActiveLevel({ traits: currentTraits })
+}
+
+function hasTowerTrait(traitId: TowerTraitType): boolean {
+  return hasLevelTrait(traitId)
+}
+
+function toggleTowerTrait(traitId: TowerTraitType) {
+  toggleLevelTrait(traitId)
 }
 
 function hasWaveImmunity(traitId: TowerTraitType): boolean {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { AssetItem } from '../types/map'
+import { AssetItem, ToolType } from '../types/map'
 import { useToolStore } from './toolStore'
 import { assetManager } from '../services/assetManager'
 
@@ -183,7 +183,10 @@ export const useAssetStore = defineStore('assetStore', () => {
     selectedAssetId.value = id
     if (id) {
       const toolStore = useToolStore()
-      toolStore.setTool('brush')
+      const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+      if (!drawingTools.includes(toolStore.activeTool)) {
+        toolStore.setTool(toolStore.lastDrawingTool || 'brush')
+      }
     }
   }
 

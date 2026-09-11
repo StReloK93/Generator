@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef } from '../types/map'
+import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef, BoxClearModalData } from '../types/map'
 
 export const useToolStore = defineStore('toolStore', () => {
   const activeTool = ref<ToolType>('brush')
+  const lastDrawingTool = ref<ToolType>('brush')
   const hoveredCell = ref<GridCoord | null>(null)
   const isMouseDown = ref<boolean>(false)
   const dragStartCell = ref<GridCoord | null>(null)
@@ -25,6 +26,10 @@ export const useToolStore = defineStore('toolStore', () => {
   const isExportModalOpen = ref<boolean>(false)
   const isShortcutsModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
+  const isFillGroundModalOpen = ref<boolean>(false)
+  const fillModalTargetLayerId = ref<string | null>(null)
+  const isBoxClearModalOpen = ref<boolean>(false)
+  const boxClearData = ref<BoxClearModalData | null>(null)
   const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'spawns'>('towers')
 
   function openGameConfig(tab?: 'towers' | 'waves' | 'balance' | 'spawns') {
@@ -36,6 +41,26 @@ export const useToolStore = defineStore('toolStore', () => {
     isGameConfigModalOpen.value = false
   }
 
+  function openFillGroundModal(layerId?: string) {
+    fillModalTargetLayerId.value = layerId || null
+    isFillGroundModalOpen.value = true
+  }
+
+  function closeFillGroundModal() {
+    isFillGroundModalOpen.value = false
+    fillModalTargetLayerId.value = null
+  }
+
+  function openBoxClearModal(data: BoxClearModalData) {
+    boxClearData.value = data
+    isBoxClearModalOpen.value = true
+  }
+
+  function closeBoxClearModal() {
+    isBoxClearModalOpen.value = false
+    boxClearData.value = null
+  }
+
   // Editor Display Settings
   const showGrid = ref<boolean>(true)
   const showCoordinates = ref<boolean>(false)
@@ -44,8 +69,13 @@ export const useToolStore = defineStore('toolStore', () => {
   const gridOpacity = ref<number>(0.35)
   const snapToGrid = ref<boolean>(true)
 
+  const DRAWING_TOOLS: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+
   function setTool(tool: ToolType) {
     activeTool.value = tool
+    if (DRAWING_TOOLS.includes(tool)) {
+      lastDrawingTool.value = tool
+    }
     previewCells.value = []
     dragStartCell.value = null
     if (tool !== 'select') {
@@ -79,6 +109,7 @@ export const useToolStore = defineStore('toolStore', () => {
 
   return {
     activeTool,
+    lastDrawingTool,
     hoveredCell,
     isMouseDown,
     dragStartCell,
@@ -92,6 +123,14 @@ export const useToolStore = defineStore('toolStore', () => {
     isExportModalOpen,
     isShortcutsModalOpen,
     isGameConfigModalOpen,
+    isFillGroundModalOpen,
+    fillModalTargetLayerId,
+    openFillGroundModal,
+    closeFillGroundModal,
+    isBoxClearModalOpen,
+    boxClearData,
+    openBoxClearModal,
+    closeBoxClearModal,
     gameConfigActiveTab,
     openGameConfig,
     closeGameConfig,

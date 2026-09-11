@@ -215,6 +215,25 @@ function handleGameCellClick(gridCoord: GridCoord) {
 
   // 1. If building a tower from shop (2-step confirmation)
   if (towerStore.activeBuildTowerId) {
+    // Check if cell already has a placed tower!
+    const existingTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
+    if (existingTower) {
+      notify.warning(t('game.tileAlreadyOccupied'), t('game.cannotPlaceHere'))
+      towerStore.selectBuildTower(null)
+      towerStore.selectPlacedTower(existingTower.id)
+      pendingBuildCell = null
+      toolStore.setHoveredCell(null)
+      return
+    }
+
+    // Check if cell is blocked by spawn point or route
+    if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
+      notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
+      pendingBuildCell = null
+      toolStore.setHoveredCell(null)
+      return
+    }
+
     // 1.1 First tap on a cell: Target and highlight this cell
     if (!pendingBuildCell || pendingBuildCell.col !== gridCoord.col || pendingBuildCell.row !== gridCoord.row) {
       pendingBuildCell = { col: gridCoord.col, row: gridCoord.row }
@@ -226,11 +245,6 @@ function handleGameCellClick(gridCoord: GridCoord) {
     // 1.2 Second tap on the SAME active cell: Validate and place the tower!
     const bp = towerStore.blueprints.find(b => b.id === towerStore.activeBuildTowerId)
     if (bp) {
-      if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
-        notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
-        return
-      }
-
       let currentGold = characterStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
@@ -243,12 +257,14 @@ function handleGameCellClick(gridCoord: GridCoord) {
       }
     }
 
-    towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
-    lastBuildTimestamp = Date.now()
-    pendingBuildCell = null
-    toolStore.setHoveredCell(null)
-    towerStore.selectBuildTower(null)
-    towerStore.selectPlacedTower(null)
+    const placed = towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
+    if (placed) {
+      lastBuildTimestamp = Date.now()
+      pendingBuildCell = null
+      toolStore.setHoveredCell(null)
+      towerStore.selectBuildTower(null)
+      towerStore.selectPlacedTower(null)
+    }
     return
   }
 

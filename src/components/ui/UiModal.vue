@@ -95,7 +95,8 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full'
-export type IconColor = 'amber' | 'brand' | 'emerald' | 'rose' | 'cyan' | 'slate'
+export type IconColor = 'amber' | 'brand' | 'emerald' | 'rose' | 'danger' | 'cyan' | 'slate'
+export type IconVariant = IconColor
 
 interface Props {
   isOpen: boolean
@@ -103,6 +104,7 @@ interface Props {
   subtitle?: string
   icon?: any
   iconColor?: IconColor
+  iconVariant?: IconVariant
   size?: ModalSize
   showClose?: boolean
   closeOnBackdrop?: boolean
@@ -117,6 +119,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: '',
   subtitle: '',
   iconColor: 'brand',
+  iconVariant: undefined,
   size: 'md',
   showClose: true,
   closeOnBackdrop: true,
@@ -182,12 +185,14 @@ const sizeClasses = computed(() => {
 })
 
 const iconColorClasses = computed(() => {
-  switch (props.iconColor) {
+  const color = props.iconVariant || props.iconColor
+  switch (color) {
     case 'amber':
       return 'bg-amber-500/20 text-amber-400 border-amber-500/30'
     case 'emerald':
       return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
     case 'rose':
+    case 'danger':
       return 'bg-rose-500/20 text-rose-400 border-rose-500/30'
     case 'cyan':
       return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'

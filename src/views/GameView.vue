@@ -112,6 +112,10 @@
     <GameOverModal />
     <GameVictoryModal />
     <ClanSelectModal />
+
+    <!-- 6. Developer Sandbox Test Toolbar (STRICTLY when entered from Map Editor) -->
+    <DevTestSandboxToolbar v-if="isSandboxTestMode" />
+    <GameConfigModal v-if="isSandboxTestMode" />
   </div>
 </template>
 
@@ -126,6 +130,8 @@ import GameControls from '../components/game/GameControls.vue'
 import GameOverModal from '../components/game/GameOverModal.vue'
 import GameVictoryModal from '../components/game/GameVictoryModal.vue'
 import ClanSelectModal from '../components/game/ClanSelectModal.vue'
+import DevTestSandboxToolbar from '../components/game/DevTestSandboxToolbar.vue'
+import GameConfigModal from '../components/GameConfigModal.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
@@ -143,6 +149,8 @@ const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
 const { t } = useI18n()
+
+const isSandboxTestMode = computed(() => !multiplayerStore.roomId && characterStore.entrySource === 'editor')
 
 const canvasRef = ref<any>(null)
 const isCanvasReady = ref(false)

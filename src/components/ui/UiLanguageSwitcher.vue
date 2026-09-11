@@ -28,7 +28,7 @@
       <div
         v-if="isOpen"
         :class="[
-          'absolute right-0 w-36 rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl shadow-black/80 py-1 z-[100] overflow-hidden',
+          'absolute right-0 w-36 rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl shadow-black/80 py-1 z-100 overflow-hidden',
           openUpwards ? 'bottom-full mb-1.5 origin-bottom-right' : 'top-full mt-1.5 origin-top-right'
         ]"
       >

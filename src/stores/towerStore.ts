@@ -6,7 +6,7 @@ import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { IsoEngine } from '../engine/IsoEngine'
-import { TowerTraitType, TowerTraitsConfig, TowerClan } from '../types/map'
+import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig } from '../types/map'
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 
 export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
@@ -32,6 +32,7 @@ export interface TowerBlueprint extends TowerTraitsConfig {
   splashType: SplashType
   cost: number
   targetStrategy?: TargetStrategy
+  levels?: TowerLevelConfig[]
 }
 
 export interface PlacedTower extends TowerTraitsConfig {
@@ -184,9 +185,58 @@ export const useTowerStore = defineStore('towerStore', () => {
     return blueprintMap.value.get(activeBuildTowerId.value) || null
   })
 
+  function extractLevelConfigFromBp(bp: TowerBlueprint, level: number = 1): TowerLevelConfig {
+    return {
+      level,
+      name: level === 1 ? bp.name : `${bp.name} ${level}`,
+      cost: level === 1 ? (bp.cost || 100) : Math.round((bp.cost || 100) * (0.8 + (level - 1) * 0.5)),
+      damage: bp.damage || 20,
+      attackSpeed: bp.attackSpeed || 1.0,
+      range: bp.range || 3,
+      projectileType: bp.projectileType || 'arrow',
+      projectileSpeed: bp.projectileSpeed || 15.0,
+      projectileColor: bp.projectileColor !== undefined ? bp.projectileColor : 0xd97706,
+      isSplash: !!bp.isSplash,
+      splashRadius: bp.splashRadius || 1.5,
+      splashType: bp.splashType || 'falloff',
+      traits: bp.traits ? [...bp.traits] : [],
+      fireBonusDamage: bp.fireBonusDamage,
+      burnDps: bp.burnDps,
+      burnDuration: bp.burnDuration,
+      slowPercent: bp.slowPercent,
+      slowDuration: bp.slowDuration,
+      frostBonusDamage: bp.frostBonusDamage,
+      poisonDps: bp.poisonDps,
+      poisonDuration: bp.poisonDuration,
+      poisonSlowPercent: bp.poisonSlowPercent,
+      stackBonusDamage: bp.stackBonusDamage,
+      maxStacks: bp.maxStacks,
+      bleedDps: bp.bleedDps,
+      bleedDuration: bp.bleedDuration,
+      electricBonusDamage: bp.electricBonusDamage,
+      chainTargets: bp.chainTargets,
+      stunDuration: bp.stunDuration,
+      voidVulnPercent: bp.voidVulnPercent,
+      voidDuration: bp.voidDuration,
+    }
+  }
+
+  function ensureBlueprintLevels(bp: TowerBlueprint): TowerLevelConfig[] {
+    if (!bp.levels || !Array.isArray(bp.levels) || bp.levels.length === 0) {
+      bp.levels = [extractLevelConfigFromBp(bp, 1)]
+    } else {
+      bp.levels.forEach((lvl, idx) => {
+        lvl.level = idx + 1
+      })
+    }
+    return bp.levels
+  }
+
   function syncBlueprintChanges(bpId: string) {
     const bp = blueprints.value.find(b => b.id === bpId)
     if (!bp) return
+
+    ensureBlueprintLevels(bp)
 
     // Auto-update color and speed according to projectile type
     if (bp.projectileType === 'cannonball') {
@@ -215,38 +265,117 @@ export const useTowerStore = defineStore('towerStore', () => {
     // Instantly update all placed towers on the map of this blueprint type in real-time!
     for (const t of placedTowers.value) {
       if (t.blueprintId === bpId) {
-        t.damage = bp.damage
-        t.attackSpeed = bp.attackSpeed
-        t.range = bp.range
-        t.isSplash = bp.isSplash
-        t.splashRadius = bp.splashRadius
-        t.splashType = bp.splashType
-        t.projectileType = bp.projectileType
-        t.projectileSpeed = bp.projectileSpeed
-        t.projectileColor = bp.projectileColor
-        t.traits = bp.traits ? [...bp.traits] : []
-        t.fireBonusDamage = bp.fireBonusDamage
-        t.burnDps = bp.burnDps
-        t.burnDuration = bp.burnDuration
-        t.slowPercent = bp.slowPercent
-        t.slowDuration = bp.slowDuration
-        t.frostBonusDamage = bp.frostBonusDamage
-        t.poisonDps = bp.poisonDps
-        t.poisonDuration = bp.poisonDuration
-        t.poisonSlowPercent = bp.poisonSlowPercent
-        t.stackBonusDamage = bp.stackBonusDamage
-        t.maxStacks = bp.maxStacks
-        t.bleedDps = bp.bleedDps
-        t.bleedDuration = bp.bleedDuration
-        t.electricBonusDamage = bp.electricBonusDamage
-        t.chainTargets = bp.chainTargets
-        t.stunDuration = bp.stunDuration
-        t.voidVulnPercent = bp.voidVulnPercent
-        t.voidDuration = bp.voidDuration
+        const lvlIdx = Math.max(0, (t.level || 1) - 1)
+        const lvlCfg = bp.levels?.[lvlIdx] || extractLevelConfigFromBp(bp, t.level || 1)
+
+        t.damage = lvlCfg.damage
+        t.attackSpeed = lvlCfg.attackSpeed
+        t.range = lvlCfg.range
+        t.isSplash = lvlCfg.isSplash !== undefined ? lvlCfg.isSplash : bp.isSplash
+        t.splashRadius = lvlCfg.splashRadius ?? bp.splashRadius
+        t.splashType = lvlCfg.splashType ?? bp.splashType
+        t.projectileType = (lvlCfg.projectileType as ProjectileType) ?? bp.projectileType
+        t.projectileSpeed = lvlCfg.projectileSpeed ?? bp.projectileSpeed
+        t.projectileColor = lvlCfg.projectileColor ?? bp.projectileColor
+        t.traits = lvlCfg.traits ? [...lvlCfg.traits] : (bp.traits ? [...bp.traits] : [])
+        t.fireBonusDamage = lvlCfg.fireBonusDamage
+        t.burnDps = lvlCfg.burnDps
+        t.burnDuration = lvlCfg.burnDuration
+        t.slowPercent = lvlCfg.slowPercent
+        t.slowDuration = lvlCfg.slowDuration
+        t.frostBonusDamage = lvlCfg.frostBonusDamage
+        t.poisonDps = lvlCfg.poisonDps
+        t.poisonDuration = lvlCfg.poisonDuration
+        t.poisonSlowPercent = lvlCfg.poisonSlowPercent
+        t.stackBonusDamage = lvlCfg.stackBonusDamage
+        t.maxStacks = lvlCfg.maxStacks
+        t.bleedDps = lvlCfg.bleedDps
+        t.bleedDuration = lvlCfg.bleedDuration
+        t.electricBonusDamage = lvlCfg.electricBonusDamage
+        t.chainTargets = lvlCfg.chainTargets
+        t.stunDuration = lvlCfg.stunDuration
+        t.voidVulnPercent = lvlCfg.voidVulnPercent
+        t.voidDuration = lvlCfg.voidDuration
       }
     }
 
     syncToProject()
+  }
+
+  function addBlueprintLevel(bpId: string): TowerLevelConfig | null {
+    const bp = blueprints.value.find(b => b.id === bpId)
+    if (!bp) return null
+    ensureBlueprintLevels(bp)
+    const currentLevels = bp.levels!
+    const prevLvl = currentLevels[currentLevels.length - 1]
+    const nextLvlNum = currentLevels.length + 1
+    const newLvl: TowerLevelConfig = {
+      ...JSON.parse(JSON.stringify(prevLvl)),
+      level: nextLvlNum,
+      name: `${bp.name} ${nextLvlNum}`,
+      cost: Math.round((prevLvl.cost || bp.cost || 100) * 1.5),
+      damage: Math.round((prevLvl.damage || bp.damage || 20) * 1.3),
+      attackSpeed: Math.max(0.1, Number(((prevLvl.attackSpeed || bp.attackSpeed || 1.0) * 0.9).toFixed(2))),
+      range: Number(((prevLvl.range || bp.range || 3) + 0.5).toFixed(1)),
+    }
+    currentLevels.push(newLvl)
+    syncBlueprintChanges(bpId)
+    mapStore.pushHistory(`Added Level ${nextLvlNum} to ${bp.name}`)
+    return newLvl
+  }
+
+  function updateBlueprintLevel(bpId: string, levelIndex: number, partial: Partial<TowerLevelConfig>) {
+    const bp = blueprints.value.find(b => b.id === bpId)
+    if (!bp) return
+    ensureBlueprintLevels(bp)
+    if (levelIndex < 0 || levelIndex >= bp.levels!.length) return
+    Object.assign(bp.levels![levelIndex], partial)
+    // If updating level 1, sync to root blueprint fields
+    if (levelIndex === 0) {
+      if (partial.cost !== undefined) bp.cost = partial.cost
+      if (partial.damage !== undefined) bp.damage = partial.damage
+      if (partial.attackSpeed !== undefined) bp.attackSpeed = partial.attackSpeed
+      if (partial.range !== undefined) bp.range = partial.range
+      if (partial.projectileType !== undefined) bp.projectileType = partial.projectileType as ProjectileType
+      if (partial.projectileSpeed !== undefined) bp.projectileSpeed = partial.projectileSpeed
+      if (partial.projectileColor !== undefined) bp.projectileColor = partial.projectileColor
+      if (partial.isSplash !== undefined) bp.isSplash = partial.isSplash
+      if (partial.splashRadius !== undefined) bp.splashRadius = partial.splashRadius
+      if (partial.splashType !== undefined) bp.splashType = partial.splashType as SplashType
+      if (partial.traits !== undefined) bp.traits = partial.traits
+      if (partial.fireBonusDamage !== undefined) bp.fireBonusDamage = partial.fireBonusDamage
+      if (partial.burnDps !== undefined) bp.burnDps = partial.burnDps
+      if (partial.burnDuration !== undefined) bp.burnDuration = partial.burnDuration
+      if (partial.slowPercent !== undefined) bp.slowPercent = partial.slowPercent
+      if (partial.slowDuration !== undefined) bp.slowDuration = partial.slowDuration
+      if (partial.frostBonusDamage !== undefined) bp.frostBonusDamage = partial.frostBonusDamage
+      if (partial.poisonDps !== undefined) bp.poisonDps = partial.poisonDps
+      if (partial.poisonDuration !== undefined) bp.poisonDuration = partial.poisonDuration
+      if (partial.poisonSlowPercent !== undefined) bp.poisonSlowPercent = partial.poisonSlowPercent
+      if (partial.stackBonusDamage !== undefined) bp.stackBonusDamage = partial.stackBonusDamage
+      if (partial.maxStacks !== undefined) bp.maxStacks = partial.maxStacks
+      if (partial.bleedDps !== undefined) bp.bleedDps = partial.bleedDps
+      if (partial.bleedDuration !== undefined) bp.bleedDuration = partial.bleedDuration
+      if (partial.electricBonusDamage !== undefined) bp.electricBonusDamage = partial.electricBonusDamage
+      if (partial.chainTargets !== undefined) bp.chainTargets = partial.chainTargets
+      if (partial.stunDuration !== undefined) bp.stunDuration = partial.stunDuration
+      if (partial.voidVulnPercent !== undefined) bp.voidVulnPercent = partial.voidVulnPercent
+      if (partial.voidDuration !== undefined) bp.voidDuration = partial.voidDuration
+    }
+    syncBlueprintChanges(bpId)
+  }
+
+  function removeBlueprintLevel(bpId: string, levelIndex: number) {
+    const bp = blueprints.value.find(b => b.id === bpId)
+    if (!bp) return
+    ensureBlueprintLevels(bp)
+    if (levelIndex <= 0 || levelIndex >= bp.levels!.length) return // Cannot delete Level 1 (base)
+    bp.levels!.splice(levelIndex, 1)
+    bp.levels!.forEach((lvl, idx) => {
+      lvl.level = idx + 1
+    })
+    syncBlueprintChanges(bpId)
+    mapStore.pushHistory(`Removed upgrade level from ${bp.name}`)
   }
 
   function updateBlueprint(bpId: string, updates: Partial<TowerBlueprint>) {
@@ -418,18 +547,25 @@ export const useTowerStore = defineStore('towerStore', () => {
     const bp = blueprints.value.find(b => b.id === bpId)
     if (!bp) return null
 
-    // Prevent building on spawn points or walking path lines
+    // 1. Check if a tower already exists on this cell - MUST check before deducting any gold!
+    const existing = placedTowers.value.find(t => t.col === col && t.row === row)
+    if (existing) {
+      console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) already has a tower: ${existing.name}`)
+      return null
+    }
+
+    // 2. Prevent building on spawn points or walking path lines
     if (characterStore.isCellBlockedForBuilding(col, row)) {
       console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) is a spawn point or path route.`)
       return null
     }
 
-    // In Game Mode: check gold balance
+    // 3. In Game Mode: check gold balance and deduct only upon valid placement
     if (characterStore.isGameMode) {
       let currentGold = characterStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
-        if (myPl) currentGold = myPl.gold
+        if (myPl) currentGold = myPl.gold ?? 0
       }
       if (currentGold < bp.cost) {
         return null
@@ -446,12 +582,6 @@ export const useTowerStore = defineStore('towerStore', () => {
       } else {
         characterStore.gold -= bp.cost
       }
-    }
-
-    // Check if a tower already exists at this cell
-    const existing = placedTowers.value.find(t => t.col === col && t.row === row)
-    if (existing) {
-      return existing
     }
 
     const { tileWidth, tileHeight } = mapStore.project
@@ -523,6 +653,25 @@ export const useTowerStore = defineStore('towerStore', () => {
    * Sells a placed tower with gold refund (70%)
    * In multiplayer: only the owner/builder can sell their tower!
    */
+  function getNextLevelConfig(tower: PlacedTower): TowerLevelConfig | null {
+    const bp = blueprints.value.find(b => b.id === tower.blueprintId)
+    if (!bp) return null
+    ensureBlueprintLevels(bp)
+    if (!bp.levels || bp.levels.length <= tower.level) {
+      return null
+    }
+    return bp.levels[tower.level] || null
+  }
+
+  function getTowerUpgradeCost(tower: PlacedTower): number {
+    const next = getNextLevelConfig(tower)
+    return next ? next.cost : 0
+  }
+
+  /**
+   * Sells a placed tower with gold refund (70% of base + invested upgrade costs)
+   * In multiplayer: only the owner/builder can sell their tower!
+   */
   function sellPlacedTower(towerId: string) {
     const t = placedTowers.value.find(x => x.id === towerId)
     if (!t) return
@@ -535,7 +684,13 @@ export const useTowerStore = defineStore('towerStore', () => {
 
     const bp = blueprints.value.find(b => b.id === t.blueprintId)
     const baseCost = bp ? bp.cost : 100
-    const refund = Math.round(baseCost * 0.7 * (1 + (t.level - 1) * 0.5))
+    let investedUpgrades = 0
+    if (bp && bp.levels && t.level > 1) {
+      for (let i = 1; i < Math.min(t.level, bp.levels.length); i++) {
+        investedUpgrades += bp.levels[i].cost || 0
+      }
+    }
+    const refund = Math.round((baseCost + investedUpgrades) * 0.7)
 
     if (multiplayerStore.roomId) {
       const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
@@ -576,7 +731,7 @@ export const useTowerStore = defineStore('towerStore', () => {
   let lastUpgradeTimestamp = 0
 
   /**
-   * Upgrades a tower (increases stats by +30%)
+   * Upgrades a tower to its explicitly configured next level
    * In multiplayer: only the owner/builder can upgrade their tower!
    */
   function upgradePlacedTower(towerId: string): boolean {
@@ -594,12 +749,14 @@ export const useTowerStore = defineStore('towerStore', () => {
       return false
     }
 
-    let cost = 0
-    if (characterStore.isGameMode) {
-      const bp = blueprints.value.find(b => b.id === tower.blueprintId)
-      const baseCost = bp ? bp.cost : 100
-      cost = Math.round(baseCost * 0.6 * tower.level)
+    const nextLvl = getNextLevelConfig(tower)
+    if (!nextLvl) {
+      console.warn('[Upgrade Tower]: Tower is already at maximum level.')
+      return false
+    }
 
+    const cost = nextLvl.cost || 0
+    if (characterStore.isGameMode) {
       let currentGold = characterStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
@@ -621,13 +778,36 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     lastUpgradeTimestamp = now
-    tower.level++
-    tower.damage = Math.round(tower.damage * 1.35)
-    tower.attackSpeed = Math.max(0.15, Number((tower.attackSpeed * 0.9).toFixed(2)))
-    tower.range = Number((tower.range + 0.3).toFixed(1))
-    if (tower.isSplash) {
-      tower.splashRadius = Number((tower.splashRadius + 0.2).toFixed(1))
-    }
+    tower.level = nextLvl.level
+    tower.damage = nextLvl.damage
+    tower.attackSpeed = nextLvl.attackSpeed
+    tower.range = nextLvl.range
+    if (nextLvl.projectileType) tower.projectileType = nextLvl.projectileType as ProjectileType
+    if (nextLvl.projectileSpeed) tower.projectileSpeed = nextLvl.projectileSpeed
+    if (nextLvl.projectileColor !== undefined) tower.projectileColor = nextLvl.projectileColor
+    tower.isSplash = nextLvl.isSplash !== undefined ? !!nextLvl.isSplash : false
+    tower.splashRadius = nextLvl.splashRadius ?? 1.5
+    tower.splashType = (nextLvl.splashType as SplashType) ?? 'falloff'
+    tower.traits = nextLvl.traits ? [...nextLvl.traits] : []
+    tower.fireBonusDamage = nextLvl.fireBonusDamage
+    tower.burnDps = nextLvl.burnDps
+    tower.burnDuration = nextLvl.burnDuration
+    tower.slowPercent = nextLvl.slowPercent
+    tower.slowDuration = nextLvl.slowDuration
+    tower.frostBonusDamage = nextLvl.frostBonusDamage
+    tower.poisonDps = nextLvl.poisonDps
+    tower.poisonDuration = nextLvl.poisonDuration
+    tower.poisonSlowPercent = nextLvl.poisonSlowPercent
+    tower.stackBonusDamage = nextLvl.stackBonusDamage
+    tower.maxStacks = nextLvl.maxStacks
+    tower.bleedDps = nextLvl.bleedDps
+    tower.bleedDuration = nextLvl.bleedDuration
+    tower.electricBonusDamage = nextLvl.electricBonusDamage
+    tower.chainTargets = nextLvl.chainTargets
+    tower.stunDuration = nextLvl.stunDuration
+    tower.voidVulnPercent = nextLvl.voidVulnPercent
+    tower.voidDuration = nextLvl.voidDuration
+
     syncToProject()
     if (!characterStore.isGameMode) {
       mapStore.pushHistory(`Upgraded ${tower.name} to Level ${tower.level}`)
@@ -1330,6 +1510,12 @@ export const useTowerStore = defineStore('towerStore', () => {
     updateBlueprint,
     syncBlueprintChanges,
     applyBlueprintToAllPlacedTowers,
+    addBlueprintLevel,
+    updateBlueprintLevel,
+    removeBlueprintLevel,
+    ensureBlueprintLevels,
+    getNextLevelConfig,
+    getTowerUpgradeCost,
     placedTowers,
     activeBuildTowerId,
     selectedPlacedTowerId,

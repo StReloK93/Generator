@@ -76,6 +76,21 @@ export interface TowerTraitsConfig {
   voidDuration?: number
 }
 
+export interface TowerLevelConfig extends TowerTraitsConfig {
+  level: number // 1, 2, 3, etc.
+  name?: string // Custom level label (e.g. "Flame Guard II")
+  cost: number // Gold upgrade cost to reach this level (0 or base price for level 1)
+  damage: number
+  attackSpeed: number // seconds per attack
+  range: number // attack range in tiles
+  projectileType?: 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
+  projectileSpeed?: number
+  projectileColor?: number
+  isSplash?: boolean
+  splashRadius?: number
+  splashType?: 'constant' | 'falloff'
+}
+
 export interface WaveConfig {
   waveNumber: number
   name: string
@@ -170,7 +185,7 @@ export interface AssetItem {
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 
@@ -195,4 +210,24 @@ export interface SelectedElementRef {
   row: number
   layerId: string
   itemId: string
+}
+
+export interface BoxAssetSummary {
+  assetId: string
+  assetName: string
+  category: string
+  previewSrc?: string
+  totalCount: number
+  layerCounts: Record<string, number> // layerId -> count
+}
+
+export interface BoxClearModalData {
+  col0: number
+  row0: number
+  col1: number
+  row1: number
+  totalCells: number
+  totalItems: number
+  assets: BoxAssetSummary[]
+  layerItems: Record<string, { totalItems: number; assets: BoxAssetSummary[] }>
 }

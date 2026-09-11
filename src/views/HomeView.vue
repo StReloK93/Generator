@@ -185,7 +185,7 @@
                   v-if="selectedMapId === mapItem.id" 
                   class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-sm"
                 >
-                  <Check class="w-3 h-3 stroke-[3]" />
+                  <Check class="w-3 h-3 stroke-3" />
                 </div>
               </div>
             </div>

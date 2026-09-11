@@ -126,7 +126,7 @@
                   :icon="Trash2"
                   size="sm"
                   variant="danger"
-                  :title="$t('sidebar.deleteObject')"
+                  :title="`${$t('sidebar.deleteObject')} (Del)`"
                   custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleDeleteItem(entry)"
                 />
@@ -276,6 +276,7 @@
             <UiButton
               variant="secondary"
               size="xs"
+              :title="`${$t('common.done')} (P / Enter)`"
               @click="characterStore.finishDrawingRoute()"
             >
               {{ $t('common.done') }}
@@ -504,20 +505,18 @@
 
               <!-- Quick Hover Actions (Anchor & Delete) -->
               <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/90 rounded-md p-0.5 border border-slate-800/80 shadow-md backdrop-blur-xs z-10">
-                <UiIconButton 
-                  :icon="Crosshair"
+                <UiButton 
+                  :leading-icon="Crosshair"
                   size="xs"
                   variant="ghost"
                   :title="$t('sidebar.adjustAnchor')"
-                  custom-class=" rounded-xs!"
                   @click.stop="openAnchorModal(asset)"
                 />
-                <UiIconButton 
-                  :icon="Trash2"
+                <UiButton 
+                  :leading-icon="Trash2"
                   size="xs"
                   variant="danger"
                   :title="$t('sidebar.deleteAsset')"
-                  custom-class="p-0.5! rounded-xs!"
                   @click.stop="assetStore.deleteAsset(asset.id)"
                 />
               </div>
@@ -553,48 +552,6 @@
           </div>
         </div>
 
-        <!-- Bottom Selected Asset Status Bar -->
-        <div 
-          v-if="assetStore.selectedAsset" 
-          class="p-2 border-t border-slate-800/90 bg-slate-900/95 flex items-center justify-between shrink-0 text-xs"
-        >
-          <div class="flex items-center gap-2 min-w-0">
-            <div class="w-7 h-7 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-0.5 shrink-0 border border-slate-800">
-              <img 
-                :src="assetStore.getAssetPreview(assetStore.selectedAsset)" 
-                :alt="assetStore.selectedAsset.name" 
-                width="28"
-                height="28"
-                decoding="async"
-                class="max-w-full max-h-full aspect-square object-contain"
-              />
-            </div>
-            <div class="flex flex-col min-w-0">
-              <span class="text-[9px] text-slate-400 font-semibold">{{ $t('sidebar.selected') }}:</span>
-              <span class="text-xs font-bold text-brand-300 truncate max-w-35">{{ assetStore.selectedAsset.name }}</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-1.5 shrink-0">
-            <UiButton 
-              variant="secondary"
-              size="xs"
-              :leading-icon="Crosshair"
-              @click="openAnchorModal(assetStore.selectedAsset)"
-            >
-              {{ $t('sidebar.adjustAnchor') }}
-            </UiButton>
-
-            <UiIconButton 
-              :icon="X"
-              size="sm"
-              variant="ghost"
-              :title="$t('sidebar.deselect')"
-              @click="assetStore.selectAsset(null)"
-            />
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -615,7 +572,7 @@ import {
   Boxes, Layers, ChevronLeft, ChevronRight, Search, 
   Crosshair, Trash2, FolderOpen, FolderUp, ImagePlus, 
   UploadCloud, Plus, Eye, EyeOff, Lock, Unlock, 
-  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin
+  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin, PaintBucket
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -631,7 +588,8 @@ import { useMapStore, PlacedElementEntry } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
-import { AssetItem } from '../types/map'
+import { useNotificationStore } from '../stores/notificationStore'
+import { AssetItem, ToolType } from '../types/map'
 import AnchorAdjustModal from './AnchorAdjustModal.vue'
 import { useI18n } from '../stores/i18nStore'
 
@@ -643,6 +601,7 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
+const notify = useNotificationStore()
 const { t } = useI18n()
 
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
@@ -809,7 +768,12 @@ async function handleFilesSelect(event: Event) {
 
 function handleAssetClick(assetId: string) {
   if (assetStore.selectedAssetId === assetId) {
-    assetStore.selectAsset(null)
+    const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+    if (!drawingTools.includes(toolStore.activeTool)) {
+      toolStore.setTool(toolStore.lastDrawingTool || 'brush')
+    } else {
+      assetStore.selectAsset(null)
+    }
   } else {
     assetStore.selectAsset(assetId)
   }
@@ -830,6 +794,17 @@ function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: nu
   if (selectedAssetForAnchor.value) {
     assetStore.updateAssetProperties(selectedAssetForAnchor.value.id, updates)
     selectedAssetForAnchor.value = null
+  }
+}
+
+function handleQuickFillEmpty(assetId: string) {
+  const targetLayerId = mapStore.activeLayerId || 'layer-ground'
+  const layer = mapStore.project.layers.find(l => l.id === targetLayerId) || mapStore.activeLayer
+  const count = mapStore.fillEmptyCells(assetId, targetLayerId)
+  if (count > 0) {
+    notify.success(t('editor.filledEmptyCellsCount', { count, layer: layer.name }))
+  } else {
+    notify.info(t('editor.occupiedCellsCount'))
   }
 }
 </script>
