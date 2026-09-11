@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import EditorHeader from '../components/editor/EditorHeader.vue'
 import EditorCanvas from '../components/editor/EditorCanvas.vue'
 import RightSidebar from '../components/RightSidebar.vue'
@@ -51,8 +52,15 @@ import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { networkSyncBuffer } from '../services/networkSync'
-import { saveRecentProject } from '../services/projectStorage'
+import { 
+  getEditorMapDataById, 
+  applyMapPayloadToStores, 
+  saveEditorDraft, 
+  sanitizeMapId 
+} from '../services/mapManager'
 
+const router = useRouter()
+const route = useRoute()
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
@@ -83,12 +91,17 @@ function autoSaveCurrentState() {
   characterStore.syncSpawnPointsToProject()
   towerStore.syncToProject()
 
-  // 2. Save full payload to autosave (100% identical to export JSON)
-  saveRecentProject(
+  const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  mapStore.project.id = currentId
+
+  // 2. Save editor draft to localStorage
+  saveEditorDraft(
+    currentId,
     mapStore.project,
     assetStore.assets,
     {
       customRoutes: characterStore.customRoutes,
+      customWaypoints: characterStore.customWaypoints,
       spawnPoints: characterStore.detectedDoors,
       characterConfig: {
         spawnCount: characterStore.spawnCount,
@@ -108,12 +121,13 @@ function autoSaveCurrentState() {
       showPathTrail: characterStore.showPathTrail,
     },
     {
-      waveConfigs: characterStore.waveConfigs,
-      currentWaveIndex: characterStore.currentWaveIndex,
-    },
-    {
       placedTowers: towerStore.placedTowers,
       towerBlueprints: towerStore.blueprints,
+      clans: towerStore.clans,
+    },
+    {
+      waveConfigs: characterStore.waveConfigs,
+      currentWaveIndex: characterStore.currentWaveIndex,
     },
     {
       startingGold: characterStore.startingGold,
@@ -129,6 +143,7 @@ watch(
     assetStore.assets,
     characterStore.waveConfigs,
     characterStore.customRoutes,
+    characterStore.customWaypoints,
     characterStore.startingGold,
     characterStore.startingLives,
     characterStore.wavePrepDuration,
@@ -139,6 +154,7 @@ watch(
     characterStore.showPathTrail,
     towerStore.blueprints,
     towerStore.placedTowers,
+    towerStore.clans,
   ],
   () => {
     if (saveTimeout) clearTimeout(saveTimeout)
@@ -149,7 +165,7 @@ watch(
   { deep: true }
 )
 
-onMounted(() => {
+onMounted(async () => {
   // Purge any legacy single auto-saved session data
   try {
     localStorage.removeItem('isocraft_autosave')
@@ -169,13 +185,30 @@ onMounted(() => {
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
 
+  // 1. Resolve Map ID from route params
+  const rawId = (route.params.mapId as string) || ''
+
+  // DIRECT ACCESS: /editor without mapId prompts Welcome/Map Selection modal
+  if (!rawId) {
+    welcomeModalRef.value?.open('new', true)
+    return
+  }
+
+  const cleanId = sanitizeMapId(rawId)
+
+  // 2. Restore map: checks LocalStorage editor draft first (if user refreshed), else loads from src/maps/
+  if (!mapStore.project.cols || mapStore.project.layers.length === 0 || sanitizeMapId(mapStore.project.id) !== cleanId) {
+    const mapData = getEditorMapDataById(cleanId)
+    if (mapData) {
+      applyMapPayloadToStores(mapData.payload)
+    } else {
+      welcomeModalRef.value?.open('new', true)
+      return
+    }
+  }
+
   // Detect doors for route drawing
   characterStore.detectDoors()
-
-  // Prompt mandatory map initialization modal (Create new or Upload file) if no map is active
-  if (!mapStore.project.cols || mapStore.project.layers.length === 0) {
-    welcomeModalRef.value?.open('new', true)
-  }
 })
 
 onUnmounted(() => {

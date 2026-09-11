@@ -1680,6 +1680,7 @@ import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import characterManifest from '../assets/generated/characterManifest.json'
 import { useI18n } from '../stores/i18nStore'
+import { sanitizeMapId } from '../services/mapManager'
 
 const router = useRouter()
 const toolStore = useToolStore()
@@ -2067,7 +2068,8 @@ function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
   characterStore.entrySource = 'editor'
   characterStore.startLoadingScreen(mapStore.project.name || 'Map')
-  router.push('/game')
+  const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  router.push(`/game/${cleanId}`)
   requestAppFullscreen()
 }
 </script>

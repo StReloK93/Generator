@@ -165,6 +165,7 @@ import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useI18nStore } from '../../stores/i18nStore'
+import { sanitizeMapId } from '../../services/mapManager'
 
 const router = useRouter()
 const mapStore = useMapStore()
@@ -196,6 +197,7 @@ function handleRedo() {
 function handleStartGame() {
   characterStore.entrySource = 'editor'
   characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
-  router.push('/game')
+  const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  router.push(`/game/${cleanId}`)
 }
 </script>

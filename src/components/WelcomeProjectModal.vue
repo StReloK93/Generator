@@ -214,6 +214,10 @@ import {
   formatTimeAgo, 
   RecentProjectItem 
 } from '../services/projectStorage'
+import { 
+  sanitizeMapId, 
+  saveEditorDraft 
+} from '../services/mapManager'
 
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
@@ -295,6 +299,7 @@ function handleCreateNew() {
   towerStore.clearCombatEffects()
 
   const name = newProjectName.value.trim() || 'New Isometric Map'
+  const newId = sanitizeMapId(`proj-${Date.now().toString(36)}`)
   mapStore.createNewProject({
     name,
     cols: cols.value,
@@ -302,9 +307,11 @@ function handleCreateNew() {
     tileWidth: 128,
     tileHeight: 64,
   })
+  mapStore.project.id = newId
 
-  // Save to recents with timestamp and user's chosen name
-  saveRecentProject(
+  // Save to editor draft and recents
+  saveEditorDraft(
+    newId,
     mapStore.project, 
     assetStore.assets, 
     {
@@ -327,8 +334,8 @@ function handleCreateNew() {
       followCamera: characterStore.followCamera,
       showPathTrail: characterStore.showPathTrail,
     },
+    { blueprints: towerStore.blueprints, placedTowers: towerStore.placedTowers, clans: towerStore.clans },
     { waveConfigs: characterStore.waveConfigs, currentWaveIndex: characterStore.currentWaveIndex },
-    { blueprints: towerStore.blueprints, placedTowers: towerStore.placedTowers },
     mapStore.project.gameSettings
   )
 
@@ -338,9 +345,7 @@ function handleCreateNew() {
   isForcedMode.value = false
   isOpen.value = false
 
-  if (route.name !== 'editor') {
-    router.push('/editor')
-  }
+  router.push(`/editor/${newId}`)
 }
 
 async function applyMapProject(rawData: any) {
@@ -455,8 +460,13 @@ async function applyMapProject(rawData: any) {
     toolStore.activeTool = 'select'
     toolStore.selectedElement = null
 
-    // Save full identical payload to recents
-    saveRecentProject(
+    const cleanId = sanitizeMapId(clonedProject.id || clonedProject.name || 'julion')
+    clonedProject.id = cleanId
+    mapStore.project.id = cleanId
+
+    // Save full identical payload to editor draft and recents
+    saveEditorDraft(
+      cleanId,
       mapStore.project, 
       assetStore.assets, 
       {
@@ -480,8 +490,8 @@ async function applyMapProject(rawData: any) {
         followCamera: characterStore.followCamera,
         showPathTrail: characterStore.showPathTrail,
       },
-      wvData,
       twrData,
+      wvData,
       mapStore.project.gameSettings
     )
 
@@ -489,9 +499,7 @@ async function applyMapProject(rawData: any) {
     isForcedMode.value = false
     isOpen.value = false
 
-    if (route.name !== 'editor') {
-      router.push('/editor')
-    }
+    router.push(`/editor/${cleanId}`)
   } catch (err: any) {
     console.error('Error applying map:', err)
     notify.error("Xaritani yuklashda xatolik yuz berdi: " + (err?.message || 'Noma\'lum format'))

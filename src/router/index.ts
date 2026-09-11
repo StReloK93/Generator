@@ -12,7 +12,7 @@ const routes = [
     component: () => import('../views/PlayView.vue'),
   },
   {
-    path: '/editor',
+    path: '/editor/:mapId?',
     name: 'editor',
     component: () => import('../views/EditorView.vue'),
   },
@@ -27,7 +27,7 @@ const routes = [
     component: () => import('../views/LobbyView.vue'),
   },
   {
-    path: '/game/:roomId?',
+    path: '/game/:mapId?',
     name: 'game',
     component: () => import('../views/GameView.vue'),
   },

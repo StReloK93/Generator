@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="body" :disabled="!teleport">
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0"
@@ -110,6 +110,7 @@ interface Props {
   closeOnBackdrop?: boolean
   closeOnEscape?: boolean
   hideHeader?: boolean
+  teleport?: boolean
   customClass?: string | string[] | Record<string, any>
   bodyClass?: string | string[] | Record<string, any>
 }
@@ -125,6 +126,7 @@ const props = withDefaults(defineProps<Props>(), {
   closeOnBackdrop: true,
   closeOnEscape: true,
   hideHeader: false,
+  teleport: false,
   customClass: '',
   bodyClass: '',
 })

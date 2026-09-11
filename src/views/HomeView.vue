@@ -294,6 +294,12 @@ import { useI18n } from '../stores/i18nStore'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import { assetManager } from '../services/assetManager'
 import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
+import { 
+  getBuiltinMaps, 
+  sanitizeMapId, 
+  applyMapPayloadToStores,
+  registerSessionCustomMap
+} from '../services/mapManager'
 
 const router = useRouter()
 const mapStore = useMapStore()
@@ -333,24 +339,7 @@ const preloadProgress = ref(0)
 const preloadStageKey = ref('loader.initEngine')
 
 // Auto-load available maps
-const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
-const rawAvailableMaps = Object.entries(mapModules).map(([path, mod]) => {
-  const raw = (mod as any).default || mod
-  const project = raw.project || raw
-  const fileName = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
-  const id = fileName.toLowerCase().replace(/[^a-z0-9]/g, '-')
-  const waves = raw.waveData?.waveConfigs || raw.waveConfigs || project.waveConfigs || []
-
-  return {
-    id,
-    name: project.name || fileName,
-    cols: project.cols || 60,
-    rows: project.rows || 60,
-    playersCount: project.playersCount || project.gameSettings?.maxPlayers || (project.cols >= 60 ? 4 : 2),
-    wavesCount: waves.length || 24,
-    raw,
-  }
-})
+const rawAvailableMaps = getBuiltinMaps()
 
 const customImportedMaps = ref<any[]>([])
 
@@ -469,26 +458,12 @@ async function selectAndStartMap(mapData: any) {
   isStartingGame.value = true
 
   try {
+    const cleanId = sanitizeMapId(mapData.id || mapData.name || 'julion')
     characterStore.entrySource = 'home'
     characterStore.startLoadingScreen(mapData?.name || t('game.battlefield'))
-    const rawData = mapData.raw as any
-    if (rawData) {
-      const proj = rawData.project || rawData
-      mapStore.project = JSON.parse(JSON.stringify(proj))
-
-      const waves = rawData.waveData?.waveConfigs || rawData.waveConfigs || proj.waveConfigs || []
-      if (waves && waves.length > 0) {
-        characterStore.waveConfigs = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
-      }
-
-      const towers = rawData.towerData?.towerBlueprints || rawData.towerBlueprints || proj.towerBlueprints || []
-      if (towers && towers.length > 0) {
-        towerStore.blueprints = towers.map((b: any) => ({ ...b }))
-      }
-
-      towerStore.restoreFromProject()
-      characterStore.restoreWavesFromProject()
-      characterStore.detectDoors()
+    
+    if (mapData.raw) {
+      applyMapPayloadToStores(mapData.raw)
     }
 
     // Preload all game textures and sprites while button spinner is running
@@ -497,9 +472,10 @@ async function selectAndStartMap(mapData: any) {
       assetStore.loadBuiltinSprites()
     ])
 
-    await new Promise(resolve => setTimeout(resolve, 150))
-    isMapModalOpen.value = false
-    await router.push('/game')
+    // Provide a smooth feedback buffer for the button loading spinner
+    await new Promise(resolve => setTimeout(resolve, 350))
+
+    await router.push(`/game/${cleanId}`)
   } catch (err) {
     console.error('Error starting map:', err)
     notify.error('Failed to load map')
@@ -517,8 +493,9 @@ function handleCustomMapFile(e: Event) {
       const raw = JSON.parse(evt.target?.result as string)
       const project = raw.project || raw
       const waves = raw.waveData?.waveConfigs || raw.waveConfigs || project.waveConfigs || []
+      const customId = sanitizeMapId('custom-' + (project.name || file.name.replace(/\.json$/i, '')).toLowerCase() + '-' + Date.now().toString(36))
       const customMap = {
-        id: 'custom-' + Date.now(),
+        id: customId,
         name: project.name || file.name.replace(/\.json$/i, ''),
         cols: project.cols || 60,
         rows: project.rows || 60,
@@ -526,6 +503,10 @@ function handleCustomMapFile(e: Event) {
         wavesCount: waves.length || 20,
         raw
       }
+      
+      // Register custom map in session cache
+      registerSessionCustomMap(customMap.id, raw)
+
       customImportedMaps.value.unshift(customMap)
       selectedMapId.value = customMap.id
       notify.success(`Loaded "${customMap.name}"`)

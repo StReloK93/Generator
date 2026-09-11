@@ -121,7 +121,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { Shield, Smartphone, Maximize2 } from 'lucide-vue-next'
 import { UiButton } from '../components/ui'
 import GameCanvas from '../components/game/GameCanvas.vue'
@@ -141,13 +141,21 @@ import { useAssetStore } from '../stores/assetStore'
 import { useI18n } from '../stores/i18nStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { toggleAppFullscreen } from '../utils/fullscreen'
+import { 
+  getGameMapDataById, 
+  applyMapPayloadToStores, 
+  sanitizeMapId 
+} from '../services/mapManager'
+import { useNotificationStore } from '../stores/notificationStore'
 
 const router = useRouter()
+const route = useRoute()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
+const notify = useNotificationStore()
 const { t } = useI18n()
 
 const isSandboxTestMode = computed(() => !multiplayerStore.roomId && characterStore.entrySource === 'editor')
@@ -182,6 +190,28 @@ onMounted(async () => {
   checkOrientation()
   window.addEventListener('resize', checkOrientation)
   window.addEventListener('orientationchange', checkOrientation)
+
+  // 1. Resolve Map or Multiplayer Room from route params
+  const rawId = (route.params.mapId as string) || (route.params.roomId as string) || ''
+  
+  // DIRECT ACCESS FORBIDDEN: /game without mapId or roomId redirects to home
+  if (!rawId) {
+    router.replace('/')
+    return
+  }
+
+  const isRoomCode = rawId && /^[A-Za-z0-9]{6}$/.test(rawId) && !getGameMapDataById(rawId)
+
+  // 2. Single Player game: ALWAYS load pristine clean map from maps (NEVER from localStorage editor drafts)
+  if (!isRoomCode && (!multiplayerStore.roomId || multiplayerStore.roomId === '')) {
+    const mapData = getGameMapDataById(rawId)
+    if (!mapData) {
+      notify.error(t('common.error') || 'Xarita topilmadi')
+      router.replace('/')
+      return
+    }
+    applyMapPayloadToStores(mapData.payload)
+  }
 
   isCanvasReady.value = false
   characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
