@@ -9,7 +9,8 @@ import {
   getCellPolygon, 
   getFootprintPolygon,
   getFootprintBaseCenter,
-  isInsideGrid 
+  isInsideGrid,
+  cellKey
 } from '../utils/isometric'
 import { getVariantDef, getVariantTint } from '../utils/unitVariants'
 import { renderPixiUnitEffect } from '../utils/unitEffectRenderer'
@@ -415,7 +416,7 @@ export class IsoEngine {
   }
 
   renderSelection(
-    selected: SelectedElementRef | null,
+    selected: SelectedElementRef | SelectedElementRef[] | null,
     project: MapProject,
     spanX = 1,
     spanY = 1
@@ -424,12 +425,35 @@ export class IsoEngine {
     if (!selected) return
 
     const { tileWidth, tileHeight } = project
-    const poly = getFootprintPolygon(selected.col, selected.row, spanX, spanY, tileWidth, tileHeight)
 
-    this.selectionGraphics
-      .poly(poly)
-      .fill({ color: 0xa855f7, alpha: 0.35 })
-      .stroke({ width: 2.5, color: 0xc084fc, alpha: 1.0 })
+    const items = Array.isArray(selected) ? selected : [selected]
+    if (items.length === 0) return
+
+    for (const sel of items) {
+      if (!sel) continue
+      let itemSpanX = spanX
+      let itemSpanY = spanY
+
+      // If array of items passed, try finding item's span
+      if (Array.isArray(selected)) {
+        const layer = project.layers.find(l => l.id === sel.layerId)
+        if (layer) {
+          const key = cellKey(sel.col, sel.row)
+          const cellItems = layer.tiles[key] || []
+          const found = cellItems.find(i => i.id === sel.itemId)
+          if (found) {
+            itemSpanX = found.spanX || 1
+            itemSpanY = found.spanY || 1
+          }
+        }
+      }
+
+      const poly = getFootprintPolygon(sel.col, sel.row, itemSpanX, itemSpanY, tileWidth, tileHeight)
+      this.selectionGraphics
+        .poly(poly)
+        .fill({ color: 0xa855f7, alpha: 0.35 })
+        .stroke({ width: 2.5, color: 0xc084fc, alpha: 1.0 })
+    }
   }
 
   renderPreviewCells(
@@ -705,13 +729,22 @@ export class IsoEngine {
           // Precise Depth Sorting across ALL covered cells using layer priority, relative depth offset and per-cell Z-index
           let maxDepthScore = 0
           const depthOffset = item.depthOffset || 0
+          const isGround = layer.id === 'layer-ground' || layerIdx === 0 || layer.name.toLowerCase().includes('ground') || layer.name.toLowerCase().includes('yer')
 
           for (let cx = posX; cx < posX + spanX; cx++) {
             for (let cy = posY; cy < posY + spanY; cy++) {
               const specificZ = item.cellZIndex?.[`${cx},${cy}`] ?? item.zIndex ?? 0
               const effectiveGridDepth = (cx + cy) + depthOffset
-              // Layer priority (100k) + Effective Grid Depth with Relative Offset (1k) + Specific Z (50) + Tie-breaker (0.1)
-              const cellScore = layerIdx * 100000 + effectiveGridDepth * 1000 + specificZ * 50 + (cx - cy) * 0.1
+              
+              let cellScore: number
+              if (isGround) {
+                // Ground Base Plane (0 .. 50,000): Flat terrain tiles NEVER clip or occlude moving units or 3D entities
+                cellScore = Math.round(effectiveGridDepth * 10 + (layerIdx * 2) + (specificZ * 2) + (cx - cy) * 0.01)
+              } else {
+                // 3D Isometric Entity Plane (100,000+): Accurate front-to-back depth sorting with characters, towers, and walls
+                cellScore = 100000 + Math.round(effectiveGridDepth * 1000 + (layerIdx * 20) + (specificZ * 5) + (cx - cy) * 0.01)
+              }
+
               if (cellScore > maxDepthScore) {
                 maxDepthScore = cellScore
               }
@@ -910,7 +943,10 @@ export class IsoEngine {
       }
 
       container.position.set(tower.screenX, tower.screenY)
-      container.zIndex = 100000 + (tower.col + tower.row) * 1000 + 450
+      const towerSpanX = (tower as any).spanX || 1
+      const towerSpanY = (tower as any).spanY || 1
+      const effectiveTowerDepth = (tower.col + towerSpanX - 1) + (tower.row + towerSpanY - 1)
+      container.zIndex = 100000 + effectiveTowerDepth * 1000 + 350
     }
 
     // 2. Combat Overlays in combatGraphics
@@ -935,8 +971,8 @@ export class IsoEngine {
     if (towerToHighlight) {
       if (this.buildGhostSprite) this.buildGhostSprite.visible = false
       const r = towerToHighlight.range
-      const rx = r * tileWidth * 0.5
-      const ry = r * tileHeight * 0.5
+      const rx = (r * tileWidth) / Math.SQRT2
+      const ry = (r * tileHeight) / Math.SQRT2
 
       this.combatGraphics
         .ellipse(towerToHighlight.screenX, towerToHighlight.screenY, rx, ry)
@@ -948,8 +984,8 @@ export class IsoEngine {
       const ringColor = isBlocked ? 0xef4444 : 0x10b981
       const bp = towerStore.blueprints?.find((b: any) => b.id === towerStore.activeBuildTowerId) || towerStore.activeBlueprint
       const r = bp ? bp.range : 3.5
-      const rx = r * tileWidth * 0.5
-      const ry = r * tileHeight * 0.5
+      const rx = (r * tileWidth) / Math.SQRT2
+      const ry = (r * tileHeight) / Math.SQRT2
       const pt = gridToScreen(hoveredGridCoord.col, hoveredGridCoord.row, tileWidth, tileHeight)
 
       // 1. Semi-transparent building ghost preview (Ozginas shaffof bino ko'rinishi)
@@ -1297,10 +1333,12 @@ export class IsoEngine {
         const currentHp = Math.max(0, unit.currentHp ?? maxHp)
         const ratio = Math.min(1, Math.max(0, currentHp / maxHp))
 
+        const unitElev = Number(characterStore?.unitElevation) || 0
+        const unitOffsetY = (unit.offsetY ?? 0) + unitElev
         const barW = 32
         const barH = 4
         const barX = unit.screenX - barW / 2
-        const barY = unit.screenY - tileHeight * 1.25
+        const barY = unit.screenY - tileHeight * 1.25 - unitOffsetY
 
         // Bar container
         this.combatGraphics
@@ -1379,7 +1417,7 @@ export class IsoEngine {
     const drawingPathLen = characterStore.drawingPath?.length || 0
     const drawingWpLen = characterStore.drawingWaypoints?.length || 0
     const selectedWpIdx = characterStore.selectedWaypointIndex ?? -1
-    const showSpawns = !isGame && (characterStore.showSpawnPoints !== false || isDrawing || Boolean(characterStore.isSettingSpawnPoint))
+    const showSpawns = !isGame && (characterStore.showPathTrail !== false || isDrawing || Boolean(characterStore.isSettingSpawnPoint))
     const doorsCount = characterStore.detectedDoors?.length || 0
     const selectedDoorIdx = (characterStore.selectedDoorIndex !== null && characterStore.selectedDoorIndex !== undefined) ? characterStore.selectedDoorIndex : -1
     const spawnMode = characterStore.spawnMode || 'all_doors'
@@ -1758,7 +1796,8 @@ export class IsoEngine {
         const cellW = modelMeta?.cellWidth || 256
         const baseScale = (tileWidth * 1.0) / cellW
         const scaleMult = modelMeta?.scale ?? (modelKey === 'warrior' ? 1.48 : (modelKey === 'demon' ? 1.35 : (modelKey === 'female' ? 1.15 : (modelKey === 'male' ? 0.95 : 1.0))))
-        const customUnitScale = Number((unit as any).unitScale) || 1.0
+        const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
+        const customUnitScale = (Number((unit as any).unitScale) || 1.0) * globalScale
 
         sprite.scale.set(baseScale * (modelKey === 'male' ? 0.95 : scaleMult) * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
@@ -1789,13 +1828,16 @@ export class IsoEngine {
       }
 
       // Position (with customizable vertical height elevation offset)
-      const unitOffsetY = unit.offsetY ?? 0
-      container.position.set(unit.screenX, unit.screenY - unitOffsetY)
+      const unitElev = Number(characterStore?.unitElevation) || 0
+      const unitOffsetY = (unit.offsetY ?? 0) + unitElev
+      container.position.set(unit.screenX, unit.screenY)
+      sprite.position.set(0, -unitOffsetY)
+      marker.position.set(0, -unitOffsetY)
+      shadow.position.set(0, 0)
+      shadow.scale.set(Math.max(0.4, 1.0 - (unitOffsetY / 250)))
 
-      // Depth sort tracking
-      const charFloorCol = Math.floor(unit.currentCol)
-      const charFloorRow = Math.floor(unit.currentRow)
-      const charDepth = 100000 + (charFloorCol + charFloorRow) * 1000 + 10 + (i % 10)
+      // Depth sort tracking on 3D Entity Plane (Smooth continuous depth based on actual unit position)
+      const charDepth = 100000 + Math.round((unit.currentCol + unit.currentRow) * 1000) + 300 + (i % 10)
       if (container.zIndex !== charDepth) {
         container.zIndex = charDepth
         needsDepthSort = true

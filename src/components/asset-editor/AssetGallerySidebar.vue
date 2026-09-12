@@ -90,11 +90,11 @@ const searchQuery = ref('')
 const selectedCategory = ref('all')
 
 const categories = computed<TabItem[]>(() => [
-  { id: 'all', label: t('common.all') },
-  { id: 'walls', label: t('config.catWalls') },
-  { id: 'ground', label: t('config.catGround') },
-  { id: 'stairs', label: t('config.catStairs') },
-  { id: 'props', label: t('config.catProps') },
+  { id: 'all', label: t('assets.catAll') },
+  { id: 'walls', label: t('assets.catWalls') },
+  { id: 'ground', label: t('assets.catGround') },
+  { id: 'stairs', label: t('assets.catStairs') },
+  { id: 'props', label: t('assets.catProps') },
 ])
 
 const filteredAssets = computed(() => {

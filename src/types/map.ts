@@ -150,6 +150,8 @@ export interface MapProject {
     showPathTrail?: boolean
     autoLoop?: boolean
     selectedDoorIndex?: number | null
+    unitElevation?: number
+    unitScaleMultiplier?: number
   }
   gameSettings?: MapGameSettings
   clans?: TowerClan[]
@@ -185,7 +187,7 @@ export interface AssetItem {
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'box-fill' | 'box-clear' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 

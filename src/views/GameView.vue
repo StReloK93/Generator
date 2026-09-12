@@ -143,6 +143,7 @@ import { networkSyncBuffer } from '../services/networkSync'
 import { toggleAppFullscreen } from '../utils/fullscreen'
 import { 
   getGameMapDataById, 
+  getEditorMapDataById,
   applyMapPayloadToStores, 
   sanitizeMapId 
 } from '../services/mapManager'
@@ -202,15 +203,26 @@ onMounted(async () => {
 
   const isRoomCode = rawId && /^[A-Za-z0-9]{6}$/.test(rawId) && !getGameMapDataById(rawId)
 
-  // 2. Single Player game: ALWAYS load pristine clean map from maps (NEVER from localStorage editor drafts)
+  // 2. Single Player game:
   if (!isRoomCode && (!multiplayerStore.roomId || multiplayerStore.roomId === '')) {
-    const mapData = getGameMapDataById(rawId)
-    if (!mapData) {
-      notify.error(t('common.error') || 'Xarita topilmadi')
-      router.replace('/')
-      return
+    if (characterStore.entrySource === 'editor') {
+      const editorData = getEditorMapDataById(rawId) || getGameMapDataById(rawId)
+      if (editorData) {
+        applyMapPayloadToStores(editorData.payload)
+      } else if (!isMapLoaded.value) {
+        notify.error(t('common.error') || 'Xarita topilmadi')
+        router.replace('/')
+        return
+      }
+    } else {
+      const mapData = getGameMapDataById(rawId)
+      if (!mapData) {
+        notify.error(t('common.error') || 'Xarita topilmadi')
+        router.replace('/')
+        return
+      }
+      applyMapPayloadToStores(mapData.payload)
     }
-    applyMapPayloadToStores(mapData.payload)
   }
 
   isCanvasReady.value = false

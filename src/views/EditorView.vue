@@ -9,15 +9,15 @@
 
     <!-- Main Workspace -->
     <div class="flex-1 flex overflow-hidden relative">
+      <!-- Left Unified Sidebar (Objects/Layers + Asset Gallery) -->
+      <RightSidebar 
+        @focus-cell="handleFocusCell" 
+      />
+
       <!-- Main Isometric Canvas Viewport -->
       <div class="flex-1 flex flex-col h-full relative overflow-hidden">
         <EditorCanvas ref="viewportRef" class="flex-1" />
       </div>
-
-      <!-- Right Unified Sidebar (Objects/Layers + Asset Gallery) -->
-      <RightSidebar 
-        @focus-cell="handleFocusCell" 
-      />
     </div>
 
     <!-- Modals & Overlays -->
@@ -139,8 +139,9 @@ function autoSaveCurrentState() {
 
 watch(
   () => [
-    mapStore.project,
-    assetStore.assets,
+    mapStore.project.updatedAt,
+    mapStore.totalTilesCount,
+    assetStore.assets.length,
     characterStore.waveConfigs,
     characterStore.customRoutes,
     characterStore.customWaypoints,
@@ -153,17 +154,50 @@ watch(
     characterStore.followCamera,
     characterStore.showPathTrail,
     towerStore.blueprints,
-    towerStore.placedTowers,
+    towerStore.placedTowers.length,
     towerStore.clans,
   ],
   () => {
     if (saveTimeout) clearTimeout(saveTimeout)
     saveTimeout = setTimeout(() => {
       autoSaveCurrentState()
-    }, 600)
-  },
-  { deep: true }
+    }, 2500)
+  }
 )
+
+function initEditorMap() {
+  // 1. Resolve Map ID from route params, or fallback to active project in store
+  let rawId = (route.params.mapId as string) || ''
+  
+  // If navigated to /editor without param, but mapStore already has an active loaded map, redirect to /editor/:mapId
+  if (!rawId && mapStore.project.cols > 0 && mapStore.project.layers && mapStore.project.layers.length > 0) {
+    const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+    router.replace(`/editor/${currentId}`)
+    return
+  }
+
+  // DIRECT ACCESS: /editor without mapId prompts Welcome/Map Selection modal
+  if (!rawId) {
+    welcomeModalRef.value?.open('new', true)
+    return
+  }
+
+  const cleanId = sanitizeMapId(rawId)
+
+  // 2. Restore map: if mapStore does not have this map loaded or user accessed different map, load from editor draft or src/maps/
+  if (!mapStore.project.cols || mapStore.project.layers.length === 0 || sanitizeMapId(mapStore.project.id) !== cleanId) {
+    const mapData = getEditorMapDataById(cleanId)
+    if (mapData) {
+      applyMapPayloadToStores(mapData.payload)
+    } else {
+      welcomeModalRef.value?.open('new', true)
+      return
+    }
+  }
+
+  // Detect doors for route drawing
+  characterStore.detectDoors()
+}
 
 onMounted(async () => {
   // Purge any legacy single auto-saved session data
@@ -185,30 +219,13 @@ onMounted(async () => {
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
 
-  // 1. Resolve Map ID from route params
-  const rawId = (route.params.mapId as string) || ''
+  initEditorMap()
+})
 
-  // DIRECT ACCESS: /editor without mapId prompts Welcome/Map Selection modal
-  if (!rawId) {
-    welcomeModalRef.value?.open('new', true)
-    return
+watch(() => route.params.mapId, (newMapId, oldMapId) => {
+  if (route.name === 'editor' && newMapId !== oldMapId) {
+    initEditorMap()
   }
-
-  const cleanId = sanitizeMapId(rawId)
-
-  // 2. Restore map: checks LocalStorage editor draft first (if user refreshed), else loads from src/maps/
-  if (!mapStore.project.cols || mapStore.project.layers.length === 0 || sanitizeMapId(mapStore.project.id) !== cleanId) {
-    const mapData = getEditorMapDataById(cleanId)
-    if (mapData) {
-      applyMapPayloadToStores(mapData.payload)
-    } else {
-      welcomeModalRef.value?.open('new', true)
-      return
-    }
-  }
-
-  // Detect doors for route drawing
-  characterStore.detectDoors()
 })
 
 onUnmounted(() => {

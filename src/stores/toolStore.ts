@@ -10,8 +10,9 @@ export const useToolStore = defineStore('toolStore', () => {
   const dragStartCell = ref<GridCoord | null>(null)
   const previewCells = ref<GridCoord[]>([])
 
-  // Selected element on canvas
+  // Selected element(s) on canvas
   const selectedElement = ref<SelectedElementRef | null>(null)
+  const selectedElements = ref<SelectedElementRef[]>([])
   const isMovingElement = ref<boolean>(false)
 
   // Placement Conflict prompt (when placing on existing occupied cell)
@@ -69,7 +70,7 @@ export const useToolStore = defineStore('toolStore', () => {
   const gridOpacity = ref<number>(0.35)
   const snapToGrid = ref<boolean>(true)
 
-  const DRAWING_TOOLS: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+  const DRAWING_TOOLS: ToolType[] = ['brush', 'bucket', 'line', 'box-fill']
 
   function setTool(tool: ToolType) {
     activeTool.value = tool
@@ -89,6 +90,49 @@ export const useToolStore = defineStore('toolStore', () => {
 
   function setSelectedElement(elem: SelectedElementRef | null) {
     selectedElement.value = elem
+    selectedElements.value = elem ? [elem] : []
+  }
+
+  function setSelectedElements(elems: SelectedElementRef[]) {
+    selectedElements.value = [...elems]
+    selectedElement.value = elems.length > 0 ? elems[0] : null
+  }
+
+  function toggleSelectedElement(elem: SelectedElementRef) {
+    const idx = selectedElements.value.findIndex(e => e.itemId === elem.itemId && e.layerId === elem.layerId)
+    if (idx !== -1) {
+      selectedElements.value.splice(idx, 1)
+      selectedElement.value = selectedElements.value.length > 0 ? selectedElements.value[0] : null
+    } else {
+      selectedElements.value.push(elem)
+      if (!selectedElement.value) {
+        selectedElement.value = elem
+      }
+    }
+  }
+
+  function addSelectedElements(elems: SelectedElementRef[]) {
+    const existingIds = new Set(selectedElements.value.map(e => `${e.layerId}:${e.itemId}`))
+    for (const elem of elems) {
+      const key = `${elem.layerId}:${elem.itemId}`
+      if (!existingIds.has(key)) {
+        selectedElements.value.push(elem)
+        existingIds.add(key)
+      }
+    }
+    if (selectedElements.value.length > 0 && !selectedElement.value) {
+      selectedElement.value = selectedElements.value[0]
+    }
+  }
+
+  function clearSelection() {
+    selectedElement.value = null
+    selectedElements.value = []
+    isMovingElement.value = false
+  }
+
+  function isElementSelected(itemId: string, layerId?: string): boolean {
+    return selectedElements.value.some(e => e.itemId === itemId && (!layerId || e.layerId === layerId))
   }
 
   function setZoom(newZoom: number) {
@@ -115,6 +159,7 @@ export const useToolStore = defineStore('toolStore', () => {
     dragStartCell,
     previewCells,
     selectedElement,
+    selectedElements,
     isMovingElement,
     placementConflict,
     placementMode,
@@ -143,6 +188,11 @@ export const useToolStore = defineStore('toolStore', () => {
     setTool,
     setHoveredCell,
     setSelectedElement,
+    setSelectedElements,
+    toggleSelectedElement,
+    addSelectedElements,
+    clearSelection,
+    isElementSelected,
     setZoom,
     zoomIn,
     zoomOut,

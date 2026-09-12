@@ -81,14 +81,43 @@
         :title="`${$t('shortcuts.lineTool')} (L)`"
         @click="toolStore.setTool('line')"
       />
-      <!-- Rectangle (U) -->
+      <!-- Box Fill (F / U) - Area Rectangle Fill -->
       <UiIconButton
         variant="tool"
         size="sm"
-        :icon="Square"
-        :active="toolStore.activeTool === 'rect'"
-        :title="`${$t('shortcuts.rectangleTool')} (U)`"
-        @click="toolStore.setTool('rect')"
+        :icon="Scan"
+        :active="toolStore.activeTool === 'box-fill' || isBoxFillActive"
+        :title="`${$t('editor.boxFill')} (F)`"
+        @click="toggleBoxFillMode"
+      />
+      <!-- Box Clear (C) - Area Selective Eraser -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Trash2"
+        :active="toolStore.activeTool === 'box-clear' || isBoxClearActive"
+        :title="`${$t('editor.boxClear')} (C)`"
+        @click="toggleBoxClearMode"
+      />
+
+      <div class="h-px w-full bg-slate-800 my-0.5"></div>
+
+      <!-- Quick Fill All Empty (Shift+E) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Sparkles"
+        :title="`${$t('editor.quickFillEmpty')} (Shift+E)`"
+        @click="handleQuickFillAllEmpty"
+      />
+
+      <!-- Fill Ground Modal (Shift+G) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Layers"
+        :title="`${$t('editor.fillGroundModalTitle')} (Shift+G)`"
+        @click="toolStore.openFillGroundModal()"
       />
     </div>
 
@@ -307,53 +336,6 @@
           </span>
         </template>
       </div>
-
-      <!-- Quick Fill Actions: Fill All Empty and Box Fill Mode Buttons (Only shown when an asset is selected!) -->
-      <div v-if="assetStore.selectedAssetId" class="flex items-center gap-1.5 pointer-events-auto">
-        <!-- Fill All Empty Cells on Active Layer Button -->
-        <UiButton
-          variant="game-green"
-          size="xs"
-          :leading-icon="PaintBucket"
-          :title="`${$t('editor.quickFillEmpty')} (Shift+E)`"
-          custom-class="shadow-xl!"
-          @click="handleQuickFillAllEmpty"
-        >
-          {{ $t('editor.quickFillEmpty') }}
-        </UiButton>
-
-        <!-- Box Fill (Select Area) Button -->
-        <UiButton
-          :variant="isBoxFillActive ? 'game-amber' : 'secondary'"
-          size="xs"
-          :leading-icon="Scan"
-          :title="`${$t('editor.boxFill')} (F)`"
-          custom-class="shadow-xl!"
-          @click="toggleBoxFillMode"
-        >
-          <span>{{ $t('editor.boxFill') }}</span>
-          <span v-if="boxFillStartPoint" class="font-mono text-[10px] text-amber-300 ml-1">
-            ({{ boxFillStartPoint.col }}, {{ boxFillStartPoint.row }})
-          </span>
-        </UiButton>
-      </div>
-
-      <!-- Box Clear (Area Eraser) Button -->
-      <div class="flex items-center gap-1.5 pointer-events-auto">
-        <UiButton
-          :variant="isBoxClearActive ? 'danger' : 'secondary'"
-          size="xs"
-          :leading-icon="Eraser"
-          :title="`${$t('editor.boxClear')} (C)`"
-          custom-class="shadow-xl!"
-          @click="toggleBoxClearMode"
-        >
-          <span>{{ $t('editor.boxClear') }}</span>
-          <span v-if="boxClearStartPoint" class="font-mono text-[10px] text-rose-300 ml-1">
-            ({{ boxClearStartPoint.col }}, {{ boxClearStartPoint.row }})
-          </span>
-        </UiButton>
-      </div>
     </div>
 
     <!-- Floating Mobile Zoom & Map Navigation Widget -->
@@ -363,14 +345,18 @@
         {{ Math.round(camera.localZoom.value * 100) }}%
       </div>
       <div class="pointer-events-auto flex items-center gap-1.5">
-        <!-- Route Lines Toggle Button (Top of the map) -->
+        <!-- Route Lines & Spawn Points Toggle Button (Top of the map) -->
         <UiIconButton
           variant="tool"
           size="sm"
           :active="characterStore.showPathTrail !== false"
           :icon="Footprints"
           :title="characterStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
-          @click="characterStore.showPathTrail = !characterStore.showPathTrail"
+          @click="() => {
+            const next = characterStore.showPathTrail === false
+            characterStore.showPathTrail = next
+            characterStore.showSpawnPoints = next
+          }"
         />
 
         <!-- Reset View to Center -->
@@ -390,7 +376,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
-  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Square 
+  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers 
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
@@ -403,7 +389,7 @@ import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
-import { GridCoord, AssetItem } from '../../types/map'
+import { GridCoord, AssetItem, SelectedElementRef } from '../../types/map'
 import { cellKey, isInsideGrid, getBresenhamLine, getRectangleCells, floodFill } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
 
@@ -421,6 +407,7 @@ const boxFillStartPoint = ref<GridCoord | null>(null)
 // Box Clear (Select Area for selective element deletion) State
 const isBoxClearActive = ref(false)
 const boxClearStartPoint = ref<GridCoord | null>(null)
+const hasDrawnInDrag = ref(false)
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
@@ -510,9 +497,21 @@ onUnmounted(() => {
   engine.destroy()
 })
 
+// Batch syncLayers via requestAnimationFrame to avoid CPU spikes during fast mouse drags
+let syncLayersRafId: number | null = null
+function requestSyncLayers() {
+  if (syncLayersRafId !== null) return
+  syncLayersRafId = requestAnimationFrame(() => {
+    syncLayersRafId = null
+    if (engine.isInitialized) {
+      engine.syncLayers(mapStore.project, getAssetMap())
+    }
+  })
+}
+
 // Watchers for editor rendering
 watch(() => mapStore.project.layers, () => {
-  if (engine.isInitialized) engine.syncLayers(mapStore.project, getAssetMap())
+  requestSyncLayers()
 }, { deep: true })
 
 watch(() => [
@@ -540,20 +539,25 @@ watch(() => [toolStore.hoveredCell, toolStore.previewCells, toolStore.activeTool
   }
 })
 
-watch(() => toolStore.selectedElement, (newSel) => {
+watch(() => [toolStore.selectedElement, toolStore.selectedElements.length], () => {
   if (!engine.isInitialized) return
-  let spanX = 1
-  let spanY = 1
-  if (newSel) {
-    const items = mapStore.getCellItems(newSel.col, newSel.row, newSel.layerId)
-    const item = items.find(i => i.id === newSel?.itemId) || items[items.length - 1]
+  if (toolStore.selectedElements.length > 1) {
+    engine.renderSelection(toolStore.selectedElements, mapStore.project)
+  } else if (toolStore.selectedElement) {
+    const sel = toolStore.selectedElement
+    let spanX = 1
+    let spanY = 1
+    const items = mapStore.getCellItems(sel.col, sel.row, sel.layerId)
+    const item = items.find(i => i.id === sel.itemId) || items[items.length - 1]
     if (item) {
       spanX = item.spanX || 1
       spanY = item.spanY || 1
     }
+    engine.renderSelection(sel, mapStore.project, spanX, spanY)
+  } else {
+    engine.renderSelection(null, mapStore.project)
   }
-  engine.renderSelection(newSel, mapStore.project, spanX, spanY)
-})
+}, { deep: true })
 
 watch(() => [
   characterStore.isEnabled,
@@ -693,23 +697,7 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
     return
   }
 
-  // Spawn Point / Route Selection & Deselection on canvas
-  if (!characterStore.isDrawingRoute) {
-    const clickedDoorIdx = characterStore.detectedDoors.findIndex(d => {
-      const dc = d.spawnCol ?? d.col
-      const dr = d.spawnRow ?? d.row
-      return dc === gridCoord.col && dr === gridCoord.row
-    })
 
-    if (clickedDoorIdx !== -1 && !assetStore.selectedAssetId && toolStore.activeTool === 'select') {
-      characterStore.selectedDoorIndex = (characterStore.selectedDoorIndex === clickedDoorIdx) ? null : clickedDoorIdx
-      engine.renderCharacter(characterStore, mapStore.project)
-      return
-    } else if (characterStore.selectedDoorIndex !== null) {
-      characterStore.selectedDoorIndex = null
-      engine.renderCharacter(characterStore, mapStore.project)
-    }
-  }
 
   // Moving Element
   if (toolStore.isMovingElement && toolStore.selectedElement) {
@@ -729,7 +717,8 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
 
   // Eraser Tool (Direct deletion on active layer or covering element)
   if (toolStore.activeTool === 'eraser') {
-    mapStore.removeTile(gridCoord.col, gridCoord.row, mapStore.activeLayerId)
+    mapStore.removeTile(gridCoord.col, gridCoord.row, mapStore.activeLayerId, false)
+    hasDrawnInDrag.value = true
     toolStore.isMouseDown = true
     toolStore.dragStartCell = gridCoord
     lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
@@ -786,8 +775,8 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
     return
   }
 
-  // Line & Rectangle Tools (Drag to draw preview & fill on mouseUp)
-  if (toolStore.activeTool === 'line' || toolStore.activeTool === 'rect') {
+  // Line Tool (Drag to draw preview & fill on mouseUp)
+  if (toolStore.activeTool === 'line') {
     if (!assetStore.selectedAssetId) {
       notify.warning(t('editor.selectAssetFirst'))
       return
@@ -830,10 +819,12 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
         }
         return
       } else {
-        mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, effectiveMode === 'replace' ? 'replace' : 'stack', mapStore.activeLayerId)
+        mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, effectiveMode === 'replace' ? 'replace' : 'stack', mapStore.activeLayerId, false)
+        hasDrawnInDrag.value = true
       }
     } else {
-      mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack', mapStore.activeLayerId)
+      mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack', mapStore.activeLayerId, false)
+      hasDrawnInDrag.value = true
     }
 
     toolStore.isMouseDown = true
@@ -844,37 +835,29 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
 
   // Select Tool (Select map element & open Element Inspector Driver)
   if (toolStore.activeTool === 'select' || !assetStore.selectedAssetId) {
-    let foundEntry: { originCol: number; originRow: number; layerId: string; itemId: string } | null = null
-    
-    // First check active layer
-    const activeLayerEls = mapStore.getElementsAtOrCoveringCell(gridCoord.col, gridCoord.row, mapStore.activeLayerId)
-    if (activeLayerEls.length > 0) {
-      const top = activeLayerEls[activeLayerEls.length - 1]
-      foundEntry = { originCol: top.originCol, originRow: top.originRow, layerId: mapStore.activeLayerId, itemId: top.item.id }
-    } else {
-      // Search all other visible layers from top to bottom
-      for (let i = mapStore.project.layers.length - 1; i >= 0; i--) {
-        const layer = mapStore.project.layers[i]
-        if (layer.id === mapStore.activeLayerId || !layer.visible || layer.locked) continue
-        const els = mapStore.getElementsAtOrCoveringCell(gridCoord.col, gridCoord.row, layer.id)
-        if (els.length > 0) {
-          const top = els[els.length - 1]
-          foundEntry = { originCol: top.originCol, originRow: top.originRow, layerId: layer.id, itemId: top.item.id }
-          break
-        }
+    const allEls = mapStore.getAllElementsAtOrCoveringCell(gridCoord.col, gridCoord.row)
+    if (allEls.length > 0) {
+      // Prioritize active layer if element exists on it, otherwise pick topmost element
+      const activeLayerEntry = allEls.find(e => e.layerId === mapStore.activeLayerId)
+      const chosen = activeLayerEntry || allEls[0]
+      mapStore.activeLayerId = chosen.layerId
+
+      const newRef: SelectedElementRef = {
+        col: gridCoord.col,
+        row: gridCoord.row,
+        layerId: chosen.layerId,
+        itemId: chosen.item.id,
       }
-    }
-    
-    if (foundEntry) {
-      mapStore.activeLayerId = foundEntry.layerId
-      toolStore.setSelectedElement({
-        col: foundEntry.originCol,
-        row: foundEntry.originRow,
-        layerId: foundEntry.layerId,
-        itemId: foundEntry.itemId,
-      })
+
+      if (isCtrlPressed.value || isShiftPressed.value) {
+        toolStore.toggleSelectedElement(newRef)
+      } else {
+        toolStore.setSelectedElement(newRef)
+      }
     } else {
-      toolStore.setSelectedElement(null)
+      if (!isCtrlPressed.value && !isShiftPressed.value) {
+        toolStore.clearSelection()
+      }
     }
     return
   }
@@ -996,17 +979,17 @@ function handleMouseMove(e: MouseEvent) {
         const isCtrl = e.ctrlKey || e.metaKey || isCtrlPressed.value
         const isShift = e.shiftKey || isShiftPressed.value
         const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
-        mapStore.setTile(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, mode)
+        mapStore.setTile(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, mode, mapStore.activeLayerId, false)
+        hasDrawnInDrag.value = true
       }
     } else if (toolStore.activeTool === 'eraser') {
       if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
         lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        mapStore.removeTile(gridCoord.col, gridCoord.row)
+        mapStore.removeTile(gridCoord.col, gridCoord.row, mapStore.activeLayerId, false)
+        hasDrawnInDrag.value = true
       }
     } else if (toolStore.activeTool === 'line') {
       toolStore.previewCells = getBresenhamLine(toolStore.dragStartCell.col, toolStore.dragStartCell.row, gridCoord.col, gridCoord.row)
-    } else if (toolStore.activeTool === 'rect') {
-      toolStore.previewCells = getRectangleCells(toolStore.dragStartCell.col, toolStore.dragStartCell.row, gridCoord.col, gridCoord.row)
     }
   }
 }
@@ -1030,6 +1013,11 @@ function handleMouseUp(e?: MouseEvent) {
     return
   }
 
+  if (hasDrawnInDrag.value) {
+    mapStore.pushHistory(toolStore.activeTool === 'eraser' ? 'Eraser stroke' : 'Brush stroke')
+    hasDrawnInDrag.value = false
+  }
+
   if (toolStore.isMouseDown && toolStore.dragStartCell && assetStore.selectedAssetId) {
     if (toolStore.previewCells.length > 0) {
       const isCtrl = (e && (e.ctrlKey || e.metaKey)) || isCtrlPressed.value
@@ -1046,6 +1034,10 @@ function handleMouseUp(e?: MouseEvent) {
 
 function handleMouseLeave() {
   if (camera.isPanning.value) camera.endPan()
+  if (hasDrawnInDrag.value) {
+    mapStore.pushHistory(toolStore.activeTool === 'eraser' ? 'Eraser stroke' : 'Brush stroke')
+    hasDrawnInDrag.value = false
+  }
   toolStore.setHoveredCell(null)
   toolStore.isMouseDown = false
   lastDrawnCell.value = null
@@ -1405,9 +1397,7 @@ function handleKeyDown(e: KeyboardEvent) {
     }
     if (code === 'KeyU' || key === 'u') {
       e.preventDefault()
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
-      toolStore.setTool('rect')
+      toggleBoxFillMode()
       return
     }
   }

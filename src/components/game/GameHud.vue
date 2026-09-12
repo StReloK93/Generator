@@ -120,6 +120,7 @@
       :title="$t('game.pauseMenu')"
       :subtitle="$t('game.menu')"
       :icon="Gamepad2"
+      :teleport="true"
       icon-color="brand"
       size="sm"
       body-class="flex flex-col gap-2.5 p-3 sm:p-4"
@@ -223,20 +224,24 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
+import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18nStore } from '../../stores/i18nStore'
+import { sanitizeMapId } from '../../services/mapManager'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { toggleAppFullscreen, isAppFullscreen } from '../../utils/fullscreen'
 
 const router = useRouter()
+const route = useRoute()
+const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
@@ -305,7 +310,8 @@ async function handleExitGame() {
     if (multiplayerStore.roomId) {
       multiplayerStore.leaveRoom(router)
     } else if (isEditor) {
-      router.push('/editor')
+      const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
+      router.push(`/editor/${cleanId}`)
     } else {
       router.push('/')
     }

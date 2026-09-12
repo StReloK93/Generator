@@ -1577,13 +1577,13 @@
       <UiInput
         v-model="clanForm.name"
         :label="$t('clans.clanName')"
-        placeholder="e.g. Glacial Order"
+        :placeholder="$t('clans.clanNamePlaceholder')"
       />
 
       <UiInput
         v-model="clanForm.description"
         :label="$t('clans.clanDescription')"
-        placeholder="e.g. Master elementalists specialized in freezing enemy waves."
+        :placeholder="$t('clans.clanDescPlaceholder')"
       />
 
       <!-- Icon Selector -->

@@ -114,7 +114,8 @@ const shortcutCategories: ShortcutCategory[] = [
       { actionKey: 'shortcuts.bucketFill', keys: [['G']] },
       { actionKey: 'shortcuts.eyedropper', keys: [['I']] },
       { actionKey: 'shortcuts.lineTool', keys: [['L']] },
-      { actionKey: 'shortcuts.rectangleTool', keys: [['U']] },
+      { actionKey: 'shortcuts.boxFill', keys: [['F'], ['U']] },
+      { actionKey: 'shortcuts.boxClear', keys: [['C']] },
     ]
   },
   {
@@ -123,8 +124,6 @@ const shortcutCategories: ShortcutCategory[] = [
     icon: Sparkles,
     badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
     items: [
-      { actionKey: 'shortcuts.boxFill', keys: [['F']] },
-      { actionKey: 'shortcuts.boxClear', keys: [['C']] },
       { actionKey: 'shortcuts.quickFillEmpty', keys: [['Shift', 'E']] },
       { actionKey: 'shortcuts.fillGroundModal', keys: [['Shift', 'G']] },
     ]

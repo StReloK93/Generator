@@ -10,7 +10,7 @@
     >
       <div 
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none pt-safe pb-safe"
+        class="fixed inset-0 z-1000! flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none pt-safe pb-safe"
         @mousedown.stop
         @mouseup.stop
         @click.stop

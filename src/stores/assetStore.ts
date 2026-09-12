@@ -45,6 +45,18 @@ export const useAssetStore = defineStore('assetStore', () => {
   // Load automatically on store creation
   loadBuiltinSprites()
 
+  const assetMap = computed(() => {
+    const map = new Map<string, AssetItem>()
+    for (const a of assets.value) {
+      if (!a) continue
+      map.set(a.id, a)
+      if (a.name && !map.has(a.name)) map.set(a.name, a)
+      const cleanId = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+      if (!map.has(cleanId)) map.set(cleanId, a)
+    }
+    return map
+  })
+
   // Get preview data URL extracted directly from PixiJS Atlas texture
   function getAssetPreview(assetOrId: AssetItem | string | null | undefined): string {
     // Read atlasRevision to ensure reactivity when PixiJS atlases load
@@ -52,7 +64,7 @@ export const useAssetStore = defineStore('assetStore', () => {
 
     if (!assetOrId) return ''
     if (typeof assetOrId === 'string') {
-      const found = assets.value.find(a => a.id === assetOrId || a.name === assetOrId)
+      const found = assetMap.value.get(assetOrId) || assetMap.value.get(assetOrId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, ''))
       if (found && found.src && found.src.startsWith('data:')) return found.src
       return assetManager.getPreviewDataUrl(assetOrId) || (found?.previewSrc || '')
     }
@@ -70,7 +82,7 @@ export const useAssetStore = defineStore('assetStore', () => {
 
     if (!assetOrId) return ''
     if (typeof assetOrId === 'string') {
-      const found = assets.value.find(a => a.id === assetOrId || a.name === assetOrId)
+      const found = assetMap.value.get(assetOrId) || assetMap.value.get(assetOrId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, ''))
       if (found && found.src && found.src.startsWith('data:')) return found.src
       return assetManager.getFullPreviewDataUrl(assetOrId) || (found?.previewSrc || '')
     }
@@ -183,7 +195,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     selectedAssetId.value = id
     if (id) {
       const toolStore = useToolStore()
-      const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+      const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'box-fill']
       if (!drawingTools.includes(toolStore.activeTool)) {
         toolStore.setTool(toolStore.lastDrawingTool || 'brush')
       }

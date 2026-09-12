@@ -72,20 +72,25 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { Trophy, Coins, Skull, Home, LogOut, RotateCcw, Layers } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
+import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
+import { sanitizeMapId } from '../../services/mapManager'
 
 const router = useRouter()
+const route = useRoute()
+const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const multiplayerStore = useMultiplayerStore()
 
 function handleExit() {
   characterStore.exitPlayMode()
   if (characterStore.entrySource === 'editor') {
-    router.push('/editor')
+    const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
+    router.push(`/editor/${cleanId}`)
   } else {
     router.push('/')
   }

@@ -162,15 +162,20 @@ import {
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
+import { useAssetStore } from '../../stores/assetStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useTowerStore } from '../../stores/towerStore'
 import { useI18nStore } from '../../stores/i18nStore'
-import { sanitizeMapId } from '../../services/mapManager'
+import { sanitizeMapId, saveEditorDraft, registerSessionCustomMap } from '../../services/mapManager'
+import { buildFullProjectJsonPayload } from '../../utils/exportHelpers'
 
 const router = useRouter()
 const mapStore = useMapStore()
+const assetStore = useAssetStore()
 const toolStore = useToolStore()
 const characterStore = useCharacterStore()
+const towerStore = useTowerStore()
 const { t } = useI18nStore()
 
 const emit = defineEmits<{
@@ -198,6 +203,73 @@ function handleStartGame() {
   characterStore.entrySource = 'editor'
   characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  mapStore.project.id = cleanId
+
+  // 1. Sync store state to project
+  characterStore.syncGameSettingsToProject()
+  characterStore.syncWavesToProject()
+  characterStore.syncSpawnPointsToProject()
+  towerStore.syncToProject()
+
+  // 2. Save editor draft so it is 100% updated in localStorage
+  saveEditorDraft(
+    cleanId,
+    mapStore.project,
+    assetStore.assets,
+    {
+      customRoutes: characterStore.customRoutes,
+      spawnPoints: characterStore.detectedDoors,
+      speed: characterStore.speed,
+      formation: characterStore.formation,
+      pairDistance: characterStore.pairDistance,
+      followCamera: characterStore.followCamera,
+      showPathTrail: characterStore.showPathTrail,
+    },
+    {
+      placedTowers: towerStore.placedTowers,
+      towerBlueprints: towerStore.blueprints,
+      clans: towerStore.clans,
+    },
+    {
+      waveConfigs: characterStore.waveConfigs,
+      currentWaveIndex: characterStore.currentWaveIndex,
+    },
+    {
+      startingGold: characterStore.startingGold,
+      startingLives: characterStore.startingLives,
+      wavePrepTime: characterStore.wavePrepDuration,
+    }
+  )
+
+  // 3. Register as session custom map for game
+  registerSessionCustomMap(cleanId, buildFullProjectJsonPayload(
+    mapStore.project,
+    assetStore.assets,
+    {
+      customRoutes: characterStore.customRoutes,
+      spawnPoints: characterStore.detectedDoors,
+      speed: characterStore.speed,
+      formation: characterStore.formation,
+      pairDistance: characterStore.pairDistance,
+      followCamera: characterStore.followCamera,
+      showPathTrail: characterStore.showPathTrail,
+    },
+    {
+      placedTowers: towerStore.placedTowers,
+      towerBlueprints: towerStore.blueprints,
+      clans: towerStore.clans,
+    },
+    {
+      waveConfigs: characterStore.waveConfigs,
+      currentWaveIndex: characterStore.currentWaveIndex,
+    },
+    {
+      startingGold: characterStore.startingGold,
+      startingLives: characterStore.startingLives,
+      wavePrepTime: characterStore.wavePrepDuration,
+    }
+  ))
+
   router.push(`/game/${cleanId}`)
 }
 </script>

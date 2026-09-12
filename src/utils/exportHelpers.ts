@@ -122,6 +122,8 @@ export function buildFullProjectJsonPayload(
     showPathTrail: characterData?.showPathTrail ?? characterData?.characterConfig?.showPathTrail ?? project.characterConfig?.showPathTrail ?? true,
     autoLoop: characterData?.autoLoop ?? characterData?.characterConfig?.autoLoop ?? project.characterConfig?.autoLoop ?? false,
     selectedDoorIndex: characterData?.selectedDoorIndex !== undefined ? characterData.selectedDoorIndex : (characterData?.characterConfig?.selectedDoorIndex ?? project.characterConfig?.selectedDoorIndex ?? null),
+    unitElevation: characterData?.characterConfig?.unitElevation ?? (characterData as any)?.unitElevation ?? project.characterConfig?.unitElevation ?? 0,
+    unitScaleMultiplier: characterData?.characterConfig?.unitScaleMultiplier ?? (characterData as any)?.unitScaleMultiplier ?? project.characterConfig?.unitScaleMultiplier ?? 1.0,
   }
 
   const resolvedClans = (project as any).clans || towerData?.clans || []

@@ -27,7 +27,7 @@
       <UiInput
         v-model="newProjectName"
         :label="$t('common.name') + ' *'"
-        placeholder="e.g. Castle Fortress Siege #1"
+        :placeholder="$t('welcome.projectNamePlaceholder')"
         :leading-icon="Sparkles"
         @keyup.enter="handleCreateNew"
       />

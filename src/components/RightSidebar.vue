@@ -5,13 +5,13 @@
     @click.stop
     @pointerdown.stop
     @wheel.stop
-    class="border-l border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-96 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 right-0"
+    class="border-r border-slate-800/90 flex flex-col z-20 transition-all duration-300 select-none w-80 md:w-88 lg:w-120 h-full bg-dark-900/95 backdrop-blur-xl shadow-2xl overflow-hidden max-w-[95vw] md:relative absolute inset-y-0 left-0"
     :class="{ 'w-10 sm:w-12 min-w-10! sm:min-w-12! relative!': isCollapsed }"
   >
     <!-- Collapsed Toggle Strip -->
     <div v-if="isCollapsed" class="h-full flex flex-col items-center py-4 justify-between">
       <UiIconButton 
-        :icon="ChevronLeft"
+        :icon="ChevronRight"
         size="sm"
         :title="$t('sidebar.expandPanel')"
         @click="isCollapsed = false"
@@ -30,7 +30,7 @@
       />
     </div>
 
-    <!-- Expanded Right Sidebar with 40% / 60% Split -->
+    <!-- Expanded Left Sidebar with 40% / 60% Split -->
     <div v-else class="flex flex-col h-full overflow-hidden">
       
       <!-- ========================================================================= -->
@@ -51,7 +51,7 @@
 
           <!-- Collapse Panel Button -->
           <UiIconButton
-            :icon="ChevronRight"
+            :icon="ChevronLeft"
             size="sm"
             variant="ghost"
             :title="$t('sidebar.collapsePanel')"
@@ -61,6 +61,25 @@
 
         <!-- TAB 1: PLACED OBJECTS OUTLINER -->
         <div v-if="activeTopTab === 'elements'" class="flex-1 flex flex-col overflow-hidden p-2 gap-1.5">
+          <!-- Multi-Select Active Banner -->
+          <div 
+            v-if="toolStore.selectedElements.length > 1"
+            class="p-1.5 px-2.5 rounded-xl bg-purple-950/60 border border-purple-800/60 flex items-center justify-between gap-2 shrink-0 animate-fadeIn"
+          >
+            <div class="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
+              <Layers class="w-3.5 h-3.5 text-purple-400" />
+              <span>{{ $t('inspector.multiSelectedCount', { count: toolStore.selectedElements.length }) }}</span>
+            </div>
+            <UiButton
+              variant="ghost"
+              size="xs"
+              custom-class="text-[10px]! p-0! text-purple-400 hover:text-white"
+              @click="toolStore.clearSelection()"
+            >
+              {{ $t('inspector.deselectAll') }}
+            </UiButton>
+          </div>
+
           <!-- Search filter -->
           <UiInput 
             v-model="elementSearchQuery"
@@ -76,14 +95,14 @@
             class="flex-1 overflow-y-auto flex flex-col gap-1.5 p-1 custom-scrollbar"
           >
             <UiCard 
-              v-for="entry in filteredPlacedElements" 
+              v-for="entry in displayedPlacedElements" 
               :key="entry.item.id"
-              :selected="toolStore.selectedElement?.itemId === entry.item.id"
+              :selected="toolStore.isElementSelected(entry.item.id, entry.layerId)"
               variant="default"
               padding="sm"
               interactive
               custom-class="p-1.5! flex items-center gap-2 shrink-0 group hover:border-slate-700"
-              @click="handleSelectAndFocus(entry)"
+              @click="(e) => handleSelectAndFocus(entry, e)"
             >
               <!-- Thumbnail -->
               <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner border border-slate-800/80">
@@ -112,8 +131,16 @@
                 </div>
               </div>
 
-              <!-- Focus / Delete buttons on hover -->
+              <!-- Select All of this asset / Focus / Delete buttons on hover -->
               <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <UiIconButton 
+                  :icon="CopyCheck"
+                  size="sm"
+                  variant="ghost"
+                  :title="$t('inspector.selectAllOnMap', { count: mapStore.getAllItemsByAssetId(entry.item.assetId).length })"
+                  custom-class="p-0.5! w-6! h-6! text-brand-400 hover:text-brand-300"
+                  @click.stop="handleSelectAllOfAsset(entry)"
+                />
                 <UiIconButton 
                   :icon="Crosshair"
                   size="sm"
@@ -132,6 +159,32 @@
                 />
               </div>
             </UiCard>
+
+            <!-- Load More / Count Bar -->
+            <div 
+              v-if="filteredPlacedElements.length > displayLimit" 
+              class="p-2 flex items-center justify-between bg-slate-900/90 rounded-xl border border-slate-800/80 mt-1 shrink-0 shadow-xs"
+            >
+              <span class="text-[10px] text-slate-400 font-medium">
+                {{ displayedPlacedElements.length }} / {{ filteredPlacedElements.length }}
+              </span>
+              <div class="flex items-center gap-1">
+                <UiButton 
+                  variant="secondary" 
+                  size="xs" 
+                  @click="displayLimit += 50"
+                >
+                  +50
+                </UiButton>
+                <UiButton 
+                  variant="ghost" 
+                  size="xs" 
+                  @click="displayLimit = filteredPlacedElements.length"
+                >
+                  {{ $t('common.all') || 'All' }}
+                </UiButton>
+              </div>
+            </div>
           </div>
 
           <!-- Empty state when map has 0 elements -->
@@ -162,6 +215,139 @@
 
           <!-- Scrollable Layer Items -->
           <div class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar p-1">
+            
+            <!-- SPECIAL UNITS (CREEPS) LAYER CARD -->
+            <UiCard 
+              variant="default"
+              padding="sm"
+              custom-class="p-2! flex flex-col gap-1.5 shrink-0 border-purple-800/60 bg-linear-to-b from-purple-950/40 to-slate-900/80 shadow-md ring-1 ring-purple-500/20"
+            >
+              <!-- Units Layer Header -->
+              <div class="flex items-center justify-between gap-1.5">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <UiIconButton 
+                    :icon="characterStore.isEnabled ? Eye : EyeOff"
+                    size="sm"
+                    variant="ghost"
+                    :title="characterStore.isEnabled ? $t('sidebar.hideLayer') : $t('sidebar.showLayer')"
+                    :custom-class="characterStore.isEnabled ? 'text-purple-400 hover:text-purple-300' : 'text-slate-600'"
+                    @click.stop="characterStore.isEnabled = !characterStore.isEnabled"
+                  />
+
+                  <div class="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer select-none" @click="isUnitsLayerExpanded = !isUnitsLayerExpanded">
+                    <Users class="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span class="text-[11px] font-bold text-purple-200 truncate">{{ $t('sidebar.unitsLayer') }}</span>
+                    <UiBadge variant="brand" size="xs" custom-class="text-[9px]! px-1! py-0! bg-purple-900/60 text-purple-300 border-purple-700/50">
+                      Z:100k+
+                    </UiBadge>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 shrink-0">
+                  <UiIconButton 
+                    :icon="characterStore.isPlaying ? Pause : Play"
+                    size="sm"
+                    :variant="characterStore.isPlaying ? 'amber' : 'ghost'"
+                    :title="characterStore.isPlaying ? $t('common.pause') || 'Pause' : $t('sidebar.testSpawn') || 'Test Wave'"
+                    custom-class="p-0.5! w-6! h-6! text-emerald-400 hover:text-emerald-300"
+                    @click.stop="characterStore.togglePlay()"
+                  />
+                  <UiIconButton 
+                    :icon="isUnitsLayerExpanded ? ChevronDown : ChevronRight"
+                    size="sm"
+                    variant="ghost"
+                    custom-class="p-0.5! w-6! h-6! text-slate-400 hover:text-slate-200"
+                    @click.stop="isUnitsLayerExpanded = !isUnitsLayerExpanded"
+                  />
+                </div>
+              </div>
+
+              <!-- Units Layer Body (Elevation, Scale, Speed Controls) -->
+              <div v-if="isUnitsLayerExpanded" class="flex flex-col gap-2 pt-1 border-t border-purple-900/40 text-[10px] text-slate-300">
+                <!-- Unit Elevation (Balandlik / Bo'y) -->
+                <div class="flex flex-col gap-1 bg-slate-950/50 p-1.5 rounded-xl border border-purple-900/30">
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1 font-semibold text-purple-300">
+                      <MoveVertical class="w-3 h-3 text-purple-400" />
+                      {{ $t('sidebar.unitElevation') }}
+                    </span>
+                    <div class="flex items-center gap-1">
+                      <span class="font-mono text-purple-300 font-bold">
+                        {{ characterStore.unitElevation > 0 ? `+${characterStore.unitElevation}` : characterStore.unitElevation }}px
+                      </span>
+                      <UiButton 
+                        v-if="characterStore.unitElevation !== 0"
+                        variant="ghost" 
+                        size="xs" 
+                        custom-class="p-0! h-4! text-[9px]! text-slate-400 hover:text-white"
+                        :title="$t('common.reset')"
+                        @click="resetUnitElevation"
+                      >
+                        <RotateCcw class="w-2.5 h-2.5" />
+                      </UiButton>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <UiSlider 
+                      :model-value="characterStore.unitElevation"
+                      :min="-60"
+                      :max="60"
+                      :step="1"
+                      class="flex-1"
+                      @update:model-value="(val) => { characterStore.unitElevation = val; characterStore.syncCharacterConfigToProject() }"
+                    />
+                  </div>
+                  <!-- Quick Elevation Presets -->
+                  <div class="flex items-center gap-1 mt-0.5 justify-between">
+                    <button 
+                      v-for="p in [-32, -16, 0, 16, 32]" 
+                      :key="p"
+                      class="px-1.5 py-0.5 rounded text-[9px] font-mono transition-colors"
+                      :class="characterStore.unitElevation === p ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-slate-200'"
+                      @click="characterStore.unitElevation = p; characterStore.syncCharacterConfigToProject()"
+                    >
+                      {{ p > 0 ? `+${p}` : p }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Unit Scale (O'lcham) -->
+                <div class="flex flex-col gap-1 bg-slate-950/50 p-1.5 rounded-xl border border-purple-900/30">
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1 font-semibold text-purple-300">
+                      <Maximize2 class="w-3 h-3 text-purple-400" />
+                      {{ $t('sidebar.unitScale') }}
+                    </span>
+                    <div class="flex items-center gap-1">
+                      <span class="font-mono text-purple-300 font-bold">
+                        {{ characterStore.unitScaleMultiplier.toFixed(2) }}x
+                      </span>
+                      <UiButton 
+                        v-if="characterStore.unitScaleMultiplier !== 1.0"
+                        variant="ghost" 
+                        size="xs" 
+                        custom-class="p-0! h-4! text-[9px]! text-slate-400 hover:text-white"
+                        :title="$t('common.reset')"
+                        @click="resetUnitScale"
+                      >
+                        <RotateCcw class="w-2.5 h-2.5" />
+                      </UiButton>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <UiSlider 
+                      :model-value="characterStore.unitScaleMultiplier"
+                      :min="0.5"
+                      :max="2.0"
+                      :step="0.05"
+                      class="flex-1"
+                      @update:model-value="(val) => { characterStore.unitScaleMultiplier = val; characterStore.syncCharacterConfigToProject() }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </UiCard>
+
             <UiCard 
               v-for="layer in reversedLayers" 
               :key="layer.id"
@@ -473,7 +659,7 @@
         <div class="flex-1 p-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div 
             v-if="assetStore.filteredAssets.length > 0"
-            class="grid grid-cols-3 gap-2"
+            class="grid grid-cols-4 gap-2"
           >
             <div 
               v-for="asset in assetStore.filteredAssets" 
@@ -567,12 +753,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { 
-  Boxes, Layers, ChevronLeft, ChevronRight, Search, 
+  Boxes, Layers, ChevronLeft, ChevronRight, ChevronDown, Search, 
   Crosshair, Trash2, FolderOpen, FolderUp, ImagePlus, 
   UploadCloud, Plus, Eye, EyeOff, Lock, Unlock, 
-  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin, PaintBucket
+  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin, PaintBucket,
+  CopyCheck, Users, MoveVertical, Maximize2, RotateCcw, Play, Pause
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -606,10 +793,26 @@ const { t } = useI18n()
 
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 const activeTopTab = ref<'elements' | 'layers' | 'routes'>('elements')
+const isUnitsLayerExpanded = ref(true)
 const elementSearchQuery = ref('')
+const displayLimit = ref(40)
+
+function resetUnitElevation() {
+  characterStore.unitElevation = 0
+  characterStore.syncCharacterConfigToProject()
+}
+
+function resetUnitScale() {
+  characterStore.unitScaleMultiplier = 1.0
+  characterStore.syncCharacterConfigToProject()
+}
+
+watch([elementSearchQuery, activeTopTab], () => {
+  displayLimit.value = 40
+})
 
 const topTabItems = computed<TabItem[]>(() => [
-  { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.allPlacedElements.length },
+  { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
   { id: 'layers', label: t('sidebar.layersTab') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
   { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: characterStore.detectedDoors.length }
 ])
@@ -653,9 +856,9 @@ function getRouteStats(door: any, idx: number): string {
   const doorKey = door.id || `door-${idx}`
   const waypoints = characterStore.customWaypoints[doorKey] || []
   const path = characterStore.customRoutes[doorKey] || []
-  if (waypoints.length > 0) return `${waypoints.length} pts (${path.length} tiles)`
-  if (path.length > 1) return `${path.length} tiles`
-  return '1 pt (default)'
+  if (waypoints.length > 0) return t('sidebar.routeStatsPoints', { points: waypoints.length, tiles: path.length })
+  if (path.length > 1) return t('sidebar.routeStatsTiles', { tiles: path.length })
+  return t('sidebar.routeStatsDefault')
 }
 
 const folderInputRef = ref<HTMLInputElement | null>(null)
@@ -665,6 +868,34 @@ const selectedAssetForAnchor = ref<AssetItem | null>(null)
 const reversedLayers = computed(() => {
   return [...mapStore.project.layers].reverse()
 })
+
+// Fast O(1) asset map lookup
+const assetMap = computed(() => {
+  const map = new Map<string, AssetItem>()
+  for (const a of assetStore.assets) {
+    if (!a) continue
+    map.set(a.id, a)
+    const cleanId = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    if (!map.has(cleanId)) map.set(cleanId, a)
+    if (a.name) {
+      const nameKey = a.name.toLowerCase()
+      if (!map.has(nameKey)) map.set(nameKey, a)
+    }
+    if (a.fileRelativePath) {
+      const pathKey = a.fileRelativePath.toLowerCase()
+      if (!map.has(pathKey)) map.set(pathKey, a)
+    }
+  }
+  return map
+})
+
+function getAsset(assetId: string): AssetItem | null {
+  if (!assetId) return null
+  const direct = assetMap.value.get(assetId)
+  if (direct) return direct
+  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+  return assetMap.value.get(cleanId) || null
+}
 
 const filteredPlacedElements = computed(() => {
   const query = elementSearchQuery.value.trim().toLowerCase()
@@ -678,15 +909,9 @@ const filteredPlacedElements = computed(() => {
   })
 })
 
-function getAsset(assetId: string) {
-  if (!assetId) return null
-  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-  return assetStore.assets.find(a => {
-    if (a.id === assetId) return true
-    const aClean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-    return aClean === cleanId || (a.fileRelativePath && a.fileRelativePath.toLowerCase().includes(cleanId))
-  }) || null
-}
+const displayedPlacedElements = computed(() => {
+  return filteredPlacedElements.value.slice(0, displayLimit.value)
+})
 
 function getAssetThumbnailStyle(asset: AssetItem) {
   if (asset.contentBounds && asset.height && asset.width) {
@@ -719,16 +944,35 @@ function getAssetThumbnailStyle(asset: AssetItem) {
   }
 }
 
-function handleSelectAndFocus(entry: PlacedElementEntry) {
-  toolStore.setSelectedElement({
+function handleSelectAndFocus(entry: PlacedElementEntry, event?: MouseEvent) {
+  const ref = {
     col: entry.col,
     row: entry.row,
     layerId: entry.layerId,
     itemId: entry.item.id,
-  })
+  }
+  if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
+    toolStore.toggleSelectedElement(ref)
+  } else {
+    toolStore.setSelectedElement(ref)
+  }
   toolStore.setTool('select')
   mapStore.activeLayerId = entry.layerId
   emit('focus-cell', { col: entry.col, row: entry.row })
+}
+
+function handleSelectAllOfAsset(entry: PlacedElementEntry) {
+  const allInstances = mapStore.getAllItemsByAssetId(entry.item.assetId)
+  if (allInstances.length > 0) {
+    toolStore.setSelectedElements(allInstances.map(e => ({
+      col: e.col,
+      row: e.row,
+      layerId: e.layerId,
+      itemId: e.item.id
+    })))
+    toolStore.setTool('select')
+    emit('focus-cell', { col: entry.col, row: entry.row })
+  }
 }
 
 function handleFocusOnly(entry: PlacedElementEntry) {
@@ -768,7 +1012,7 @@ async function handleFilesSelect(event: Event) {
 
 function handleAssetClick(assetId: string) {
   if (assetStore.selectedAssetId === assetId) {
-    const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'rect', 'box-fill']
+    const drawingTools: ToolType[] = ['brush', 'bucket', 'line', 'box-fill']
     if (!drawingTools.includes(toolStore.activeTool)) {
       toolStore.setTool(toolStore.lastDrawingTool || 'brush')
     } else {

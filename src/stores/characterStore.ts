@@ -92,6 +92,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const showPathTrail = ref(true)
   const showSpawnPoints = ref(true)
   const autoLoop = ref(true)
+  const unitElevation = ref(0) // Global unit elevation / height offset in pixels (-60 to +60)
+  const unitScaleMultiplier = ref(1.0) // Global unit scale multiplier (0.5 to 2.0)
 
   // Game Mode & Economy State (Configured per map in mapStore.project.gameSettings)
   const isGameMode = ref(false) // Toggle between Map Redaktor and Playable Game Mode
@@ -824,11 +826,47 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
   }
 
+  function syncCharacterConfigToProject() {
+    if (!mapStore.project) return
+    mapStore.project.characterConfig = {
+      spawnCount: spawnCount.value,
+      speed: unitSpeed.value,
+      spawnMode: spawnMode.value,
+      formation: formation.value,
+      pairDistance: pairDistance.value,
+      followCamera: followCamera.value,
+      showPathTrail: showPathTrail.value,
+      autoLoop: autoLoop.value,
+      selectedDoorIndex: selectedDoorIndex.value,
+      unitElevation: unitElevation.value,
+      unitScaleMultiplier: unitScaleMultiplier.value,
+    }
+  }
+
+  function restoreCharacterConfigFromProject() {
+    const p = mapStore.project as any
+    if (p && p.characterConfig) {
+      const cfg = p.characterConfig
+      if (cfg.spawnCount !== undefined) spawnCount.value = cfg.spawnCount
+      if (cfg.speed !== undefined) unitSpeed.value = cfg.speed
+      if (cfg.spawnMode !== undefined) spawnMode.value = cfg.spawnMode
+      if (cfg.formation !== undefined) formation.value = cfg.formation
+      if (cfg.pairDistance !== undefined) pairDistance.value = cfg.pairDistance
+      if (cfg.followCamera !== undefined) followCamera.value = cfg.followCamera
+      if (cfg.showPathTrail !== undefined) showPathTrail.value = cfg.showPathTrail
+      if (cfg.autoLoop !== undefined) autoLoop.value = cfg.autoLoop
+      if (cfg.selectedDoorIndex !== undefined) selectedDoorIndex.value = cfg.selectedDoorIndex
+      if (cfg.unitElevation !== undefined) unitElevation.value = Number(cfg.unitElevation) || 0
+      if (cfg.unitScaleMultiplier !== undefined) unitScaleMultiplier.value = Number(cfg.unitScaleMultiplier) || 1.0
+    }
+  }
+
   function syncWavesToProject() {
     if (!mapStore.project) return
     ;(mapStore.project as any).waveConfigs = waveConfigs.value.map(w => ({ ...w }))
     ;(mapStore.project as any).currentWaveIndex = currentWaveIndex.value
     syncGameSettingsToProject()
+    syncCharacterConfigToProject()
   }
 
   function restoreWavesFromProject() {
@@ -850,6 +888,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     }
     restoreGameSettingsFromProject()
+    restoreCharacterConfigFromProject()
   }
 
   function addNewWave() {
@@ -1804,6 +1843,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
     totalGoldEarned,
     aliveEnemiesCount,
     leakedEnemiesCount,
+    unitElevation,
+    unitScaleMultiplier,
+    syncCharacterConfigToProject,
+    restoreCharacterConfigFromProject,
     deadEnemiesCount,
     totalWaveEnemiesCount,
   }

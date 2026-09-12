@@ -7,7 +7,7 @@
     icon-color="amber"
     size="4xl"
     :close-on-backdrop="false"
-    :show-close-button="!!towerStore.selectedClanId"
+    :show-close="!!towerStore.selectedClanId"
     @close="towerStore.closeClanSelectModal()"
   >
     <div class="flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar p-1 select-none">

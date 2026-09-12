@@ -287,6 +287,64 @@ export const useMapStore = defineStore('mapStore', () => {
     return results
   }
 
+  // Find all elements that exist directly on (col, row) OR whose multi-cell footprint covers (col, row) across ALL layers
+  function getAllElementsAtOrCoveringCell(col: number, row: number): { 
+    item: TileItem
+    originCol: number
+    originRow: number
+    isCovering: boolean
+    cellZIndex: number
+    layerId: string
+    layerName: string
+  }[] {
+    const results: { 
+      item: TileItem
+      originCol: number
+      originRow: number
+      isCovering: boolean
+      cellZIndex: number
+      layerId: string
+      layerName: string
+    }[] = []
+
+    if (!project.value || !project.value.layers) return []
+
+    // Iterate through layers in top-to-bottom visual order
+    for (let i = project.value.layers.length - 1; i >= 0; i--) {
+      const layer = project.value.layers[i]
+      if (!layer || !layer.tiles) continue
+
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item) continue
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+
+          const inBounds = col >= originCol && col < originCol + spanX && row >= originRow && row < originRow + spanY
+
+          if (inBounds) {
+            const specificZ = item.cellZIndex?.[cellKey(col, row)] ?? item.zIndex ?? 0
+            results.push({
+              item,
+              originCol,
+              originRow,
+              isCovering: originCol !== col || originRow !== row,
+              cellZIndex: specificZ,
+              layerId: layer.id,
+              layerName: layer.name,
+            })
+          }
+        }
+      }
+    }
+
+    results.sort((a, b) => b.cellZIndex - a.cellZIndex)
+    return results
+  }
+
   // Layer Actions
   function addLayer(name?: string) {
     const num = project.value.layers.length + 1
@@ -1352,6 +1410,346 @@ export const useMapStore = defineStore('mapStore', () => {
     pushHistory('Cleared all layers')
   }
 
+  // --- Batch Operations for Multi-Select & Identical Assets Management ---
+
+  function getAllItemsByAssetId(assetId: string, layerId?: string): { col: number; row: number; layerId: string; item: TileItem }[] {
+    const results: { col: number; row: number; layerId: string; item: TileItem }[] = []
+    const cleanTargetId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+
+    const layersToScan = layerId ? project.value.layers.filter(l => l.id === layerId) : project.value.layers
+    for (const layer of layersToScan) {
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        for (const item of items) {
+          const itemClean = item.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+          if (item.assetId === assetId || itemClean === cleanTargetId) {
+            results.push({
+              col: item.x,
+              row: item.y,
+              layerId: layer.id,
+              item,
+            })
+          }
+        }
+      }
+    }
+    return results
+  }
+
+  function batchMoveItemsToLayer(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    targetLayerId: string
+  ) {
+    const targetLayer = project.value.layers.find(l => l.id === targetLayerId)
+    if (!targetLayer || targetLayer.locked) return
+
+    let movedCount = 0
+    for (const entry of items) {
+      if (entry.layerId === targetLayerId) continue
+      const fromLayer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!fromLayer) continue
+
+      const key = cellKey(entry.col, entry.row)
+      const fromItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const index = fromItems.findIndex(i => i.id === entry.itemId)
+      if (index === -1) continue
+
+      const [item] = fromItems.splice(index, 1)
+      if (fromItems.length === 0) {
+        delete fromLayer.tiles[key]
+      } else {
+        fromLayer.tiles[key] = [...fromItems]
+      }
+
+      const toItems = getCellItems(entry.col, entry.row, targetLayerId)
+      targetLayer.tiles[key] = [...toItems, item]
+      entry.layerId = targetLayerId
+      movedCount++
+    }
+
+    if (movedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Moved ${movedCount} elements to layer: ${targetLayer.name}`)
+    }
+  }
+
+  function batchUpdateItemsAnchor(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    anchorX: number, 
+    anchorY: number
+  ) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.anchorX = Math.max(0, Math.min(1.0, Number(anchorX.toFixed(2))))
+      item.anchorY = Math.max(0, Math.min(1.0, Number(anchorY.toFixed(2))))
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Updated anchor for ${updatedCount} elements`)
+    }
+  }
+
+  function batchUpdateItemsScale(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    scale: number
+  ) {
+    let updatedCount = 0
+    const cleanScale = Math.max(0.1, Math.min(5.0, Number(scale.toFixed(2))))
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.scale = cleanScale
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Updated scale to ${cleanScale}x for ${updatedCount} elements`)
+    }
+  }
+
+  function batchAdjustItemsScale(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    delta: number
+  ) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      const current = item.scale || 1.0
+      item.scale = Math.max(0.1, Math.min(5.0, Number((current + delta).toFixed(2))))
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Adjusted scale for ${updatedCount} elements`)
+    }
+  }
+
+  function batchShiftItemsDepthOffset(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    delta: number
+  ) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      const current = item.depthOffset || 0
+      item.depthOffset = Math.max(-10, Math.min(10, current + delta))
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Adjusted depth offset for ${updatedCount} elements`)
+    }
+  }
+
+  function batchSetItemsDepthOffset(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    offset: number
+  ) {
+    let updatedCount = 0
+    const cleanOffset = Math.max(-10, Math.min(10, Math.round(offset)))
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.depthOffset = cleanOffset
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Set depth offset to ${cleanOffset} for ${updatedCount} elements`)
+    }
+  }
+
+  function batchAdjustItemsZIndex(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    delta: number
+  ) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      const current = item.zIndex || 0
+      const nextZ = Math.max(0, Math.min(999, current + delta))
+      setAllCellsZIndex(entry.col, entry.row, entry.itemId, nextZ, entry.layerId)
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Adjusted Z-Index for ${updatedCount} elements`)
+    }
+  }
+
+  function batchSetItemsZIndex(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    zIndex: number
+  ) {
+    let updatedCount = 0
+    const cleanZ = Math.max(0, Math.min(999, Math.round(zIndex)))
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      setAllCellsZIndex(entry.col, entry.row, entry.itemId, cleanZ, entry.layerId)
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Set Z-Index to ${cleanZ} for ${updatedCount} elements`)
+    }
+  }
+
+  function batchNudgeItemsOffset(
+    items: { col: number; row: number; itemId: string; layerId: string }[], 
+    dx: number, 
+    dy: number
+  ) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.offsetX = (item.offsetX || 0) + dx
+      item.offsetY = (item.offsetY || 0) + dy
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Nudged offset for ${updatedCount} elements`)
+    }
+  }
+
+  function batchResetItemsOffset(items: { col: number; row: number; itemId: string; layerId: string }[]) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.offsetX = 0
+      item.offsetY = 0
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Reset offset for ${updatedCount} elements`)
+    }
+  }
+
+  function batchFlipItemsX(items: { col: number; row: number; itemId: string; layerId: string }[]) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.flipX = !item.flipX
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Flipped ${updatedCount} elements`)
+    }
+  }
+
+  function batchRotateItems(items: { col: number; row: number; itemId: string; layerId: string }[], angleDelta = 90) {
+    let updatedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const item = cellItems.find(i => i.id === entry.itemId)
+      if (!item) continue
+
+      item.rotation = ((item.rotation || 0) + angleDelta) % 360
+      updatedCount++
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Rotated ${updatedCount} elements`)
+    }
+  }
+
+  function batchRemoveTileItems(items: { col: number; row: number; itemId: string; layerId: string }[]) {
+    let removedCount = 0
+    for (const entry of items) {
+      const layer = project.value.layers.find(l => l.id === entry.layerId)
+      if (!layer || layer.locked) continue
+
+      const key = cellKey(entry.col, entry.row)
+      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
+      const index = cellItems.findIndex(i => i.id === entry.itemId)
+      if (index === -1) continue
+
+      cellItems.splice(index, 1)
+      if (cellItems.length === 0) {
+        delete layer.tiles[key]
+      } else {
+        layer.tiles[key] = [...cellItems]
+      }
+      removedCount++
+    }
+
+    if (removedCount > 0) {
+      project.value.updatedAt = Date.now()
+      pushHistory(`Deleted ${removedCount} elements`)
+    }
+  }
+
   if (history.value.length === 0) {
     history.value.push({
       description: 'Initial state',
@@ -1372,6 +1770,8 @@ export const useMapStore = defineStore('mapStore', () => {
     allPlacedElements,
     getCellItems,
     getElementsAtOrCoveringCell,
+    getAllElementsAtOrCoveringCell,
+    getAllItemsByAssetId,
     getLayerCellStats,
     pushHistory,
     undo,
@@ -1386,26 +1786,39 @@ export const useMapStore = defineStore('mapStore', () => {
     renameLayer,
     moveLayer,
     moveItemToLayer,
+    batchMoveItemsToLayer,
     setTile,
     removeTile,
     removeTileItem,
+    batchRemoveTileItems,
     moveTileItem,
     setItemZIndex,
     setCellSpecificZIndex,
     setAllCellsZIndex,
     adjustCellZIndex,
+    batchAdjustItemsZIndex,
+    batchSetItemsZIndex,
     shiftItemDepthOffset,
     setItemDepthOffset,
+    batchShiftItemsDepthOffset,
+    batchSetItemsDepthOffset,
     bringItemForward,
     sendItemBackward,
     bringItemToTop,
     sendItemToBottom,
     flipTileItem,
     rotateTileItem,
+    batchFlipItemsX,
+    batchRotateItems,
     updateItemScale,
+    batchUpdateItemsScale,
+    batchAdjustItemsScale,
     updateItemAnchor,
+    batchUpdateItemsAnchor,
     updateItemSpan,
     updateTileOffset,
+    batchNudgeItemsOffset,
+    batchResetItemsOffset,
     fillTiles,
     fillEmptyCells,
     fillEmptyCellsInBox,

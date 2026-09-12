@@ -219,8 +219,6 @@ function handleGameCellClick(gridCoord: GridCoord) {
     const existingTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
     if (existingTower) {
       notify.warning(t('game.tileAlreadyOccupied'), t('game.cannotPlaceHere'))
-      towerStore.selectBuildTower(null)
-      towerStore.selectPlacedTower(existingTower.id)
       pendingBuildCell = null
       toolStore.setHoveredCell(null)
       return
