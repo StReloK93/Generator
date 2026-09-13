@@ -33,6 +33,7 @@ export class IsoEngine {
   public coordsContainer: Container
   public spawnOverlayGraphics: Graphics
   public spawnMarkersContainer: Container
+  public buildableOverlayGraphics: Graphics
 
   // Character Container & Sprites
   public pathTrailGraphics: Graphics
@@ -76,6 +77,7 @@ export class IsoEngine {
     this.buildGhostSprite.visible = false
     this.spawnOverlayGraphics = new Graphics()
     this.spawnMarkersContainer = new Container()
+    this.buildableOverlayGraphics = new Graphics()
 
     // Character elements
     this.pathTrailGraphics = new Graphics()
@@ -130,6 +132,7 @@ export class IsoEngine {
     this.overlayContainer.addChild(this.selectionGraphics)
     this.overlayContainer.addChild(this.previewContainer)
     this.overlayContainer.addChild(this.buildGhostSprite)
+    this.overlayContainer.addChild(this.buildableOverlayGraphics)
     this.overlayContainer.addChild(this.pathTrailGraphics)
     this.overlayContainer.addChild(this.spawnOverlayGraphics)
     this.overlayContainer.addChild(this.spawnMarkersContainer)
@@ -352,6 +355,51 @@ export class IsoEngine {
     }
   }
 
+  private lastBuildableSignature = ''
+
+  renderBuildableOverlay(
+    project: MapProject,
+    isVisible: boolean,
+    activeTool?: string
+  ): void {
+    if (!this.isInitialized) return
+
+    const shouldShow = Boolean(isVisible || activeTool === 'buildable')
+    const { cols, rows, tileWidth, tileHeight } = project
+    const isCustom = project.buildMode === 'custom' || (Array.isArray(project.buildableCells) && project.buildableCells.length > 0)
+    const count = project.buildableCells?.length || 0
+    const buildableHash = isCustom && project.buildableCells ? project.buildableCells.slice(0, 100).join('|') : ''
+    const sig = `${shouldShow}_${activeTool || ''}_${cols}_${rows}_${tileWidth}_${tileHeight}_${project.buildMode || 'all'}_${count}_${buildableHash}`
+
+    if (sig === this.lastBuildableSignature) return
+    this.lastBuildableSignature = sig
+
+    this.buildableOverlayGraphics.clear()
+    if (!shouldShow) return
+
+    const buildableSet = new Set(project.buildableCells || [])
+
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        const isBuildable = isCustom ? buildableSet.has(`${c},${r}`) : true
+        const poly = getCellPolygon(c, r, tileWidth, tileHeight)
+        if (isBuildable) {
+          // Luminous emerald isometric diamond footprint overlay (Crystal clear above all map layers)
+          this.buildableOverlayGraphics
+            .poly(poly)
+            .fill({ color: 0x10b981, alpha: 0.18 })
+            .stroke({ width: 1.5, color: 0x34d399, alpha: 0.75 })
+        } else if (activeTool === 'buildable') {
+          // When actively editing buildable zones, mark non-buildable cells in faint red
+          this.buildableOverlayGraphics
+            .poly(poly)
+            .fill({ color: 0xef4444, alpha: 0.08 })
+            .stroke({ width: 1, color: 0xf87171, alpha: 0.35 })
+        }
+      }
+    }
+  }
+
   renderHoverCell(
     hovered: GridCoord | null,
     project: MapProject,
@@ -374,7 +422,13 @@ export class IsoEngine {
     let strokeColor = 0x38bdf8
     let fillColor = 0x38bdf8
 
-    if (activeTool === 'eraser' || activeTool === 'box-clear') {
+    if (activeTool === 'buildable') {
+      strokeColor = 0x34d399
+      fillColor = 0x10b981
+    } else if (activeTool === 'buildable-block') {
+      strokeColor = 0xf87171
+      fillColor = 0xef4444
+    } else if (activeTool === 'eraser' || activeTool === 'box-clear') {
       strokeColor = 0xf87171
       fillColor = 0xef4444
     } else if (activeTool === 'bucket') {
@@ -393,11 +447,11 @@ export class IsoEngine {
 
     this.hoverGraphics
       .poly(poly)
-      .fill({ color: fillColor, alpha: (activeTool === 'box-fill' || activeTool === 'box-clear') ? 0.35 : 0.28 })
+      .fill({ color: fillColor, alpha: (activeTool === 'box-fill' || activeTool === 'box-clear' || activeTool.startsWith('buildable')) ? 0.35 : 0.28 })
       .stroke({ width: 2, color: strokeColor, alpha: 0.95 })
 
-    // Ghost preview fitted to 1 tile width - ONLY for placing tools (not box-fill, box-clear, eraser, picker)
-    if (activeAsset && activeTool !== 'box-fill' && activeTool !== 'box-clear' && activeTool !== 'eraser' && activeTool !== 'picker') {
+    // Ghost preview fitted to 1 tile width - ONLY for placing tools (not box-fill, box-clear, eraser, picker, buildable)
+    if (activeAsset && activeTool !== 'box-fill' && activeTool !== 'box-clear' && activeTool !== 'eraser' && activeTool !== 'picker' && !activeTool.startsWith('buildable')) {
       const texture = this.getTexture(activeAsset)
       if (texture) {
         const ghost = new Sprite(texture)
@@ -468,21 +522,22 @@ export class IsoEngine {
     if (cells.length === 0) return
 
     const { tileWidth, tileHeight } = project
-    const isEraser = activeTool === 'eraser'
+    const isEraser = activeTool === 'eraser' || activeTool === 'buildable-block'
     const isBoxClear = activeTool === 'box-clear'
     const isBoxFill = activeTool === 'box-fill'
-    const color = (isEraser || isBoxClear) ? 0xef4444 : (isBoxFill ? 0x0284c7 : 0x6366f1)
-    const strokeColor = (isEraser || isBoxClear) ? 0xf87171 : (isBoxFill ? 0x38bdf8 : 0x818cf8)
+    const isBuildable = activeTool === 'buildable' || activeTool.startsWith('buildable')
+    const color = (isEraser || isBoxClear) ? 0xef4444 : (isBoxFill ? 0x0284c7 : (isBuildable ? 0x10b981 : 0x6366f1))
+    const strokeColor = (isEraser || isBoxClear) ? 0xf87171 : (isBoxFill ? 0x38bdf8 : (isBuildable ? 0x34d399 : 0x818cf8))
 
     for (const cell of cells) {
       if (!isInsideGrid(cell.col, cell.row, project.cols, project.rows)) continue
       const poly = getCellPolygon(cell.col, cell.row, tileWidth, tileHeight)
       this.hoverGraphics
         .poly(poly)
-        .fill({ color, alpha: (isBoxFill || isBoxClear) ? 0.38 : 0.35 })
-        .stroke({ width: (isBoxFill || isBoxClear) ? 2.0 : 1.5, color: strokeColor, alpha: 0.95 })
+        .fill({ color, alpha: (isBoxFill || isBoxClear || isBuildable) ? 0.38 : 0.35 })
+        .stroke({ width: (isBoxFill || isBoxClear || isBuildable) ? 2.0 : 1.5, color: strokeColor, alpha: 0.95 })
 
-      if (!isEraser && !isBoxClear && !isBoxFill && activeAsset) {
+      if (!isEraser && !isBoxClear && !isBoxFill && !isBuildable && activeAsset) {
         const texture = this.getTexture(activeAsset)
         if (texture) {
           const ghost = new Sprite(texture)
@@ -856,11 +911,7 @@ export class IsoEngine {
 
         const shadow = new Graphics()
         shadow.zIndex = 0
-        const shadowRadiusX = tileWidth * 0.28
-        const shadowRadiusY = tileHeight * 0.28
-        shadow
-          .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-          .fill({ color: 0x000000, alpha: 0.45 })
+        shadow.visible = false
 
         const sprite = new Sprite()
         sprite.zIndex = 1
@@ -979,8 +1030,11 @@ export class IsoEngine {
         .fill({ color: 0x38bdf8, alpha: 0.12 })
         .stroke({ width: 2, color: 0x38bdf8, alpha: 0.85 })
     } else if (towerStore.activeBuildTowerId && hoveredGridCoord) {
+      const isCustomBuild = project.buildMode === 'custom' || (Array.isArray(project.buildableCells) && project.buildableCells.length > 0)
+      const isNotBuildable = isCustomBuild && !project.buildableCells?.includes(`${hoveredGridCoord.col},${hoveredGridCoord.row}`)
       const isBlocked = (characterStore.isCellBlockedForBuilding && characterStore.isCellBlockedForBuilding(hoveredGridCoord.col, hoveredGridCoord.row)) ||
-                        towerStore.placedTowers.some(t => t.col === hoveredGridCoord.col && t.row === hoveredGridCoord.row)
+                        towerStore.placedTowers.some(t => t.col === hoveredGridCoord.col && t.row === hoveredGridCoord.row) ||
+                        isNotBuildable
       const ringColor = isBlocked ? 0xef4444 : 0x10b981
       const bp = towerStore.blueprints?.find((b: any) => b.id === towerStore.activeBuildTowerId) || towerStore.activeBlueprint
       const r = bp ? bp.range : 3.5
@@ -1725,11 +1779,11 @@ export class IsoEngine {
 
       const shadow = new Graphics()
       shadow.zIndex = 0
-      const shadowRadiusX = tileWidth * 0.18
-      const shadowRadiusY = tileHeight * 0.18
+      const shadowRadiusX = tileWidth * 0.10
+      const shadowRadiusY = tileHeight * 0.10
       shadow
         .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-        .fill({ color: 0x000000, alpha: 0.4 })
+        .fill({ color: 0x000000, alpha: 0.14 })
 
       const sprite = new Sprite()
       sprite.zIndex = 1

@@ -172,36 +172,14 @@
           <!-- Scale Card -->
           <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
             <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.batchScale') }}</span>
-            <div class="grid grid-cols-4 gap-1">
-              <UiButton 
-                variant="secondary" 
-                size="xs" 
-                @click="handleBatchAdjustScale(-0.1)"
-              >
-                -0.1x
-              </UiButton>
-              <UiButton 
-                variant="secondary" 
-                size="xs" 
-                @click="handleBatchAdjustScale(+0.1)"
-              >
-                +0.1x
-              </UiButton>
-              <UiButton 
-                variant="secondary" 
-                size="xs" 
-                @click="handleBatchScaleInput(1.0)"
-              >
-                1.0x
-              </UiButton>
-              <UiButton 
-                variant="secondary" 
-                size="xs" 
-                @click="handleBatchScaleInput(1.5)"
-              >
-                1.5x
-              </UiButton>
-            </div>
+            <UiSlider
+              :model-value="1.0"
+              :min="0.2"
+              :max="3.0"
+              :step="0.05"
+              :format-value="(val) => `${val.toFixed(2)}x`"
+              @update:model-value="handleBatchScaleInput"
+            />
           </UiCard>
 
           <!-- In-Cell Z-Index Card -->
@@ -484,26 +462,10 @@
             <!-- Stepper & Direct Offset Setting -->
             <div class="flex items-center justify-between gap-2 pt-1 border-t border-brand-500/20 text-xs">
               <span class="text-[11px] text-slate-400">{{ $t('inspector.shiftAmount') }}</span>
-              <div class="flex items-center gap-1">
-                <UiIconButton 
-                  size="sm"
-                  variant="default"
-                  custom-class="w-6! h-6!"
-                  @click="shiftDepth(-1)"
-                >
-                  -
-                </UiIconButton>
-                <span class="w-10 text-center font-mono font-bold text-brand-300 text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-bold text-brand-300 text-xs px-1">
                   {{ (activeItem.depthOffset || 0) > 0 ? '+' : '' }}{{ activeItem.depthOffset || 0 }}
                 </span>
-                <UiIconButton 
-                  size="sm"
-                  variant="default"
-                  custom-class="w-6! h-6!"
-                  @click="shiftDepth(+1)"
-                >
-                  +
-                </UiIconButton>
                 <UiButton 
                   v-if="activeItem.depthOffset !== 0"
                   variant="ghost"
@@ -511,7 +473,7 @@
                   :title="$t('inspector.resetDepthDesc')"
                   @click="resetDepth"
                 >
-                  {{ $t('inspector.reset') }}
+                  {{ $t('inspector.reset') }} (0)
                 </UiButton>
               </div>
             </div>
@@ -695,27 +657,9 @@
           <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
             <div class="flex justify-between items-center text-xs">
               <span class="font-semibold text-slate-300">{{ $t('inspector.scale') }}</span>
-              <div class="flex items-center gap-1">
-                <UiIconButton 
-                  size="xs"
-                  variant="default"
-                  custom-class="w-5! h-5!"
-                  @click="adjustScale(-0.1)"
-                >
-                  -
-                </UiIconButton>
-                <span class="font-mono text-xs font-bold text-slate-200 w-10 text-center">
-                  {{ (activeItem.scale || 1.0).toFixed(1) }}x
-                </span>
-                <UiIconButton 
-                  size="xs"
-                  variant="default"
-                  custom-class="w-5! h-5!"
-                  @click="adjustScale(+0.1)"
-                >
-                  +
-                </UiIconButton>
-              </div>
+              <span class="font-mono text-xs font-bold text-slate-200">
+                {{ (activeItem.scale || 1.0).toFixed(2) }}x
+              </span>
             </div>
             <UiSlider
               :model-value="activeItem.scale || 1.0"

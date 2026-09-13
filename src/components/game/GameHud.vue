@@ -43,6 +43,16 @@
             @click="handleFocusCenter"
           />
 
+          <!-- 5. Route Lines Toggle Button -->
+          <UiButton
+            variant="ghost"
+            size="sm"
+            :leading-icon="Footprints"
+            :active="characterStore.showPathTrail !== false"
+            :title="characterStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
+            @click="characterStore.showPathTrail = (characterStore.showPathTrail === false)"
+          />
+
         </div>
       </div>
       <!-- 2. GLOBAL GAME (BASE & WAVE) INDICATORS -->
@@ -226,7 +236,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
+  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages, Footprints
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useMapStore } from '../../stores/mapStore'

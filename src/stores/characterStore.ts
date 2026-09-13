@@ -803,6 +803,43 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }, 2500)
   }
 
+  function resetForNewProject() {
+    waveConfigs.value = []
+    customRoutes.value = {}
+    customWaypoints.value = {}
+    detectedDoors.value = []
+    selectedDoorIndex.value = null
+    doorRoutesCache.value = {}
+    doorWaveProgress.value = {}
+    routeUndoStack.value = []
+    routeRedoStack.value = []
+    units.value = []
+    unitSpeed.value = 2.5
+    spawnCount.value = 10
+    spawnMode.value = 'all_doors'
+    formation.value = 'pairs'
+    pairDistance.value = 0.35
+    followCamera.value = false
+    showPathTrail.value = true
+    autoLoop.value = true
+    unitElevation.value = 0
+    unitScaleMultiplier.value = 1.0
+    startingGold.value = 150
+    startingLives.value = 20
+    wavePrepDuration.value = 10
+    gold.value = 150
+    maxLives.value = 20
+    playerLives.value = 20
+    prepCountdown.value = 10
+    currentWaveIndex.value = 0
+    totalKills.value = 0
+    totalGoldEarned.value = 150
+    lapCount.value = 0
+    isDrawingRoute.value = false
+    isSettingSpawnPoint.value = false
+    statusMessage.value = "Waiting at spawn point"
+  }
+
   function syncGameSettingsToProject() {
     if (!mapStore.project) return
     mapStore.project.gameSettings = {
@@ -823,6 +860,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
       maxLives.value = startingLives.value
       playerLives.value = startingLives.value
       prepCountdown.value = wavePrepDuration.value
+    } else {
+      startingGold.value = 150
+      startingLives.value = 20
+      wavePrepDuration.value = 10
+      gold.value = 150
+      maxLives.value = 20
+      playerLives.value = 20
+      prepCountdown.value = 10
     }
   }
 
@@ -858,6 +903,18 @@ export const useCharacterStore = defineStore('characterStore', () => {
       if (cfg.selectedDoorIndex !== undefined) selectedDoorIndex.value = cfg.selectedDoorIndex
       if (cfg.unitElevation !== undefined) unitElevation.value = Number(cfg.unitElevation) || 0
       if (cfg.unitScaleMultiplier !== undefined) unitScaleMultiplier.value = Number(cfg.unitScaleMultiplier) || 1.0
+    } else {
+      spawnCount.value = 10
+      unitSpeed.value = 2.5
+      spawnMode.value = 'all_doors'
+      formation.value = 'pairs'
+      pairDistance.value = 0.35
+      followCamera.value = false
+      showPathTrail.value = true
+      autoLoop.value = true
+      selectedDoorIndex.value = null
+      unitElevation.value = 0
+      unitScaleMultiplier.value = 1.0
     }
   }
 
@@ -886,6 +943,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
         immunities: Array.isArray(w.immunities) ? w.immunities : [],
       }))
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
+    } else {
+      waveConfigs.value = []
+      currentWaveIndex.value = 0
     }
     restoreGameSettingsFromProject()
     restoreCharacterConfigFromProject()
@@ -1363,9 +1423,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
           if (multiplayerStore.roomId) {
             for (const p of multiplayerStore.players) {
               p.gold = (p.gold || 0) + reward
+              p.totalGoldEarned = (p.totalGoldEarned || p.gold || 0) + reward
               if (p.id === multiplayerStore.myPlayerId) {
                 gold.value = p.gold
-                totalGoldEarned.value += reward
+                totalGoldEarned.value = p.totalGoldEarned
               }
             }
           } else {
@@ -1819,6 +1880,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     saveCurrentWave,
     syncWavesToProject,
     restoreWavesFromProject,
+    resetForNewProject,
     syncGameSettingsToProject,
     restoreGameSettingsFromProject,
     syncSpawnPointsToProject,

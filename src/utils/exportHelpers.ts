@@ -268,6 +268,8 @@ export function buildFullProjectJsonPayload(
       towerBlueprints: resolvedTowerBlueprints,
       waveConfigs: resolvedWaveConfigs,
       currentWaveIndex: resolvedCurrentWaveIndex,
+      buildableCells: project.buildableCells || [],
+      buildMode: project.buildMode || 'all',
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
     },

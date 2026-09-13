@@ -23,6 +23,31 @@ function getActionIcon(action) {
   return '⚡'
 }
 
+// Automatically detect uniform square cell size (256, 320, 512, 192, 128, etc.)
+function detectSheetGrid(imgW, imgH) {
+  const candidates = [256, 320, 512, 192, 160, 128, 96, 64]
+  for (const s of candidates) {
+    if (imgW % s === 0 && imgH % s === 0) {
+      return {
+        cols: Math.max(1, Math.floor(imgW / s)),
+        rows: Math.max(1, Math.floor(imgH / s)),
+        cellW: s,
+        cellH: s
+      }
+    }
+  }
+
+  // Fallback for non-square or arbitrary dimensions
+  const cols = Math.max(1, Math.round(imgW / 256))
+  const rows = Math.max(1, Math.round(imgH / 256))
+  return {
+    cols,
+    rows,
+    cellW: Math.floor(imgW / cols),
+    cellH: Math.floor(imgH / rows)
+  }
+}
+
 // Slice a grid-based sprite sheet (e.g. 1536x1024 -> 6 cols x 4 rows = 24 frames of 256x256)
 async function sliceAndAnalyzeSheet(filePath, baseFrameName, cols = 6, rows = 4) {
   const img = sharp(filePath)
@@ -378,10 +403,11 @@ async function run() {
 
           const action = actionClean ? (actionClean.charAt(0).toUpperCase() + actionClean.slice(1)) : 'Action'
 
-          const cols = Math.max(1, Math.round(imgW / 256))
-          const rows = Math.max(1, Math.round(imgH / 256))
-          const cellW = Math.floor(imgW / cols)
-          const cellH = Math.floor(imgH / rows)
+          const grid = detectSheetGrid(imgW, imgH)
+          const cols = grid.cols
+          const rows = grid.rows
+          const cellW = grid.cellW
+          const cellH = grid.cellH
           detectedCellW = cellW
           detectedCellH = cellH
           const totalSheetFrames = cols * rows
@@ -395,6 +421,24 @@ async function run() {
             }
           } else {
             actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, totalSheetFrames)
+          }
+
+          const lowerActForMap = action.toLowerCase()
+          if (lowerActForMap.includes('run') || lowerActForMap.includes('walk') || lowerActForMap.includes('sprint') || lowerActForMap.includes('move')) {
+            actionsMap['Run'] = {
+              id: 'Run',
+              label: 'Run',
+              icon: '🏃',
+              frameCount: totalSheetFrames,
+            }
+          }
+          if (lowerActForMap.includes('idle') || lowerActForMap.includes('stand') || lowerActForMap.includes('wait')) {
+            actionsMap['Idle'] = {
+              id: 'Idle',
+              label: 'Idle',
+              icon: '🧘',
+              frameCount: totalSheetFrames,
+            }
           }
 
           const sliced = await sliceAndAnalyzeSheet(filePath, `temp_${charPrefix}_${action}_${angle}_`, cols, rows)
@@ -424,6 +468,14 @@ async function run() {
                   ...frame,
                   name: `${charPrefix}_${dir}_Idle${idx}`,
                 })
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Pickup${idx}`,
+                })
+                charFrames.push({
+                  ...frame,
+                  name: `${charPrefix}_${dir}_Die${idx}`,
+                })
                 if (idx === 0) {
                   charFrames.push({
                     ...frame,
@@ -432,6 +484,14 @@ async function run() {
                   charFrames.push({
                     ...frame,
                     name: `${charPrefix}_${dir}_Idle0`,
+                  })
+                  charFrames.push({
+                    ...frame,
+                    name: `${charPrefix}_${dir}_Pickup0`,
+                  })
+                  charFrames.push({
+                    ...frame,
+                    name: `${charPrefix}_${dir}_Die0`,
                   })
                 }
               }
@@ -564,7 +624,8 @@ async function run() {
       else if (charId === 'demon') scale = 1.35
       else if (charId === 'female') scale = 1.15
       else {
-        scale = Math.round((130 / Math.max(40, avgHeight)) * 0.95 * 100) / 100
+        const targetScreenHeight = 90
+        scale = Math.round((targetScreenHeight / Math.max(30, avgHeight)) * (detectedCellW / 128) * 100) / 100
       }
 
       if (Object.keys(actionsMap).length === 0) {

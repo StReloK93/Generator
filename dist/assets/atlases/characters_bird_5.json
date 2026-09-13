@@ -1,0 +1,1913 @@
+{
+  "frames": {
+    "Bird_angle_090_Ground_Run10": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 90,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Ground_Run1": {
+      "frame": {
+        "x": 251,
+        "y": 2,
+        "w": 206,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 74,
+        "w": 206,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Run1": {
+      "frame": {
+        "x": 459,
+        "y": 2,
+        "w": 206,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 74,
+        "w": 206,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_135_Ground_Run1": {
+      "frame": {
+        "x": 667,
+        "y": 2,
+        "w": 206,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 74,
+        "w": 206,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_247_Ground_Run1": {
+      "frame": {
+        "x": 875,
+        "y": 2,
+        "w": 225,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 90,
+        "w": 225,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_247_Ground_Run2": {
+      "frame": {
+        "x": 1102,
+        "y": 2,
+        "w": 225,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 89,
+        "w": 225,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run4": {
+      "frame": {
+        "x": 1329,
+        "y": 2,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 90,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run4": {
+      "frame": {
+        "x": 1578,
+        "y": 2,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 90,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run4": {
+      "frame": {
+        "x": 2,
+        "y": 166,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 90,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run10": {
+      "frame": {
+        "x": 251,
+        "y": 166,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 92,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run10": {
+      "frame": {
+        "x": 500,
+        "y": 166,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 92,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run10": {
+      "frame": {
+        "x": 749,
+        "y": 166,
+        "w": 247,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 92,
+        "w": 247,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run3": {
+      "frame": {
+        "x": 998,
+        "y": 166,
+        "w": 234,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 86,
+        "w": 234,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run3": {
+      "frame": {
+        "x": 1234,
+        "y": 166,
+        "w": 225,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 86,
+        "w": 225,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_112_Ground_Run7": {
+      "frame": {
+        "x": 1461,
+        "y": 166,
+        "w": 225,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 90,
+        "w": 225,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Ground_Run7": {
+      "frame": {
+        "x": 1688,
+        "y": 166,
+        "w": 205,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 75,
+        "w": 205,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Run7": {
+      "frame": {
+        "x": 2,
+        "y": 330,
+        "w": 205,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 75,
+        "w": 205,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_225_Ground_Run7": {
+      "frame": {
+        "x": 209,
+        "y": 330,
+        "w": 205,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 75,
+        "w": 205,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run2": {
+      "frame": {
+        "x": 416,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 91,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run2": {
+      "frame": {
+        "x": 665,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 91,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run2": {
+      "frame": {
+        "x": 914,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 91,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run8": {
+      "frame": {
+        "x": 1163,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 88,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run8": {
+      "frame": {
+        "x": 1412,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 88,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run8": {
+      "frame": {
+        "x": 1661,
+        "y": 330,
+        "w": 247,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 88,
+        "w": 247,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run2": {
+      "frame": {
+        "x": 2,
+        "y": 493,
+        "w": 233,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 84,
+        "w": 233,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run9": {
+      "frame": {
+        "x": 237,
+        "y": 493,
+        "w": 226,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 87,
+        "w": 226,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run2": {
+      "frame": {
+        "x": 465,
+        "y": 493,
+        "w": 225,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 25,
+        "y": 85,
+        "w": 225,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Ground_Run2": {
+      "frame": {
+        "x": 692,
+        "y": 493,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 8,
+        "y": 88,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Run2": {
+      "frame": {
+        "x": 941,
+        "y": 493,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 8,
+        "y": 88,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_090_Ground_Run2": {
+      "frame": {
+        "x": 1190,
+        "y": 493,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 8,
+        "y": 88,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Ground_Run5": {
+      "frame": {
+        "x": 1439,
+        "y": 493,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Run5": {
+      "frame": {
+        "x": 1688,
+        "y": 493,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_090_Ground_Run5": {
+      "frame": {
+        "x": 2,
+        "y": 656,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_112_Ground_Run8": {
+      "frame": {
+        "x": 251,
+        "y": 656,
+        "w": 225,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 24,
+        "y": 90,
+        "w": 225,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Ground_Run9": {
+      "frame": {
+        "x": 478,
+        "y": 656,
+        "w": 195,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 76,
+        "w": 195,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Run9": {
+      "frame": {
+        "x": 675,
+        "y": 656,
+        "w": 195,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 76,
+        "w": 195,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_225_Ground_Run9": {
+      "frame": {
+        "x": 872,
+        "y": 656,
+        "w": 195,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 76,
+        "w": 195,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run5": {
+      "frame": {
+        "x": 1069,
+        "y": 656,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 91,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run5": {
+      "frame": {
+        "x": 1318,
+        "y": 656,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 91,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run5": {
+      "frame": {
+        "x": 1567,
+        "y": 656,
+        "w": 247,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 91,
+        "w": 247,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run4": {
+      "frame": {
+        "x": 2,
+        "y": 818,
+        "w": 233,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 88,
+        "w": 233,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run8": {
+      "frame": {
+        "x": 237,
+        "y": 818,
+        "w": 225,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 86,
+        "w": 225,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run4": {
+      "frame": {
+        "x": 464,
+        "y": 818,
+        "w": 227,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 20,
+        "y": 89,
+        "w": 227,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run10": {
+      "frame": {
+        "x": 693,
+        "y": 818,
+        "w": 231,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 14,
+        "y": 88,
+        "w": 231,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_112_Ground_Run6": {
+      "frame": {
+        "x": 926,
+        "y": 818,
+        "w": 227,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 20,
+        "y": 93,
+        "w": 227,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run5": {
+      "frame": {
+        "x": 1155,
+        "y": 818,
+        "w": 229,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 87,
+        "w": 229,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Ground_Run11": {
+      "frame": {
+        "x": 1386,
+        "y": 818,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Run11": {
+      "frame": {
+        "x": 1635,
+        "y": 818,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_090_Ground_Run11": {
+      "frame": {
+        "x": 2,
+        "y": 980,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 94,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Ground_Run2": {
+      "frame": {
+        "x": 251,
+        "y": 980,
+        "w": 204,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 77,
+        "w": 204,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Run2": {
+      "frame": {
+        "x": 457,
+        "y": 980,
+        "w": 204,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 77,
+        "w": 204,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_135_Ground_Run2": {
+      "frame": {
+        "x": 663,
+        "y": 980,
+        "w": 204,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 77,
+        "w": 204,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Ground_Run8": {
+      "frame": {
+        "x": 869,
+        "y": 980,
+        "w": 200,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 76,
+        "w": 200,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Run8": {
+      "frame": {
+        "x": 1071,
+        "y": 980,
+        "w": 200,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 76,
+        "w": 200,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_225_Ground_Run8": {
+      "frame": {
+        "x": 1273,
+        "y": 980,
+        "w": 200,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 76,
+        "w": 200,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_247_Ground_Run0": {
+      "frame": {
+        "x": 1705,
+        "y": 980,
+        "w": 228,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 94,
+        "w": 228,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run11": {
+      "frame": {
+        "x": 2,
+        "y": 1140,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 95,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run11": {
+      "frame": {
+        "x": 251,
+        "y": 1140,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 95,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run11": {
+      "frame": {
+        "x": 500,
+        "y": 1140,
+        "w": 247,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 95,
+        "w": 247,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run10": {
+      "frame": {
+        "x": 749,
+        "y": 1140,
+        "w": 228,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 90,
+        "w": 228,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run5": {
+      "frame": {
+        "x": 979,
+        "y": 1140,
+        "w": 230,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 15,
+        "y": 89,
+        "w": 230,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run7": {
+      "frame": {
+        "x": 1211,
+        "y": 1140,
+        "w": 232,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 86,
+        "w": 232,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Ground_Run7": {
+      "frame": {
+        "x": 1445,
+        "y": 1140,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 7,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Run7": {
+      "frame": {
+        "x": 1693,
+        "y": 1140,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 7,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_090_Ground_Run7": {
+      "frame": {
+        "x": 2,
+        "y": 1300,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 7,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Ground_Run3": {
+      "frame": {
+        "x": 250,
+        "y": 1300,
+        "w": 197,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 78,
+        "w": 197,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Run3": {
+      "frame": {
+        "x": 449,
+        "y": 1300,
+        "w": 197,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 78,
+        "w": 197,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_135_Ground_Run3": {
+      "frame": {
+        "x": 648,
+        "y": 1300,
+        "w": 197,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 39,
+        "y": 78,
+        "w": 197,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_247_Ground_Run3": {
+      "frame": {
+        "x": 847,
+        "y": 1300,
+        "w": 225,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 92,
+        "w": 225,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run1": {
+      "frame": {
+        "x": 1074,
+        "y": 1300,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run1": {
+      "frame": {
+        "x": 1322,
+        "y": 1300,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run1": {
+      "frame": {
+        "x": 1570,
+        "y": 1300,
+        "w": 246,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run11": {
+      "frame": {
+        "x": 2,
+        "y": 1459,
+        "w": 230,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 16,
+        "y": 90,
+        "w": 230,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Ground_Run6": {
+      "frame": {
+        "x": 234,
+        "y": 1459,
+        "w": 246,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 6,
+        "y": 95,
+        "w": 246,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_1_Run6": {
+      "frame": {
+        "x": 482,
+        "y": 1459,
+        "w": 246,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 6,
+        "y": 95,
+        "w": 246,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_090_Ground_Run6": {
+      "frame": {
+        "x": 730,
+        "y": 1459,
+        "w": 246,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 6,
+        "y": 95,
+        "w": 246,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run1": {
+      "frame": {
+        "x": 978,
+        "y": 1459,
+        "w": 232,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 86,
+        "w": 232,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run1": {
+      "frame": {
+        "x": 1212,
+        "y": 1459,
+        "w": 225,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 88,
+        "w": 225,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_067_Ground_Run6": {
+      "frame": {
+        "x": 1439,
+        "y": 1459,
+        "w": 232,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 87,
+        "w": 232,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run0": {
+      "frame": {
+        "x": 2,
+        "y": 1617,
+        "w": 247,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 96,
+        "w": 247,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run0": {
+      "frame": {
+        "x": 500,
+        "y": 1617,
+        "w": 247,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 96,
+        "w": 247,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run0": {
+      "frame": {
+        "x": 998,
+        "y": 1617,
+        "w": 247,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 96,
+        "w": 247,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run6": {
+      "frame": {
+        "x": 1247,
+        "y": 1617,
+        "w": 227,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 88,
+        "w": 227,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run7": {
+      "frame": {
+        "x": 1476,
+        "y": 1617,
+        "w": 225,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 88,
+        "w": 225,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_292_Ground_Run11": {
+      "frame": {
+        "x": 1703,
+        "y": 1617,
+        "w": 230,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 90,
+        "w": 230,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Ground_Idle11": {
+      "frame": {
+        "x": 2,
+        "y": 1774,
+        "w": 166,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 70,
+        "w": 166,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Idle11": {
+      "frame": {
+        "x": 170,
+        "y": 1774,
+        "w": 166,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 70,
+        "w": 166,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Pickup11": {
+      "frame": {
+        "x": 338,
+        "y": 1774,
+        "w": 166,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 70,
+        "w": 166,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_4_Die11": {
+      "frame": {
+        "x": 506,
+        "y": 1774,
+        "w": 166,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 70,
+        "w": 166,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_225_Ground_Idle11": {
+      "frame": {
+        "x": 674,
+        "y": 1774,
+        "w": 166,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 70,
+        "w": 166,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_112_Ground_Run9": {
+      "frame": {
+        "x": 842,
+        "y": 1774,
+        "w": 226,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 22,
+        "y": 94,
+        "w": 226,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Ground_Run7": {
+      "frame": {
+        "x": 1070,
+        "y": 1774,
+        "w": 246,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_5_Run7": {
+      "frame": {
+        "x": 1318,
+        "y": 1774,
+        "w": 246,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_angle_270_Ground_Run7": {
+      "frame": {
+        "x": 1566,
+        "y": 1774,
+        "w": 246,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 94,
+        "w": 246,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    },
+    "Bird_2_Ground_Idle1": {
+      "frame": {
+        "x": 1814,
+        "y": 1774,
+        "w": 168,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 70,
+        "w": 168,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 320
+      }
+    }
+  },
+  "meta": {
+    "image": "characters_bird_5.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

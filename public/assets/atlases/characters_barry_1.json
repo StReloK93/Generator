@@ -1,0 +1,9473 @@
+{
+  "frames": {
+    "Barry_2_Die19": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 68,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 85,
+        "w": 68,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Idle_LookSides19": {
+      "frame": {
+        "x": 72,
+        "y": 2,
+        "w": 68,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 85,
+        "w": 68,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides13": {
+      "frame": {
+        "x": 142,
+        "y": 2,
+        "w": 80,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 74,
+        "w": 80,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle13": {
+      "frame": {
+        "x": 224,
+        "y": 2,
+        "w": 80,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 74,
+        "w": 80,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup13": {
+      "frame": {
+        "x": 306,
+        "y": 2,
+        "w": 80,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 74,
+        "w": 80,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die13": {
+      "frame": {
+        "x": 388,
+        "y": 2,
+        "w": 80,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 74,
+        "w": 80,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides13": {
+      "frame": {
+        "x": 470,
+        "y": 2,
+        "w": 80,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 74,
+        "w": 80,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Run_Forward11": {
+      "frame": {
+        "x": 552,
+        "y": 2,
+        "w": 56,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 56,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Run11": {
+      "frame": {
+        "x": 610,
+        "y": 2,
+        "w": 56,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 56,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Run_Forward11": {
+      "frame": {
+        "x": 668,
+        "y": 2,
+        "w": 56,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 56,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Run_Forward2": {
+      "frame": {
+        "x": 726,
+        "y": 2,
+        "w": 89,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 78,
+        "w": 89,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Run2": {
+      "frame": {
+        "x": 817,
+        "y": 2,
+        "w": 89,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 78,
+        "w": 89,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Run_Forward2": {
+      "frame": {
+        "x": 908,
+        "y": 2,
+        "w": 89,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 78,
+        "w": 89,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward5": {
+      "frame": {
+        "x": 999,
+        "y": 2,
+        "w": 59,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 88,
+        "w": 59,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run5": {
+      "frame": {
+        "x": 1060,
+        "y": 2,
+        "w": 59,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 88,
+        "w": 59,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward5": {
+      "frame": {
+        "x": 1121,
+        "y": 2,
+        "w": 59,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 88,
+        "w": 59,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run_Forward6": {
+      "frame": {
+        "x": 1182,
+        "y": 2,
+        "w": 94,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 79,
+        "w": 94,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run6": {
+      "frame": {
+        "x": 1278,
+        "y": 2,
+        "w": 94,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 79,
+        "w": 94,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Run_Forward6": {
+      "frame": {
+        "x": 1374,
+        "y": 2,
+        "w": 94,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 79,
+        "w": 94,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run_Forward10": {
+      "frame": {
+        "x": 1470,
+        "y": 2,
+        "w": 71,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 71,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run10": {
+      "frame": {
+        "x": 1543,
+        "y": 2,
+        "w": 71,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 71,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Run_Forward10": {
+      "frame": {
+        "x": 1616,
+        "y": 2,
+        "w": 71,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 97,
+        "y": 76,
+        "w": 71,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle_LookSides16": {
+      "frame": {
+        "x": 1689,
+        "y": 2,
+        "w": 87,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 81,
+        "w": 87,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle16": {
+      "frame": {
+        "x": 1778,
+        "y": 2,
+        "w": 87,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 81,
+        "w": 87,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Pickup16": {
+      "frame": {
+        "x": 1867,
+        "y": 2,
+        "w": 87,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 81,
+        "w": 87,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Die16": {
+      "frame": {
+        "x": 1956,
+        "y": 2,
+        "w": 87,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 81,
+        "w": 87,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Idle_LookSides16": {
+      "frame": {
+        "x": 2,
+        "y": 112,
+        "w": 87,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 81,
+        "w": 87,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run_Forward10": {
+      "frame": {
+        "x": 91,
+        "y": 112,
+        "w": 71,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 92,
+        "w": 71,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run10": {
+      "frame": {
+        "x": 164,
+        "y": 112,
+        "w": 71,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 92,
+        "w": 71,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Run_Forward10": {
+      "frame": {
+        "x": 237,
+        "y": 112,
+        "w": 71,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 92,
+        "w": 71,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward6": {
+      "frame": {
+        "x": 310,
+        "y": 112,
+        "w": 57,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 87,
+        "w": 57,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run6": {
+      "frame": {
+        "x": 369,
+        "y": 112,
+        "w": 57,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 87,
+        "w": 57,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward6": {
+      "frame": {
+        "x": 428,
+        "y": 112,
+        "w": 57,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 87,
+        "w": 57,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides11": {
+      "frame": {
+        "x": 487,
+        "y": 112,
+        "w": 90,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 74,
+        "w": 90,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle11": {
+      "frame": {
+        "x": 579,
+        "y": 112,
+        "w": 90,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 74,
+        "w": 90,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup11": {
+      "frame": {
+        "x": 671,
+        "y": 112,
+        "w": 90,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 74,
+        "w": 90,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die11": {
+      "frame": {
+        "x": 763,
+        "y": 112,
+        "w": 90,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 74,
+        "w": 90,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides11": {
+      "frame": {
+        "x": 855,
+        "y": 112,
+        "w": 90,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 74,
+        "w": 90,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides12": {
+      "frame": {
+        "x": 947,
+        "y": 112,
+        "w": 93,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 73,
+        "w": 93,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle12": {
+      "frame": {
+        "x": 1042,
+        "y": 112,
+        "w": 93,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 73,
+        "w": 93,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup12": {
+      "frame": {
+        "x": 1137,
+        "y": 112,
+        "w": 93,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 73,
+        "w": 93,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die12": {
+      "frame": {
+        "x": 1232,
+        "y": 112,
+        "w": 93,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 73,
+        "w": 93,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides12": {
+      "frame": {
+        "x": 1327,
+        "y": 112,
+        "w": 93,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 73,
+        "w": 93,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides13": {
+      "frame": {
+        "x": 1422,
+        "y": 112,
+        "w": 87,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 73,
+        "w": 87,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle13": {
+      "frame": {
+        "x": 1511,
+        "y": 112,
+        "w": 87,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 73,
+        "w": 87,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup13": {
+      "frame": {
+        "x": 1600,
+        "y": 112,
+        "w": 87,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 73,
+        "w": 87,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die13": {
+      "frame": {
+        "x": 1689,
+        "y": 112,
+        "w": 87,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 73,
+        "w": 87,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides13": {
+      "frame": {
+        "x": 1778,
+        "y": 112,
+        "w": 87,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 73,
+        "w": 87,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides18": {
+      "frame": {
+        "x": 1867,
+        "y": 112,
+        "w": 63,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 72,
+        "w": 63,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle18": {
+      "frame": {
+        "x": 1932,
+        "y": 112,
+        "w": 63,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 72,
+        "w": 63,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup18": {
+      "frame": {
+        "x": 2,
+        "y": 221,
+        "w": 63,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 72,
+        "w": 63,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die18": {
+      "frame": {
+        "x": 67,
+        "y": 221,
+        "w": 63,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 72,
+        "w": 63,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides18": {
+      "frame": {
+        "x": 132,
+        "y": 221,
+        "w": 63,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 72,
+        "w": 63,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides8": {
+      "frame": {
+        "x": 197,
+        "y": 221,
+        "w": 74,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 82,
+        "w": 74,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle8": {
+      "frame": {
+        "x": 273,
+        "y": 221,
+        "w": 74,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 82,
+        "w": 74,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup8": {
+      "frame": {
+        "x": 349,
+        "y": 221,
+        "w": 74,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 82,
+        "w": 74,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die8": {
+      "frame": {
+        "x": 425,
+        "y": 221,
+        "w": 74,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 82,
+        "w": 74,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides8": {
+      "frame": {
+        "x": 501,
+        "y": 221,
+        "w": 74,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 82,
+        "w": 74,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides9": {
+      "frame": {
+        "x": 577,
+        "y": 221,
+        "w": 79,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 79,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle9": {
+      "frame": {
+        "x": 658,
+        "y": 221,
+        "w": 79,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 79,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup9": {
+      "frame": {
+        "x": 739,
+        "y": 221,
+        "w": 79,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 79,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die9": {
+      "frame": {
+        "x": 820,
+        "y": 221,
+        "w": 79,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 79,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides9": {
+      "frame": {
+        "x": 901,
+        "y": 221,
+        "w": 79,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 79,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides6": {
+      "frame": {
+        "x": 982,
+        "y": 221,
+        "w": 72,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 76,
+        "w": 72,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle6": {
+      "frame": {
+        "x": 1056,
+        "y": 221,
+        "w": 72,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 76,
+        "w": 72,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup6": {
+      "frame": {
+        "x": 1130,
+        "y": 221,
+        "w": 72,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 76,
+        "w": 72,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die6": {
+      "frame": {
+        "x": 1204,
+        "y": 221,
+        "w": 72,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 76,
+        "w": 72,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides6": {
+      "frame": {
+        "x": 1278,
+        "y": 221,
+        "w": 72,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 76,
+        "w": 72,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides11": {
+      "frame": {
+        "x": 1352,
+        "y": 221,
+        "w": 56,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 56,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle11": {
+      "frame": {
+        "x": 1410,
+        "y": 221,
+        "w": 56,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 56,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup11": {
+      "frame": {
+        "x": 1468,
+        "y": 221,
+        "w": 56,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 56,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die11": {
+      "frame": {
+        "x": 1526,
+        "y": 221,
+        "w": 56,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 56,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides11": {
+      "frame": {
+        "x": 1584,
+        "y": 221,
+        "w": 56,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 56,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward13": {
+      "frame": {
+        "x": 1642,
+        "y": 221,
+        "w": 98,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 79,
+        "w": 98,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run13": {
+      "frame": {
+        "x": 1742,
+        "y": 221,
+        "w": 98,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 79,
+        "w": 98,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward13": {
+      "frame": {
+        "x": 1842,
+        "y": 221,
+        "w": 98,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 79,
+        "w": 98,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run_Forward8": {
+      "frame": {
+        "x": 1942,
+        "y": 221,
+        "w": 75,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 75,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run8": {
+      "frame": {
+        "x": 2,
+        "y": 329,
+        "w": 75,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 75,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Run_Forward8": {
+      "frame": {
+        "x": 79,
+        "y": 329,
+        "w": 75,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 75,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run_Forward9": {
+      "frame": {
+        "x": 156,
+        "y": 329,
+        "w": 73,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 73,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Run9": {
+      "frame": {
+        "x": 231,
+        "y": 329,
+        "w": 73,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 73,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Run_Forward9": {
+      "frame": {
+        "x": 306,
+        "y": 329,
+        "w": 73,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 92,
+        "w": 73,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward7": {
+      "frame": {
+        "x": 381,
+        "y": 329,
+        "w": 55,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 87,
+        "w": 55,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run7": {
+      "frame": {
+        "x": 438,
+        "y": 329,
+        "w": 55,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 87,
+        "w": 55,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward7": {
+      "frame": {
+        "x": 495,
+        "y": 329,
+        "w": 55,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 87,
+        "w": 55,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run_Forward5": {
+      "frame": {
+        "x": 552,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 81,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run5": {
+      "frame": {
+        "x": 648,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 81,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Run_Forward5": {
+      "frame": {
+        "x": 744,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 81,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run_Forward7": {
+      "frame": {
+        "x": 840,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 80,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run7": {
+      "frame": {
+        "x": 936,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 80,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Run_Forward7": {
+      "frame": {
+        "x": 1032,
+        "y": 329,
+        "w": 94,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 80,
+        "w": 94,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run_Forward2": {
+      "frame": {
+        "x": 1128,
+        "y": 329,
+        "w": 58,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 76,
+        "w": 58,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run2": {
+      "frame": {
+        "x": 1188,
+        "y": 329,
+        "w": 58,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 76,
+        "w": 58,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Run_Forward2": {
+      "frame": {
+        "x": 1248,
+        "y": 329,
+        "w": 58,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 76,
+        "w": 58,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run_Forward12": {
+      "frame": {
+        "x": 1308,
+        "y": 329,
+        "w": 62,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 73,
+        "w": 62,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run12": {
+      "frame": {
+        "x": 1372,
+        "y": 329,
+        "w": 62,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 73,
+        "w": 62,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Run_Forward12": {
+      "frame": {
+        "x": 1436,
+        "y": 329,
+        "w": 62,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 73,
+        "w": 62,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides12": {
+      "frame": {
+        "x": 1500,
+        "y": 329,
+        "w": 93,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 73,
+        "w": 93,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle12": {
+      "frame": {
+        "x": 1595,
+        "y": 329,
+        "w": 93,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 73,
+        "w": 93,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup12": {
+      "frame": {
+        "x": 1690,
+        "y": 329,
+        "w": 93,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 73,
+        "w": 93,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die12": {
+      "frame": {
+        "x": 1785,
+        "y": 329,
+        "w": 93,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 73,
+        "w": 93,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides12": {
+      "frame": {
+        "x": 1880,
+        "y": 329,
+        "w": 93,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 73,
+        "w": 93,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides13": {
+      "frame": {
+        "x": 2,
+        "y": 437,
+        "w": 98,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 98,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle13": {
+      "frame": {
+        "x": 102,
+        "y": 437,
+        "w": 98,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 98,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup13": {
+      "frame": {
+        "x": 202,
+        "y": 437,
+        "w": 98,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 98,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die13": {
+      "frame": {
+        "x": 302,
+        "y": 437,
+        "w": 98,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 98,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides13": {
+      "frame": {
+        "x": 402,
+        "y": 437,
+        "w": 98,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 98,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides14": {
+      "frame": {
+        "x": 502,
+        "y": 437,
+        "w": 100,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 100,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle14": {
+      "frame": {
+        "x": 604,
+        "y": 437,
+        "w": 100,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 100,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup14": {
+      "frame": {
+        "x": 706,
+        "y": 437,
+        "w": 100,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 100,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die14": {
+      "frame": {
+        "x": 808,
+        "y": 437,
+        "w": 100,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 100,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides14": {
+      "frame": {
+        "x": 910,
+        "y": 437,
+        "w": 100,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 72,
+        "w": 100,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle_LookSides18": {
+      "frame": {
+        "x": 1012,
+        "y": 437,
+        "w": 76,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 84,
+        "w": 76,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle18": {
+      "frame": {
+        "x": 1090,
+        "y": 437,
+        "w": 76,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 84,
+        "w": 76,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Pickup18": {
+      "frame": {
+        "x": 1168,
+        "y": 437,
+        "w": 76,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 84,
+        "w": 76,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Die18": {
+      "frame": {
+        "x": 1246,
+        "y": 437,
+        "w": 76,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 84,
+        "w": 76,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Idle_LookSides18": {
+      "frame": {
+        "x": 1324,
+        "y": 437,
+        "w": 76,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 84,
+        "w": 76,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides4": {
+      "frame": {
+        "x": 1402,
+        "y": 437,
+        "w": 68,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 78,
+        "w": 68,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle4": {
+      "frame": {
+        "x": 1472,
+        "y": 437,
+        "w": 68,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 78,
+        "w": 68,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup4": {
+      "frame": {
+        "x": 1542,
+        "y": 437,
+        "w": 68,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 78,
+        "w": 68,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die4": {
+      "frame": {
+        "x": 1612,
+        "y": 437,
+        "w": 68,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 78,
+        "w": 68,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides4": {
+      "frame": {
+        "x": 1682,
+        "y": 437,
+        "w": 68,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 78,
+        "w": 68,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides5": {
+      "frame": {
+        "x": 1752,
+        "y": 437,
+        "w": 71,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 77,
+        "w": 71,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle5": {
+      "frame": {
+        "x": 1825,
+        "y": 437,
+        "w": 71,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 77,
+        "w": 71,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup5": {
+      "frame": {
+        "x": 1898,
+        "y": 437,
+        "w": 71,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 77,
+        "w": 71,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die5": {
+      "frame": {
+        "x": 1971,
+        "y": 437,
+        "w": 71,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 77,
+        "w": 71,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides5": {
+      "frame": {
+        "x": 2,
+        "y": 544,
+        "w": 71,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 77,
+        "w": 71,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides7": {
+      "frame": {
+        "x": 75,
+        "y": 544,
+        "w": 75,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 77,
+        "w": 75,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle7": {
+      "frame": {
+        "x": 152,
+        "y": 544,
+        "w": 75,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 77,
+        "w": 75,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup7": {
+      "frame": {
+        "x": 229,
+        "y": 544,
+        "w": 75,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 77,
+        "w": 75,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die7": {
+      "frame": {
+        "x": 306,
+        "y": 544,
+        "w": 75,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 77,
+        "w": 75,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides7": {
+      "frame": {
+        "x": 383,
+        "y": 544,
+        "w": 75,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 77,
+        "w": 75,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides10": {
+      "frame": {
+        "x": 460,
+        "y": 544,
+        "w": 55,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 55,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle10": {
+      "frame": {
+        "x": 517,
+        "y": 544,
+        "w": 55,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 55,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup10": {
+      "frame": {
+        "x": 574,
+        "y": 544,
+        "w": 55,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 55,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die10": {
+      "frame": {
+        "x": 631,
+        "y": 544,
+        "w": 55,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 55,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides10": {
+      "frame": {
+        "x": 688,
+        "y": 544,
+        "w": 55,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 71,
+        "w": 55,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward14": {
+      "frame": {
+        "x": 745,
+        "y": 544,
+        "w": 106,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 80,
+        "w": 106,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run14": {
+      "frame": {
+        "x": 853,
+        "y": 544,
+        "w": 106,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 80,
+        "w": 106,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward14": {
+      "frame": {
+        "x": 961,
+        "y": 544,
+        "w": 106,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 80,
+        "w": 106,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward11": {
+      "frame": {
+        "x": 1069,
+        "y": 544,
+        "w": 56,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 91,
+        "w": 56,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run11": {
+      "frame": {
+        "x": 1127,
+        "y": 544,
+        "w": 56,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 91,
+        "w": 56,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward11": {
+      "frame": {
+        "x": 1185,
+        "y": 544,
+        "w": 56,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 91,
+        "w": 56,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run_Forward11": {
+      "frame": {
+        "x": 1243,
+        "y": 544,
+        "w": 66,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 75,
+        "w": 66,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run11": {
+      "frame": {
+        "x": 1311,
+        "y": 544,
+        "w": 66,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 75,
+        "w": 66,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Run_Forward11": {
+      "frame": {
+        "x": 1379,
+        "y": 544,
+        "w": 66,
+        "h": 105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 75,
+        "w": 66,
+        "h": 105
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides5": {
+      "frame": {
+        "x": 1447,
+        "y": 544,
+        "w": 46,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 46,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle5": {
+      "frame": {
+        "x": 1495,
+        "y": 544,
+        "w": 46,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 46,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup5": {
+      "frame": {
+        "x": 1543,
+        "y": 544,
+        "w": 46,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 46,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die5": {
+      "frame": {
+        "x": 1591,
+        "y": 544,
+        "w": 46,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 46,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides5": {
+      "frame": {
+        "x": 1639,
+        "y": 544,
+        "w": 46,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 72,
+        "w": 46,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides19": {
+      "frame": {
+        "x": 1687,
+        "y": 544,
+        "w": 55,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 71,
+        "w": 55,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle19": {
+      "frame": {
+        "x": 1744,
+        "y": 544,
+        "w": 55,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 71,
+        "w": 55,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup19": {
+      "frame": {
+        "x": 1801,
+        "y": 544,
+        "w": 55,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 71,
+        "w": 55,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die19": {
+      "frame": {
+        "x": 1858,
+        "y": 544,
+        "w": 55,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 71,
+        "w": 55,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides19": {
+      "frame": {
+        "x": 1915,
+        "y": 544,
+        "w": 55,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 71,
+        "w": 55,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides0": {
+      "frame": {
+        "x": 81,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle0": {
+      "frame": {
+        "x": 476,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup0": {
+      "frame": {
+        "x": 555,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die0": {
+      "frame": {
+        "x": 634,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle": {
+      "frame": {
+        "x": 397,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides0": {
+      "frame": {
+        "x": 792,
+        "y": 651,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides9": {
+      "frame": {
+        "x": 871,
+        "y": 651,
+        "w": 80,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 113,
+        "y": 76,
+        "w": 80,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle9": {
+      "frame": {
+        "x": 953,
+        "y": 651,
+        "w": 80,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 113,
+        "y": 76,
+        "w": 80,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup9": {
+      "frame": {
+        "x": 1035,
+        "y": 651,
+        "w": 80,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 113,
+        "y": 76,
+        "w": 80,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die9": {
+      "frame": {
+        "x": 1117,
+        "y": 651,
+        "w": 80,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 113,
+        "y": 76,
+        "w": 80,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides9": {
+      "frame": {
+        "x": 1199,
+        "y": 651,
+        "w": 80,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 113,
+        "y": 76,
+        "w": 80,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides10": {
+      "frame": {
+        "x": 1281,
+        "y": 651,
+        "w": 88,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 75,
+        "w": 88,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle10": {
+      "frame": {
+        "x": 1371,
+        "y": 651,
+        "w": 88,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 75,
+        "w": 88,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup10": {
+      "frame": {
+        "x": 1461,
+        "y": 651,
+        "w": 88,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 75,
+        "w": 88,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die10": {
+      "frame": {
+        "x": 1551,
+        "y": 651,
+        "w": 88,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 75,
+        "w": 88,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides10": {
+      "frame": {
+        "x": 1641,
+        "y": 651,
+        "w": 88,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 75,
+        "w": 88,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides20": {
+      "frame": {
+        "x": 1731,
+        "y": 651,
+        "w": 66,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 66,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle20": {
+      "frame": {
+        "x": 1799,
+        "y": 651,
+        "w": 66,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 66,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup20": {
+      "frame": {
+        "x": 1867,
+        "y": 651,
+        "w": 66,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 66,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die20": {
+      "frame": {
+        "x": 1935,
+        "y": 651,
+        "w": 66,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 66,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides20": {
+      "frame": {
+        "x": 2,
+        "y": 757,
+        "w": 66,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 66,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides21": {
+      "frame": {
+        "x": 70,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle21": {
+      "frame": {
+        "x": 143,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup21": {
+      "frame": {
+        "x": 216,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die21": {
+      "frame": {
+        "x": 289,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides21": {
+      "frame": {
+        "x": 362,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 79,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides22": {
+      "frame": {
+        "x": 435,
+        "y": 757,
+        "w": 75,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 78,
+        "w": 75,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle22": {
+      "frame": {
+        "x": 512,
+        "y": 757,
+        "w": 75,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 78,
+        "w": 75,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup22": {
+      "frame": {
+        "x": 589,
+        "y": 757,
+        "w": 75,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 78,
+        "w": 75,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die22": {
+      "frame": {
+        "x": 666,
+        "y": 757,
+        "w": 75,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 78,
+        "w": 75,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides22": {
+      "frame": {
+        "x": 743,
+        "y": 757,
+        "w": 75,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 78,
+        "w": 75,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides23": {
+      "frame": {
+        "x": 820,
+        "y": 757,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle23": {
+      "frame": {
+        "x": 899,
+        "y": 757,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup23": {
+      "frame": {
+        "x": 978,
+        "y": 757,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die23": {
+      "frame": {
+        "x": 1057,
+        "y": 757,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides23": {
+      "frame": {
+        "x": 1136,
+        "y": 757,
+        "w": 77,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 78,
+        "w": 77,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides7": {
+      "frame": {
+        "x": 1215,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 85,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle7": {
+      "frame": {
+        "x": 1288,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 85,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup7": {
+      "frame": {
+        "x": 1361,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 85,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die7": {
+      "frame": {
+        "x": 1434,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 85,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides7": {
+      "frame": {
+        "x": 1507,
+        "y": 757,
+        "w": 71,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 85,
+        "w": 71,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle_LookSides17": {
+      "frame": {
+        "x": 1580,
+        "y": 757,
+        "w": 84,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 83,
+        "w": 84,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Idle17": {
+      "frame": {
+        "x": 1666,
+        "y": 757,
+        "w": 84,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 83,
+        "w": 84,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Pickup17": {
+      "frame": {
+        "x": 1752,
+        "y": 757,
+        "w": 84,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 83,
+        "w": 84,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_2_Die17": {
+      "frame": {
+        "x": 1838,
+        "y": 757,
+        "w": 84,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 83,
+        "w": 84,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_135_Idle_LookSides17": {
+      "frame": {
+        "x": 1924,
+        "y": 757,
+        "w": 84,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 83,
+        "w": 84,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides12": {
+      "frame": {
+        "x": 2,
+        "y": 863,
+        "w": 93,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 85,
+        "w": 93,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle12": {
+      "frame": {
+        "x": 97,
+        "y": 863,
+        "w": 93,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 85,
+        "w": 93,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup12": {
+      "frame": {
+        "x": 192,
+        "y": 863,
+        "w": 93,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 85,
+        "w": 93,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die12": {
+      "frame": {
+        "x": 287,
+        "y": 863,
+        "w": 93,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 85,
+        "w": 93,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides12": {
+      "frame": {
+        "x": 382,
+        "y": 863,
+        "w": 93,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 85,
+        "w": 93,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides3": {
+      "frame": {
+        "x": 477,
+        "y": 863,
+        "w": 79,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 75,
+        "w": 79,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle3": {
+      "frame": {
+        "x": 558,
+        "y": 863,
+        "w": 79,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 75,
+        "w": 79,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup3": {
+      "frame": {
+        "x": 639,
+        "y": 863,
+        "w": 79,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 75,
+        "w": 79,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die3": {
+      "frame": {
+        "x": 720,
+        "y": 863,
+        "w": 79,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 75,
+        "w": 79,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides3": {
+      "frame": {
+        "x": 801,
+        "y": 863,
+        "w": 79,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 75,
+        "w": 79,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward0": {
+      "frame": {
+        "x": 997,
+        "y": 863,
+        "w": 113,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 81,
+        "w": 113,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run0": {
+      "frame": {
+        "x": 1227,
+        "y": 863,
+        "w": 113,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 81,
+        "w": 113,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward0": {
+      "frame": {
+        "x": 1457,
+        "y": 863,
+        "w": 113,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 81,
+        "w": 113,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward5": {
+      "frame": {
+        "x": 1572,
+        "y": 863,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run5": {
+      "frame": {
+        "x": 1666,
+        "y": 863,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward5": {
+      "frame": {
+        "x": 1760,
+        "y": 863,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 82,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward12": {
+      "frame": {
+        "x": 1854,
+        "y": 863,
+        "w": 87,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 81,
+        "w": 87,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run12": {
+      "frame": {
+        "x": 1943,
+        "y": 863,
+        "w": 87,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 81,
+        "w": 87,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward12": {
+      "frame": {
+        "x": 2,
+        "y": 969,
+        "w": 87,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 81,
+        "w": 87,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward8": {
+      "frame": {
+        "x": 91,
+        "y": 969,
+        "w": 54,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 88,
+        "w": 54,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run8": {
+      "frame": {
+        "x": 147,
+        "y": 969,
+        "w": 54,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 88,
+        "w": 54,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward8": {
+      "frame": {
+        "x": 203,
+        "y": 969,
+        "w": 54,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 88,
+        "w": 54,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run_Forward8": {
+      "frame": {
+        "x": 259,
+        "y": 969,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run8": {
+      "frame": {
+        "x": 353,
+        "y": 969,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Run_Forward8": {
+      "frame": {
+        "x": 447,
+        "y": 969,
+        "w": 92,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 92,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides6": {
+      "frame": {
+        "x": 541,
+        "y": 969,
+        "w": 54,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 74,
+        "w": 54,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle6": {
+      "frame": {
+        "x": 597,
+        "y": 969,
+        "w": 54,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 74,
+        "w": 54,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup6": {
+      "frame": {
+        "x": 653,
+        "y": 969,
+        "w": 54,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 74,
+        "w": 54,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die6": {
+      "frame": {
+        "x": 709,
+        "y": 969,
+        "w": 54,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 74,
+        "w": 54,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides6": {
+      "frame": {
+        "x": 765,
+        "y": 969,
+        "w": 54,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 74,
+        "w": 54,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides22": {
+      "frame": {
+        "x": 821,
+        "y": 969,
+        "w": 56,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 56,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle22": {
+      "frame": {
+        "x": 879,
+        "y": 969,
+        "w": 56,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 56,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup22": {
+      "frame": {
+        "x": 937,
+        "y": 969,
+        "w": 56,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 56,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die22": {
+      "frame": {
+        "x": 995,
+        "y": 969,
+        "w": 56,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 56,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides22": {
+      "frame": {
+        "x": 1053,
+        "y": 969,
+        "w": 56,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 56,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides22": {
+      "frame": {
+        "x": 1111,
+        "y": 969,
+        "w": 75,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 81,
+        "w": 75,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle22": {
+      "frame": {
+        "x": 1188,
+        "y": 969,
+        "w": 75,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 81,
+        "w": 75,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup22": {
+      "frame": {
+        "x": 1265,
+        "y": 969,
+        "w": 75,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 81,
+        "w": 75,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die22": {
+      "frame": {
+        "x": 1342,
+        "y": 969,
+        "w": 75,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 81,
+        "w": 75,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides22": {
+      "frame": {
+        "x": 1419,
+        "y": 969,
+        "w": 75,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 81,
+        "w": 75,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides3": {
+      "frame": {
+        "x": 1496,
+        "y": 969,
+        "w": 70,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 70,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle3": {
+      "frame": {
+        "x": 1568,
+        "y": 969,
+        "w": 70,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 70,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup3": {
+      "frame": {
+        "x": 1640,
+        "y": 969,
+        "w": 70,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 70,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die3": {
+      "frame": {
+        "x": 1712,
+        "y": 969,
+        "w": 70,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 70,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides3": {
+      "frame": {
+        "x": 1784,
+        "y": 969,
+        "w": 70,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 70,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides8": {
+      "frame": {
+        "x": 1856,
+        "y": 969,
+        "w": 76,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 79,
+        "w": 76,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle8": {
+      "frame": {
+        "x": 1934,
+        "y": 969,
+        "w": 76,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 79,
+        "w": 76,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup8": {
+      "frame": {
+        "x": 2,
+        "y": 1075,
+        "w": 76,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 79,
+        "w": 76,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die8": {
+      "frame": {
+        "x": 80,
+        "y": 1075,
+        "w": 76,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 79,
+        "w": 76,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides8": {
+      "frame": {
+        "x": 158,
+        "y": 1075,
+        "w": 76,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 79,
+        "w": 76,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides2": {
+      "frame": {
+        "x": 236,
+        "y": 1075,
+        "w": 77,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 78,
+        "w": 77,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle2": {
+      "frame": {
+        "x": 315,
+        "y": 1075,
+        "w": 77,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 78,
+        "w": 77,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup2": {
+      "frame": {
+        "x": 394,
+        "y": 1075,
+        "w": 77,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 78,
+        "w": 77,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die2": {
+      "frame": {
+        "x": 473,
+        "y": 1075,
+        "w": 77,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 78,
+        "w": 77,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides2": {
+      "frame": {
+        "x": 552,
+        "y": 1075,
+        "w": 77,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 78,
+        "w": 77,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward4": {
+      "frame": {
+        "x": 631,
+        "y": 1075,
+        "w": 87,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 83,
+        "w": 87,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run4": {
+      "frame": {
+        "x": 720,
+        "y": 1075,
+        "w": 87,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 83,
+        "w": 87,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward4": {
+      "frame": {
+        "x": 809,
+        "y": 1075,
+        "w": 87,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 83,
+        "w": 87,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward6": {
+      "frame": {
+        "x": 898,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 83,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run6": {
+      "frame": {
+        "x": 994,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 83,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward6": {
+      "frame": {
+        "x": 1090,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 83,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward6": {
+      "frame": {
+        "x": 1186,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 75,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run6": {
+      "frame": {
+        "x": 1282,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 75,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward6": {
+      "frame": {
+        "x": 1378,
+        "y": 1075,
+        "w": 94,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 75,
+        "w": 94,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward13": {
+      "frame": {
+        "x": 1474,
+        "y": 1075,
+        "w": 98,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 77,
+        "w": 98,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run13": {
+      "frame": {
+        "x": 1574,
+        "y": 1075,
+        "w": 98,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 77,
+        "w": 98,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward13": {
+      "frame": {
+        "x": 1674,
+        "y": 1075,
+        "w": 98,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 77,
+        "w": 98,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run_Forward3": {
+      "frame": {
+        "x": 1774,
+        "y": 1075,
+        "w": 59,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 74,
+        "w": 59,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Run3": {
+      "frame": {
+        "x": 1835,
+        "y": 1075,
+        "w": 59,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 74,
+        "w": 59,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Run_Forward3": {
+      "frame": {
+        "x": 1896,
+        "y": 1075,
+        "w": 59,
+        "h": 103
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 74,
+        "w": 59,
+        "h": 103
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides0": {
+      "frame": {
+        "x": 2,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle0": {
+      "frame": {
+        "x": 272,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup0": {
+      "frame": {
+        "x": 326,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die0": {
+      "frame": {
+        "x": 380,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle": {
+      "frame": {
+        "x": 218,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides0": {
+      "frame": {
+        "x": 488,
+        "y": 1180,
+        "w": 52,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 52,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides4": {
+      "frame": {
+        "x": 542,
+        "y": 1180,
+        "w": 47,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 73,
+        "w": 47,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle4": {
+      "frame": {
+        "x": 591,
+        "y": 1180,
+        "w": 47,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 73,
+        "w": 47,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup4": {
+      "frame": {
+        "x": 640,
+        "y": 1180,
+        "w": 47,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 73,
+        "w": 47,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die4": {
+      "frame": {
+        "x": 689,
+        "y": 1180,
+        "w": 47,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 73,
+        "w": 47,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides4": {
+      "frame": {
+        "x": 738,
+        "y": 1180,
+        "w": 47,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 73,
+        "w": 47,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides11": {
+      "frame": {
+        "x": 787,
+        "y": 1180,
+        "w": 59,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 73,
+        "w": 59,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle11": {
+      "frame": {
+        "x": 848,
+        "y": 1180,
+        "w": 59,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 73,
+        "w": 59,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup11": {
+      "frame": {
+        "x": 909,
+        "y": 1180,
+        "w": 59,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 73,
+        "w": 59,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die11": {
+      "frame": {
+        "x": 970,
+        "y": 1180,
+        "w": 59,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 73,
+        "w": 59,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides11": {
+      "frame": {
+        "x": 1031,
+        "y": 1180,
+        "w": 59,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 73,
+        "w": 59,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides21": {
+      "frame": {
+        "x": 1092,
+        "y": 1180,
+        "w": 51,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 75,
+        "w": 51,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle21": {
+      "frame": {
+        "x": 1145,
+        "y": 1180,
+        "w": 51,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 75,
+        "w": 51,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup21": {
+      "frame": {
+        "x": 1198,
+        "y": 1180,
+        "w": 51,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 75,
+        "w": 51,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die21": {
+      "frame": {
+        "x": 1251,
+        "y": 1180,
+        "w": 51,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 75,
+        "w": 51,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides21": {
+      "frame": {
+        "x": 1304,
+        "y": 1180,
+        "w": 51,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 75,
+        "w": 51,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides23": {
+      "frame": {
+        "x": 1357,
+        "y": 1180,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle23": {
+      "frame": {
+        "x": 1414,
+        "y": 1180,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup23": {
+      "frame": {
+        "x": 1471,
+        "y": 1180,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die23": {
+      "frame": {
+        "x": 1528,
+        "y": 1180,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides23": {
+      "frame": {
+        "x": 1585,
+        "y": 1180,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 74,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides1": {
+      "frame": {
+        "x": 1642,
+        "y": 1180,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 79,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle1": {
+      "frame": {
+        "x": 1721,
+        "y": 1180,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 79,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup1": {
+      "frame": {
+        "x": 1800,
+        "y": 1180,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 79,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die1": {
+      "frame": {
+        "x": 1879,
+        "y": 1180,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 79,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides1": {
+      "frame": {
+        "x": 1958,
+        "y": 1180,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 79,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides2": {
+      "frame": {
+        "x": 2,
+        "y": 1284,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 79,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle2": {
+      "frame": {
+        "x": 78,
+        "y": 1284,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 79,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup2": {
+      "frame": {
+        "x": 154,
+        "y": 1284,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 79,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die2": {
+      "frame": {
+        "x": 230,
+        "y": 1284,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 79,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides2": {
+      "frame": {
+        "x": 306,
+        "y": 1284,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 79,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides19": {
+      "frame": {
+        "x": 382,
+        "y": 1284,
+        "w": 64,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 64,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle19": {
+      "frame": {
+        "x": 448,
+        "y": 1284,
+        "w": 64,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 64,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup19": {
+      "frame": {
+        "x": 514,
+        "y": 1284,
+        "w": 64,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 64,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die19": {
+      "frame": {
+        "x": 580,
+        "y": 1284,
+        "w": 64,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 64,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides19": {
+      "frame": {
+        "x": 646,
+        "y": 1284,
+        "w": 64,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 78,
+        "w": 64,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides15": {
+      "frame": {
+        "x": 712,
+        "y": 1284,
+        "w": 96,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 75,
+        "w": 96,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle15": {
+      "frame": {
+        "x": 810,
+        "y": 1284,
+        "w": 96,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 75,
+        "w": 96,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup15": {
+      "frame": {
+        "x": 908,
+        "y": 1284,
+        "w": 96,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 75,
+        "w": 96,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die15": {
+      "frame": {
+        "x": 1006,
+        "y": 1284,
+        "w": 96,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 75,
+        "w": 96,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides15": {
+      "frame": {
+        "x": 1104,
+        "y": 1284,
+        "w": 96,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 75,
+        "w": 96,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides23": {
+      "frame": {
+        "x": 1202,
+        "y": 1284,
+        "w": 75,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 81,
+        "w": 75,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle23": {
+      "frame": {
+        "x": 1279,
+        "y": 1284,
+        "w": 75,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 81,
+        "w": 75,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup23": {
+      "frame": {
+        "x": 1356,
+        "y": 1284,
+        "w": 75,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 81,
+        "w": 75,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die23": {
+      "frame": {
+        "x": 1433,
+        "y": 1284,
+        "w": 75,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 81,
+        "w": 75,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides23": {
+      "frame": {
+        "x": 1510,
+        "y": 1284,
+        "w": 75,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 81,
+        "w": 75,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides20": {
+      "frame": {
+        "x": 1587,
+        "y": 1284,
+        "w": 66,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 66,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle20": {
+      "frame": {
+        "x": 1655,
+        "y": 1284,
+        "w": 66,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 66,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup20": {
+      "frame": {
+        "x": 1723,
+        "y": 1284,
+        "w": 66,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 66,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die20": {
+      "frame": {
+        "x": 1791,
+        "y": 1284,
+        "w": 66,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 66,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides20": {
+      "frame": {
+        "x": 1859,
+        "y": 1284,
+        "w": 66,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 81,
+        "w": 66,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides4": {
+      "frame": {
+        "x": 1927,
+        "y": 1284,
+        "w": 80,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 74,
+        "w": 80,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle4": {
+      "frame": {
+        "x": 2,
+        "y": 1388,
+        "w": 80,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 74,
+        "w": 80,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup4": {
+      "frame": {
+        "x": 84,
+        "y": 1388,
+        "w": 80,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 74,
+        "w": 80,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die4": {
+      "frame": {
+        "x": 166,
+        "y": 1388,
+        "w": 80,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 74,
+        "w": 80,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides4": {
+      "frame": {
+        "x": 248,
+        "y": 1388,
+        "w": 80,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 74,
+        "w": 80,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides5": {
+      "frame": {
+        "x": 330,
+        "y": 1388,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 73,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle5": {
+      "frame": {
+        "x": 409,
+        "y": 1388,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 73,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup5": {
+      "frame": {
+        "x": 488,
+        "y": 1388,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 73,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die5": {
+      "frame": {
+        "x": 567,
+        "y": 1388,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 73,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides5": {
+      "frame": {
+        "x": 646,
+        "y": 1388,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 73,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides6": {
+      "frame": {
+        "x": 725,
+        "y": 1388,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle6": {
+      "frame": {
+        "x": 801,
+        "y": 1388,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup6": {
+      "frame": {
+        "x": 877,
+        "y": 1388,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die6": {
+      "frame": {
+        "x": 953,
+        "y": 1388,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides6": {
+      "frame": {
+        "x": 1029,
+        "y": 1388,
+        "w": 74,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 74,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides19": {
+      "frame": {
+        "x": 1105,
+        "y": 1388,
+        "w": 81,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 81,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle19": {
+      "frame": {
+        "x": 1188,
+        "y": 1388,
+        "w": 81,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 81,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup19": {
+      "frame": {
+        "x": 1271,
+        "y": 1388,
+        "w": 81,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 81,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die19": {
+      "frame": {
+        "x": 1354,
+        "y": 1388,
+        "w": 81,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 81,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides19": {
+      "frame": {
+        "x": 1437,
+        "y": 1388,
+        "w": 81,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 81,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides6": {
+      "frame": {
+        "x": 1520,
+        "y": 1388,
+        "w": 58,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 68,
+        "w": 58,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle6": {
+      "frame": {
+        "x": 1580,
+        "y": 1388,
+        "w": 58,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 68,
+        "w": 58,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup6": {
+      "frame": {
+        "x": 1640,
+        "y": 1388,
+        "w": 58,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 68,
+        "w": 58,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die6": {
+      "frame": {
+        "x": 1700,
+        "y": 1388,
+        "w": 58,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 68,
+        "w": 58,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides6": {
+      "frame": {
+        "x": 1760,
+        "y": 1388,
+        "w": 58,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 68,
+        "w": 58,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides14": {
+      "frame": {
+        "x": 1820,
+        "y": 1388,
+        "w": 91,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 80,
+        "w": 91,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle14": {
+      "frame": {
+        "x": 1913,
+        "y": 1388,
+        "w": 91,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 80,
+        "w": 91,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup14": {
+      "frame": {
+        "x": 2,
+        "y": 1492,
+        "w": 91,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 80,
+        "w": 91,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die14": {
+      "frame": {
+        "x": 95,
+        "y": 1492,
+        "w": 91,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 80,
+        "w": 91,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides14": {
+      "frame": {
+        "x": 188,
+        "y": 1492,
+        "w": 91,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 80,
+        "w": 91,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides17": {
+      "frame": {
+        "x": 281,
+        "y": 1492,
+        "w": 84,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 84,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle17": {
+      "frame": {
+        "x": 367,
+        "y": 1492,
+        "w": 84,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 84,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup17": {
+      "frame": {
+        "x": 453,
+        "y": 1492,
+        "w": 84,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 84,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die17": {
+      "frame": {
+        "x": 539,
+        "y": 1492,
+        "w": 84,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 84,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides17": {
+      "frame": {
+        "x": 625,
+        "y": 1492,
+        "w": 84,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 67,
+        "y": 78,
+        "w": 84,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides18": {
+      "frame": {
+        "x": 711,
+        "y": 1492,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 76,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle18": {
+      "frame": {
+        "x": 790,
+        "y": 1492,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 76,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup18": {
+      "frame": {
+        "x": 869,
+        "y": 1492,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 76,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die18": {
+      "frame": {
+        "x": 948,
+        "y": 1492,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 76,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides18": {
+      "frame": {
+        "x": 1027,
+        "y": 1492,
+        "w": 77,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 76,
+        "w": 77,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward2": {
+      "frame": {
+        "x": 1106,
+        "y": 1492,
+        "w": 101,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 84,
+        "w": 101,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run2": {
+      "frame": {
+        "x": 1209,
+        "y": 1492,
+        "w": 101,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 84,
+        "w": 101,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward2": {
+      "frame": {
+        "x": 1312,
+        "y": 1492,
+        "w": 101,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 84,
+        "w": 101,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward3": {
+      "frame": {
+        "x": 1415,
+        "y": 1492,
+        "w": 90,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 84,
+        "w": 90,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run3": {
+      "frame": {
+        "x": 1507,
+        "y": 1492,
+        "w": 90,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 84,
+        "w": 90,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward3": {
+      "frame": {
+        "x": 1599,
+        "y": 1492,
+        "w": 90,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 84,
+        "w": 90,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run_Forward9": {
+      "frame": {
+        "x": 1691,
+        "y": 1492,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 90,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_3_Run9": {
+      "frame": {
+        "x": 1748,
+        "y": 1492,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 90,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_180_Run_Forward9": {
+      "frame": {
+        "x": 1805,
+        "y": 1492,
+        "w": 55,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 90,
+        "w": 55,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward4": {
+      "frame": {
+        "x": 1862,
+        "y": 1492,
+        "w": 87,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 77,
+        "w": 87,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run4": {
+      "frame": {
+        "x": 1951,
+        "y": 1492,
+        "w": 87,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 77,
+        "w": 87,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward4": {
+      "frame": {
+        "x": 2,
+        "y": 1596,
+        "w": 87,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 77,
+        "w": 87,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward5": {
+      "frame": {
+        "x": 91,
+        "y": 1596,
+        "w": 92,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 76,
+        "w": 92,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run5": {
+      "frame": {
+        "x": 185,
+        "y": 1596,
+        "w": 92,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 76,
+        "w": 92,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward5": {
+      "frame": {
+        "x": 279,
+        "y": 1596,
+        "w": 92,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 76,
+        "w": 92,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward14": {
+      "frame": {
+        "x": 373,
+        "y": 1596,
+        "w": 106,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 79,
+        "w": 106,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run14": {
+      "frame": {
+        "x": 481,
+        "y": 1596,
+        "w": 106,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 79,
+        "w": 106,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward14": {
+      "frame": {
+        "x": 589,
+        "y": 1596,
+        "w": 106,
+        "h": 102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 79,
+        "w": 106,
+        "h": 102
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides10": {
+      "frame": {
+        "x": 697,
+        "y": 1596,
+        "w": 59,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 74,
+        "w": 59,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle10": {
+      "frame": {
+        "x": 758,
+        "y": 1596,
+        "w": 59,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 74,
+        "w": 59,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup10": {
+      "frame": {
+        "x": 819,
+        "y": 1596,
+        "w": 59,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 74,
+        "w": 59,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die10": {
+      "frame": {
+        "x": 880,
+        "y": 1596,
+        "w": 59,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 74,
+        "w": 59,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides10": {
+      "frame": {
+        "x": 941,
+        "y": 1596,
+        "w": 59,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 74,
+        "w": 59,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides2": {
+      "frame": {
+        "x": 1002,
+        "y": 1596,
+        "w": 74,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 81,
+        "w": 74,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle2": {
+      "frame": {
+        "x": 1078,
+        "y": 1596,
+        "w": 74,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 81,
+        "w": 74,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup2": {
+      "frame": {
+        "x": 1154,
+        "y": 1596,
+        "w": 74,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 81,
+        "w": 74,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die2": {
+      "frame": {
+        "x": 1230,
+        "y": 1596,
+        "w": 74,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 81,
+        "w": 74,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides2": {
+      "frame": {
+        "x": 1306,
+        "y": 1596,
+        "w": 74,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 81,
+        "w": 74,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle_LookSides21": {
+      "frame": {
+        "x": 1382,
+        "y": 1596,
+        "w": 71,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 81,
+        "w": 71,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Idle21": {
+      "frame": {
+        "x": 1455,
+        "y": 1596,
+        "w": 71,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 81,
+        "w": 71,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Pickup21": {
+      "frame": {
+        "x": 1528,
+        "y": 1596,
+        "w": 71,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 81,
+        "w": 71,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Die21": {
+      "frame": {
+        "x": 1601,
+        "y": 1596,
+        "w": 71,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 81,
+        "w": 71,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Idle_LookSides21": {
+      "frame": {
+        "x": 1674,
+        "y": 1596,
+        "w": 71,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 81,
+        "w": 71,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides1": {
+      "frame": {
+        "x": 1747,
+        "y": 1596,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle1": {
+      "frame": {
+        "x": 1825,
+        "y": 1596,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup1": {
+      "frame": {
+        "x": 1903,
+        "y": 1596,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die1": {
+      "frame": {
+        "x": 2,
+        "y": 1700,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides1": {
+      "frame": {
+        "x": 80,
+        "y": 1700,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 72,
+        "y": 79,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides7": {
+      "frame": {
+        "x": 158,
+        "y": 1700,
+        "w": 73,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 74,
+        "w": 73,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle7": {
+      "frame": {
+        "x": 233,
+        "y": 1700,
+        "w": 73,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 74,
+        "w": 73,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup7": {
+      "frame": {
+        "x": 308,
+        "y": 1700,
+        "w": 73,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 74,
+        "w": 73,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die7": {
+      "frame": {
+        "x": 383,
+        "y": 1700,
+        "w": 73,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 74,
+        "w": 73,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides7": {
+      "frame": {
+        "x": 458,
+        "y": 1700,
+        "w": 73,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 74,
+        "w": 73,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides20": {
+      "frame": {
+        "x": 533,
+        "y": 1700,
+        "w": 78,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 78,
+        "w": 78,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle20": {
+      "frame": {
+        "x": 613,
+        "y": 1700,
+        "w": 78,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 78,
+        "w": 78,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup20": {
+      "frame": {
+        "x": 693,
+        "y": 1700,
+        "w": 78,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 78,
+        "w": 78,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die20": {
+      "frame": {
+        "x": 773,
+        "y": 1700,
+        "w": 78,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 78,
+        "w": 78,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides20": {
+      "frame": {
+        "x": 853,
+        "y": 1700,
+        "w": 78,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 78,
+        "w": 78,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle_LookSides22": {
+      "frame": {
+        "x": 933,
+        "y": 1700,
+        "w": 75,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 75,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Idle22": {
+      "frame": {
+        "x": 1010,
+        "y": 1700,
+        "w": 75,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 75,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Pickup22": {
+      "frame": {
+        "x": 1087,
+        "y": 1700,
+        "w": 75,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 75,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Die22": {
+      "frame": {
+        "x": 1164,
+        "y": 1700,
+        "w": 75,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 75,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Idle_LookSides22": {
+      "frame": {
+        "x": 1241,
+        "y": 1700,
+        "w": 75,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 75,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides7": {
+      "frame": {
+        "x": 1318,
+        "y": 1700,
+        "w": 57,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 69,
+        "w": 57,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle7": {
+      "frame": {
+        "x": 1377,
+        "y": 1700,
+        "w": 57,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 69,
+        "w": 57,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup7": {
+      "frame": {
+        "x": 1436,
+        "y": 1700,
+        "w": 57,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 69,
+        "w": 57,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die7": {
+      "frame": {
+        "x": 1495,
+        "y": 1700,
+        "w": 57,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 69,
+        "w": 57,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides7": {
+      "frame": {
+        "x": 1554,
+        "y": 1700,
+        "w": 57,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 69,
+        "w": 57,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle_LookSides16": {
+      "frame": {
+        "x": 1613,
+        "y": 1700,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 79,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Idle16": {
+      "frame": {
+        "x": 1702,
+        "y": 1700,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 79,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Pickup16": {
+      "frame": {
+        "x": 1791,
+        "y": 1700,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 79,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_6_Die16": {
+      "frame": {
+        "x": 1880,
+        "y": 1700,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 79,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_315_Idle_LookSides16": {
+      "frame": {
+        "x": 2,
+        "y": 1803,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 79,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward1": {
+      "frame": {
+        "x": 91,
+        "y": 1803,
+        "w": 109,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 84,
+        "w": 109,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run1": {
+      "frame": {
+        "x": 202,
+        "y": 1803,
+        "w": 109,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 84,
+        "w": 109,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward1": {
+      "frame": {
+        "x": 313,
+        "y": 1803,
+        "w": 109,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 84,
+        "w": 109,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run_Forward11": {
+      "frame": {
+        "x": 424,
+        "y": 1803,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 84,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Run11": {
+      "frame": {
+        "x": 502,
+        "y": 1803,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 84,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Run_Forward11": {
+      "frame": {
+        "x": 580,
+        "y": 1803,
+        "w": 76,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 84,
+        "w": 76,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run_Forward9": {
+      "frame": {
+        "x": 658,
+        "y": 1803,
+        "w": 88,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 83,
+        "w": 88,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_4_Run9": {
+      "frame": {
+        "x": 748,
+        "y": 1803,
+        "w": 88,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 83,
+        "w": 88,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_225_Run_Forward9": {
+      "frame": {
+        "x": 838,
+        "y": 1803,
+        "w": 88,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 83,
+        "w": 88,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward0": {
+      "frame": {
+        "x": 1043,
+        "y": 1803,
+        "w": 113,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 82,
+        "w": 113,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run0": {
+      "frame": {
+        "x": 1273,
+        "y": 1803,
+        "w": 113,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 82,
+        "w": 113,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward0": {
+      "frame": {
+        "x": 1503,
+        "y": 1803,
+        "w": 113,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 82,
+        "w": 113,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run_Forward12": {
+      "frame": {
+        "x": 1618,
+        "y": 1803,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 78,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_5_Run12": {
+      "frame": {
+        "x": 1707,
+        "y": 1803,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 78,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_270_Run_Forward12": {
+      "frame": {
+        "x": 1796,
+        "y": 1803,
+        "w": 87,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 78,
+        "w": 87,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides1": {
+      "frame": {
+        "x": 1885,
+        "y": 1803,
+        "w": 52,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 75,
+        "w": 52,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle1": {
+      "frame": {
+        "x": 1939,
+        "y": 1803,
+        "w": 52,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 75,
+        "w": 52,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup1": {
+      "frame": {
+        "x": 1993,
+        "y": 1803,
+        "w": 52,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 75,
+        "w": 52,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die1": {
+      "frame": {
+        "x": 2,
+        "y": 1906,
+        "w": 52,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 75,
+        "w": 52,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides1": {
+      "frame": {
+        "x": 56,
+        "y": 1906,
+        "w": 52,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 75,
+        "w": 52,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides8": {
+      "frame": {
+        "x": 110,
+        "y": 1906,
+        "w": 57,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 76,
+        "w": 57,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle8": {
+      "frame": {
+        "x": 169,
+        "y": 1906,
+        "w": 57,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 76,
+        "w": 57,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup8": {
+      "frame": {
+        "x": 228,
+        "y": 1906,
+        "w": 57,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 76,
+        "w": 57,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die8": {
+      "frame": {
+        "x": 287,
+        "y": 1906,
+        "w": 57,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 76,
+        "w": 57,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides8": {
+      "frame": {
+        "x": 346,
+        "y": 1906,
+        "w": 57,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 76,
+        "w": 57,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle_LookSides20": {
+      "frame": {
+        "x": 405,
+        "y": 1906,
+        "w": 53,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 75,
+        "w": 53,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Idle20": {
+      "frame": {
+        "x": 460,
+        "y": 1906,
+        "w": 53,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 75,
+        "w": 53,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Pickup20": {
+      "frame": {
+        "x": 515,
+        "y": 1906,
+        "w": 53,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 75,
+        "w": 53,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_7_Die20": {
+      "frame": {
+        "x": 570,
+        "y": 1906,
+        "w": 53,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 75,
+        "w": 53,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_000_Idle_LookSides20": {
+      "frame": {
+        "x": 625,
+        "y": 1906,
+        "w": 53,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 75,
+        "w": 53,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle_LookSides8": {
+      "frame": {
+        "x": 680,
+        "y": 1906,
+        "w": 77,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 81,
+        "w": 77,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Idle8": {
+      "frame": {
+        "x": 759,
+        "y": 1906,
+        "w": 77,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 81,
+        "w": 77,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Pickup8": {
+      "frame": {
+        "x": 838,
+        "y": 1906,
+        "w": 77,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 81,
+        "w": 77,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_0_Die8": {
+      "frame": {
+        "x": 917,
+        "y": 1906,
+        "w": 77,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 81,
+        "w": 77,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_045_Idle_LookSides8": {
+      "frame": {
+        "x": 996,
+        "y": 1906,
+        "w": 77,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 81,
+        "w": 77,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides0": {
+      "frame": {
+        "x": 1153,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle0": {
+      "frame": {
+        "x": 1543,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Pickup0": {
+      "frame": {
+        "x": 1621,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Die0": {
+      "frame": {
+        "x": 1699,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle": {
+      "frame": {
+        "x": 1465,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_angle_090_Idle_LookSides0": {
+      "frame": {
+        "x": 1855,
+        "y": 1906,
+        "w": 76,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 81,
+        "w": 76,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Barry_1_Idle_LookSides16": {
+      "frame": {
+        "x": 1933,
+        "y": 1906,
+        "w": 93,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 77,
+        "w": 93,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    }
+  },
+  "meta": {
+    "image": "characters_barry_1.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

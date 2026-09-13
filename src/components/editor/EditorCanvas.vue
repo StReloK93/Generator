@@ -99,6 +99,15 @@
         :title="`${$t('editor.boxClear')} (C)`"
         @click="toggleBoxClearMode"
       />
+      <!-- Buildable Zones (Z) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Castle"
+        :active="toolStore.activeTool === 'buildable'"
+        :title="`${$t('editor.buildableZones')} (Z)`"
+        @click="toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')"
+      />
 
       <div class="h-px w-full bg-slate-800 my-0.5"></div>
 
@@ -138,6 +147,71 @@
       >
         {{ $t('common.cancel') }}
       </UiButton>
+    </div>
+
+    <!-- Floating HUD when in Buildable Zones Mode -->
+    <div 
+      v-if="toolStore.activeTool === 'buildable'"
+      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-emerald-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-emerald-200 animate-in fade-in slide-in-from-top-2 select-none"
+    >
+      <div class="flex items-center gap-1.5 shrink-0">
+        <Castle class="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" />
+        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.buildableZones') }}</span>
+        <span class="font-mono text-[11px] text-emerald-300 font-semibold">
+          ({{ mapStore.project.buildMode === 'all' || !mapStore.project.buildableCells?.length ? ($t('common.all') || 'All') : `${mapStore.project.buildableCells.length} cells` }})
+        </span>
+      </div>
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Sub-tool Selector: Brush / Line / Box Area -->
+      <UiTabs
+        v-model="buildableSubTool"
+        variant="segmented"
+        size="xs"
+        :items="[
+          { id: 'brush', label: $t('tools.brush') || 'Brush', icon: Paintbrush },
+          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
+          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+        ]"
+      />
+
+      <!-- Action: Allow (+) vs Block (-) -->
+      <UiTabs
+        v-model="buildableAction"
+        :variant="buildableAction === 'allow' ? 'emerald' : 'segmented'"
+        size="xs"
+        :items="[
+          { id: 'allow', label: $t('editor.buildableAllow') || 'Allow (+)', icon: Plus },
+          { id: 'block', label: $t('editor.buildableBlock') || 'Block (-)', icon: Minus },
+        ]"
+      />
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <div class="flex items-center gap-1">
+        <UiButton
+          variant="secondary"
+          size="xs"
+          @click="mapStore.setAllCellsBuildable(true)"
+        >
+          {{ $t('editor.allBuildable') || 'All' }}
+        </UiButton>
+        <UiButton
+          variant="danger"
+          size="xs"
+          @click="mapStore.setAllCellsBuildable(false)"
+        >
+          {{ $t('common.clear') || 'Clear' }}
+        </UiButton>
+        <UiButton
+          variant="game-green"
+          size="xs"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.done') }}
+        </UiButton>
+      </div>
     </div>
 
     <!-- Floating HUD when Box Fill Mode is Active -->
@@ -345,6 +419,16 @@
         {{ Math.round(camera.localZoom.value * 100) }}%
       </div>
       <div class="pointer-events-auto flex items-center gap-1.5">
+        <!-- Buildable Zones Overlay Toggle Button (Top of the map) -->
+        <UiIconButton
+          variant="tool"
+          size="sm"
+          :active="toolStore.showBuildableZones || toolStore.activeTool === 'buildable'"
+          :icon="Castle"
+          :title="toolStore.showBuildableZones ? $t('editor.hideBuildableZones') : $t('editor.showBuildableZones')"
+          @click="toolStore.showBuildableZones = !toolStore.showBuildableZones"
+        />
+
         <!-- Route Lines & Spawn Points Toggle Button (Top of the map) -->
         <UiIconButton
           variant="tool"
@@ -376,9 +460,9 @@
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
-  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers 
+  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle 
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton } from '../ui'
+import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
 import PlacementPromptModal from '../PlacementPromptModal.vue'
 import { useMapStore } from '../../stores/mapStore'
@@ -408,6 +492,11 @@ const boxFillStartPoint = ref<GridCoord | null>(null)
 const isBoxClearActive = ref(false)
 const boxClearStartPoint = ref<GridCoord | null>(null)
 const hasDrawnInDrag = ref(false)
+
+// Buildable Zones Sub-tool ('brush' | 'line' | 'box') & Action Mode ('allow' | 'block')
+const buildableSubTool = ref<'brush' | 'line' | 'box'>('brush')
+const buildableAction = ref<'allow' | 'block'>('allow')
+const buildableBoxStartPoint = ref<GridCoord | null>(null)
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
@@ -443,6 +532,7 @@ function updateEngineState() {
     toolStore.showSymmetryAxes
   )
   engine.renderCharacter(characterStore, mapStore.project)
+  engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, toolStore.activeTool)
 }
 
 onMounted(async () => {
@@ -530,12 +620,16 @@ watch(() => [
   }
 })
 
-watch(() => [toolStore.hoveredCell, toolStore.previewCells, toolStore.activeTool, assetStore.selectedAssetId], () => {
+watch(() => [toolStore.hoveredCell, toolStore.previewCells, toolStore.activeTool, assetStore.selectedAssetId, buildableAction.value], () => {
   if (!engine.isInitialized) return
+  const effectiveTool = (toolStore.activeTool === 'buildable' && buildableAction.value === 'block') 
+    ? 'buildable-block' 
+    : toolStore.activeTool
+
   if (toolStore.previewCells.length > 0) {
-    engine.renderPreviewCells(toolStore.previewCells, mapStore.project, assetStore.selectedAsset, toolStore.activeTool)
+    engine.renderPreviewCells(toolStore.previewCells, mapStore.project, assetStore.selectedAsset, effectiveTool)
   } else {
-    engine.renderHoverCell(toolStore.hoveredCell, mapStore.project, assetStore.selectedAsset, toolStore.activeTool)
+    engine.renderHoverCell(toolStore.hoveredCell, mapStore.project, assetStore.selectedAsset, effectiveTool)
   }
 })
 
@@ -575,6 +669,26 @@ watch(() => [
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
 }, { deep: true })
 
+watch(() => [
+  toolStore.showBuildableZones,
+  toolStore.activeTool,
+  mapStore.project.buildMode,
+  mapStore.project.buildableCells,
+  mapStore.project.buildableCells?.length,
+  mapStore.project.cols,
+  mapStore.project.rows,
+  mapStore.project.tileWidth,
+  mapStore.project.tileHeight,
+], () => {
+  if (engine.isInitialized) {
+    engine.renderBuildableOverlay(
+      mapStore.project,
+      toolStore.showBuildableZones,
+      toolStore.activeTool
+    )
+  }
+}, { deep: true })
+
 // Auto-cancel Box Fill if selected asset is cleared
 watch(() => assetStore.selectedAssetId, (newAssetId) => {
   if (!newAssetId && (isBoxFillActive.value || toolStore.activeTool === 'box-fill')) {
@@ -582,7 +696,7 @@ watch(() => assetStore.selectedAssetId, (newAssetId) => {
   }
 })
 
-// Sync Box Fill and Box Clear states if active tool changes elsewhere
+// Sync Box Fill, Box Clear, and Buildable states if active tool changes elsewhere
 watch(() => toolStore.activeTool, (newTool) => {
   if (newTool !== 'box-fill' && isBoxFillActive.value) {
     isBoxFillActive.value = false
@@ -592,6 +706,10 @@ watch(() => toolStore.activeTool, (newTool) => {
   if (newTool !== 'box-clear' && isBoxClearActive.value) {
     isBoxClearActive.value = false
     boxClearStartPoint.value = null
+    toolStore.previewCells = []
+  }
+  if (newTool !== 'buildable' && buildableBoxStartPoint.value) {
+    buildableBoxStartPoint.value = null
     toolStore.previewCells = []
   }
 })
@@ -638,6 +756,44 @@ function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseE
 
     toolStore.openBoxClearModal(summary)
     cancelBoxClearMode()
+    return
+  }
+
+  // Buildable Zones Tool (Brush, Line, Box Area)
+  if (toolStore.activeTool === 'buildable') {
+    const isAllow = buildableAction.value === 'allow'
+
+    if (buildableSubTool.value === 'box') {
+      if (!buildableBoxStartPoint.value) {
+        buildableBoxStartPoint.value = { col: gridCoord.col, row: gridCoord.row }
+        toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
+        return
+      }
+
+      // 2nd corner clicked: execute Box Area on buildable cells!
+      const p0 = buildableBoxStartPoint.value
+      const p1 = gridCoord
+      const cells = getRectangleCells(p0.col, p0.row, p1.col, p1.row)
+      mapStore.batchSetBuildableCells(cells, isAllow)
+      buildableBoxStartPoint.value = null
+      toolStore.previewCells = []
+      return
+    }
+
+    if (buildableSubTool.value === 'line') {
+      toolStore.isMouseDown = true
+      toolStore.dragStartCell = gridCoord
+      toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
+      return
+    }
+
+    // Default 'brush' mode (Click / Continuous Drag)
+    const targetState = isAllow ? !mapStore.isCellBuildable(gridCoord.col, gridCoord.row) : false
+    mapStore.setCellBuildable(gridCoord.col, gridCoord.row, targetState)
+    hasDrawnInDrag.value = true
+    toolStore.isMouseDown = true
+    toolStore.dragStartCell = gridCoord
+    lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
     return
   }
 
@@ -970,6 +1126,54 @@ function handleMouseMove(e: MouseEvent) {
     return
   }
 
+  if (toolStore.activeTool === 'buildable') {
+    if (buildableSubTool.value === 'box') {
+      if (buildableBoxStartPoint.value) {
+        toolStore.previewCells = getRectangleCells(
+          buildableBoxStartPoint.value.col,
+          buildableBoxStartPoint.value.row,
+          gridCoord.col,
+          gridCoord.row
+        )
+      } else if (toolStore.isMouseDown && toolStore.dragStartCell) {
+        toolStore.previewCells = getRectangleCells(
+          toolStore.dragStartCell.col,
+          toolStore.dragStartCell.row,
+          gridCoord.col,
+          gridCoord.row
+        )
+      } else {
+        toolStore.previewCells = []
+      }
+      return
+    }
+
+    if (buildableSubTool.value === 'line') {
+      if (toolStore.isMouseDown && toolStore.dragStartCell) {
+        toolStore.previewCells = getBresenhamLine(
+          toolStore.dragStartCell.col,
+          toolStore.dragStartCell.row,
+          gridCoord.col,
+          gridCoord.row
+        )
+      } else {
+        toolStore.previewCells = []
+      }
+      return
+    }
+
+    // Brush drag
+    if (toolStore.isMouseDown && toolStore.dragStartCell) {
+      const isSameAsLast = lastDrawnCell.value && lastDrawnCell.value.col === gridCoord.col && lastDrawnCell.value.row === gridCoord.row
+      if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
+        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
+        mapStore.setCellBuildable(gridCoord.col, gridCoord.row, buildableAction.value === 'allow')
+        hasDrawnInDrag.value = true
+      }
+    }
+    return
+  }
+
   if (toolStore.isMouseDown && toolStore.dragStartCell) {
     const isSameAsLast = lastDrawnCell.value && lastDrawnCell.value.col === gridCoord.col && lastDrawnCell.value.row === gridCoord.row
 
@@ -1006,6 +1210,25 @@ function handleMouseUp(e?: MouseEvent) {
     draggedWaypointIndex.value = null
     characterStore.commitRouteState()
     engine.renderCharacter(characterStore, mapStore.project)
+    return
+  }
+
+  if (toolStore.activeTool === 'buildable') {
+    const isAllow = buildableAction.value === 'allow'
+    if (buildableSubTool.value === 'line' && toolStore.previewCells.length > 0) {
+      mapStore.batchSetBuildableCells(toolStore.previewCells, isAllow)
+      toolStore.previewCells = []
+    } else if (buildableSubTool.value === 'box' && toolStore.isMouseDown && toolStore.dragStartCell && toolStore.previewCells.length > 1) {
+      mapStore.batchSetBuildableCells(toolStore.previewCells, isAllow)
+      toolStore.previewCells = []
+      buildableBoxStartPoint.value = null
+    } else if (hasDrawnInDrag.value) {
+      mapStore.pushHistory('Buildable zones edit')
+      hasDrawnInDrag.value = false
+    }
+    toolStore.isMouseDown = false
+    toolStore.dragStartCell = null
+    lastDrawnCell.value = null
     return
   }
 
@@ -1197,6 +1420,15 @@ function handleKeyDown(e: KeyboardEvent) {
       characterStore.isSettingSpawnPoint = false
       return
     }
+    if (toolStore.activeTool === 'buildable') {
+      if (buildableBoxStartPoint.value) {
+        buildableBoxStartPoint.value = null
+        toolStore.previewCells = []
+        return
+      }
+      toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+      return
+    }
     if (toolStore.selectedElement) {
       toolStore.setSelectedElement(null)
       return
@@ -1362,6 +1594,10 @@ function handleKeyDown(e: KeyboardEvent) {
     }
     if (code === 'KeyB' || key === 'b') {
       e.preventDefault()
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'brush'
+        return
+      }
       if (isBoxFillActive.value) cancelBoxFillMode()
       if (isBoxClearActive.value) cancelBoxClearMode()
       toolStore.setTool('brush')
@@ -1369,6 +1605,10 @@ function handleKeyDown(e: KeyboardEvent) {
     }
     if (code === 'KeyE' || key === 'e') {
       e.preventDefault()
+      if (toolStore.activeTool === 'buildable') {
+        buildableAction.value = 'block'
+        return
+      }
       if (isBoxFillActive.value) cancelBoxFillMode()
       if (isBoxClearActive.value) cancelBoxClearMode()
       toolStore.setTool('eraser')
@@ -1390,15 +1630,30 @@ function handleKeyDown(e: KeyboardEvent) {
     }
     if (code === 'KeyL' || key === 'l') {
       e.preventDefault()
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'line'
+        return
+      }
       if (isBoxFillActive.value) cancelBoxFillMode()
       if (isBoxClearActive.value) cancelBoxClearMode()
       toolStore.setTool('line')
       return
     }
-    if (code === 'KeyU' || key === 'u') {
+    if (code === 'KeyU' || key === 'u' || code === 'KeyF' || key === 'f') {
       e.preventDefault()
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'box'
+        return
+      }
       toggleBoxFillMode()
       return
+    }
+    if (code === 'KeyZ' || key === 'z') {
+      if (!e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')
+        return
+      }
     }
   }
 }

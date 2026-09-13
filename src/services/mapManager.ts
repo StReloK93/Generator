@@ -223,22 +223,30 @@ export function applyMapPayloadToStores(rawPayload: any): void {
       unitCount: Number(w.unitCount) || 10,
       goldReward: Number(w.goldReward) || (Number(w.unitBonus) || 1),
     }))
+  } else {
+    characterStore.waveConfigs = []
   }
 
   // 3. Hydrate Towers & Clans
   const rawClans = data.towerData?.clans || project.clans || data.clans || []
   if (rawClans && rawClans.length > 0) {
     towerStore.clans = rawClans.map((c: any) => ({ ...c }))
+  } else {
+    towerStore.clans = []
   }
 
   const rawBlueprints = data.towerData?.towerBlueprints || data.towerBlueprints || project.towerBlueprints || []
   if (rawBlueprints && rawBlueprints.length > 0) {
     towerStore.blueprints = rawBlueprints.map((b: any) => ({ ...b }))
+  } else {
+    towerStore.blueprints = []
   }
 
   const rawPlacedTowers = data.towerData?.placedTowers || data.placedTowers || project.placedTowers || []
   if (rawPlacedTowers && rawPlacedTowers.length > 0) {
     towerStore.placedTowers = rawPlacedTowers.map((pt: any) => ({ ...pt }))
+  } else {
+    towerStore.placedTowers = []
   }
 
   // 4. Hydrate Custom Routes & Waypoints
@@ -254,6 +262,10 @@ export function applyMapPayloadToStores(rawPayload: any): void {
     if (settings.startingGold !== undefined) characterStore.startingGold = settings.startingGold
     if (settings.startingLives !== undefined) characterStore.startingLives = settings.startingLives
     if (settings.wavePrepTime !== undefined) characterStore.wavePrepDuration = settings.wavePrepTime
+  } else {
+    characterStore.startingGold = 150
+    characterStore.startingLives = 20
+    characterStore.wavePrepDuration = 10
   }
 
   // 6. Assets

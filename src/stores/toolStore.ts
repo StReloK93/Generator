@@ -67,6 +67,7 @@ export const useToolStore = defineStore('toolStore', () => {
   const showCoordinates = ref<boolean>(false)
   const showCenterMarker = ref<boolean>(true)
   const showSymmetryAxes = ref<boolean>(true)
+  const showBuildableZones = ref<boolean>(false)
   const gridOpacity = ref<number>(0.35)
   const snapToGrid = ref<boolean>(true)
 
@@ -183,6 +184,7 @@ export const useToolStore = defineStore('toolStore', () => {
     showCoordinates,
     showCenterMarker,
     showSymmetryAxes,
+    showBuildableZones,
     gridOpacity,
     snapToGrid,
     setTool,

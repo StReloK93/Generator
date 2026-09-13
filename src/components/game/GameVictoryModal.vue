@@ -17,10 +17,64 @@
       <Trophy class="w-6 h-6 sm:w-8 sm:h-8" />
     </div>
 
+    <!-- Multiplayer Player Scoreboard -->
     <div 
+      v-if="multiplayerStore.roomId && multiplayerStore.players.length > 0"
+      class="w-full flex flex-col gap-1.5 bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800"
+    >
+      <div class="text-[11px] font-bold text-slate-300 flex items-center justify-between px-1 pb-1 border-b border-slate-800/80">
+        <span>{{ $t('lobby.playersList') || 'Players' }}</span>
+        <span class="text-amber-300 font-mono text-[10px]">{{ $t('game.wavesCompleted', { count: characterStore.waveConfigs.length }) || 'All Waves Cleared!' }}</span>
+      </div>
+
+      <div class="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar">
+        <div 
+          v-for="p in multiplayerStore.players" 
+          :key="p.id"
+          class="flex items-center justify-between p-1.5 rounded-xl border text-xs font-mono transition-all"
+          :class="p.id === multiplayerStore.myPlayerId 
+            ? 'bg-amber-950/30 border-amber-500/50 shadow-xs' 
+            : 'bg-slate-950/60 border-slate-800/80'"
+        >
+          <!-- Player Avatar & Name -->
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <div 
+              class="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 text-slate-950"
+              :style="{ backgroundColor: p.color || '#38bdf8' }"
+            >
+              {{ (p.slotIndex ?? 0) + 1 }}
+            </div>
+            <span class="font-sans font-bold truncate text-slate-200" :class="{ 'text-amber-300': p.id === multiplayerStore.myPlayerId }">
+              {{ p.name }}
+              <span v-if="p.id === multiplayerStore.myPlayerId" class="text-[10px] font-normal text-slate-400"> ({{ $t('lobby.you') }})</span>
+            </span>
+          </div>
+
+          <!-- Player Stats -->
+          <div class="flex items-center gap-3 shrink-0 text-[11px]">
+            <span class="flex items-center gap-1 text-amber-400 font-semibold" :title="$t('game.goldEarned')">
+              <Coins class="w-3.5 h-3.5" />
+              {{ p.totalGoldEarned ?? p.gold ?? 0 }}
+            </span>
+            <span class="flex items-center gap-1 text-rose-400 font-semibold" :title="$t('game.kills')">
+              <Skull class="w-3.5 h-3.5" />
+              {{ p.killsCount ?? 0 }}
+            </span>
+            <span class="flex items-center gap-1 text-brand-400 font-semibold" :title="$t('tower.buildCount')">
+              <Castle class="w-3.5 h-3.5" />
+              {{ p.towersBuilt ?? 0 }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single Player Stats Bar -->
+    <div 
+      v-else 
       class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs"
     >
-      <span class="flex items-center gap-1">{{ $t('game.goldEarned') }}: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ characterStore.totalGoldEarned }}</strong></span>
+      <span class="flex items-center gap-1">{{ $t('game.goldEarned') }}: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ characterStore.totalGoldEarned || characterStore.gold }}</strong></span>
       <span class="flex items-center gap-1">{{ $t('game.kills') }}: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ characterStore.totalKills }}</strong></span>
     </div>
 
@@ -73,7 +127,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { Trophy, Coins, Skull, Home, LogOut, RotateCcw, Layers } from 'lucide-vue-next'
+import { Trophy, Coins, Skull, Home, LogOut, RotateCcw, Layers, Castle } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'

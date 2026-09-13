@@ -554,7 +554,12 @@ export const useTowerStore = defineStore('towerStore', () => {
       return null
     }
 
-    // 2. Prevent building on spawn points or walking path lines
+    // 2. Prevent building on non-buildable zones, spawn points, or walking path lines
+    if (!mapStore.isCellBuildable(col, row)) {
+      console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) is not in a designated buildable zone.`)
+      return null
+    }
+
     if (characterStore.isCellBlockedForBuilding(col, row)) {
       console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) is a spawn point or path route.`)
       return null
@@ -887,6 +892,18 @@ export const useTowerStore = defineStore('towerStore', () => {
     ;(mapStore.project as any).towerBlueprints = blueprints.value.map(b => ({ ...b }))
   }
 
+  function resetForNewProject() {
+    blueprints.value = []
+    placedTowers.value = []
+    clans.value = [createDefaultClan('clan-iron', 'Iron Citadel')]
+    selectedClanId.value = ''
+    selectedEditorClanId.value = clans.value[0]?.id || ''
+    activeBuildTowerId.value = null
+    selectedPlacedTowerId.value = null
+    selectedBlueprintId.value = ''
+    clearCombatEffects()
+  }
+
   /**
    * Restores placed towers from project state
    */
@@ -902,7 +919,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     selectedEditorClanId.value = clans.value[0]?.id || ''
 
     const rawTowers = p.placedTowers || p.towerData?.placedTowers || []
-    if (rawTowers && Array.isArray(rawTowers)) {
+    if (rawTowers && Array.isArray(rawTowers) && rawTowers.length > 0) {
       const { tileWidth, tileHeight } = mapStore.project
       placedTowers.value = rawTowers.map((t: any) => {
         const pt = gridToScreen(t.col, t.row, tileWidth, tileHeight)
@@ -913,7 +930,10 @@ export const useTowerStore = defineStore('towerStore', () => {
           cooldownTimer: 0,
         }
       })
+    } else {
+      placedTowers.value = []
     }
+
     const rawBlueprints = p.towerBlueprints || p.towerData?.towerBlueprints || []
     if (rawBlueprints && Array.isArray(rawBlueprints) && rawBlueprints.length > 0) {
       const defaultClanId = clans.value[0]?.id || 'clan-default'
@@ -922,6 +942,8 @@ export const useTowerStore = defineStore('towerStore', () => {
         clanId: bp.clanId || defaultClanId,
         assetId: bp.assetId || (bp.assetName ? `sprite-${bp.assetName.replace(/\.[^/.]+$/, '')}` : ''),
       }))
+    } else {
+      blueprints.value = []
     }
     ensureDefaultClan()
   }
@@ -1538,6 +1560,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     saveEditorTowersSnapshot,
     restoreEditorTowersSnapshot,
     clearCombatEffects,
+    resetForNewProject,
     syncToProject,
     restoreFromProject,
     updateCombatTick,

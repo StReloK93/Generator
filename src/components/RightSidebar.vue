@@ -215,139 +215,6 @@
 
           <!-- Scrollable Layer Items -->
           <div class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar p-1">
-            
-            <!-- SPECIAL UNITS (CREEPS) LAYER CARD -->
-            <UiCard 
-              variant="default"
-              padding="sm"
-              custom-class="p-2! flex flex-col gap-1.5 shrink-0 border-purple-800/60 bg-linear-to-b from-purple-950/40 to-slate-900/80 shadow-md ring-1 ring-purple-500/20"
-            >
-              <!-- Units Layer Header -->
-              <div class="flex items-center justify-between gap-1.5">
-                <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                  <UiIconButton 
-                    :icon="characterStore.isEnabled ? Eye : EyeOff"
-                    size="sm"
-                    variant="ghost"
-                    :title="characterStore.isEnabled ? $t('sidebar.hideLayer') : $t('sidebar.showLayer')"
-                    :custom-class="characterStore.isEnabled ? 'text-purple-400 hover:text-purple-300' : 'text-slate-600'"
-                    @click.stop="characterStore.isEnabled = !characterStore.isEnabled"
-                  />
-
-                  <div class="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer select-none" @click="isUnitsLayerExpanded = !isUnitsLayerExpanded">
-                    <Users class="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                    <span class="text-[11px] font-bold text-purple-200 truncate">{{ $t('sidebar.unitsLayer') }}</span>
-                    <UiBadge variant="brand" size="xs" custom-class="text-[9px]! px-1! py-0! bg-purple-900/60 text-purple-300 border-purple-700/50">
-                      Z:100k+
-                    </UiBadge>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-1 shrink-0">
-                  <UiIconButton 
-                    :icon="characterStore.isPlaying ? Pause : Play"
-                    size="sm"
-                    :variant="characterStore.isPlaying ? 'amber' : 'ghost'"
-                    :title="characterStore.isPlaying ? $t('common.pause') || 'Pause' : $t('sidebar.testSpawn') || 'Test Wave'"
-                    custom-class="p-0.5! w-6! h-6! text-emerald-400 hover:text-emerald-300"
-                    @click.stop="characterStore.togglePlay()"
-                  />
-                  <UiIconButton 
-                    :icon="isUnitsLayerExpanded ? ChevronDown : ChevronRight"
-                    size="sm"
-                    variant="ghost"
-                    custom-class="p-0.5! w-6! h-6! text-slate-400 hover:text-slate-200"
-                    @click.stop="isUnitsLayerExpanded = !isUnitsLayerExpanded"
-                  />
-                </div>
-              </div>
-
-              <!-- Units Layer Body (Elevation, Scale, Speed Controls) -->
-              <div v-if="isUnitsLayerExpanded" class="flex flex-col gap-2 pt-1 border-t border-purple-900/40 text-[10px] text-slate-300">
-                <!-- Unit Elevation (Balandlik / Bo'y) -->
-                <div class="flex flex-col gap-1 bg-slate-950/50 p-1.5 rounded-xl border border-purple-900/30">
-                  <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1 font-semibold text-purple-300">
-                      <MoveVertical class="w-3 h-3 text-purple-400" />
-                      {{ $t('sidebar.unitElevation') }}
-                    </span>
-                    <div class="flex items-center gap-1">
-                      <span class="font-mono text-purple-300 font-bold">
-                        {{ characterStore.unitElevation > 0 ? `+${characterStore.unitElevation}` : characterStore.unitElevation }}px
-                      </span>
-                      <UiButton 
-                        v-if="characterStore.unitElevation !== 0"
-                        variant="ghost" 
-                        size="xs" 
-                        custom-class="p-0! h-4! text-[9px]! text-slate-400 hover:text-white"
-                        :title="$t('common.reset')"
-                        @click="resetUnitElevation"
-                      >
-                        <RotateCcw class="w-2.5 h-2.5" />
-                      </UiButton>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <UiSlider 
-                      :model-value="characterStore.unitElevation"
-                      :min="-60"
-                      :max="60"
-                      :step="1"
-                      class="flex-1"
-                      @update:model-value="(val) => { characterStore.unitElevation = val; characterStore.syncCharacterConfigToProject() }"
-                    />
-                  </div>
-                  <!-- Quick Elevation Presets -->
-                  <div class="flex items-center gap-1 mt-0.5 justify-between">
-                    <button 
-                      v-for="p in [-32, -16, 0, 16, 32]" 
-                      :key="p"
-                      class="px-1.5 py-0.5 rounded text-[9px] font-mono transition-colors"
-                      :class="characterStore.unitElevation === p ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-slate-200'"
-                      @click="characterStore.unitElevation = p; characterStore.syncCharacterConfigToProject()"
-                    >
-                      {{ p > 0 ? `+${p}` : p }}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Unit Scale (O'lcham) -->
-                <div class="flex flex-col gap-1 bg-slate-950/50 p-1.5 rounded-xl border border-purple-900/30">
-                  <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1 font-semibold text-purple-300">
-                      <Maximize2 class="w-3 h-3 text-purple-400" />
-                      {{ $t('sidebar.unitScale') }}
-                    </span>
-                    <div class="flex items-center gap-1">
-                      <span class="font-mono text-purple-300 font-bold">
-                        {{ characterStore.unitScaleMultiplier.toFixed(2) }}x
-                      </span>
-                      <UiButton 
-                        v-if="characterStore.unitScaleMultiplier !== 1.0"
-                        variant="ghost" 
-                        size="xs" 
-                        custom-class="p-0! h-4! text-[9px]! text-slate-400 hover:text-white"
-                        :title="$t('common.reset')"
-                        @click="resetUnitScale"
-                      >
-                        <RotateCcw class="w-2.5 h-2.5" />
-                      </UiButton>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <UiSlider 
-                      :model-value="characterStore.unitScaleMultiplier"
-                      :min="0.5"
-                      :max="2.0"
-                      :step="0.05"
-                      class="flex-1"
-                      @update:model-value="(val) => { characterStore.unitScaleMultiplier = val; characterStore.syncCharacterConfigToProject() }"
-                    />
-                  </div>
-                </div>
-              </div>
-            </UiCard>
-
             <UiCard 
               v-for="layer in reversedLayers" 
               :key="layer.id"
@@ -530,6 +397,16 @@
                     @click.stop="handleFocusRoute(door)"
                   />
 
+                  <!-- Relocate Start Point -->
+                  <UiIconButton 
+                    :icon="MapPin"
+                    size="sm"
+                    variant="ghost"
+                    :title="$t('sidebar.relocateStart')"
+                    custom-class="p-0.5! w-6! h-6! text-amber-400 hover:text-amber-300"
+                    @click.stop="handleRelocateStart(idx)"
+                  />
+
                   <!-- Delete Route -->
                   <UiIconButton 
                     v-if="characterStore.detectedDoors.length > 1"
@@ -586,54 +463,7 @@
                 {{ assetStore.assets.length }}
               </UiBadge>
             </div>
-
-            <!-- Upload Action Buttons -->
-            <div class="flex items-center gap-1">
-              <UiButton 
-                variant="primary"
-                size="sm"
-                :leading-icon="FolderUp"
-                :title="$t('sidebar.uploadFolder')"
-                @click="triggerFolderUpload"
-              />
-
-              <UiButton 
-                variant="secondary"
-                size="sm"
-                :leading-icon="ImagePlus"
-                :title="$t('sidebar.uploadImages')"
-                @click="triggerFilesUpload"
-              />
-
-              <UiButton 
-                v-if="assetStore.assets.length > 0"
-                :leading-icon="Trash2"
-                size="sm"
-                variant="danger"
-                :title="$t('sidebar.clearAssets')"
-                @click="assetStore.clearAllAssets()"
-              />
-            </div>
           </div>
-
-          <!-- Hidden Upload Inputs -->
-          <input 
-            ref="folderInputRef" 
-            type="file" 
-            webkitdirectory 
-            directory 
-            multiple 
-            class="hidden" 
-            @change="handleFolderSelect" 
-          />
-          <input 
-            ref="filesInputRef" 
-            type="file" 
-            multiple 
-            accept="image/*,.png,.jpg,.jpeg,.webp,.svg" 
-            class="hidden" 
-            @change="handleFilesSelect" 
-          />
 
           <!-- Search Filter -->
           <UiInput 
@@ -671,6 +501,19 @@
               class="group relative flex items-center justify-center p-2 rounded-2xl border aspect-square cursor-pointer transition-all shadow-sm overflow-hidden"
               :title="asset.name"
             >
+              <!-- Favorite Star Button (Top-left) -->
+              <button
+                type="button"
+                class="absolute top-1 left-1 p-1 rounded-md transition-all z-10"
+                :class="assetStore.isFavorite(asset.id) 
+                  ? 'text-amber-400 bg-slate-950/80 shadow-xs' 
+                  : 'text-slate-500 hover:text-amber-300 opacity-0 group-hover:opacity-100 bg-slate-950/60'"
+                :title="assetStore.isFavorite(asset.id) ? $t('sidebar.removeFromFavorites') : $t('sidebar.addToFavorites')"
+                @click.stop="assetStore.toggleFavorite(asset.id)"
+              >
+                <Star class="w-3.5 h-3.5" :class="{ 'fill-amber-400': assetStore.isFavorite(asset.id) }" />
+              </button>
+
               <!-- Thumbnail Image (Large, fills box, perfectly centered) -->
               <img 
                 :src="assetStore.getAssetPreview(asset)" 
@@ -689,7 +532,7 @@
                 </span>
               </div>
 
-              <!-- Quick Hover Actions (Anchor & Delete) -->
+              <!-- Quick Hover Actions (Anchor Calibration) -->
               <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/90 rounded-md p-0.5 border border-slate-800/80 shadow-md backdrop-blur-xs z-10">
                 <UiButton 
                   :leading-icon="Crosshair"
@@ -698,43 +541,17 @@
                   :title="$t('sidebar.adjustAnchor')"
                   @click.stop="openAnchorModal(asset)"
                 />
-                <UiButton 
-                  :leading-icon="Trash2"
-                  size="xs"
-                  variant="danger"
-                  :title="$t('sidebar.deleteAsset')"
-                  @click.stop="assetStore.deleteAsset(asset.id)"
-                />
               </div>
             </div>
           </div>
 
-          <!-- Empty State when no assets uploaded -->
+          <!-- Empty State when no assets match category or search -->
           <div 
             v-else 
             class="h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-800/80 rounded-3xl bg-slate-950/40 p-4 text-center"
           >
-            <UploadCloud class="w-8 h-8 text-brand-400/60 mb-2" />
-            <p class="text-xs font-bold text-slate-300">{{ $t('sidebar.emptyLibrary') }}</p>
-            <p class="text-[10px] text-slate-500 max-w-45 mt-0.5 mb-3">{{ $t('sidebar.emptyLibraryDesc') }}</p>
-            <div class="flex items-center gap-1.5">
-              <UiButton 
-                variant="primary"
-                size="sm"
-                :leading-icon="FolderUp"
-                @click="triggerFolderUpload"
-              >
-                {{ $t('sidebar.uploadFolder') }}
-              </UiButton>
-              <UiButton 
-                variant="secondary"
-                size="sm"
-                :leading-icon="ImagePlus"
-                @click="triggerFilesUpload"
-              >
-                {{ $t('sidebar.images') }}
-              </UiButton>
-            </div>
+            <FolderOpen class="w-8 h-8 text-slate-600 mb-2" />
+            <p class="text-xs font-bold text-slate-300">{{ $t('sidebar.noAssets') }}</p>
           </div>
         </div>
 
@@ -756,10 +573,10 @@
 import { ref, computed, watch } from 'vue'
 import { 
   Boxes, Layers, ChevronLeft, ChevronRight, ChevronDown, Search, 
-  Crosshair, Trash2, FolderOpen, FolderUp, ImagePlus, 
-  UploadCloud, Plus, Eye, EyeOff, Lock, Unlock, 
-  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin, PaintBucket,
-  CopyCheck, Users, MoveVertical, Maximize2, RotateCcw, Play, Pause
+  Crosshair, Trash2, FolderOpen, 
+  Plus, Eye, EyeOff, Lock, Unlock, 
+  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin,
+  CopyCheck, Maximize2, Star
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -793,19 +610,8 @@ const { t } = useI18n()
 
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 const activeTopTab = ref<'elements' | 'layers' | 'routes'>('elements')
-const isUnitsLayerExpanded = ref(true)
 const elementSearchQuery = ref('')
 const displayLimit = ref(40)
-
-function resetUnitElevation() {
-  characterStore.unitElevation = 0
-  characterStore.syncCharacterConfigToProject()
-}
-
-function resetUnitScale() {
-  characterStore.unitScaleMultiplier = 1.0
-  characterStore.syncCharacterConfigToProject()
-}
 
 watch([elementSearchQuery, activeTopTab], () => {
   displayLimit.value = 40
@@ -818,10 +624,21 @@ const topTabItems = computed<TabItem[]>(() => [
 ])
 
 const assetCategoryItems = computed<TabItem[]>(() => {
-  return assetStore.categories.map(cat => ({
-    id: cat,
-    label: cat === 'All' ? (t('sidebar.allCategories') || 'All') : (t(`assets.cat${cat}`) !== `assets.cat${cat}` ? t(`assets.cat${cat}`) : cat)
-  }))
+  const items: TabItem[] = [
+    { id: 'All', label: t('sidebar.allCategories') || 'All' },
+    { id: 'Favorites', label: t('sidebar.favorites') || 'Favorites' },
+    { id: 'UsedInMap', label: t('sidebar.usedInMap') || 'In Map' },
+  ]
+
+  for (const cat of assetStore.categories) {
+    if (cat === 'All') continue
+    const catLabel = t(`assets.cat${cat}`) !== `assets.cat${cat}` ? t(`assets.cat${cat}`) : cat
+    items.push({
+      id: cat,
+      label: catLabel,
+    })
+  }
+  return items
 })
 
 function handleAddNewRoute() {
@@ -852,6 +669,13 @@ function handleDeleteRoute(idx: number) {
   characterStore.removeSpawnPoint(idx)
 }
 
+function handleRelocateStart(idx: number) {
+  characterStore.selectedDoorIndex = idx
+  characterStore.spawnPointPlacementMode = 'relocate'
+  characterStore.isSettingSpawnPoint = true
+  characterStore.statusMessage = t('sidebar.clickRelocateStart', { number: idx + 1 })
+}
+
 function getRouteStats(door: any, idx: number): string {
   const doorKey = door.id || `door-${idx}`
   const waypoints = characterStore.customWaypoints[doorKey] || []
@@ -861,8 +685,6 @@ function getRouteStats(door: any, idx: number): string {
   return t('sidebar.routeStatsDefault')
 }
 
-const folderInputRef = ref<HTMLInputElement | null>(null)
-const filesInputRef = ref<HTMLInputElement | null>(null)
 const selectedAssetForAnchor = ref<AssetItem | null>(null)
 
 const reversedLayers = computed(() => {
@@ -986,29 +808,7 @@ function handleDeleteItem(entry: PlacedElementEntry) {
   }
 }
 
-function triggerFolderUpload() {
-  folderInputRef.value?.click()
-}
 
-function triggerFilesUpload() {
-  filesInputRef.value?.click()
-}
-
-async function handleFolderSelect(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files.length > 0) {
-    await assetStore.uploadFiles(input.files)
-    input.value = ''
-  }
-}
-
-async function handleFilesSelect(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files.length > 0) {
-    await assetStore.uploadFiles(input.files)
-    input.value = ''
-  }
-}
 
 function handleAssetClick(assetId: string) {
   if (assetStore.selectedAssetId === assetId) {
@@ -1041,16 +841,7 @@ function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: nu
   }
 }
 
-function handleQuickFillEmpty(assetId: string) {
-  const targetLayerId = mapStore.activeLayerId || 'layer-ground'
-  const layer = mapStore.project.layers.find(l => l.id === targetLayerId) || mapStore.activeLayer
-  const count = mapStore.fillEmptyCells(assetId, targetLayerId)
-  if (count > 0) {
-    notify.success(t('editor.filledEmptyCellsCount', { count, layer: layer.name }))
-  } else {
-    notify.info(t('editor.occupiedCellsCount'))
-  }
-}
+
 </script>
 
 <style scoped>

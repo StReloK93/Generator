@@ -1448,9 +1448,10 @@
             <!-- Left Info & Icon -->
             <div class="flex items-center gap-3">
               <div 
-                class="w-11 h-11 rounded-xl flex items-center justify-center transition-all"
+                class="w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0"
                 :class="tempSelectedUnitModel === model.id ? 'bg-purple-600/30 border border-purple-500/50 shadow-inner text-purple-300' : 'bg-slate-950 border border-slate-800 group-hover:border-slate-700 text-slate-400'"
               >
+                <component :is="getModelIcon(model.id)" class="w-5 h-5" />
               </div>
               
               <div class="flex flex-col">
@@ -1651,7 +1652,7 @@ import {
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
   Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
   ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, Ghost, Droplet, Crown,
-  TrendingDown, TrendingUp, Equal
+  TrendingDown, TrendingUp, Equal, Bird
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -1911,11 +1912,22 @@ function getUnitModelDisplayName(id?: string): string {
   return lower.charAt(0).toUpperCase() + lower.slice(1)
 }
 
+function getModelIcon(modelId: string) {
+  const lower = String(modelId).toLowerCase()
+  if (lower === 'bird') return Bird
+  if (lower === 'medusa') return Skull
+  if (lower === 'demon') return Flame
+  if (lower === 'warrior') return Swords
+  if (lower === 'female') return User
+  return User
+}
+
 function getUnitBadgeVariant(id?: string): 'brand' | 'amber' | 'rose' | 'emerald' {
   const lower = String(id || 'male').toLowerCase()
   if (lower.includes('warrior') || lower.includes('knight')) return 'amber'
   if (lower.includes('female') || lower.includes('woman')) return 'rose'
-  if (lower.includes('orc') || lower.includes('goblin') || lower.includes('dragon')) return 'emerald'
+  if (lower.includes('medusa') || lower.includes('orc') || lower.includes('goblin') || lower.includes('dragon')) return 'emerald'
+  if (lower.includes('bird') || lower.includes('demon')) return 'amber'
   return 'brand'
 }
 

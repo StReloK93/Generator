@@ -642,7 +642,47 @@
     },
     "Warrior_4_Idle0": {
       "frame": {
-        "x": 52,
+        "x": 152,
+        "y": 124,
+        "w": 48,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 60,
+        "w": 48,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup0": {
+      "frame": {
+        "x": 202,
+        "y": 124,
+        "w": 48,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 60,
+        "w": 48,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die0": {
+      "frame": {
+        "x": 252,
         "y": 124,
         "w": 48,
         "h": 114
@@ -662,7 +702,7 @@
     },
     "Warrior_4_Idle": {
       "frame": {
-        "x": 2,
+        "x": 102,
         "y": 124,
         "w": 48,
         "h": 114
@@ -682,7 +722,7 @@
     },
     "Warrior_angle_225_Idle0": {
       "frame": {
-        "x": 152,
+        "x": 352,
         "y": 124,
         "w": 48,
         "h": 114
@@ -702,7 +742,7 @@
     },
     "Warrior_angle_247_Idle7": {
       "frame": {
-        "x": 202,
+        "x": 402,
         "y": 124,
         "w": 27,
         "h": 114
@@ -722,7 +762,7 @@
     },
     "Warrior_angle_247_Idle17": {
       "frame": {
-        "x": 231,
+        "x": 431,
         "y": 124,
         "w": 27,
         "h": 114
@@ -742,7 +782,7 @@
     },
     "Warrior_angle_292_Run8": {
       "frame": {
-        "x": 260,
+        "x": 460,
         "y": 124,
         "w": 41,
         "h": 114
@@ -762,7 +802,7 @@
     },
     "Warrior_angle_292_Run16": {
       "frame": {
-        "x": 303,
+        "x": 503,
         "y": 124,
         "w": 38,
         "h": 114
@@ -782,7 +822,7 @@
     },
     "Warrior_6_Run9": {
       "frame": {
-        "x": 401,
+        "x": 601,
         "y": 124,
         "w": 56,
         "h": 114
@@ -802,7 +842,7 @@
     },
     "Warrior_angle_315_Run9": {
       "frame": {
-        "x": 459,
+        "x": 659,
         "y": 124,
         "w": 56,
         "h": 114
@@ -822,66 +862,6 @@
     },
     "Warrior_4_Idle1": {
       "frame": {
-        "x": 567,
-        "y": 124,
-        "w": 48,
-        "h": 113
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 93,
-        "y": 61,
-        "w": 48,
-        "h": 113
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_225_Idle1": {
-      "frame": {
-        "x": 617,
-        "y": 124,
-        "w": 48,
-        "h": 113
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 93,
-        "y": 61,
-        "w": 48,
-        "h": 113
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_4_Idle2": {
-      "frame": {
-        "x": 717,
-        "y": 124,
-        "w": 48,
-        "h": 113
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 93,
-        "y": 61,
-        "w": 48,
-        "h": 113
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_225_Idle2": {
-      "frame": {
         "x": 767,
         "y": 124,
         "w": 48,
@@ -900,7 +880,27 @@
         "h": 256
       }
     },
-    "Warrior_4_Idle3": {
+    "Warrior_4_Pickup1": {
+      "frame": {
+        "x": 817,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die1": {
       "frame": {
         "x": 867,
         "y": 124,
@@ -920,7 +920,7 @@
         "h": 256
       }
     },
-    "Warrior_angle_225_Idle3": {
+    "Warrior_angle_225_Idle1": {
       "frame": {
         "x": 917,
         "y": 124,
@@ -940,7 +940,7 @@
         "h": 256
       }
     },
-    "Warrior_4_Idle21": {
+    "Warrior_4_Idle2": {
       "frame": {
         "x": 1017,
         "y": 124,
@@ -960,7 +960,7 @@
         "h": 256
       }
     },
-    "Warrior_angle_225_Idle21": {
+    "Warrior_4_Pickup2": {
       "frame": {
         "x": 1067,
         "y": 124,
@@ -980,7 +980,27 @@
         "h": 256
       }
     },
-    "Warrior_4_Idle22": {
+    "Warrior_4_Die2": {
+      "frame": {
+        "x": 1117,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_angle_225_Idle2": {
       "frame": {
         "x": 1167,
         "y": 124,
@@ -1000,9 +1020,9 @@
         "h": 256
       }
     },
-    "Warrior_angle_225_Idle22": {
+    "Warrior_4_Idle3": {
       "frame": {
-        "x": 1217,
+        "x": 1267,
         "y": 124,
         "w": 48,
         "h": 113
@@ -1020,7 +1040,7 @@
         "h": 256
       }
     },
-    "Warrior_4_Idle23": {
+    "Warrior_4_Pickup3": {
       "frame": {
         "x": 1317,
         "y": 124,
@@ -1040,7 +1060,7 @@
         "h": 256
       }
     },
-    "Warrior_angle_225_Idle23": {
+    "Warrior_4_Die3": {
       "frame": {
         "x": 1367,
         "y": 124,
@@ -1060,10 +1080,270 @@
         "h": 256
       }
     },
-    "Warrior_angle_247_Idle8": {
+    "Warrior_angle_225_Idle3": {
       "frame": {
         "x": 1417,
         "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Idle21": {
+      "frame": {
+        "x": 1517,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup21": {
+      "frame": {
+        "x": 1567,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die21": {
+      "frame": {
+        "x": 1617,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_angle_225_Idle21": {
+      "frame": {
+        "x": 1667,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Idle22": {
+      "frame": {
+        "x": 1767,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup22": {
+      "frame": {
+        "x": 1817,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die22": {
+      "frame": {
+        "x": 1867,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_angle_225_Idle22": {
+      "frame": {
+        "x": 1917,
+        "y": 124,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Idle23": {
+      "frame": {
+        "x": 2,
+        "y": 240,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup23": {
+      "frame": {
+        "x": 52,
+        "y": 240,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die23": {
+      "frame": {
+        "x": 102,
+        "y": 240,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_angle_225_Idle23": {
+      "frame": {
+        "x": 152,
+        "y": 240,
+        "w": 48,
+        "h": 113
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 48,
+        "h": 113
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_angle_247_Idle8": {
+      "frame": {
+        "x": 202,
+        "y": 240,
         "w": 27,
         "h": 113
       },
@@ -1082,8 +1362,8 @@
     },
     "Warrior_angle_247_Idle16": {
       "frame": {
-        "x": 1446,
-        "y": 124,
+        "x": 231,
+        "y": 240,
         "w": 27,
         "h": 113
       },
@@ -1102,8 +1382,8 @@
     },
     "Warrior_angle_292_Run7": {
       "frame": {
-        "x": 1475,
-        "y": 124,
+        "x": 260,
+        "y": 240,
         "w": 33,
         "h": 113
       },
@@ -1122,8 +1402,8 @@
     },
     "Warrior_6_Run16": {
       "frame": {
-        "x": 1568,
-        "y": 124,
+        "x": 353,
+        "y": 240,
         "w": 56,
         "h": 113
       },
@@ -1142,8 +1422,8 @@
     },
     "Warrior_angle_315_Run16": {
       "frame": {
-        "x": 1626,
-        "y": 124,
+        "x": 411,
+        "y": 240,
         "w": 56,
         "h": 113
       },
@@ -1162,8 +1442,48 @@
     },
     "Warrior_4_Idle4": {
       "frame": {
-        "x": 1735,
-        "y": 124,
+        "x": 520,
+        "y": 240,
+        "w": 49,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 62,
+        "w": 49,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup4": {
+      "frame": {
+        "x": 571,
+        "y": 240,
+        "w": 49,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 62,
+        "w": 49,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die4": {
+      "frame": {
+        "x": 622,
+        "y": 240,
         "w": 49,
         "h": 112
       },
@@ -1182,8 +1502,8 @@
     },
     "Warrior_angle_225_Idle4": {
       "frame": {
-        "x": 1786,
-        "y": 124,
+        "x": 673,
+        "y": 240,
         "w": 49,
         "h": 112
       },
@@ -1202,8 +1522,48 @@
     },
     "Warrior_4_Idle20": {
       "frame": {
-        "x": 1888,
-        "y": 124,
+        "x": 775,
+        "y": 240,
+        "w": 49,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 62,
+        "w": 49,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup20": {
+      "frame": {
+        "x": 826,
+        "y": 240,
+        "w": 49,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 62,
+        "w": 49,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die20": {
+      "frame": {
+        "x": 877,
+        "y": 240,
         "w": 49,
         "h": 112
       },
@@ -1222,8 +1582,8 @@
     },
     "Warrior_angle_225_Idle20": {
       "frame": {
-        "x": 1939,
-        "y": 124,
+        "x": 928,
+        "y": 240,
         "w": 49,
         "h": 112
       },
@@ -1242,8 +1602,8 @@
     },
     "Warrior_angle_247_Idle9": {
       "frame": {
-        "x": 1990,
-        "y": 124,
+        "x": 979,
+        "y": 240,
         "w": 27,
         "h": 112
       },
@@ -1262,8 +1622,8 @@
     },
     "Warrior_angle_247_Idle10": {
       "frame": {
-        "x": 2019,
-        "y": 124,
+        "x": 1008,
+        "y": 240,
         "w": 27,
         "h": 112
       },
@@ -1282,7 +1642,7 @@
     },
     "Warrior_angle_247_Idle11": {
       "frame": {
-        "x": 2,
+        "x": 1037,
         "y": 240,
         "w": 27,
         "h": 112
@@ -1302,7 +1662,7 @@
     },
     "Warrior_angle_247_Idle13": {
       "frame": {
-        "x": 31,
+        "x": 1066,
         "y": 240,
         "w": 27,
         "h": 112
@@ -1322,7 +1682,7 @@
     },
     "Warrior_angle_247_Idle14": {
       "frame": {
-        "x": 60,
+        "x": 1095,
         "y": 240,
         "w": 27,
         "h": 112
@@ -1342,7 +1702,7 @@
     },
     "Warrior_angle_247_Idle15": {
       "frame": {
-        "x": 89,
+        "x": 1124,
         "y": 240,
         "w": 27,
         "h": 112
@@ -1362,7 +1722,7 @@
     },
     "Warrior_6_Run8": {
       "frame": {
-        "x": 176,
+        "x": 1211,
         "y": 240,
         "w": 56,
         "h": 112
@@ -1382,7 +1742,7 @@
     },
     "Warrior_angle_315_Run8": {
       "frame": {
-        "x": 234,
+        "x": 1269,
         "y": 240,
         "w": 56,
         "h": 112
@@ -1402,7 +1762,7 @@
     },
     "Warrior_angle_337_Run12": {
       "frame": {
-        "x": 292,
+        "x": 1327,
         "y": 240,
         "w": 89,
         "h": 112
@@ -1422,7 +1782,47 @@
     },
     "Warrior_4_Idle5": {
       "frame": {
-        "x": 434,
+        "x": 1469,
+        "y": 240,
+        "w": 49,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 63,
+        "w": 49,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup5": {
+      "frame": {
+        "x": 1520,
+        "y": 240,
+        "w": 49,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 63,
+        "w": 49,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die5": {
+      "frame": {
+        "x": 1571,
         "y": 240,
         "w": 49,
         "h": 111
@@ -1442,7 +1842,7 @@
     },
     "Warrior_angle_225_Idle5": {
       "frame": {
-        "x": 485,
+        "x": 1622,
         "y": 240,
         "w": 49,
         "h": 111
@@ -1462,7 +1862,47 @@
     },
     "Warrior_4_Idle19": {
       "frame": {
-        "x": 587,
+        "x": 1724,
+        "y": 240,
+        "w": 49,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 63,
+        "w": 49,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup19": {
+      "frame": {
+        "x": 1775,
+        "y": 240,
+        "w": 49,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 63,
+        "w": 49,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die19": {
+      "frame": {
+        "x": 1826,
         "y": 240,
         "w": 49,
         "h": 111
@@ -1482,7 +1922,7 @@
     },
     "Warrior_angle_225_Idle19": {
       "frame": {
-        "x": 638,
+        "x": 1877,
         "y": 240,
         "w": 49,
         "h": 111
@@ -1502,7 +1942,7 @@
     },
     "Warrior_angle_247_Idle12": {
       "frame": {
-        "x": 689,
+        "x": 1928,
         "y": 240,
         "w": 27,
         "h": 111
@@ -1522,8 +1962,48 @@
     },
     "Warrior_5_Idle0": {
       "frame": {
-        "x": 942,
-        "y": 240,
+        "x": 282,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup0": {
+      "frame": {
+        "x": 338,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die0": {
+      "frame": {
+        "x": 394,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1542,8 +2022,8 @@
     },
     "Warrior_5_Idle": {
       "frame": {
-        "x": 886,
-        "y": 240,
+        "x": 226,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1562,8 +2042,8 @@
     },
     "Warrior_angle_270_Idle0": {
       "frame": {
-        "x": 1054,
-        "y": 240,
+        "x": 506,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1582,8 +2062,48 @@
     },
     "Warrior_5_Idle1": {
       "frame": {
-        "x": 1166,
-        "y": 240,
+        "x": 618,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup1": {
+      "frame": {
+        "x": 674,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die1": {
+      "frame": {
+        "x": 730,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1602,8 +2122,8 @@
     },
     "Warrior_angle_270_Idle1": {
       "frame": {
-        "x": 1222,
-        "y": 240,
+        "x": 786,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1622,8 +2142,48 @@
     },
     "Warrior_5_Idle2": {
       "frame": {
-        "x": 1334,
-        "y": 240,
+        "x": 898,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup2": {
+      "frame": {
+        "x": 954,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die2": {
+      "frame": {
+        "x": 1010,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1642,8 +2202,8 @@
     },
     "Warrior_angle_270_Idle2": {
       "frame": {
-        "x": 1390,
-        "y": 240,
+        "x": 1066,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1662,8 +2222,48 @@
     },
     "Warrior_5_Idle22": {
       "frame": {
-        "x": 1502,
-        "y": 240,
+        "x": 1178,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup22": {
+      "frame": {
+        "x": 1234,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die22": {
+      "frame": {
+        "x": 1290,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1682,8 +2282,8 @@
     },
     "Warrior_angle_270_Idle22": {
       "frame": {
-        "x": 1558,
-        "y": 240,
+        "x": 1346,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1702,8 +2302,48 @@
     },
     "Warrior_5_Idle23": {
       "frame": {
-        "x": 1670,
-        "y": 240,
+        "x": 1458,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup23": {
+      "frame": {
+        "x": 1514,
+        "y": 355,
+        "w": 54,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 59,
+        "w": 54,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die23": {
+      "frame": {
+        "x": 1570,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1722,8 +2362,8 @@
     },
     "Warrior_angle_270_Idle23": {
       "frame": {
-        "x": 1726,
-        "y": 240,
+        "x": 1626,
+        "y": 355,
         "w": 54,
         "h": 111
       },
@@ -1742,8 +2382,8 @@
     },
     "Warrior_angle_292_Run6": {
       "frame": {
-        "x": 1782,
-        "y": 240,
+        "x": 1682,
+        "y": 355,
         "w": 31,
         "h": 111
       },
@@ -1762,8 +2402,8 @@
     },
     "Warrior_angle_292_Run17": {
       "frame": {
-        "x": 1815,
-        "y": 240,
+        "x": 1715,
+        "y": 355,
         "w": 34,
         "h": 111
       },
@@ -1782,8 +2422,8 @@
     },
     "Warrior_6_Run7": {
       "frame": {
-        "x": 1909,
-        "y": 240,
+        "x": 1809,
+        "y": 355,
         "w": 56,
         "h": 111
       },
@@ -1802,8 +2442,8 @@
     },
     "Warrior_angle_315_Run7": {
       "frame": {
-        "x": 1967,
-        "y": 240,
+        "x": 1867,
+        "y": 355,
         "w": 56,
         "h": 111
       },
@@ -1822,8 +2462,8 @@
     },
     "Warrior_angle_337_Run13": {
       "frame": {
-        "x": 2,
-        "y": 354,
+        "x": 1925,
+        "y": 355,
         "w": 89,
         "h": 111
       },
@@ -1842,8 +2482,48 @@
     },
     "Warrior_4_Idle6": {
       "frame": {
-        "x": 145,
-        "y": 354,
+        "x": 54,
+        "y": 468,
+        "w": 50,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 50,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup6": {
+      "frame": {
+        "x": 106,
+        "y": 468,
+        "w": 50,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 50,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die6": {
+      "frame": {
+        "x": 158,
+        "y": 468,
         "w": 50,
         "h": 110
       },
@@ -1862,8 +2542,8 @@
     },
     "Warrior_angle_225_Idle6": {
       "frame": {
-        "x": 197,
-        "y": 354,
+        "x": 210,
+        "y": 468,
         "w": 50,
         "h": 110
       },
@@ -1882,8 +2562,48 @@
     },
     "Warrior_4_Idle18": {
       "frame": {
-        "x": 301,
-        "y": 354,
+        "x": 314,
+        "y": 468,
+        "w": 50,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 50,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup18": {
+      "frame": {
+        "x": 366,
+        "y": 468,
+        "w": 50,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 64,
+        "w": 50,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die18": {
+      "frame": {
+        "x": 418,
+        "y": 468,
         "w": 50,
         "h": 110
       },
@@ -1902,8 +2622,8 @@
     },
     "Warrior_angle_225_Idle18": {
       "frame": {
-        "x": 353,
-        "y": 354,
+        "x": 470,
+        "y": 468,
         "w": 50,
         "h": 110
       },
@@ -1922,8 +2642,48 @@
     },
     "Warrior_5_Idle3": {
       "frame": {
-        "x": 461,
-        "y": 354,
+        "x": 578,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup3": {
+      "frame": {
+        "x": 634,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die3": {
+      "frame": {
+        "x": 690,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -1942,8 +2702,8 @@
     },
     "Warrior_angle_270_Idle3": {
       "frame": {
-        "x": 517,
-        "y": 354,
+        "x": 746,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -1962,8 +2722,48 @@
     },
     "Warrior_5_Idle4": {
       "frame": {
-        "x": 629,
-        "y": 354,
+        "x": 858,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup4": {
+      "frame": {
+        "x": 914,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die4": {
+      "frame": {
+        "x": 970,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -1982,8 +2782,8 @@
     },
     "Warrior_angle_270_Idle4": {
       "frame": {
-        "x": 685,
-        "y": 354,
+        "x": 1026,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -2002,8 +2802,48 @@
     },
     "Warrior_5_Idle20": {
       "frame": {
-        "x": 797,
-        "y": 354,
+        "x": 1138,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup20": {
+      "frame": {
+        "x": 1194,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die20": {
+      "frame": {
+        "x": 1250,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -2022,8 +2862,8 @@
     },
     "Warrior_angle_270_Idle20": {
       "frame": {
-        "x": 853,
-        "y": 354,
+        "x": 1306,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -2042,8 +2882,48 @@
     },
     "Warrior_5_Idle21": {
       "frame": {
-        "x": 965,
-        "y": 354,
+        "x": 1418,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup21": {
+      "frame": {
+        "x": 1474,
+        "y": 468,
+        "w": 54,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 60,
+        "w": 54,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die21": {
+      "frame": {
+        "x": 1530,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -2062,8 +2942,8 @@
     },
     "Warrior_angle_270_Idle21": {
       "frame": {
-        "x": 1021,
-        "y": 354,
+        "x": 1586,
+        "y": 468,
         "w": 54,
         "h": 110
       },
@@ -2082,8 +2962,8 @@
     },
     "Warrior_angle_292_Run18": {
       "frame": {
-        "x": 1077,
-        "y": 354,
+        "x": 1642,
+        "y": 468,
         "w": 39,
         "h": 110
       },
@@ -2102,8 +2982,8 @@
     },
     "Warrior_6_Run0": {
       "frame": {
-        "x": 1322,
-        "y": 354,
+        "x": 1887,
+        "y": 468,
         "w": 66,
         "h": 110
       },
@@ -2122,8 +3002,8 @@
     },
     "Warrior_angle_315_Run0": {
       "frame": {
-        "x": 1458,
-        "y": 354,
+        "x": 2,
+        "y": 580,
         "w": 66,
         "h": 110
       },
@@ -2142,8 +3022,8 @@
     },
     "Warrior_6_Run1": {
       "frame": {
-        "x": 1594,
-        "y": 354,
+        "x": 138,
+        "y": 580,
         "w": 66,
         "h": 110
       },
@@ -2162,8 +3042,8 @@
     },
     "Warrior_angle_315_Run1": {
       "frame": {
-        "x": 1662,
-        "y": 354,
+        "x": 206,
+        "y": 580,
         "w": 66,
         "h": 110
       },
@@ -2182,8 +3062,8 @@
     },
     "Warrior_6_Run17": {
       "frame": {
-        "x": 1788,
-        "y": 354,
+        "x": 332,
+        "y": 580,
         "w": 56,
         "h": 110
       },
@@ -2202,8 +3082,8 @@
     },
     "Warrior_angle_315_Run17": {
       "frame": {
-        "x": 1846,
-        "y": 354,
+        "x": 390,
+        "y": 580,
         "w": 56,
         "h": 110
       },
@@ -2222,8 +3102,8 @@
     },
     "Warrior_6_Run22": {
       "frame": {
-        "x": 1967,
-        "y": 354,
+        "x": 511,
+        "y": 580,
         "w": 61,
         "h": 110
       },
@@ -2242,8 +3122,8 @@
     },
     "Warrior_angle_315_Run22": {
       "frame": {
-        "x": 2,
-        "y": 467,
+        "x": 574,
+        "y": 580,
         "w": 61,
         "h": 110
       },
@@ -2262,8 +3142,8 @@
     },
     "Warrior_6_Run23": {
       "frame": {
-        "x": 132,
-        "y": 467,
+        "x": 704,
+        "y": 580,
         "w": 65,
         "h": 110
       },
@@ -2282,8 +3162,8 @@
     },
     "Warrior_angle_315_Run23": {
       "frame": {
-        "x": 199,
-        "y": 467,
+        "x": 771,
+        "y": 580,
         "w": 65,
         "h": 110
       },
@@ -2302,8 +3182,48 @@
     },
     "Warrior_4_Idle7": {
       "frame": {
-        "x": 318,
-        "y": 467,
+        "x": 890,
+        "y": 580,
+        "w": 50,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 65,
+        "w": 50,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup7": {
+      "frame": {
+        "x": 942,
+        "y": 580,
+        "w": 50,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 65,
+        "w": 50,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die7": {
+      "frame": {
+        "x": 994,
+        "y": 580,
         "w": 50,
         "h": 109
       },
@@ -2322,8 +3242,8 @@
     },
     "Warrior_angle_225_Idle7": {
       "frame": {
-        "x": 370,
-        "y": 467,
+        "x": 1046,
+        "y": 580,
         "w": 50,
         "h": 109
       },
@@ -2342,8 +3262,48 @@
     },
     "Warrior_4_Idle17": {
       "frame": {
-        "x": 474,
-        "y": 467,
+        "x": 1150,
+        "y": 580,
+        "w": 50,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 65,
+        "w": 50,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup17": {
+      "frame": {
+        "x": 1202,
+        "y": 580,
+        "w": 50,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 65,
+        "w": 50,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die17": {
+      "frame": {
+        "x": 1254,
+        "y": 580,
         "w": 50,
         "h": 109
       },
@@ -2362,8 +3322,8 @@
     },
     "Warrior_angle_225_Idle17": {
       "frame": {
-        "x": 526,
-        "y": 467,
+        "x": 1306,
+        "y": 580,
         "w": 50,
         "h": 109
       },
@@ -2382,8 +3342,48 @@
     },
     "Warrior_5_Idle5": {
       "frame": {
-        "x": 632,
-        "y": 467,
+        "x": 1412,
+        "y": 580,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup5": {
+      "frame": {
+        "x": 1466,
+        "y": 580,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die5": {
+      "frame": {
+        "x": 1520,
+        "y": 580,
         "w": 52,
         "h": 109
       },
@@ -2402,8 +3402,8 @@
     },
     "Warrior_angle_270_Idle5": {
       "frame": {
-        "x": 686,
-        "y": 467,
+        "x": 1574,
+        "y": 580,
         "w": 52,
         "h": 109
       },
@@ -2422,8 +3422,48 @@
     },
     "Warrior_5_Idle6": {
       "frame": {
-        "x": 794,
-        "y": 467,
+        "x": 1682,
+        "y": 580,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup6": {
+      "frame": {
+        "x": 1736,
+        "y": 580,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die6": {
+      "frame": {
+        "x": 1790,
+        "y": 580,
         "w": 52,
         "h": 109
       },
@@ -2442,8 +3482,8 @@
     },
     "Warrior_angle_270_Idle6": {
       "frame": {
-        "x": 848,
-        "y": 467,
+        "x": 1844,
+        "y": 580,
         "w": 52,
         "h": 109
       },
@@ -2462,8 +3502,48 @@
     },
     "Warrior_5_Idle18": {
       "frame": {
-        "x": 956,
-        "y": 467,
+        "x": 1952,
+        "y": 580,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup18": {
+      "frame": {
+        "x": 2,
+        "y": 692,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die18": {
+      "frame": {
+        "x": 56,
+        "y": 692,
         "w": 52,
         "h": 109
       },
@@ -2482,8 +3562,8 @@
     },
     "Warrior_angle_270_Idle18": {
       "frame": {
-        "x": 1010,
-        "y": 467,
+        "x": 110,
+        "y": 692,
         "w": 52,
         "h": 109
       },
@@ -2502,8 +3582,48 @@
     },
     "Warrior_5_Idle19": {
       "frame": {
-        "x": 1118,
-        "y": 467,
+        "x": 218,
+        "y": 692,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup19": {
+      "frame": {
+        "x": 272,
+        "y": 692,
+        "w": 52,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 61,
+        "w": 52,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die19": {
+      "frame": {
+        "x": 326,
+        "y": 692,
         "w": 52,
         "h": 109
       },
@@ -2522,8 +3642,8 @@
     },
     "Warrior_angle_270_Idle19": {
       "frame": {
-        "x": 1172,
-        "y": 467,
+        "x": 380,
+        "y": 692,
         "w": 52,
         "h": 109
       },
@@ -2542,8 +3662,8 @@
     },
     "Warrior_angle_292_Run5": {
       "frame": {
-        "x": 1226,
-        "y": 467,
+        "x": 434,
+        "y": 692,
         "w": 39,
         "h": 109
       },
@@ -2562,8 +3682,8 @@
     },
     "Warrior_6_Run6": {
       "frame": {
-        "x": 1325,
-        "y": 467,
+        "x": 533,
+        "y": 692,
         "w": 56,
         "h": 109
       },
@@ -2582,8 +3702,8 @@
     },
     "Warrior_angle_315_Run6": {
       "frame": {
-        "x": 1383,
-        "y": 467,
+        "x": 591,
+        "y": 692,
         "w": 56,
         "h": 109
       },
@@ -2602,8 +3722,8 @@
     },
     "Warrior_angle_337_Run11": {
       "frame": {
-        "x": 1441,
-        "y": 467,
+        "x": 649,
+        "y": 692,
         "w": 89,
         "h": 109
       },
@@ -2622,8 +3742,8 @@
     },
     "Warrior_angle_337_Run14": {
       "frame": {
-        "x": 1532,
-        "y": 467,
+        "x": 740,
+        "y": 692,
         "w": 89,
         "h": 109
       },
@@ -2642,8 +3762,48 @@
     },
     "Warrior_4_Idle8": {
       "frame": {
-        "x": 1675,
-        "y": 467,
+        "x": 883,
+        "y": 692,
+        "w": 50,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 66,
+        "w": 50,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup8": {
+      "frame": {
+        "x": 935,
+        "y": 692,
+        "w": 50,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 66,
+        "w": 50,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die8": {
+      "frame": {
+        "x": 987,
+        "y": 692,
         "w": 50,
         "h": 108
       },
@@ -2662,8 +3822,8 @@
     },
     "Warrior_angle_225_Idle8": {
       "frame": {
-        "x": 1727,
-        "y": 467,
+        "x": 1039,
+        "y": 692,
         "w": 50,
         "h": 108
       },
@@ -2682,8 +3842,48 @@
     },
     "Warrior_4_Idle9": {
       "frame": {
-        "x": 1832,
-        "y": 467,
+        "x": 1144,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 66,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup9": {
+      "frame": {
+        "x": 1197,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 66,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die9": {
+      "frame": {
+        "x": 1250,
+        "y": 692,
         "w": 51,
         "h": 108
       },
@@ -2702,8 +3902,8 @@
     },
     "Warrior_angle_225_Idle9": {
       "frame": {
-        "x": 1885,
-        "y": 467,
+        "x": 1303,
+        "y": 692,
         "w": 51,
         "h": 108
       },
@@ -2722,8 +3922,48 @@
     },
     "Warrior_4_Idle15": {
       "frame": {
-        "x": 1991,
-        "y": 467,
+        "x": 1409,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 66,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup15": {
+      "frame": {
+        "x": 1462,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 66,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die15": {
+      "frame": {
+        "x": 1515,
+        "y": 692,
         "w": 51,
         "h": 108
       },
@@ -2742,8 +3982,8 @@
     },
     "Warrior_angle_225_Idle15": {
       "frame": {
-        "x": 2,
-        "y": 579,
+        "x": 1568,
+        "y": 692,
         "w": 51,
         "h": 108
       },
@@ -2762,8 +4002,48 @@
     },
     "Warrior_4_Idle16": {
       "frame": {
-        "x": 107,
-        "y": 579,
+        "x": 1673,
+        "y": 692,
+        "w": 50,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 66,
+        "w": 50,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup16": {
+      "frame": {
+        "x": 1725,
+        "y": 692,
+        "w": 50,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 66,
+        "w": 50,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die16": {
+      "frame": {
+        "x": 1777,
+        "y": 692,
         "w": 50,
         "h": 108
       },
@@ -2782,8 +4062,8 @@
     },
     "Warrior_angle_225_Idle16": {
       "frame": {
-        "x": 159,
-        "y": 579,
+        "x": 1829,
+        "y": 692,
         "w": 50,
         "h": 108
       },
@@ -2802,8 +4082,48 @@
     },
     "Warrior_5_Idle7": {
       "frame": {
-        "x": 264,
-        "y": 579,
+        "x": 1934,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 62,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup7": {
+      "frame": {
+        "x": 1987,
+        "y": 692,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 62,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die7": {
+      "frame": {
+        "x": 2,
+        "y": 803,
         "w": 51,
         "h": 108
       },
@@ -2822,8 +4142,8 @@
     },
     "Warrior_angle_270_Idle7": {
       "frame": {
-        "x": 317,
-        "y": 579,
+        "x": 55,
+        "y": 803,
         "w": 51,
         "h": 108
       },
@@ -2842,8 +4162,48 @@
     },
     "Warrior_5_Idle17": {
       "frame": {
-        "x": 423,
-        "y": 579,
+        "x": 161,
+        "y": 803,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 62,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup17": {
+      "frame": {
+        "x": 214,
+        "y": 803,
+        "w": 51,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 62,
+        "w": 51,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die17": {
+      "frame": {
+        "x": 267,
+        "y": 803,
         "w": 51,
         "h": 108
       },
@@ -2862,8 +4222,8 @@
     },
     "Warrior_angle_270_Idle17": {
       "frame": {
-        "x": 476,
-        "y": 579,
+        "x": 320,
+        "y": 803,
         "w": 51,
         "h": 108
       },
@@ -2882,8 +4242,8 @@
     },
     "Warrior_5_Run3": {
       "frame": {
-        "x": 597,
-        "y": 579,
+        "x": 441,
+        "y": 803,
         "w": 66,
         "h": 108
       },
@@ -2902,8 +4262,8 @@
     },
     "Warrior_angle_270_Run3": {
       "frame": {
-        "x": 665,
-        "y": 579,
+        "x": 509,
+        "y": 803,
         "w": 66,
         "h": 108
       },
@@ -2922,8 +4282,8 @@
     },
     "Warrior_5_Run4": {
       "frame": {
-        "x": 795,
-        "y": 579,
+        "x": 639,
+        "y": 803,
         "w": 60,
         "h": 108
       },
@@ -2942,8 +4302,8 @@
     },
     "Warrior_angle_270_Run4": {
       "frame": {
-        "x": 857,
-        "y": 579,
+        "x": 701,
+        "y": 803,
         "w": 60,
         "h": 108
       },
@@ -2962,8 +4322,8 @@
     },
     "Warrior_6_Run2": {
       "frame": {
-        "x": 983,
-        "y": 579,
+        "x": 827,
+        "y": 803,
         "w": 62,
         "h": 108
       },
@@ -2982,8 +4342,8 @@
     },
     "Warrior_angle_315_Run2": {
       "frame": {
-        "x": 1047,
-        "y": 579,
+        "x": 891,
+        "y": 803,
         "w": 62,
         "h": 108
       },
@@ -3002,8 +4362,8 @@
     },
     "Warrior_6_Run19": {
       "frame": {
-        "x": 1169,
-        "y": 579,
+        "x": 1013,
+        "y": 803,
         "w": 56,
         "h": 108
       },
@@ -3022,8 +4382,8 @@
     },
     "Warrior_angle_315_Run19": {
       "frame": {
-        "x": 1227,
-        "y": 579,
+        "x": 1071,
+        "y": 803,
         "w": 56,
         "h": 108
       },
@@ -3042,8 +4402,8 @@
     },
     "Warrior_6_Run20": {
       "frame": {
-        "x": 1343,
-        "y": 579,
+        "x": 1187,
+        "y": 803,
         "w": 56,
         "h": 108
       },
@@ -3062,8 +4422,8 @@
     },
     "Warrior_angle_315_Run20": {
       "frame": {
-        "x": 1401,
-        "y": 579,
+        "x": 1245,
+        "y": 803,
         "w": 56,
         "h": 108
       },
@@ -3082,8 +4442,8 @@
     },
     "Warrior_6_Run21": {
       "frame": {
-        "x": 1519,
-        "y": 579,
+        "x": 1363,
+        "y": 803,
         "w": 58,
         "h": 108
       },
@@ -3102,8 +4462,8 @@
     },
     "Warrior_angle_315_Run21": {
       "frame": {
-        "x": 1579,
-        "y": 579,
+        "x": 1423,
+        "y": 803,
         "w": 58,
         "h": 108
       },
@@ -3122,8 +4482,8 @@
     },
     "Warrior_angle_337_Run0": {
       "frame": {
-        "x": 1730,
-        "y": 579,
+        "x": 1574,
+        "y": 803,
         "w": 89,
         "h": 108
       },
@@ -3142,8 +4502,48 @@
     },
     "Warrior_4_Idle10": {
       "frame": {
-        "x": 1874,
-        "y": 579,
+        "x": 1718,
+        "y": 803,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup10": {
+      "frame": {
+        "x": 1771,
+        "y": 803,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die10": {
+      "frame": {
+        "x": 1824,
+        "y": 803,
         "w": 51,
         "h": 107
       },
@@ -3162,8 +4562,8 @@
     },
     "Warrior_angle_225_Idle10": {
       "frame": {
-        "x": 1927,
-        "y": 579,
+        "x": 1877,
+        "y": 803,
         "w": 51,
         "h": 107
       },
@@ -3182,8 +4582,48 @@
     },
     "Warrior_4_Idle11": {
       "frame": {
+        "x": 1983,
+        "y": 803,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup11": {
+      "frame": {
         "x": 2,
-        "y": 689,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die11": {
+      "frame": {
+        "x": 55,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3202,8 +4642,8 @@
     },
     "Warrior_angle_225_Idle11": {
       "frame": {
-        "x": 55,
-        "y": 689,
+        "x": 108,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3222,8 +4662,48 @@
     },
     "Warrior_4_Idle13": {
       "frame": {
-        "x": 161,
-        "y": 689,
+        "x": 214,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup13": {
+      "frame": {
+        "x": 267,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die13": {
+      "frame": {
+        "x": 320,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3242,8 +4722,8 @@
     },
     "Warrior_angle_225_Idle13": {
       "frame": {
-        "x": 214,
-        "y": 689,
+        "x": 373,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3262,8 +4742,48 @@
     },
     "Warrior_4_Idle14": {
       "frame": {
-        "x": 320,
-        "y": 689,
+        "x": 479,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup14": {
+      "frame": {
+        "x": 532,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 67,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die14": {
+      "frame": {
+        "x": 585,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3282,8 +4802,8 @@
     },
     "Warrior_angle_225_Idle14": {
       "frame": {
-        "x": 373,
-        "y": 689,
+        "x": 638,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3302,8 +4822,48 @@
     },
     "Warrior_5_Idle8": {
       "frame": {
-        "x": 479,
-        "y": 689,
+        "x": 744,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup8": {
+      "frame": {
+        "x": 797,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die8": {
+      "frame": {
+        "x": 850,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3322,8 +4882,8 @@
     },
     "Warrior_angle_270_Idle8": {
       "frame": {
-        "x": 532,
-        "y": 689,
+        "x": 903,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3342,8 +4902,48 @@
     },
     "Warrior_5_Idle9": {
       "frame": {
-        "x": 638,
-        "y": 689,
+        "x": 1009,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup9": {
+      "frame": {
+        "x": 1062,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die9": {
+      "frame": {
+        "x": 1115,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3362,8 +4962,8 @@
     },
     "Warrior_angle_270_Idle9": {
       "frame": {
-        "x": 691,
-        "y": 689,
+        "x": 1168,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3382,8 +4982,48 @@
     },
     "Warrior_5_Idle15": {
       "frame": {
-        "x": 797,
-        "y": 689,
+        "x": 1274,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup15": {
+      "frame": {
+        "x": 1327,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die15": {
+      "frame": {
+        "x": 1380,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3402,8 +5042,8 @@
     },
     "Warrior_angle_270_Idle15": {
       "frame": {
-        "x": 850,
-        "y": 689,
+        "x": 1433,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3422,8 +5062,48 @@
     },
     "Warrior_5_Idle16": {
       "frame": {
-        "x": 956,
-        "y": 689,
+        "x": 1539,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup16": {
+      "frame": {
+        "x": 1592,
+        "y": 913,
+        "w": 51,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 63,
+        "w": 51,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die16": {
+      "frame": {
+        "x": 1645,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3442,8 +5122,8 @@
     },
     "Warrior_angle_270_Idle16": {
       "frame": {
-        "x": 1009,
-        "y": 689,
+        "x": 1698,
+        "y": 913,
         "w": 51,
         "h": 107
       },
@@ -3462,8 +5142,8 @@
     },
     "Warrior_5_Run2": {
       "frame": {
-        "x": 1136,
-        "y": 689,
+        "x": 1825,
+        "y": 913,
         "w": 72,
         "h": 107
       },
@@ -3482,8 +5162,8 @@
     },
     "Warrior_angle_270_Run2": {
       "frame": {
-        "x": 1210,
-        "y": 689,
+        "x": 1899,
+        "y": 913,
         "w": 72,
         "h": 107
       },
@@ -3502,8 +5182,8 @@
     },
     "Warrior_5_Run5": {
       "frame": {
-        "x": 1339,
-        "y": 689,
+        "x": 2,
+        "y": 1022,
         "w": 53,
         "h": 107
       },
@@ -3522,8 +5202,8 @@
     },
     "Warrior_angle_270_Run5": {
       "frame": {
-        "x": 1394,
-        "y": 689,
+        "x": 57,
+        "y": 1022,
         "w": 53,
         "h": 107
       },
@@ -3542,8 +5222,8 @@
     },
     "Warrior_5_Run6": {
       "frame": {
-        "x": 1498,
-        "y": 689,
+        "x": 161,
+        "y": 1022,
         "w": 47,
         "h": 107
       },
@@ -3562,8 +5242,8 @@
     },
     "Warrior_angle_270_Run6": {
       "frame": {
-        "x": 1547,
-        "y": 689,
+        "x": 210,
+        "y": 1022,
         "w": 47,
         "h": 107
       },
@@ -3582,8 +5262,8 @@
     },
     "Warrior_5_Run7": {
       "frame": {
-        "x": 1651,
-        "y": 689,
+        "x": 314,
+        "y": 1022,
         "w": 53,
         "h": 107
       },
@@ -3602,8 +5282,8 @@
     },
     "Warrior_angle_270_Run7": {
       "frame": {
-        "x": 1706,
-        "y": 689,
+        "x": 369,
+        "y": 1022,
         "w": 53,
         "h": 107
       },
@@ -3622,8 +5302,8 @@
     },
     "Warrior_angle_292_Run4": {
       "frame": {
-        "x": 1761,
-        "y": 689,
+        "x": 424,
+        "y": 1022,
         "w": 50,
         "h": 107
       },
@@ -3642,8 +5322,8 @@
     },
     "Warrior_angle_292_Run19": {
       "frame": {
-        "x": 1813,
-        "y": 689,
+        "x": 476,
+        "y": 1022,
         "w": 48,
         "h": 107
       },
@@ -3662,8 +5342,8 @@
     },
     "Warrior_6_Run3": {
       "frame": {
-        "x": 1923,
-        "y": 689,
+        "x": 586,
+        "y": 1022,
         "w": 58,
         "h": 107
       },
@@ -3682,8 +5362,8 @@
     },
     "Warrior_angle_315_Run3": {
       "frame": {
-        "x": 1983,
-        "y": 689,
+        "x": 646,
+        "y": 1022,
         "w": 58,
         "h": 107
       },
@@ -3702,8 +5382,48 @@
     },
     "Warrior_4_Idle12": {
       "frame": {
-        "x": 55,
-        "y": 798,
+        "x": 759,
+        "y": 1022,
+        "w": 51,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 68,
+        "w": 51,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Pickup12": {
+      "frame": {
+        "x": 812,
+        "y": 1022,
+        "w": 51,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 68,
+        "w": 51,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_4_Die12": {
+      "frame": {
+        "x": 865,
+        "y": 1022,
         "w": 51,
         "h": 106
       },
@@ -3722,8 +5442,8 @@
     },
     "Warrior_angle_225_Idle12": {
       "frame": {
-        "x": 108,
-        "y": 798,
+        "x": 918,
+        "y": 1022,
         "w": 51,
         "h": 106
       },
@@ -3742,8 +5462,48 @@
     },
     "Warrior_5_Idle10": {
       "frame": {
-        "x": 213,
-        "y": 798,
+        "x": 1023,
+        "y": 1022,
+        "w": 50,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 64,
+        "w": 50,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup10": {
+      "frame": {
+        "x": 1075,
+        "y": 1022,
+        "w": 50,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 64,
+        "w": 50,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die10": {
+      "frame": {
+        "x": 1127,
+        "y": 1022,
         "w": 50,
         "h": 106
       },
@@ -3762,8 +5522,8 @@
     },
     "Warrior_angle_270_Idle10": {
       "frame": {
-        "x": 265,
-        "y": 798,
+        "x": 1179,
+        "y": 1022,
         "w": 50,
         "h": 106
       },
@@ -3782,8 +5542,48 @@
     },
     "Warrior_5_Idle11": {
       "frame": {
-        "x": 368,
-        "y": 798,
+        "x": 1282,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup11": {
+      "frame": {
+        "x": 1333,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die11": {
+      "frame": {
+        "x": 1384,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3802,8 +5602,8 @@
     },
     "Warrior_angle_270_Idle11": {
       "frame": {
-        "x": 419,
-        "y": 798,
+        "x": 1435,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3822,8 +5622,48 @@
     },
     "Warrior_5_Idle12": {
       "frame": {
-        "x": 521,
-        "y": 798,
+        "x": 1537,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup12": {
+      "frame": {
+        "x": 1588,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die12": {
+      "frame": {
+        "x": 1639,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3842,8 +5682,8 @@
     },
     "Warrior_angle_270_Idle12": {
       "frame": {
-        "x": 572,
-        "y": 798,
+        "x": 1690,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3862,8 +5702,48 @@
     },
     "Warrior_5_Idle13": {
       "frame": {
-        "x": 674,
-        "y": 798,
+        "x": 1792,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup13": {
+      "frame": {
+        "x": 1843,
+        "y": 1022,
+        "w": 49,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 64,
+        "w": 49,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die13": {
+      "frame": {
+        "x": 1894,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3882,8 +5762,8 @@
     },
     "Warrior_angle_270_Idle13": {
       "frame": {
-        "x": 725,
-        "y": 798,
+        "x": 1945,
+        "y": 1022,
         "w": 49,
         "h": 106
       },
@@ -3902,8 +5782,48 @@
     },
     "Warrior_5_Idle14": {
       "frame": {
-        "x": 828,
-        "y": 798,
+        "x": 2,
+        "y": 1131,
+        "w": 50,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 64,
+        "w": 50,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Pickup14": {
+      "frame": {
+        "x": 54,
+        "y": 1131,
+        "w": 50,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 64,
+        "w": 50,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Warrior_5_Die14": {
+      "frame": {
+        "x": 106,
+        "y": 1131,
         "w": 50,
         "h": 106
       },
@@ -3922,8 +5842,8 @@
     },
     "Warrior_angle_270_Idle14": {
       "frame": {
-        "x": 880,
-        "y": 798,
+        "x": 158,
+        "y": 1131,
         "w": 50,
         "h": 106
       },
@@ -3942,8 +5862,8 @@
     },
     "Warrior_5_Run8": {
       "frame": {
-        "x": 994,
-        "y": 798,
+        "x": 272,
+        "y": 1131,
         "w": 60,
         "h": 106
       },
@@ -3962,8 +5882,8 @@
     },
     "Warrior_angle_270_Run8": {
       "frame": {
-        "x": 1056,
-        "y": 798,
+        "x": 334,
+        "y": 1131,
         "w": 60,
         "h": 106
       },
@@ -3982,8 +5902,8 @@
     },
     "Warrior_angle_292_Run3": {
       "frame": {
-        "x": 1118,
-        "y": 798,
+        "x": 396,
+        "y": 1131,
         "w": 61,
         "h": 106
       },
@@ -4002,8 +5922,8 @@
     },
     "Warrior_6_Run18": {
       "frame": {
-        "x": 1239,
-        "y": 798,
+        "x": 517,
+        "y": 1131,
         "w": 56,
         "h": 106
       },
@@ -4022,8 +5942,8 @@
     },
     "Warrior_angle_315_Run18": {
       "frame": {
-        "x": 1297,
-        "y": 798,
+        "x": 575,
+        "y": 1131,
         "w": 56,
         "h": 106
       },
@@ -4042,8 +5962,8 @@
     },
     "Warrior_angle_337_Run1": {
       "frame": {
-        "x": 1355,
-        "y": 798,
+        "x": 633,
+        "y": 1131,
         "w": 89,
         "h": 106
       },
@@ -4062,8 +5982,8 @@
     },
     "Warrior_angle_337_Run10": {
       "frame": {
-        "x": 1446,
-        "y": 798,
+        "x": 724,
+        "y": 1131,
         "w": 89,
         "h": 106
       },
@@ -4082,8 +6002,8 @@
     },
     "Warrior_angle_337_Run15": {
       "frame": {
-        "x": 1537,
-        "y": 798,
+        "x": 815,
+        "y": 1131,
         "w": 89,
         "h": 106
       },
@@ -4102,8 +6022,8 @@
     },
     "Warrior_angle_337_Run23": {
       "frame": {
-        "x": 1628,
-        "y": 798,
+        "x": 906,
+        "y": 1131,
         "w": 89,
         "h": 106
       },
@@ -4122,8 +6042,8 @@
     },
     "Warrior_5_Run9": {
       "frame": {
-        "x": 1787,
-        "y": 798,
+        "x": 1065,
+        "y": 1131,
         "w": 66,
         "h": 105
       },
@@ -4142,8 +6062,8 @@
     },
     "Warrior_angle_270_Run9": {
       "frame": {
-        "x": 1855,
-        "y": 798,
+        "x": 1133,
+        "y": 1131,
         "w": 66,
         "h": 105
       },
@@ -4162,8 +6082,8 @@
     },
     "Warrior_5_Run10": {
       "frame": {
-        "x": 2,
-        "y": 906,
+        "x": 1273,
+        "y": 1131,
         "w": 70,
         "h": 105
       },
@@ -4182,8 +6102,8 @@
     },
     "Warrior_angle_270_Run10": {
       "frame": {
-        "x": 74,
-        "y": 906,
+        "x": 1345,
+        "y": 1131,
         "w": 70,
         "h": 105
       },
@@ -4202,8 +6122,8 @@
     },
     "Warrior_angle_292_Run2": {
       "frame": {
-        "x": 146,
-        "y": 906,
+        "x": 1417,
+        "y": 1131,
         "w": 70,
         "h": 105
       },
@@ -4222,8 +6142,8 @@
     },
     "Warrior_angle_292_Run20": {
       "frame": {
-        "x": 218,
-        "y": 906,
+        "x": 1489,
+        "y": 1131,
         "w": 55,
         "h": 105
       },
@@ -4242,8 +6162,8 @@
     },
     "Warrior_angle_292_Run21": {
       "frame": {
-        "x": 275,
-        "y": 906,
+        "x": 1546,
+        "y": 1131,
         "w": 61,
         "h": 105
       },
@@ -4262,8 +6182,8 @@
     },
     "Warrior_angle_337_Run2": {
       "frame": {
-        "x": 338,
-        "y": 906,
+        "x": 1609,
+        "y": 1131,
         "w": 89,
         "h": 105
       },
@@ -4282,8 +6202,8 @@
     },
     "Warrior_angle_337_Run22": {
       "frame": {
-        "x": 429,
-        "y": 906,
+        "x": 1700,
+        "y": 1131,
         "w": 89,
         "h": 105
       },
@@ -4302,8 +6222,8 @@
     },
     "Warrior_5_Run1": {
       "frame": {
-        "x": 597,
-        "y": 906,
+        "x": 1868,
+        "y": 1131,
         "w": 75,
         "h": 104
       },
@@ -4322,8 +6242,8 @@
     },
     "Warrior_angle_270_Run1": {
       "frame": {
-        "x": 674,
-        "y": 906,
+        "x": 1945,
+        "y": 1131,
         "w": 75,
         "h": 104
       },
@@ -4342,8 +6262,8 @@
     },
     "Warrior_5_Run17": {
       "frame": {
-        "x": 804,
-        "y": 906,
+        "x": 55,
+        "y": 1239,
         "w": 51,
         "h": 104
       },
@@ -4362,8 +6282,8 @@
     },
     "Warrior_angle_270_Run17": {
       "frame": {
-        "x": 857,
-        "y": 906,
+        "x": 108,
+        "y": 1239,
         "w": 51,
         "h": 104
       },
@@ -4382,8 +6302,8 @@
     },
     "Warrior_5_Run18": {
       "frame": {
-        "x": 961,
-        "y": 906,
+        "x": 212,
+        "y": 1239,
         "w": 49,
         "h": 104
       },
@@ -4402,8 +6322,8 @@
     },
     "Warrior_angle_270_Run18": {
       "frame": {
-        "x": 1012,
-        "y": 906,
+        "x": 263,
+        "y": 1239,
         "w": 49,
         "h": 104
       },
@@ -4422,8 +6342,8 @@
     },
     "Warrior_5_Run19": {
       "frame": {
-        "x": 1122,
-        "y": 906,
+        "x": 373,
+        "y": 1239,
         "w": 57,
         "h": 104
       },
@@ -4442,8 +6362,8 @@
     },
     "Warrior_angle_270_Run19": {
       "frame": {
-        "x": 1181,
-        "y": 906,
+        "x": 432,
+        "y": 1239,
         "w": 57,
         "h": 104
       },
@@ -4462,8 +6382,8 @@
     },
     "Warrior_5_Run20": {
       "frame": {
-        "x": 1306,
-        "y": 906,
+        "x": 557,
+        "y": 1239,
         "w": 64,
         "h": 104
       },
@@ -4482,8 +6402,8 @@
     },
     "Warrior_angle_270_Run20": {
       "frame": {
-        "x": 1372,
-        "y": 906,
+        "x": 623,
+        "y": 1239,
         "w": 64,
         "h": 104
       },
@@ -4502,8 +6422,8 @@
     },
     "Warrior_angle_292_Run22": {
       "frame": {
-        "x": 1438,
-        "y": 906,
+        "x": 689,
+        "y": 1239,
         "w": 69,
         "h": 104
       },
@@ -4522,8 +6442,8 @@
     },
     "Warrior_6_Run4": {
       "frame": {
-        "x": 1567,
-        "y": 906,
+        "x": 818,
+        "y": 1239,
         "w": 56,
         "h": 104
       },
@@ -4542,8 +6462,8 @@
     },
     "Warrior_angle_315_Run4": {
       "frame": {
-        "x": 1625,
-        "y": 906,
+        "x": 876,
+        "y": 1239,
         "w": 56,
         "h": 104
       },
@@ -4562,8 +6482,8 @@
     },
     "Warrior_6_Run5": {
       "frame": {
-        "x": 1741,
-        "y": 906,
+        "x": 992,
+        "y": 1239,
         "w": 56,
         "h": 104
       },
@@ -4582,8 +6502,8 @@
     },
     "Warrior_angle_315_Run5": {
       "frame": {
-        "x": 1799,
-        "y": 906,
+        "x": 1050,
+        "y": 1239,
         "w": 56,
         "h": 104
       },
@@ -4602,8 +6522,8 @@
     },
     "Warrior_5_Run0": {
       "frame": {
-        "x": 80,
-        "y": 1013,
+        "x": 1342,
+        "y": 1239,
         "w": 76,
         "h": 103
       },
@@ -4622,8 +6542,8 @@
     },
     "Warrior_angle_270_Run0": {
       "frame": {
-        "x": 236,
-        "y": 1013,
+        "x": 1498,
+        "y": 1239,
         "w": 76,
         "h": 103
       },
@@ -4642,8 +6562,8 @@
     },
     "Warrior_5_Run11": {
       "frame": {
-        "x": 388,
-        "y": 1013,
+        "x": 1650,
+        "y": 1239,
         "w": 72,
         "h": 103
       },
@@ -4662,8 +6582,8 @@
     },
     "Warrior_angle_270_Run11": {
       "frame": {
-        "x": 462,
-        "y": 1013,
+        "x": 1724,
+        "y": 1239,
         "w": 72,
         "h": 103
       },
@@ -4682,8 +6602,8 @@
     },
     "Warrior_5_Run15": {
       "frame": {
-        "x": 603,
-        "y": 1013,
+        "x": 1865,
+        "y": 1239,
         "w": 65,
         "h": 103
       },
@@ -4702,8 +6622,8 @@
     },
     "Warrior_angle_270_Run15": {
       "frame": {
-        "x": 670,
-        "y": 1013,
+        "x": 1932,
+        "y": 1239,
         "w": 65,
         "h": 103
       },
@@ -4722,8 +6642,8 @@
     },
     "Warrior_5_Run16": {
       "frame": {
-        "x": 797,
-        "y": 1013,
+        "x": 62,
+        "y": 1345,
         "w": 58,
         "h": 103
       },
@@ -4742,8 +6662,8 @@
     },
     "Warrior_angle_270_Run16": {
       "frame": {
-        "x": 857,
-        "y": 1013,
+        "x": 122,
+        "y": 1345,
         "w": 58,
         "h": 103
       },
@@ -4762,8 +6682,8 @@
     },
     "Warrior_5_Run21": {
       "frame": {
-        "x": 988,
-        "y": 1013,
+        "x": 253,
+        "y": 1345,
         "w": 69,
         "h": 103
       },
@@ -4782,8 +6702,8 @@
     },
     "Warrior_angle_270_Run21": {
       "frame": {
-        "x": 1059,
-        "y": 1013,
+        "x": 324,
+        "y": 1345,
         "w": 69,
         "h": 103
       },
@@ -4802,8 +6722,8 @@
     },
     "Warrior_5_Run23": {
       "frame": {
-        "x": 1207,
-        "y": 1013,
+        "x": 472,
+        "y": 1345,
         "w": 75,
         "h": 103
       },
@@ -4822,8 +6742,8 @@
     },
     "Warrior_angle_270_Run23": {
       "frame": {
-        "x": 1284,
-        "y": 1013,
+        "x": 549,
+        "y": 1345,
         "w": 75,
         "h": 103
       },
@@ -4842,8 +6762,8 @@
     },
     "Warrior_angle_292_Run0": {
       "frame": {
-        "x": 1440,
-        "y": 1013,
+        "x": 705,
+        "y": 1345,
         "w": 77,
         "h": 103
       },
@@ -4862,8 +6782,8 @@
     },
     "Warrior_angle_292_Run1": {
       "frame": {
-        "x": 1519,
-        "y": 1013,
+        "x": 784,
+        "y": 1345,
         "w": 75,
         "h": 103
       },
@@ -4882,8 +6802,8 @@
     },
     "Warrior_angle_292_Run23": {
       "frame": {
-        "x": 1596,
-        "y": 1013,
+        "x": 861,
+        "y": 1345,
         "w": 74,
         "h": 103
       },
@@ -4902,8 +6822,8 @@
     },
     "Warrior_angle_337_Run8": {
       "frame": {
-        "x": 1672,
-        "y": 1013,
+        "x": 937,
+        "y": 1345,
         "w": 89,
         "h": 103
       },
@@ -4922,8 +6842,8 @@
     },
     "Warrior_angle_337_Run9": {
       "frame": {
-        "x": 1763,
-        "y": 1013,
+        "x": 1028,
+        "y": 1345,
         "w": 90,
         "h": 103
       },
@@ -4942,8 +6862,8 @@
     },
     "Warrior_5_Run13": {
       "frame": {
-        "x": 1931,
-        "y": 1013,
+        "x": 1196,
+        "y": 1345,
         "w": 74,
         "h": 102
       },
@@ -4962,8 +6882,8 @@
     },
     "Warrior_angle_270_Run13": {
       "frame": {
-        "x": 2,
-        "y": 1118,
+        "x": 1272,
+        "y": 1345,
         "w": 74,
         "h": 102
       },
@@ -4982,8 +6902,8 @@
     },
     "Warrior_5_Run14": {
       "frame": {
-        "x": 150,
-        "y": 1118,
+        "x": 1420,
+        "y": 1345,
         "w": 70,
         "h": 102
       },
@@ -5002,8 +6922,8 @@
     },
     "Warrior_angle_270_Run14": {
       "frame": {
-        "x": 222,
-        "y": 1118,
+        "x": 1492,
+        "y": 1345,
         "w": 70,
         "h": 102
       },
@@ -5022,8 +6942,8 @@
     },
     "Warrior_5_Run22": {
       "frame": {
-        "x": 369,
-        "y": 1118,
+        "x": 1639,
+        "y": 1345,
         "w": 73,
         "h": 102
       },
@@ -5042,8 +6962,8 @@
     },
     "Warrior_angle_270_Run22": {
       "frame": {
-        "x": 444,
-        "y": 1118,
+        "x": 1714,
+        "y": 1345,
         "w": 73,
         "h": 102
       },
@@ -5062,8 +6982,8 @@
     },
     "Warrior_angle_337_Run3": {
       "frame": {
-        "x": 519,
-        "y": 1118,
+        "x": 1789,
+        "y": 1345,
         "w": 90,
         "h": 102
       },
@@ -5082,8 +7002,8 @@
     },
     "Warrior_angle_337_Run16": {
       "frame": {
-        "x": 611,
-        "y": 1118,
+        "x": 1881,
+        "y": 1345,
         "w": 89,
         "h": 102
       },
@@ -5102,8 +7022,8 @@
     },
     "Warrior_angle_337_Run20": {
       "frame": {
-        "x": 702,
-        "y": 1118,
+        "x": 2,
+        "y": 1450,
         "w": 90,
         "h": 102
       },
@@ -5122,8 +7042,8 @@
     },
     "Warrior_angle_337_Run21": {
       "frame": {
-        "x": 794,
-        "y": 1118,
+        "x": 94,
+        "y": 1450,
         "w": 89,
         "h": 102
       },
@@ -5142,8 +7062,8 @@
     },
     "Warrior_angle_202_Idle0": {
       "frame": {
-        "x": 962,
-        "y": 1118,
+        "x": 262,
+        "y": 1450,
         "w": 75,
         "h": 101
       },
@@ -5162,8 +7082,8 @@
     },
     "Warrior_angle_202_Idle1": {
       "frame": {
-        "x": 1039,
-        "y": 1118,
+        "x": 339,
+        "y": 1450,
         "w": 75,
         "h": 101
       },
@@ -5182,8 +7102,8 @@
     },
     "Warrior_angle_202_Idle23": {
       "frame": {
-        "x": 1116,
-        "y": 1118,
+        "x": 416,
+        "y": 1450,
         "w": 75,
         "h": 101
       },
@@ -5202,8 +7122,8 @@
     },
     "Warrior_angle_247_Run2": {
       "frame": {
-        "x": 1193,
-        "y": 1118,
+        "x": 493,
+        "y": 1450,
         "w": 90,
         "h": 101
       },
@@ -5222,8 +7142,8 @@
     },
     "Warrior_angle_247_Run3": {
       "frame": {
-        "x": 1285,
-        "y": 1118,
+        "x": 585,
+        "y": 1450,
         "w": 86,
         "h": 101
       },
@@ -5242,8 +7162,8 @@
     },
     "Warrior_5_Run12": {
       "frame": {
-        "x": 1451,
-        "y": 1118,
+        "x": 751,
+        "y": 1450,
         "w": 76,
         "h": 101
       },
@@ -5262,8 +7182,8 @@
     },
     "Warrior_angle_270_Run12": {
       "frame": {
-        "x": 1529,
-        "y": 1118,
+        "x": 829,
+        "y": 1450,
         "w": 76,
         "h": 101
       },
@@ -5282,8 +7202,8 @@
     },
     "Warrior_angle_337_Run7": {
       "frame": {
-        "x": 1607,
-        "y": 1118,
+        "x": 907,
+        "y": 1450,
         "w": 89,
         "h": 101
       },
@@ -5302,8 +7222,8 @@
     },
     "Warrior_angle_337_Run19": {
       "frame": {
-        "x": 1698,
-        "y": 1118,
+        "x": 998,
+        "y": 1450,
         "w": 89,
         "h": 101
       },
@@ -5322,8 +7242,8 @@
     },
     "Warrior_angle_202_Idle2": {
       "frame": {
-        "x": 1789,
-        "y": 1118,
+        "x": 1089,
+        "y": 1450,
         "w": 76,
         "h": 100
       },
@@ -5342,8 +7262,8 @@
     },
     "Warrior_angle_202_Idle3": {
       "frame": {
-        "x": 1867,
-        "y": 1118,
+        "x": 1167,
+        "y": 1450,
         "w": 76,
         "h": 100
       },
@@ -5362,8 +7282,8 @@
     },
     "Warrior_angle_202_Idle21": {
       "frame": {
-        "x": 1945,
-        "y": 1118,
+        "x": 1245,
+        "y": 1450,
         "w": 76,
         "h": 100
       },
@@ -5382,8 +7302,8 @@
     },
     "Warrior_angle_202_Idle22": {
       "frame": {
-        "x": 2,
-        "y": 1222,
+        "x": 1323,
+        "y": 1450,
         "w": 76,
         "h": 100
       },
@@ -5402,8 +7322,8 @@
     },
     "Warrior_angle_202_Idle4": {
       "frame": {
-        "x": 80,
-        "y": 1222,
+        "x": 1401,
+        "y": 1450,
         "w": 77,
         "h": 99
       },
@@ -5422,8 +7342,8 @@
     },
     "Warrior_angle_202_Idle20": {
       "frame": {
-        "x": 159,
-        "y": 1222,
+        "x": 1480,
+        "y": 1450,
         "w": 77,
         "h": 99
       },
@@ -5442,8 +7362,8 @@
     },
     "Warrior_angle_247_Run4": {
       "frame": {
-        "x": 238,
-        "y": 1222,
+        "x": 1559,
+        "y": 1450,
         "w": 81,
         "h": 99
       },
@@ -5462,8 +7382,8 @@
     },
     "Warrior_angle_337_Run4": {
       "frame": {
-        "x": 321,
-        "y": 1222,
+        "x": 1642,
+        "y": 1450,
         "w": 90,
         "h": 99
       },
@@ -5482,8 +7402,8 @@
     },
     "Warrior_angle_202_Idle5": {
       "frame": {
-        "x": 413,
-        "y": 1222,
+        "x": 1734,
+        "y": 1450,
         "w": 77,
         "h": 98
       },
@@ -5502,8 +7422,8 @@
     },
     "Warrior_angle_202_Idle19": {
       "frame": {
-        "x": 492,
-        "y": 1222,
+        "x": 1813,
+        "y": 1450,
         "w": 77,
         "h": 98
       },
@@ -5522,8 +7442,8 @@
     },
     "Warrior_angle_247_Run1": {
       "frame": {
-        "x": 571,
-        "y": 1222,
+        "x": 1892,
+        "y": 1450,
         "w": 93,
         "h": 98
       },
@@ -5542,8 +7462,8 @@
     },
     "Warrior_angle_337_Run17": {
       "frame": {
-        "x": 666,
-        "y": 1222,
+        "x": 2,
+        "y": 1554,
         "w": 89,
         "h": 98
       },
@@ -5562,8 +7482,8 @@
     },
     "Warrior_angle_337_Run18": {
       "frame": {
-        "x": 757,
-        "y": 1222,
+        "x": 93,
+        "y": 1554,
         "w": 89,
         "h": 98
       },
@@ -5582,8 +7502,8 @@
     },
     "Warrior_angle_202_Idle6": {
       "frame": {
-        "x": 848,
-        "y": 1222,
+        "x": 184,
+        "y": 1554,
         "w": 79,
         "h": 97
       },
@@ -5602,8 +7522,8 @@
     },
     "Warrior_angle_202_Idle18": {
       "frame": {
-        "x": 929,
-        "y": 1222,
+        "x": 265,
+        "y": 1554,
         "w": 79,
         "h": 97
       },
@@ -5622,8 +7542,8 @@
     },
     "Warrior_angle_247_Run0": {
       "frame": {
-        "x": 1106,
-        "y": 1222,
+        "x": 442,
+        "y": 1554,
         "w": 94,
         "h": 97
       },
@@ -5642,8 +7562,8 @@
     },
     "Warrior_angle_247_Run23": {
       "frame": {
-        "x": 1202,
-        "y": 1222,
+        "x": 538,
+        "y": 1554,
         "w": 93,
         "h": 97
       },
@@ -5662,8 +7582,8 @@
     },
     "Warrior_angle_202_Idle7": {
       "frame": {
-        "x": 1297,
-        "y": 1222,
+        "x": 633,
+        "y": 1554,
         "w": 79,
         "h": 96
       },
@@ -5682,8 +7602,8 @@
     },
     "Warrior_angle_202_Idle17": {
       "frame": {
-        "x": 1378,
-        "y": 1222,
+        "x": 714,
+        "y": 1554,
         "w": 79,
         "h": 96
       },
@@ -5702,8 +7622,8 @@
     },
     "Warrior_angle_247_Run5": {
       "frame": {
-        "x": 1459,
-        "y": 1222,
+        "x": 795,
+        "y": 1554,
         "w": 74,
         "h": 96
       },
@@ -5722,8 +7642,8 @@
     },
     "Warrior_angle_247_Run21": {
       "frame": {
-        "x": 1535,
-        "y": 1222,
+        "x": 871,
+        "y": 1554,
         "w": 89,
         "h": 96
       },
@@ -5742,8 +7662,8 @@
     },
     "Warrior_angle_247_Run22": {
       "frame": {
-        "x": 1626,
-        "y": 1222,
+        "x": 962,
+        "y": 1554,
         "w": 92,
         "h": 96
       },
@@ -5762,8 +7682,8 @@
     },
     "Warrior_angle_337_Run6": {
       "frame": {
-        "x": 1720,
-        "y": 1222,
+        "x": 1056,
+        "y": 1554,
         "w": 89,
         "h": 96
       },
@@ -5782,8 +7702,8 @@
     },
     "Warrior_angle_202_Idle8": {
       "frame": {
-        "x": 1811,
-        "y": 1222,
+        "x": 1147,
+        "y": 1554,
         "w": 80,
         "h": 95
       },
@@ -5802,8 +7722,8 @@
     },
     "Warrior_angle_202_Idle16": {
       "frame": {
-        "x": 1893,
-        "y": 1222,
+        "x": 1229,
+        "y": 1554,
         "w": 80,
         "h": 95
       },
@@ -5822,8 +7742,8 @@
     },
     "Warrior_angle_292_Idle0": {
       "frame": {
-        "x": 92,
-        "y": 1324,
+        "x": 1401,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5842,8 +7762,8 @@
     },
     "Warrior_angle_292_Idle1": {
       "frame": {
-        "x": 182,
-        "y": 1324,
+        "x": 1491,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5862,8 +7782,8 @@
     },
     "Warrior_angle_292_Idle2": {
       "frame": {
-        "x": 272,
-        "y": 1324,
+        "x": 1581,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5882,8 +7802,8 @@
     },
     "Warrior_angle_292_Idle3": {
       "frame": {
-        "x": 362,
-        "y": 1324,
+        "x": 1671,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5902,8 +7822,8 @@
     },
     "Warrior_angle_292_Idle21": {
       "frame": {
-        "x": 452,
-        "y": 1324,
+        "x": 1761,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5922,8 +7842,8 @@
     },
     "Warrior_angle_292_Idle22": {
       "frame": {
-        "x": 542,
-        "y": 1324,
+        "x": 1851,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5942,8 +7862,8 @@
     },
     "Warrior_angle_292_Idle23": {
       "frame": {
-        "x": 632,
-        "y": 1324,
+        "x": 1941,
+        "y": 1554,
         "w": 88,
         "h": 95
       },
@@ -5962,8 +7882,8 @@
     },
     "Warrior_7_Run0": {
       "frame": {
-        "x": 1055,
-        "y": 1324,
+        "x": 335,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -5982,8 +7902,8 @@
     },
     "Warrior_angle_000_Run0": {
       "frame": {
-        "x": 1277,
-        "y": 1324,
+        "x": 557,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -6002,8 +7922,8 @@
     },
     "Warrior_7_Run12": {
       "frame": {
-        "x": 1499,
-        "y": 1324,
+        "x": 779,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -6022,8 +7942,8 @@
     },
     "Warrior_angle_000_Run12": {
       "frame": {
-        "x": 1610,
-        "y": 1324,
+        "x": 890,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -6042,8 +7962,8 @@
     },
     "Warrior_7_Run13": {
       "frame": {
-        "x": 1832,
-        "y": 1324,
+        "x": 1112,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -6062,8 +7982,8 @@
     },
     "Warrior_angle_000_Run13": {
       "frame": {
-        "x": 2,
-        "y": 1421,
+        "x": 1223,
+        "y": 1654,
         "w": 109,
         "h": 95
       },
@@ -6082,8 +8002,8 @@
     },
     "Warrior_angle_022_Run0": {
       "frame": {
-        "x": 228,
-        "y": 1421,
+        "x": 1449,
+        "y": 1654,
         "w": 113,
         "h": 95
       },
@@ -6102,8 +8022,8 @@
     },
     "Warrior_angle_247_Run14": {
       "frame": {
-        "x": 343,
-        "y": 1421,
+        "x": 1564,
+        "y": 1654,
         "w": 96,
         "h": 95
       },
@@ -6122,8 +8042,8 @@
     },
     "Warrior_angle_247_Run15": {
       "frame": {
-        "x": 441,
-        "y": 1421,
+        "x": 1662,
+        "y": 1654,
         "w": 91,
         "h": 95
       },
@@ -6142,8 +8062,8 @@
     },
     "Warrior_angle_247_Run20": {
       "frame": {
-        "x": 534,
-        "y": 1421,
+        "x": 1755,
+        "y": 1654,
         "w": 84,
         "h": 95
       },
@@ -6162,8 +8082,8 @@
     },
     "Warrior_angle_337_Run5": {
       "frame": {
-        "x": 620,
-        "y": 1421,
+        "x": 1841,
+        "y": 1654,
         "w": 89,
         "h": 95
       },
@@ -6182,8 +8102,8 @@
     },
     "Warrior_angle_202_Idle9": {
       "frame": {
-        "x": 711,
-        "y": 1421,
+        "x": 1932,
+        "y": 1654,
         "w": 80,
         "h": 94
       },
@@ -6202,8 +8122,8 @@
     },
     "Warrior_angle_202_Idle15": {
       "frame": {
-        "x": 793,
-        "y": 1421,
+        "x": 2,
+        "y": 1751,
         "w": 80,
         "h": 94
       },
@@ -6222,8 +8142,8 @@
     },
     "Warrior_angle_292_Idle4": {
       "frame": {
-        "x": 875,
-        "y": 1421,
+        "x": 84,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6242,8 +8162,8 @@
     },
     "Warrior_angle_292_Idle5": {
       "frame": {
-        "x": 965,
-        "y": 1421,
+        "x": 174,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6262,8 +8182,8 @@
     },
     "Warrior_angle_292_Idle6": {
       "frame": {
-        "x": 1055,
-        "y": 1421,
+        "x": 264,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6282,8 +8202,8 @@
     },
     "Warrior_angle_292_Idle18": {
       "frame": {
-        "x": 1145,
-        "y": 1421,
+        "x": 354,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6302,8 +8222,8 @@
     },
     "Warrior_angle_292_Idle19": {
       "frame": {
-        "x": 1235,
-        "y": 1421,
+        "x": 444,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6322,8 +8242,8 @@
     },
     "Warrior_angle_292_Idle20": {
       "frame": {
-        "x": 1325,
-        "y": 1421,
+        "x": 534,
+        "y": 1751,
         "w": 88,
         "h": 94
       },
@@ -6342,8 +8262,8 @@
     },
     "Warrior_7_Run1": {
       "frame": {
-        "x": 1525,
-        "y": 1421,
+        "x": 734,
+        "y": 1751,
         "w": 108,
         "h": 94
       },
@@ -6362,8 +8282,8 @@
     },
     "Warrior_angle_000_Run1": {
       "frame": {
-        "x": 1635,
-        "y": 1421,
+        "x": 844,
+        "y": 1751,
         "w": 108,
         "h": 94
       },
@@ -6382,8 +8302,8 @@
     },
     "Warrior_7_Run23": {
       "frame": {
-        "x": 1855,
-        "y": 1421,
+        "x": 1064,
+        "y": 1751,
         "w": 108,
         "h": 94
       },
@@ -6402,8 +8322,8 @@
     },
     "Warrior_angle_000_Run23": {
       "frame": {
-        "x": 2,
-        "y": 1518,
+        "x": 1174,
+        "y": 1751,
         "w": 108,
         "h": 94
       },
@@ -6422,8 +8342,8 @@
     },
     "Warrior_angle_022_Run1": {
       "frame": {
-        "x": 112,
-        "y": 1518,
+        "x": 1284,
+        "y": 1751,
         "w": 113,
         "h": 94
       },
@@ -6442,8 +8362,8 @@
     },
     "Warrior_angle_022_Run23": {
       "frame": {
-        "x": 227,
-        "y": 1518,
+        "x": 1399,
+        "y": 1751,
         "w": 113,
         "h": 94
       },
@@ -6462,8 +8382,8 @@
     },
     "Warrior_angle_247_Run6": {
       "frame": {
-        "x": 342,
-        "y": 1518,
+        "x": 1514,
+        "y": 1751,
         "w": 71,
         "h": 94
       },
@@ -6482,8 +8402,8 @@
     },
     "Warrior_angle_247_Run13": {
       "frame": {
-        "x": 415,
-        "y": 1518,
+        "x": 1587,
+        "y": 1751,
         "w": 100,
         "h": 94
       },
@@ -6502,8 +8422,8 @@
     },
     "Warrior_angle_202_Idle10": {
       "frame": {
-        "x": 517,
-        "y": 1518,
+        "x": 1689,
+        "y": 1751,
         "w": 80,
         "h": 93
       },
@@ -6522,8 +8442,8 @@
     },
     "Warrior_angle_202_Idle11": {
       "frame": {
-        "x": 599,
-        "y": 1518,
+        "x": 1771,
+        "y": 1751,
         "w": 80,
         "h": 93
       },
@@ -6542,8 +8462,8 @@
     },
     "Warrior_angle_202_Idle12": {
       "frame": {
-        "x": 681,
-        "y": 1518,
+        "x": 1853,
+        "y": 1751,
         "w": 81,
         "h": 93
       },
@@ -6562,8 +8482,8 @@
     },
     "Warrior_angle_202_Idle13": {
       "frame": {
-        "x": 764,
-        "y": 1518,
+        "x": 1936,
+        "y": 1751,
         "w": 80,
         "h": 93
       },
@@ -6582,8 +8502,8 @@
     },
     "Warrior_angle_202_Idle14": {
       "frame": {
-        "x": 846,
-        "y": 1518,
+        "x": 2,
+        "y": 1847,
         "w": 80,
         "h": 93
       },
@@ -6602,8 +8522,8 @@
     },
     "Warrior_angle_292_Idle7": {
       "frame": {
-        "x": 928,
-        "y": 1518,
+        "x": 84,
+        "y": 1847,
         "w": 88,
         "h": 93
       },
@@ -6622,8 +8542,8 @@
     },
     "Warrior_angle_292_Idle17": {
       "frame": {
-        "x": 1018,
-        "y": 1518,
+        "x": 174,
+        "y": 1847,
         "w": 88,
         "h": 93
       },
@@ -6642,8 +8562,8 @@
     },
     "Warrior_7_Run2": {
       "frame": {
-        "x": 1219,
-        "y": 1518,
+        "x": 375,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6662,8 +8582,8 @@
     },
     "Warrior_angle_000_Run2": {
       "frame": {
-        "x": 1330,
-        "y": 1518,
+        "x": 486,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6682,8 +8602,8 @@
     },
     "Warrior_7_Run11": {
       "frame": {
-        "x": 1552,
-        "y": 1518,
+        "x": 708,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6702,8 +8622,8 @@
     },
     "Warrior_angle_000_Run11": {
       "frame": {
-        "x": 1663,
-        "y": 1518,
+        "x": 819,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6722,8 +8642,8 @@
     },
     "Warrior_7_Run14": {
       "frame": {
-        "x": 1885,
-        "y": 1518,
+        "x": 1041,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6742,8 +8662,8 @@
     },
     "Warrior_angle_000_Run14": {
       "frame": {
-        "x": 2,
-        "y": 1614,
+        "x": 1152,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6762,8 +8682,8 @@
     },
     "Warrior_7_Run22": {
       "frame": {
-        "x": 224,
-        "y": 1614,
+        "x": 1374,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6782,8 +8702,8 @@
     },
     "Warrior_angle_000_Run22": {
       "frame": {
-        "x": 335,
-        "y": 1614,
+        "x": 1485,
+        "y": 1847,
         "w": 109,
         "h": 93
       },
@@ -6802,8 +8722,8 @@
     },
     "Warrior_angle_022_Run2": {
       "frame": {
-        "x": 446,
-        "y": 1614,
+        "x": 1596,
+        "y": 1847,
         "w": 112,
         "h": 93
       },
@@ -6822,8 +8742,8 @@
     },
     "Warrior_angle_247_Run7": {
       "frame": {
-        "x": 560,
-        "y": 1614,
+        "x": 1710,
+        "y": 1847,
         "w": 78,
         "h": 93
       },
@@ -6842,8 +8762,8 @@
     },
     "Warrior_angle_247_Run19": {
       "frame": {
-        "x": 640,
-        "y": 1614,
+        "x": 1790,
+        "y": 1847,
         "w": 78,
         "h": 93
       },
@@ -6862,8 +8782,8 @@
     },
     "Warrior_angle_292_Idle8": {
       "frame": {
-        "x": 720,
-        "y": 1614,
+        "x": 1870,
+        "y": 1847,
         "w": 87,
         "h": 92
       },
@@ -6882,8 +8802,8 @@
     },
     "Warrior_angle_292_Idle9": {
       "frame": {
-        "x": 809,
-        "y": 1614,
+        "x": 1959,
+        "y": 1847,
         "w": 87,
         "h": 92
       },
@@ -6902,8 +8822,8 @@
     },
     "Warrior_angle_292_Idle10": {
       "frame": {
-        "x": 898,
-        "y": 1614,
+        "x": 2,
+        "y": 1942,
         "w": 86,
         "h": 92
       },
@@ -6922,8 +8842,8 @@
     },
     "Warrior_angle_292_Idle14": {
       "frame": {
-        "x": 986,
-        "y": 1614,
+        "x": 90,
+        "y": 1942,
         "w": 86,
         "h": 92
       },
@@ -6942,8 +8862,8 @@
     },
     "Warrior_angle_292_Idle15": {
       "frame": {
-        "x": 1074,
-        "y": 1614,
+        "x": 178,
+        "y": 1942,
         "w": 87,
         "h": 92
       },
@@ -6962,8 +8882,8 @@
     },
     "Warrior_angle_292_Idle16": {
       "frame": {
-        "x": 1163,
-        "y": 1614,
+        "x": 267,
+        "y": 1942,
         "w": 87,
         "h": 92
       },
@@ -6982,8 +8902,8 @@
     },
     "Warrior_angle_022_Run22": {
       "frame": {
-        "x": 1252,
-        "y": 1614,
+        "x": 356,
+        "y": 1942,
         "w": 112,
         "h": 92
       },
@@ -7002,8 +8922,8 @@
     },
     "Warrior_angle_247_Run12": {
       "frame": {
-        "x": 1366,
-        "y": 1614,
+        "x": 470,
+        "y": 1942,
         "w": 101,
         "h": 92
       },
@@ -7022,8 +8942,8 @@
     },
     "Warrior_angle_247_Run16": {
       "frame": {
-        "x": 1469,
-        "y": 1614,
+        "x": 573,
+        "y": 1942,
         "w": 84,
         "h": 92
       },
@@ -7042,8 +8962,8 @@
     },
     "Warrior_angle_292_Idle11": {
       "frame": {
-        "x": 1555,
-        "y": 1614,
+        "x": 659,
+        "y": 1942,
         "w": 85,
         "h": 91
       },
@@ -7062,8 +8982,8 @@
     },
     "Warrior_angle_292_Idle12": {
       "frame": {
-        "x": 1642,
-        "y": 1614,
+        "x": 746,
+        "y": 1942,
         "w": 85,
         "h": 91
       },
@@ -7082,8 +9002,8 @@
     },
     "Warrior_angle_292_Idle13": {
       "frame": {
-        "x": 1729,
-        "y": 1614,
+        "x": 833,
+        "y": 1942,
         "w": 85,
         "h": 91
       },
@@ -7102,8 +9022,8 @@
     },
     "Warrior_angle_022_Run12": {
       "frame": {
-        "x": 1816,
-        "y": 1614,
+        "x": 920,
+        "y": 1942,
         "w": 113,
         "h": 91
       },
@@ -7122,8 +9042,8 @@
     },
     "Warrior_7_Run3": {
       "frame": {
-        "x": 2,
-        "y": 1709,
+        "x": 1146,
+        "y": 1942,
         "w": 109,
         "h": 90
       },
@@ -7142,8 +9062,8 @@
     },
     "Warrior_angle_000_Run3": {
       "frame": {
-        "x": 113,
-        "y": 1709,
+        "x": 1257,
+        "y": 1942,
         "w": 109,
         "h": 90
       },
@@ -7162,8 +9082,8 @@
     },
     "Warrior_angle_022_Run3": {
       "frame": {
-        "x": 224,
-        "y": 1709,
+        "x": 1368,
+        "y": 1942,
         "w": 112,
         "h": 90
       },
@@ -7182,8 +9102,8 @@
     },
     "Warrior_angle_022_Run13": {
       "frame": {
-        "x": 338,
-        "y": 1709,
+        "x": 1482,
+        "y": 1942,
         "w": 113,
         "h": 90
       },
@@ -7202,8 +9122,8 @@
     },
     "Warrior_angle_247_Run8": {
       "frame": {
-        "x": 453,
-        "y": 1709,
+        "x": 1597,
+        "y": 1942,
         "w": 85,
         "h": 90
       },
@@ -7222,8 +9142,8 @@
     },
     "Warrior_angle_247_Run11": {
       "frame": {
-        "x": 540,
-        "y": 1709,
+        "x": 1684,
+        "y": 1942,
         "w": 97,
         "h": 90
       },
@@ -7242,8 +9162,8 @@
     },
     "Warrior_angle_247_Run18": {
       "frame": {
-        "x": 639,
-        "y": 1709,
+        "x": 1783,
+        "y": 1942,
         "w": 71,
         "h": 90
       },
@@ -7262,8 +9182,8 @@
     },
     "Warrior_7_Run10": {
       "frame": {
-        "x": 823,
-        "y": 1709,
+        "x": 1856,
+        "y": 1942,
         "w": 109,
         "h": 89
       },
@@ -7274,666 +9194,6 @@
         "y": 79,
         "w": 109,
         "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run10": {
-      "frame": {
-        "x": 934,
-        "y": 1709,
-        "w": 109,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 95,
-        "y": 79,
-        "w": 109,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run15": {
-      "frame": {
-        "x": 1156,
-        "y": 1709,
-        "w": 109,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 95,
-        "y": 79,
-        "w": 109,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run15": {
-      "frame": {
-        "x": 1267,
-        "y": 1709,
-        "w": 109,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 95,
-        "y": 79,
-        "w": 109,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run20": {
-      "frame": {
-        "x": 1488,
-        "y": 1709,
-        "w": 108,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 80,
-        "w": 108,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run20": {
-      "frame": {
-        "x": 1598,
-        "y": 1709,
-        "w": 108,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 80,
-        "w": 108,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run21": {
-      "frame": {
-        "x": 1818,
-        "y": 1709,
-        "w": 108,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 79,
-        "w": 108,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run21": {
-      "frame": {
-        "x": 1928,
-        "y": 1709,
-        "w": 108,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 79,
-        "w": 108,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run21": {
-      "frame": {
-        "x": 2,
-        "y": 1801,
-        "w": 113,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 96,
-        "y": 80,
-        "w": 113,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_0_Run0": {
-      "frame": {
-        "x": 420,
-        "y": 1801,
-        "w": 99,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 80,
-        "w": 99,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_045_Run0": {
-      "frame": {
-        "x": 622,
-        "y": 1801,
-        "w": 99,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 80,
-        "w": 99,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_247_Run10": {
-      "frame": {
-        "x": 723,
-        "y": 1801,
-        "w": 95,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 64,
-        "y": 68,
-        "w": 95,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_247_Run17": {
-      "frame": {
-        "x": 820,
-        "y": 1801,
-        "w": 76,
-        "h": 89
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 65,
-        "y": 70,
-        "w": 76,
-        "h": 89
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run9": {
-      "frame": {
-        "x": 1008,
-        "y": 1801,
-        "w": 108,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 95,
-        "y": 79,
-        "w": 108,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run9": {
-      "frame": {
-        "x": 1118,
-        "y": 1801,
-        "w": 108,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 95,
-        "y": 79,
-        "w": 108,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run11": {
-      "frame": {
-        "x": 1228,
-        "y": 1801,
-        "w": 112,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 100,
-        "y": 79,
-        "w": 112,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run14": {
-      "frame": {
-        "x": 1342,
-        "y": 1801,
-        "w": 112,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 100,
-        "y": 79,
-        "w": 112,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run19": {
-      "frame": {
-        "x": 1456,
-        "y": 1801,
-        "w": 113,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 97,
-        "y": 81,
-        "w": 113,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run20": {
-      "frame": {
-        "x": 1571,
-        "y": 1801,
-        "w": 112,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 97,
-        "y": 81,
-        "w": 112,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_0_Run1": {
-      "frame": {
-        "x": 1786,
-        "y": 1801,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_045_Run1": {
-      "frame": {
-        "x": 1887,
-        "y": 1801,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_0_Run2": {
-      "frame": {
-        "x": 103,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_045_Run2": {
-      "frame": {
-        "x": 204,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_0_Run22": {
-      "frame": {
-        "x": 406,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_045_Run22": {
-      "frame": {
-        "x": 507,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_0_Run23": {
-      "frame": {
-        "x": 709,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_045_Run23": {
-      "frame": {
-        "x": 810,
-        "y": 1892,
-        "w": 99,
-        "h": 88
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 106,
-        "y": 81,
-        "w": 99,
-        "h": 88
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run4": {
-      "frame": {
-        "x": 1022,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 80,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run4": {
-      "frame": {
-        "x": 1133,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 80,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run8": {
-      "frame": {
-        "x": 1355,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 94,
-        "y": 80,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run8": {
-      "frame": {
-        "x": 1466,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 94,
-        "y": 80,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_7_Run19": {
-      "frame": {
-        "x": 1688,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 81,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_000_Run19": {
-      "frame": {
-        "x": 1799,
-        "y": 1892,
-        "w": 109,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 81,
-        "w": 109,
-        "h": 87
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      }
-    },
-    "Warrior_angle_022_Run4": {
-      "frame": {
-        "x": 1910,
-        "y": 1892,
-        "w": 112,
-        "h": 87
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 97,
-        "y": 81,
-        "w": 112,
-        "h": 87
       },
       "sourceSize": {
         "w": 256,

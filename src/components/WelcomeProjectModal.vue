@@ -297,6 +297,8 @@ function handleCreateNew() {
   characterStore.isGameMode = false
   characterStore.gameState = 'ready'
   towerStore.clearCombatEffects()
+  characterStore.resetForNewProject()
+  towerStore.resetForNewProject()
 
   const name = newProjectName.value.trim() || 'New Isometric Map'
   const newId = sanitizeMapId(`proj-${Date.now().toString(36)}`)

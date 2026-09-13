@@ -1,0 +1,1933 @@
+{
+  "frames": {
+    "Zombi_angle_004_Run_Body_000_00": {
+      "frame": {
+        "x": 99,
+        "y": 2,
+        "w": 95,
+        "h": 186
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 44,
+        "w": 95,
+        "h": 186
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_000_00": {
+      "frame": {
+        "x": 295,
+        "y": 2,
+        "w": 97,
+        "h": 183
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 46,
+        "w": 97,
+        "h": 183
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_045_00": {
+      "frame": {
+        "x": 505,
+        "y": 2,
+        "w": 109,
+        "h": 183
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 46,
+        "w": 109,
+        "h": 183
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_045_00": {
+      "frame": {
+        "x": 720,
+        "y": 2,
+        "w": 102,
+        "h": 182
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 45,
+        "w": 102,
+        "h": 182
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_000_00": {
+      "frame": {
+        "x": 909,
+        "y": 2,
+        "w": 83,
+        "h": 179
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 48,
+        "w": 83,
+        "h": 179
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_000_00": {
+      "frame": {
+        "x": 1093,
+        "y": 2,
+        "w": 97,
+        "h": 178
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 46,
+        "w": 97,
+        "h": 178
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_000_00": {
+      "frame": {
+        "x": 1278,
+        "y": 2,
+        "w": 84,
+        "h": 175
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 91,
+        "y": 49,
+        "w": 84,
+        "h": 175
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_315_00": {
+      "frame": {
+        "x": 1458,
+        "y": 2,
+        "w": 92,
+        "h": 175
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 61,
+        "y": 54,
+        "w": 92,
+        "h": 175
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_315_00": {
+      "frame": {
+        "x": 1644,
+        "y": 2,
+        "w": 90,
+        "h": 175
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 61,
+        "y": 52,
+        "w": 90,
+        "h": 175
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_000_00": {
+      "frame": {
+        "x": 1837,
+        "y": 2,
+        "w": 99,
+        "h": 173
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 49,
+        "w": 99,
+        "h": 173
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_045_00": {
+      "frame": {
+        "x": 113,
+        "y": 190,
+        "w": 109,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 52,
+        "w": 109,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_045_00": {
+      "frame": {
+        "x": 317,
+        "y": 190,
+        "w": 91,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 47,
+        "w": 91,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_000_00": {
+      "frame": {
+        "x": 497,
+        "y": 190,
+        "w": 85,
+        "h": 171
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 50,
+        "w": 85,
+        "h": 171
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_315_00": {
+      "frame": {
+        "x": 699,
+        "y": 190,
+        "w": 113,
+        "h": 168
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 61,
+        "y": 51,
+        "w": 113,
+        "h": 168
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_270_00": {
+      "frame": {
+        "x": 932,
+        "y": 190,
+        "w": 116,
+        "h": 167
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 59,
+        "y": 64,
+        "w": 116,
+        "h": 167
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_315_00": {
+      "frame": {
+        "x": 1180,
+        "y": 190,
+        "w": 128,
+        "h": 167
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 54,
+        "w": 128,
+        "h": 167
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_270_00": {
+      "frame": {
+        "x": 1402,
+        "y": 190,
+        "w": 90,
+        "h": 166
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 63,
+        "w": 90,
+        "h": 166
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_000_00": {
+      "frame": {
+        "x": 1593,
+        "y": 190,
+        "w": 97,
+        "h": 165
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 49,
+        "w": 97,
+        "h": 165
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_315_00": {
+      "frame": {
+        "x": 1787,
+        "y": 190,
+        "w": 93,
+        "h": 165
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 59,
+        "w": 93,
+        "h": 165
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_315_00": {
+      "frame": {
+        "x": 2,
+        "y": 364,
+        "w": 87,
+        "h": 165
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 53,
+        "w": 87,
+        "h": 165
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_000_00": {
+      "frame": {
+        "x": 183,
+        "y": 364,
+        "w": 90,
+        "h": 164
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 51,
+        "w": 90,
+        "h": 164
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_135_00": {
+      "frame": {
+        "x": 405,
+        "y": 364,
+        "w": 128,
+        "h": 164
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 73,
+        "w": 128,
+        "h": 164
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_270_00": {
+      "frame": {
+        "x": 670,
+        "y": 364,
+        "w": 133,
+        "h": 164
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 68,
+        "w": 133,
+        "h": 164
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_135_00": {
+      "frame": {
+        "x": 929,
+        "y": 364,
+        "w": 122,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 73,
+        "w": 122,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_270_00": {
+      "frame": {
+        "x": 1119,
+        "y": 364,
+        "w": 64,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 64,
+        "w": 64,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_090_00": {
+      "frame": {
+        "x": 1313,
+        "y": 364,
+        "w": 126,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 57,
+        "w": 126,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_315_00": {
+      "frame": {
+        "x": 1529,
+        "y": 364,
+        "w": 86,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 52,
+        "w": 86,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_045_00": {
+      "frame": {
+        "x": 1724,
+        "y": 364,
+        "w": 105,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 52,
+        "w": 105,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_090_00": {
+      "frame": {
+        "x": 1928,
+        "y": 364,
+        "w": 95,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 59,
+        "w": 95,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_135_00": {
+      "frame": {
+        "x": 117,
+        "y": 531,
+        "w": 113,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 78,
+        "w": 113,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_225_00": {
+      "frame": {
+        "x": 343,
+        "y": 531,
+        "w": 109,
+        "h": 160
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 59,
+        "y": 80,
+        "w": 109,
+        "h": 160
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_045_00": {
+      "frame": {
+        "x": 554,
+        "y": 531,
+        "w": 98,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 58,
+        "w": 98,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_045_00": {
+      "frame": {
+        "x": 732,
+        "y": 531,
+        "w": 76,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 104,
+        "y": 50,
+        "w": 76,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_090_00": {
+      "frame": {
+        "x": 945,
+        "y": 531,
+        "w": 133,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 59,
+        "w": 133,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_004_Run_Body_180_00": {
+      "frame": {
+        "x": 1177,
+        "y": 531,
+        "w": 95,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 82,
+        "w": 95,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_225_00": {
+      "frame": {
+        "x": 1385,
+        "y": 531,
+        "w": 109,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 57,
+        "y": 77,
+        "w": 109,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_270_00": {
+      "frame": {
+        "x": 1624,
+        "y": 531,
+        "w": 126,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 57,
+        "y": 74,
+        "w": 126,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_000_00": {
+      "frame": {
+        "x": 1852,
+        "y": 531,
+        "w": 98,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 52,
+        "w": 98,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_000_00": {
+      "frame": {
+        "x": 2,
+        "y": 693,
+        "w": 90,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 52,
+        "w": 90,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_045_00": {
+      "frame": {
+        "x": 218,
+        "y": 693,
+        "w": 122,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 74,
+        "y": 54,
+        "w": 122,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_090_00": {
+      "frame": {
+        "x": 417,
+        "y": 693,
+        "w": 73,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 62,
+        "w": 73,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_315_00": {
+      "frame": {
+        "x": 616,
+        "y": 693,
+        "w": 122,
+        "h": 158
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 57,
+        "y": 59,
+        "w": 122,
+        "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_090_00": {
+      "frame": {
+        "x": 826,
+        "y": 693,
+        "w": 84,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 64,
+        "w": 84,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_090_00": {
+      "frame": {
+        "x": 1021,
+        "y": 693,
+        "w": 107,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 87,
+        "y": 65,
+        "w": 107,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_135_00": {
+      "frame": {
+        "x": 1236,
+        "y": 693,
+        "w": 104,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 76,
+        "w": 104,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_225_00": {
+      "frame": {
+        "x": 1466,
+        "y": 693,
+        "w": 122,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 79,
+        "w": 122,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_270_00": {
+      "frame": {
+        "x": 1679,
+        "y": 693,
+        "w": 87,
+        "h": 157
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 71,
+        "y": 65,
+        "w": 87,
+        "h": 157
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_045_00": {
+      "frame": {
+        "x": 1846,
+        "y": 693,
+        "w": 76,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 52,
+        "w": 76,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_225_00": {
+      "frame": {
+        "x": 2,
+        "y": 853,
+        "w": 115,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 64,
+        "y": 80,
+        "w": 115,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_225_00": {
+      "frame": {
+        "x": 216,
+        "y": 853,
+        "w": 95,
+        "h": 156
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 68,
+        "y": 80,
+        "w": 95,
+        "h": 156
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_090_00": {
+      "frame": {
+        "x": 437,
+        "y": 853,
+        "w": 122,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 68,
+        "w": 122,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_135_00": {
+      "frame": {
+        "x": 655,
+        "y": 853,
+        "w": 92,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 82,
+        "w": 92,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_225_00": {
+      "frame": {
+        "x": 856,
+        "y": 853,
+        "w": 105,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 70,
+        "y": 82,
+        "w": 105,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_270_00": {
+      "frame": {
+        "x": 1060,
+        "y": 853,
+        "w": 95,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 75,
+        "y": 78,
+        "w": 95,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_315_00": {
+      "frame": {
+        "x": 1239,
+        "y": 853,
+        "w": 80,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 53,
+        "w": 80,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_090_00": {
+      "frame": {
+        "x": 1439,
+        "y": 853,
+        "w": 116,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 66,
+        "w": 116,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_135_00": {
+      "frame": {
+        "x": 1645,
+        "y": 853,
+        "w": 86,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 85,
+        "w": 86,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_003_Run_Body_180_00": {
+      "frame": {
+        "x": 1832,
+        "y": 853,
+        "w": 97,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 83,
+        "w": 97,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_270_00": {
+      "frame": {
+        "x": 2,
+        "y": 1011,
+        "w": 112,
+        "h": 154
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 65,
+        "w": 112,
+        "h": 154
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_000_00": {
+      "frame": {
+        "x": 215,
+        "y": 1011,
+        "w": 97,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 51,
+        "w": 97,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_045_00": {
+      "frame": {
+        "x": 431,
+        "y": 1011,
+        "w": 115,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 58,
+        "w": 115,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_180_00": {
+      "frame": {
+        "x": 647,
+        "y": 1011,
+        "w": 97,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 85,
+        "w": 97,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_225_00": {
+      "frame": {
+        "x": 834,
+        "y": 1011,
+        "w": 86,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 80,
+        "w": 86,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_225_00": {
+      "frame": {
+        "x": 1001,
+        "y": 1011,
+        "w": 77,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 84,
+        "y": 88,
+        "w": 77,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_315_00": {
+      "frame": {
+        "x": 1176,
+        "y": 1011,
+        "w": 94,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 64,
+        "w": 94,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_180_00": {
+      "frame": {
+        "x": 1357,
+        "y": 1011,
+        "w": 83,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 87,
+        "w": 83,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_005_Run_Body_225_00": {
+      "frame": {
+        "x": 1546,
+        "y": 1011,
+        "w": 102,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 61,
+        "y": 86,
+        "w": 102,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_090_00": {
+      "frame": {
+        "x": 1764,
+        "y": 1011,
+        "w": 112,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 73,
+        "w": 112,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_270_00": {
+      "frame": {
+        "x": 1953,
+        "y": 1011,
+        "w": 73,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 81,
+        "w": 73,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_010_Run_Body_270_00": {
+      "frame": {
+        "x": 126,
+        "y": 1167,
+        "w": 122,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 68,
+        "w": 122,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_315_00": {
+      "frame": {
+        "x": 356,
+        "y": 1167,
+        "w": 104,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 63,
+        "w": 104,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_135_00": {
+      "frame": {
+        "x": 557,
+        "y": 1167,
+        "w": 93,
+        "h": 150
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 103,
+        "y": 81,
+        "w": 93,
+        "h": 150
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_225_00": {
+      "frame": {
+        "x": 752,
+        "y": 1167,
+        "w": 98,
+        "h": 150
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 57,
+        "y": 78,
+        "w": 98,
+        "h": 150
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_225_00": {
+      "frame": {
+        "x": 930,
+        "y": 1167,
+        "w": 76,
+        "h": 149
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 76,
+        "y": 91,
+        "w": 76,
+        "h": 149
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_045_00": {
+      "frame": {
+        "x": 1105,
+        "y": 1167,
+        "w": 95,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 61,
+        "w": 95,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_090_00": {
+      "frame": {
+        "x": 1294,
+        "y": 1167,
+        "w": 90,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 74,
+        "w": 90,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_135_00": {
+      "frame": {
+        "x": 1478,
+        "y": 1167,
+        "w": 90,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 86,
+        "w": 90,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_090_00": {
+      "frame": {
+        "x": 1659,
+        "y": 1167,
+        "w": 87,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 78,
+        "w": 87,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_135_00": {
+      "frame": {
+        "x": 1830,
+        "y": 1167,
+        "w": 80,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 90,
+        "w": 80,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_135_00": {
+      "frame": {
+        "x": 2,
+        "y": 1320,
+        "w": 94,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 80,
+        "w": 94,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_011_Run_Body_180_00": {
+      "frame": {
+        "x": 184,
+        "y": 1320,
+        "w": 84,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 89,
+        "w": 84,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_225_00": {
+      "frame": {
+        "x": 363,
+        "y": 1320,
+        "w": 91,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 89,
+        "w": 91,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_270_00": {
+      "frame": {
+        "x": 542,
+        "y": 1320,
+        "w": 84,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 66,
+        "y": 79,
+        "w": 84,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_270_00": {
+      "frame": {
+        "x": 737,
+        "y": 1320,
+        "w": 107,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 75,
+        "w": 107,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_045_00": {
+      "frame": {
+        "x": 934,
+        "y": 1320,
+        "w": 86,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 110,
+        "y": 62,
+        "w": 86,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_090_00": {
+      "frame": {
+        "x": 1087,
+        "y": 1320,
+        "w": 63,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 116,
+        "y": 78,
+        "w": 63,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_002_Run_Body_180_00": {
+      "frame": {
+        "x": 1251,
+        "y": 1320,
+        "w": 97,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 87,
+        "w": 97,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_009_Run_Body_180_00": {
+      "frame": {
+        "x": 1437,
+        "y": 1320,
+        "w": 85,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 90,
+        "w": 85,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_315_00": {
+      "frame": {
+        "x": 1620,
+        "y": 1320,
+        "w": 94,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 66,
+        "w": 94,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_135_00": {
+      "frame": {
+        "x": 1812,
+        "y": 1320,
+        "w": 94,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 81,
+        "w": 94,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_135_00": {
+      "frame": {
+        "x": 2,
+        "y": 1469,
+        "w": 87,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 90,
+        "w": 87,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_008_Run_Body_180_00": {
+      "frame": {
+        "x": 183,
+        "y": 1469,
+        "w": 90,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 93,
+        "w": 90,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_012_Run_Body_180_00": {
+      "frame": {
+        "x": 367,
+        "y": 1469,
+        "w": 90,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 91,
+        "w": 90,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_006_Run_Body_180_00": {
+      "frame": {
+        "x": 561,
+        "y": 1469,
+        "w": 100,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 90,
+        "w": 100,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_001_Run_Body_180_00": {
+      "frame": {
+        "x": 762,
+        "y": 1469,
+        "w": 97,
+        "h": 136
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 91,
+        "w": 97,
+        "h": 136
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Zombi_angle_007_Run_Body_180_00": {
+      "frame": {
+        "x": 961,
+        "y": 1469,
+        "w": 98,
+        "h": 134
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 93,
+        "w": 98,
+        "h": 134
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    }
+  },
+  "meta": {
+    "image": "characters_zombi.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

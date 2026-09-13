@@ -191,7 +191,7 @@ function selectModel(model: CharacterModel) {
   const actions = currentModelActions.value
   const exists = actions.some((a) => a.id.toLowerCase() === currentAction.value.toLowerCase())
   if (!exists && actions.length > 0) {
-    const runAct = actions.find((a) => a.id.toLowerCase() === 'run')
+    const runAct = actions.find((a) => /run|walk|sprint|move/i.test(a.id))
     currentAction.value = (runAct ? runAct.id : actions[0].id) as CharacterAction
   }
 

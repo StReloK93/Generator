@@ -1,0 +1,1613 @@
+{
+  "frames": {
+    "Demon_6_Die11": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 66,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 95,
+        "w": 66,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple11": {
+      "frame": {
+        "x": 70,
+        "y": 2,
+        "w": 66,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 95,
+        "w": 66,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_337_Idle_Simple2": {
+      "frame": {
+        "x": 138,
+        "y": 2,
+        "w": 58,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 99,
+        "w": 58,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_337_Idle_Simple3": {
+      "frame": {
+        "x": 198,
+        "y": 2,
+        "w": 57,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 99,
+        "w": 57,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_067_Run2": {
+      "frame": {
+        "x": 257,
+        "y": 2,
+        "w": 49,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 106,
+        "y": 97,
+        "w": 49,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_1_Run3": {
+      "frame": {
+        "x": 383,
+        "y": 2,
+        "w": 73,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 98,
+        "w": 73,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_090_Run3": {
+      "frame": {
+        "x": 458,
+        "y": 2,
+        "w": 73,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 98,
+        "w": 73,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_1_Run5": {
+      "frame": {
+        "x": 606,
+        "y": 2,
+        "w": 71,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 104,
+        "w": 71,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_090_Run5": {
+      "frame": {
+        "x": 679,
+        "y": 2,
+        "w": 71,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 104,
+        "w": 71,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_1_Run6": {
+      "frame": {
+        "x": 805,
+        "y": 2,
+        "w": 51,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 103,
+        "w": 51,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_090_Run6": {
+      "frame": {
+        "x": 858,
+        "y": 2,
+        "w": 51,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 107,
+        "y": 103,
+        "w": 51,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_157_Run7": {
+      "frame": {
+        "x": 911,
+        "y": 2,
+        "w": 66,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 110,
+        "w": 66,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_292_Run0": {
+      "frame": {
+        "x": 1062,
+        "y": 2,
+        "w": 81,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 94,
+        "w": 81,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_292_Run7": {
+      "frame": {
+        "x": 1145,
+        "y": 2,
+        "w": 74,
+        "h": 78
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 90,
+        "y": 93,
+        "w": 74,
+        "h": 78
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple1": {
+      "frame": {
+        "x": 1221,
+        "y": 2,
+        "w": 65,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 96,
+        "w": 65,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle1": {
+      "frame": {
+        "x": 1288,
+        "y": 2,
+        "w": 65,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 96,
+        "w": 65,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup1": {
+      "frame": {
+        "x": 1355,
+        "y": 2,
+        "w": 65,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 96,
+        "w": 65,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die1": {
+      "frame": {
+        "x": 1422,
+        "y": 2,
+        "w": 65,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 96,
+        "w": 65,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple1": {
+      "frame": {
+        "x": 1489,
+        "y": 2,
+        "w": 65,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 96,
+        "w": 65,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_112_Run2": {
+      "frame": {
+        "x": 1556,
+        "y": 2,
+        "w": 60,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 104,
+        "w": 60,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_292_Run1": {
+      "frame": {
+        "x": 1618,
+        "y": 2,
+        "w": 67,
+        "h": 77
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 98,
+        "w": 67,
+        "h": 77
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple2": {
+      "frame": {
+        "x": 1687,
+        "y": 2,
+        "w": 64,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 64,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle2": {
+      "frame": {
+        "x": 1753,
+        "y": 2,
+        "w": 64,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 64,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup2": {
+      "frame": {
+        "x": 1819,
+        "y": 2,
+        "w": 64,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 64,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die2": {
+      "frame": {
+        "x": 1885,
+        "y": 2,
+        "w": 64,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 64,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple2": {
+      "frame": {
+        "x": 1951,
+        "y": 2,
+        "w": 64,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 64,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple6": {
+      "frame": {
+        "x": 2,
+        "y": 82,
+        "w": 62,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 62,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle6": {
+      "frame": {
+        "x": 66,
+        "y": 82,
+        "w": 62,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 62,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup6": {
+      "frame": {
+        "x": 130,
+        "y": 82,
+        "w": 62,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 62,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die6": {
+      "frame": {
+        "x": 194,
+        "y": 82,
+        "w": 62,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 62,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple6": {
+      "frame": {
+        "x": 258,
+        "y": 82,
+        "w": 62,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 97,
+        "w": 62,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_3_Run1": {
+      "frame": {
+        "x": 390,
+        "y": 82,
+        "w": 66,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 115,
+        "w": 66,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_180_Run1": {
+      "frame": {
+        "x": 458,
+        "y": 82,
+        "w": 66,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 115,
+        "w": 66,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_247_Run4": {
+      "frame": {
+        "x": 526,
+        "y": 82,
+        "w": 81,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 86,
+        "y": 99,
+        "w": 81,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_067_Run3": {
+      "frame": {
+        "x": 609,
+        "y": 82,
+        "w": 75,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 96,
+        "w": 75,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_067_Run4": {
+      "frame": {
+        "x": 686,
+        "y": 82,
+        "w": 81,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 97,
+        "w": 81,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_157_Run1": {
+      "frame": {
+        "x": 769,
+        "y": 82,
+        "w": 66,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 112,
+        "w": 66,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_4_Run6": {
+      "frame": {
+        "x": 876,
+        "y": 82,
+        "w": 37,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 107,
+        "w": 37,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_225_Run6": {
+      "frame": {
+        "x": 915,
+        "y": 82,
+        "w": 37,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 105,
+        "y": 107,
+        "w": 37,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple3": {
+      "frame": {
+        "x": 954,
+        "y": 82,
+        "w": 62,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 62,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle3": {
+      "frame": {
+        "x": 1018,
+        "y": 82,
+        "w": 62,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 62,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup3": {
+      "frame": {
+        "x": 1082,
+        "y": 82,
+        "w": 62,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 62,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die3": {
+      "frame": {
+        "x": 1146,
+        "y": 82,
+        "w": 62,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 62,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple3": {
+      "frame": {
+        "x": 1210,
+        "y": 82,
+        "w": 62,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 62,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple5": {
+      "frame": {
+        "x": 1274,
+        "y": 82,
+        "w": 61,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 61,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle5": {
+      "frame": {
+        "x": 1337,
+        "y": 82,
+        "w": 61,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 61,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup5": {
+      "frame": {
+        "x": 1400,
+        "y": 82,
+        "w": 61,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 61,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die5": {
+      "frame": {
+        "x": 1463,
+        "y": 82,
+        "w": 61,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 61,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple5": {
+      "frame": {
+        "x": 1526,
+        "y": 82,
+        "w": 61,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 99,
+        "w": 61,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_067_Run5": {
+      "frame": {
+        "x": 1589,
+        "y": 82,
+        "w": 67,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 101,
+        "w": 67,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_112_Run0": {
+      "frame": {
+        "x": 1741,
+        "y": 82,
+        "w": 81,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 101,
+        "w": 81,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_2_Run2": {
+      "frame": {
+        "x": 1891,
+        "y": 82,
+        "w": 65,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 108,
+        "w": 65,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_135_Run2": {
+      "frame": {
+        "x": 1958,
+        "y": 82,
+        "w": 65,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 108,
+        "w": 65,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_2_Run7": {
+      "frame": {
+        "x": 70,
+        "y": 160,
+        "w": 66,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 107,
+        "w": 66,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_135_Run7": {
+      "frame": {
+        "x": 138,
+        "y": 160,
+        "w": 66,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 107,
+        "w": 66,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle_Simple4": {
+      "frame": {
+        "x": 206,
+        "y": 160,
+        "w": 62,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 100,
+        "w": 62,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Idle4": {
+      "frame": {
+        "x": 270,
+        "y": 160,
+        "w": 62,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 100,
+        "w": 62,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Pickup4": {
+      "frame": {
+        "x": 334,
+        "y": 160,
+        "w": 62,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 100,
+        "w": 62,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_6_Die4": {
+      "frame": {
+        "x": 398,
+        "y": 160,
+        "w": 62,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 100,
+        "w": 62,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_315_Idle_Simple4": {
+      "frame": {
+        "x": 462,
+        "y": 160,
+        "w": 62,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 100,
+        "w": 62,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_112_Run6": {
+      "frame": {
+        "x": 526,
+        "y": 160,
+        "w": 59,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 107,
+        "w": 59,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_2_Run1": {
+      "frame": {
+        "x": 655,
+        "y": 160,
+        "w": 66,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 108,
+        "w": 66,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_135_Run1": {
+      "frame": {
+        "x": 723,
+        "y": 160,
+        "w": 66,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 98,
+        "y": 108,
+        "w": 66,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_247_Run2": {
+      "frame": {
+        "x": 791,
+        "y": 160,
+        "w": 49,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 101,
+        "y": 106,
+        "w": 49,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_247_Run5": {
+      "frame": {
+        "x": 842,
+        "y": 160,
+        "w": 67,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 101,
+        "w": 67,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_247_Run3": {
+      "frame": {
+        "x": 911,
+        "y": 160,
+        "w": 75,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 89,
+        "y": 101,
+        "w": 75,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_112_Run1": {
+      "frame": {
+        "x": 988,
+        "y": 160,
+        "w": 67,
+        "h": 71
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 103,
+        "w": 67,
+        "h": 71
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_112_Run7": {
+      "frame": {
+        "x": 1057,
+        "y": 160,
+        "w": 74,
+        "h": 70
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 102,
+        "w": 74,
+        "h": 70
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_202_Run6": {
+      "frame": {
+        "x": 1133,
+        "y": 160,
+        "w": 46,
+        "h": 70
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 99,
+        "y": 111,
+        "w": 46,
+        "h": 70
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_157_Run2": {
+      "frame": {
+        "x": 1181,
+        "y": 160,
+        "w": 63,
+        "h": 69
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 100,
+        "y": 112,
+        "w": 63,
+        "h": 69
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_4_Run2": {
+      "frame": {
+        "x": 1288,
+        "y": 160,
+        "w": 40,
+        "h": 69
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 108,
+        "w": 40,
+        "h": 69
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_225_Run2": {
+      "frame": {
+        "x": 1330,
+        "y": 160,
+        "w": 40,
+        "h": 69
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 109,
+        "y": 108,
+        "w": 40,
+        "h": 69
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_2_Run6": {
+      "frame": {
+        "x": 1441,
+        "y": 160,
+        "w": 67,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 111,
+        "w": 67,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_135_Run6": {
+      "frame": {
+        "x": 1510,
+        "y": 160,
+        "w": 67,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 95,
+        "y": 111,
+        "w": 67,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_3_Run2": {
+      "frame": {
+        "x": 1635,
+        "y": 160,
+        "w": 54,
+        "h": 65
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 114,
+        "w": 54,
+        "h": 65
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_180_Run2": {
+      "frame": {
+        "x": 1691,
+        "y": 160,
+        "w": 54,
+        "h": 65
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 102,
+        "y": 114,
+        "w": 54,
+        "h": 65
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_202_Run2": {
+      "frame": {
+        "x": 1747,
+        "y": 160,
+        "w": 43,
+        "h": 65
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 108,
+        "y": 111,
+        "w": 43,
+        "h": 65
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_3_Run6": {
+      "frame": {
+        "x": 1853,
+        "y": 160,
+        "w": 59,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 115,
+        "w": 59,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_180_Run6": {
+      "frame": {
+        "x": 1914,
+        "y": 160,
+        "w": 59,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 115,
+        "w": 59,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Demon_angle_157_Run6": {
+      "frame": {
+        "x": 1975,
+        "y": 160,
+        "w": 67,
+        "h": 63
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 113,
+        "w": 67,
+        "h": 63
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    }
+  },
+  "meta": {
+    "image": "characters_demon_1.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 256
+    },
+    "scale": "1"
+  }
+}

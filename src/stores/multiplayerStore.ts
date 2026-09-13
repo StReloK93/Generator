@@ -172,6 +172,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       isHost: true,
       isReady: true,
       gold: startGold,
+      totalGoldEarned: startGold,
       score: 0,
       towersBuilt: 0,
       killsCount: 0,
@@ -347,6 +348,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           isHost: false,
           isReady: false,
           gold: startGold,
+          totalGoldEarned: startGold,
           score: 0,
           towersBuilt: 0,
           killsCount: 0,
@@ -461,12 +463,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         characterStore.restoreGameSettingsFromProject()
         characterStore.detectDoors()
 
-        const startingGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
-        players.value.forEach(p => {
-          p.gold = startingGold
-        })
-        characterStore.gold = startingGold
-
+        resetGameMatchStats()
         roomGameState.value = 'in_game'
         isNudgeModalOpen.value = false
         isReadyButtonGlowing.value = false
@@ -479,6 +476,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'RETURN_TO_LOBBY': {
+        resetGameMatchStats()
         roomGameState.value = 'lobby'
         characterStore.exitPlayMode()
         towerStore.clearAllTowers()
@@ -645,11 +643,17 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
               if (p) {
                 p.killsCount = stat.killsCount || 0
                 p.score = stat.score || 0
+                p.towersBuilt = stat.towersBuilt || 0
                 if (stat.gold !== undefined) {
                   p.gold = stat.gold
                 }
+                if (stat.totalGoldEarned !== undefined) {
+                  p.totalGoldEarned = stat.totalGoldEarned
+                }
                 if (p.id === myPlayerId.value) {
                   characterStore.gold = p.gold
+                  characterStore.totalKills = p.killsCount
+                  characterStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
                 }
               }
             }
@@ -679,8 +683,13 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
                 if (stat.gold !== undefined) {
                   p.gold = stat.gold
                 }
+                if (stat.totalGoldEarned !== undefined) {
+                  p.totalGoldEarned = stat.totalGoldEarned
+                }
                 if (p.id === myPlayerId.value) {
                   characterStore.gold = p.gold
+                  characterStore.totalKills = p.killsCount
+                  characterStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
                 }
               }
             }
@@ -932,8 +941,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           playerStats: players.value.map(p => ({
             id: p.id,
             killsCount: p.killsCount || 0,
-            score: 0,
+            score: p.score || 0,
             gold: p.gold !== undefined ? p.gold : defaultGold,
+            totalGoldEarned: p.totalGoldEarned !== undefined ? p.totalGoldEarned : (p.gold !== undefined ? p.gold : defaultGold),
+            towersBuilt: p.towersBuilt || 0,
           })),
         },
         senderId: myPlayerId.value,
@@ -951,9 +962,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
       p.killsCount = (p.killsCount || 0) + 1
       p.gold = (p.gold !== undefined ? p.gold : defaultGold) + killGold
+      p.totalGoldEarned = (p.totalGoldEarned !== undefined ? p.totalGoldEarned : defaultGold) + killGold
       p.score = (p.score || 0) + killGold * 10
       if (p.id === myPlayerId.value) {
         characterStore.gold = p.gold
+        characterStore.totalKills = p.killsCount
+        characterStore.totalGoldEarned = p.totalGoldEarned
       }
     }
   }
@@ -1071,6 +1085,25 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }
   }
 
+  function resetGameMatchStats() {
+    const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+    players.value.forEach(p => {
+      p.gold = startGold
+      p.totalGoldEarned = startGold
+      p.killsCount = 0
+      p.score = 0
+      p.towersBuilt = 0
+    })
+    characterStore.gold = startGold
+    characterStore.totalGoldEarned = startGold
+    characterStore.totalKills = 0
+    characterStore.currentWaveIndex = 0
+    characterStore.playerLives = characterStore.startingLives
+    characterStore.prepCountdown = characterStore.wavePrepDuration
+    towerStore.placedTowers = []
+    towerStore.clearCombatEffects()
+  }
+
   /**
    * Starts Game (Host only)
    */
@@ -1097,12 +1130,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       timestamp: Date.now(),
     })
 
-    const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
-    players.value.forEach(p => {
-      p.gold = startGold
-    })
-    characterStore.gold = startGold
-
+    resetGameMatchStats()
     characterStore.startPlayMode()
 
     if (globalRouter) {
@@ -1112,6 +1140,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   function returnToLobby(router?: any) {
     if (router) setRouter(router)
+
+    resetGameMatchStats()
 
     if (isHost.value) {
       roomGameState.value = 'lobby'

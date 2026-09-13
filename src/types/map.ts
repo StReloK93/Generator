@@ -159,6 +159,8 @@ export interface MapProject {
   towerBlueprints?: any[]
   waveConfigs?: WaveConfig[]
   currentWaveIndex?: number
+  buildableCells?: string[] // list of `${col},${row}` cells where towers can be built. If empty/undefined, all valid cells are buildable
+  buildMode?: 'all' | 'custom'
   createdAt: number
   updatedAt: number
 }
@@ -187,7 +189,7 @@ export interface AssetItem {
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'box-fill' | 'box-clear' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 
@@ -205,6 +207,8 @@ export interface ProjectHistoryItem {
   description: string
   timestamp: number
   layers: Layer[]
+  buildableCells?: string[]
+  buildMode?: 'all' | 'custom'
 }
 
 export interface SelectedElementRef {

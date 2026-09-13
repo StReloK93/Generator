@@ -72,6 +72,7 @@ function updateEngineState() {
     false,
     false
   )
+  engine.buildableOverlayGraphics.clear()
 }
 
 const emit = defineEmits<{
@@ -97,7 +98,23 @@ onMounted(async () => {
   towerStore.restoreFromProject()
   characterStore.detectDoors()
 
-  camera.focusOnCenter(viewportContainerRef.value)
+  // Focus on player's start point (or player's assigned route)
+  let targetCol = (mapStore.project.cols - 1) / 2
+  let targetRow = (mapStore.project.rows - 1) / 2
+
+  if (multiplayerStore.roomId && multiplayerStore.mySlot) {
+    targetCol = multiplayerStore.mySlot.spawnCol
+    targetRow = multiplayerStore.mySlot.spawnRow
+  } else if (characterStore.detectedDoors.length > 0) {
+    const doorIdx = characterStore.selectedDoorIndex ?? 0
+    const door = characterStore.detectedDoors[doorIdx] || characterStore.detectedDoors[0]
+    if (door) {
+      targetCol = door.spawnCol ?? door.col
+      targetRow = door.spawnRow ?? door.row
+    }
+  }
+
+  camera.focusOnCell(targetCol, targetRow, viewportContainerRef.value)
   updateEngineState()
 
   characterStore.setLoadingProgress(85, t('loader.syncLayersGrid'))
@@ -189,6 +206,7 @@ onUnmounted(() => {
   engine.stopTicker()
   engine.clearCombatVisuals()
   engine.clearCharacterVisuals()
+  engine.buildableOverlayGraphics.clear()
   engine.destroy()
 })
 

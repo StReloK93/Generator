@@ -1,4 +1,74 @@
 {
+  "barry": {
+    "id": "barry",
+    "name": "Barry",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.682,
+    "scale": 1.69,
+    "actions": {
+      "Idle_LookSides": {
+        "id": "Idle_LookSides",
+        "label": "Idle_LookSides",
+        "icon": "🧘",
+        "frameCount": 24
+      },
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 24
+      },
+      "Run_Forward": {
+        "id": "Run_Forward",
+        "label": "Run_Forward",
+        "icon": "🏃",
+        "frameCount": 15
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 15
+      }
+    }
+  },
+  "bird": {
+    "id": "bird",
+    "name": "Bird",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.895,
+    "scale": 1.01,
+    "actions": {
+      "Ground_Idle": {
+        "id": "Ground_Idle",
+        "label": "Ground_Idle",
+        "icon": "🧘",
+        "frameCount": 12
+      },
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 12
+      },
+      "Ground_Run": {
+        "id": "Ground_Run",
+        "label": "Ground_Run",
+        "icon": "🏃",
+        "frameCount": 12
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 12
+      }
+    }
+  },
   "demon": {
     "id": "demon",
     "name": "Demon",
@@ -11,6 +81,12 @@
       "Idle_Simple": {
         "id": "Idle_Simple",
         "label": "Idle_Simple",
+        "icon": "🧘",
+        "frameCount": 12
+      },
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
         "icon": "🧘",
         "frameCount": 12
       },
@@ -37,9 +113,21 @@
         "icon": "🧘",
         "frameCount": 16
       },
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 16
+      },
       "Run_Sword": {
         "id": "Run_Sword",
         "label": "Run_Sword",
+        "icon": "🏃",
+        "frameCount": 20
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
         "icon": "🏃",
         "frameCount": 20
       }
@@ -74,6 +162,41 @@
       }
     }
   },
+  "medusa": {
+    "id": "medusa",
+    "name": "Medusa",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.796,
+    "scale": 1.39,
+    "actions": {
+      "Idle_01": {
+        "id": "Idle_01",
+        "label": "Idle_01",
+        "icon": "🧘",
+        "frameCount": 8
+      },
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 8
+      },
+      "Walk": {
+        "id": "Walk",
+        "label": "Walk",
+        "icon": "🚶",
+        "frameCount": 8
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 8
+      }
+    }
+  },
   "warrior": {
     "id": "warrior",
     "name": "Warrior",
@@ -94,6 +217,71 @@
         "label": "Run",
         "icon": "🏃",
         "frameCount": 24
+      }
+    }
+  },
+  "zombi": {
+    "id": "zombi",
+    "name": "Zombi",
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "anchorX": 0.5,
+    "anchorY": 0.85,
+    "scale": 1.07,
+    "actions": {
+      "Run_Body_000_0": {
+        "id": "Run_Body_000_0",
+        "label": "Run_Body_000_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run": {
+        "id": "Run",
+        "label": "Run",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_045_0": {
+        "id": "Run_Body_045_0",
+        "label": "Run_Body_045_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_090_0": {
+        "id": "Run_Body_090_0",
+        "label": "Run_Body_090_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_135_0": {
+        "id": "Run_Body_135_0",
+        "label": "Run_Body_135_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_180_0": {
+        "id": "Run_Body_180_0",
+        "label": "Run_Body_180_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_225_0": {
+        "id": "Run_Body_225_0",
+        "label": "Run_Body_225_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_270_0": {
+        "id": "Run_Body_270_0",
+        "label": "Run_Body_270_0",
+        "icon": "🏃",
+        "frameCount": 1
+      },
+      "Run_Body_315_0": {
+        "id": "Run_Body_315_0",
+        "label": "Run_Body_315_0",
+        "icon": "🏃",
+        "frameCount": 1
       }
     }
   }

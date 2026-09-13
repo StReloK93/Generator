@@ -9,6 +9,7 @@ export interface PlayerInfo {
   isReady: boolean
   ping?: number
   gold: number
+  totalGoldEarned?: number
   score: number
   towersBuilt: number
   killsCount: number

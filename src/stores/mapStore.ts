@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { MapProject, Layer, TileItem, ProjectHistoryItem, BoxClearModalData, BoxAssetSummary } from '../types/map'
+import { MapProject, Layer, TileItem, ProjectHistoryItem, GridCoord, BoxClearModalData, BoxAssetSummary } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
 import { useAssetStore } from './assetStore'
 
@@ -116,6 +116,8 @@ export const useMapStore = defineStore('mapStore', () => {
       description,
       timestamp: Date.now(),
       layers: cloneLayers(project.value.layers),
+      buildableCells: project.value.buildableCells ? [...project.value.buildableCells] : undefined,
+      buildMode: project.value.buildMode,
     })
 
     if (history.value.length > maxHistoryLength) {
@@ -133,6 +135,8 @@ export const useMapStore = defineStore('mapStore', () => {
     const state = history.value[historyIndex.value]
     if (state) {
       project.value.layers = cloneLayers(state.layers)
+      project.value.buildableCells = state.buildableCells ? [...state.buildableCells] : undefined
+      project.value.buildMode = state.buildMode || 'all'
       project.value.updatedAt = Date.now()
     }
   }
@@ -143,6 +147,8 @@ export const useMapStore = defineStore('mapStore', () => {
     const state = history.value[historyIndex.value]
     if (state) {
       project.value.layers = cloneLayers(state.layers)
+      project.value.buildableCells = state.buildableCells ? [...state.buildableCells] : undefined
+      project.value.buildMode = state.buildMode || 'all'
       project.value.updatedAt = Date.now()
     }
   }
@@ -192,6 +198,31 @@ export const useMapStore = defineStore('mapStore', () => {
           tiles: {},
         }
       ],
+      gameSettings: {
+        startingGold: 150,
+        startingLives: 20,
+        wavePrepTime: 10,
+      },
+      characterConfig: {
+        spawnCount: 10,
+        speed: 2.5,
+        spawnMode: 'all_doors',
+        formation: 'pairs',
+        pairDistance: 0.35,
+        followCamera: false,
+        showPathTrail: true,
+        autoLoop: true,
+        unitElevation: 0,
+        unitScaleMultiplier: 1.0,
+      },
+      waveConfigs: [],
+      towerBlueprints: [],
+      placedTowers: [],
+      clans: [],
+      customRoutes: {},
+      customWaypoints: {},
+      buildableCells: undefined,
+      buildMode: 'all',
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -1750,11 +1781,87 @@ export const useMapStore = defineStore('mapStore', () => {
     }
   }
 
+  function isCellBuildable(col: number, row: number): boolean {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return false
+    const cells = project.value.buildableCells
+    if (project.value.buildMode === 'custom' || (Array.isArray(cells) && cells.length > 0)) {
+      return Array.isArray(cells) && cells.includes(`${col},${row}`)
+    }
+    return true
+  }
+
+  function toggleBuildableCell(col: number, row: number) {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return
+    if (!project.value.buildableCells) {
+      project.value.buildableCells = []
+    }
+    const key = `${col},${row}`
+    const idx = project.value.buildableCells.indexOf(key)
+    if (idx !== -1) {
+      project.value.buildableCells.splice(idx, 1)
+    } else {
+      project.value.buildableCells.push(key)
+    }
+    project.value.buildMode = 'custom'
+    project.value.updatedAt = Date.now()
+  }
+
+  function setCellBuildable(col: number, row: number, buildable: boolean) {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return
+    if (!project.value.buildableCells) {
+      project.value.buildableCells = []
+    }
+    const key = `${col},${row}`
+    const idx = project.value.buildableCells.indexOf(key)
+    if (buildable && idx === -1) {
+      project.value.buildableCells.push(key)
+    } else if (!buildable && idx !== -1) {
+      project.value.buildableCells.splice(idx, 1)
+    }
+    project.value.buildMode = 'custom'
+    project.value.updatedAt = Date.now()
+  }
+
+  function batchSetBuildableCells(cells: GridCoord[], buildable: boolean) {
+    if (!cells || cells.length === 0) return
+    if (!project.value.buildableCells) {
+      project.value.buildableCells = []
+    }
+    const currentSet = new Set(project.value.buildableCells)
+    for (const c of cells) {
+      if (!isInsideGrid(c.col, c.row, project.value.cols, project.value.rows)) continue
+      const key = `${c.col},${c.row}`
+      if (buildable) {
+        currentSet.add(key)
+      } else {
+        currentSet.delete(key)
+      }
+    }
+    project.value.buildableCells = Array.from(currentSet)
+    project.value.buildMode = 'custom'
+    project.value.updatedAt = Date.now()
+    pushHistory(buildable ? `Added ${cells.length} buildable cells` : `Removed ${cells.length} buildable cells`)
+  }
+
+  function setAllCellsBuildable(buildable: boolean) {
+    if (buildable) {
+      project.value.buildMode = 'all'
+      project.value.buildableCells = []
+    } else {
+      project.value.buildMode = 'custom'
+      project.value.buildableCells = []
+    }
+    project.value.updatedAt = Date.now()
+    pushHistory(buildable ? 'Set all cells buildable' : 'Cleared all buildable cells')
+  }
+
   if (history.value.length === 0) {
     history.value.push({
       description: 'Initial state',
       timestamp: Date.now(),
       layers: cloneLayers(project.value.layers),
+      buildableCells: project.value.buildableCells ? [...project.value.buildableCells] : undefined,
+      buildMode: project.value.buildMode,
     })
     historyIndex.value = 0
   }
@@ -1827,5 +1934,10 @@ export const useMapStore = defineStore('mapStore', () => {
     deleteElementsInBox,
     clearLayerTiles,
     clearAllTiles,
+    isCellBuildable,
+    toggleBuildableCell,
+    setCellBuildable,
+    batchSetBuildableCells,
+    setAllCellsBuildable,
   }
 })

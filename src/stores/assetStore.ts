@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AssetItem, ToolType } from '../types/map'
 import { useToolStore } from './toolStore'
+import { useMapStore } from './mapStore'
 import { assetManager } from '../services/assetManager'
 
 export const useAssetStore = defineStore('assetStore', () => {
@@ -98,6 +99,42 @@ export const useAssetStore = defineStore('assetStore', () => {
     return assets.value.find(a => a.id === selectedAssetId.value) || null
   })
 
+  const FAVORITES_STORAGE_KEY = 'defensor_favorite_assets'
+
+  function loadInitialFavorites(): Set<string> {
+    try {
+      const raw = localStorage.getItem(FAVORITES_STORAGE_KEY)
+      if (raw) {
+        const arr = JSON.parse(raw)
+        if (Array.isArray(arr)) return new Set(arr)
+      }
+    } catch (e) {
+      console.warn('Failed to read favorite assets:', e)
+    }
+    return new Set<string>()
+  }
+
+  const favoriteAssetIds = ref<Set<string>>(loadInitialFavorites())
+
+  function toggleFavorite(assetId: string) {
+    const next = new Set(favoriteAssetIds.value)
+    if (next.has(assetId)) {
+      next.delete(assetId)
+    } else {
+      next.add(assetId)
+    }
+    favoriteAssetIds.value = next
+    try {
+      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(next)))
+    } catch (e) {
+      console.warn('Failed to save favorite assets:', e)
+    }
+  }
+
+  function isFavorite(assetId: string): boolean {
+    return favoriteAssetIds.value.has(assetId)
+  }
+
   const categories = computed(() => {
     const set = new Set<string>(['All'])
     for (const a of assets.value) {
@@ -107,8 +144,37 @@ export const useAssetStore = defineStore('assetStore', () => {
   })
 
   const filteredAssets = computed(() => {
+    const mapStore = useMapStore()
+    const usedIds = new Set<string>()
+    if (selectedCategory.value === 'UsedInMap') {
+      if (mapStore.project?.layers) {
+        for (const layer of mapStore.project.layers) {
+          for (const items of Object.values(layer.tiles)) {
+            if (Array.isArray(items)) {
+              for (const cell of items) {
+                if (cell.assetId) {
+                  usedIds.add(cell.assetId)
+                  const clean = cell.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+                  usedIds.add(clean)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     return assets.value.filter(a => {
-      const matchCat = selectedCategory.value === 'All' || a.category === selectedCategory.value
+      let matchCat = true
+      if (selectedCategory.value === 'Favorites') {
+        matchCat = favoriteAssetIds.value.has(a.id)
+      } else if (selectedCategory.value === 'UsedInMap') {
+        const clean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+        matchCat = usedIds.has(a.id) || usedIds.has(clean) || (a.name ? usedIds.has(a.name) : false)
+      } else if (selectedCategory.value !== 'All') {
+        matchCat = a.category === selectedCategory.value
+      }
+
       const matchSearch = searchQuery.value.trim() === '' || 
         a.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
         a.category.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -313,6 +379,9 @@ export const useAssetStore = defineStore('assetStore', () => {
     categories,
     searchQuery,
     filteredAssets,
+    favoriteAssetIds,
+    toggleFavorite,
+    isFavorite,
     isLoading,
     isLoaded,
     uploadProgress,
