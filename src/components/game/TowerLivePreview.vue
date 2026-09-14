@@ -19,6 +19,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { TowerBlueprint } from '../../stores/towerStore'
 import { useAssetStore } from '../../stores/assetStore'
+import { getProjectileTheme, renderCanvasProjectileHead } from '../../utils/projectileEffectRenderer'
 
 const props = defineProps<{
   blueprint: TowerBlueprint
@@ -33,9 +34,6 @@ let animationFrameId: number | null = null
 let lastTimestamp = 0
 let cooldownTimer = 0
 
-// Tower Visual Recoil & Flash
-let towerRecoil = 0
-let muzzleFlashTimer = 0
 let shotAngleIndex = 0
 
 // Active Live Objects in Mini Arena
@@ -159,6 +157,8 @@ function spawnProjectile() {
 }
 
 function handleImpact(p: LiveProjectile) {
+  const theme = getProjectileTheme(p.type, p.color)
+
   // 1. Spawn Splash Shockwave Ring if AoE or standard impact
   const splashPx = Math.max(18, (p.splashRadius || 1.5) * 22)
   activeShockwaves.push({
@@ -167,7 +167,7 @@ function handleImpact(p: LiveProjectile) {
     rx: 4,
     ry: 2,
     maxRadius: p.isSplash ? splashPx : 14,
-    color: p.type === 'frost_bolt' ? '#06b6d4' : (p.type === 'laser' ? '#f43f5e' : (p.type === 'magic_bolt' ? '#38bdf8' : '#f97316')),
+    color: theme.shockwaveColorCss,
     alpha: 1.0,
     life: 0.5
   })
@@ -182,7 +182,7 @@ function handleImpact(p: LiveProjectile) {
       y: p.targetY,
       vx: Math.cos(ang) * spd,
       vy: Math.sin(ang) * spd * 0.7,
-      color: p.type === 'frost_bolt' ? '#67e8f9' : (p.type === 'laser' ? '#f43f5e' : (p.type === 'magic_bolt' ? '#a855f7' : '#fbbf24')),
+      color: theme.sparkColorCss,
       alpha: 1.0,
       size: 2 + Math.random() * 2.5,
       life: 0.35 + Math.random() * 0.25
@@ -204,31 +204,22 @@ function renderFrame(time: number) {
   const dt = Math.min(0.1, (time - lastTimestamp) / 1000)
   lastTimestamp = time
 
-  // Auto Attack Cooldown Loop
+  // Auto Attack Cooldown Loop (Matches game cooldown)
   const attackInterval = Math.max(0.1, props.blueprint.attackSpeed || 1.0)
   cooldownTimer += dt
 
   if (cooldownTimer >= attackInterval) {
     cooldownTimer = 0
     spawnProjectile()
-    towerRecoil = 1.0
-    muzzleFlashTimer = 0.15
   }
-
-  // Decay visual timers
-  if (towerRecoil > 0) towerRecoil = Math.max(0, towerRecoil - dt * 6)
-  if (muzzleFlashTimer > 0) muzzleFlashTimer = Math.max(0, muzzleFlashTimer - dt)
 
   // Clear background
   ctx.save()
   ctx.scale(dpr, dpr)
   ctx.clearRect(0, 0, width, height)
 
-  // Clean Ambient Background Gradient
-  const bgGrad = ctx.createRadialGradient(width * 0.5, height * 0.5, 10, width * 0.5, height * 0.5, width * 0.65)
-  bgGrad.addColorStop(0, '#0f172a')
-  bgGrad.addColorStop(1, '#020617')
-  ctx.fillStyle = bgGrad
+  // Clean Battlefield Background (identical to game view)
+  ctx.fillStyle = '#090d16'
   ctx.fillRect(0, 0, width, height)
 
   // Exact Center Calculations
@@ -236,22 +227,19 @@ function renderFrame(time: number) {
   const towerCenterX = width * 0.5
   const towerBaseY = height * 0.5 + targetH * 0.5 - 4
 
-  // Subtle Base Ground Aura
+  // 1. Soft Ground Shadow (Identical to game ground shadow)
   ctx.beginPath()
-  ctx.ellipse(towerCenterX, towerBaseY, 36, 18, 0, 0, Math.PI * 2)
-  ctx.fillStyle = 'rgba(245, 158, 11, 0.08)'
+  ctx.ellipse(towerCenterX, towerBaseY, 26, 13, 0, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)'
   ctx.fill()
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)'
-  ctx.lineWidth = 1.2
-  ctx.stroke()
 
-  // 2. Render Active Shockwaves (Burst / Splash Explosions)
+  // 2. Render Active Shockwaves (Burst / Splash Explosions - Identical to game's explosion rings)
   for (let i = activeShockwaves.length - 1; i >= 0; i--) {
     const sw = activeShockwaves[i]
     sw.life -= dt
     sw.rx += (sw.maxRadius - sw.rx) * dt * 10
     sw.ry = sw.rx * 0.5
-    sw.alpha = Math.max(0, sw.life / 0.5)
+    sw.alpha = Math.max(0, sw.life / 0.45)
 
     ctx.beginPath()
     ctx.ellipse(sw.x, sw.y, sw.rx, sw.ry, 0, 0, Math.PI * 2)
@@ -268,18 +256,7 @@ function renderFrame(time: number) {
     if (sw.life <= 0) activeShockwaves.splice(i, 1)
   }
 
-  // 3. Render Centered Tower (Strictly preserving natural aspect ratio)
-  const recoilOffset = -towerRecoil * 4
-  const towerX = towerCenterX
-  const towerY = towerBaseY + recoilOffset
-  const muzzleY = height * 0.5 - targetH * 0.35 + recoilOffset
-
-  // Soft Ground Shadow
-  ctx.beginPath()
-  ctx.ellipse(towerCenterX, towerBaseY, 26, 13, 0, 0, Math.PI * 2)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)'
-  ctx.fill()
-
+  // 3. Render Stable Centered Tower (Identical to game building, no shaking)
   if (towerImage && towerImage.complete && towerImage.naturalWidth > 0) {
     const naturalW = towerImage.naturalWidth
     const naturalH = towerImage.naturalHeight
@@ -288,8 +265,8 @@ function renderFrame(time: number) {
 
     ctx.drawImage(
       towerImage, 
-      towerX - targetW / 2, 
-      towerY - targetH + 4, 
+      towerCenterX - targetW / 2, 
+      towerBaseY - targetH + 4, 
       targetW, 
       targetH
     )
@@ -298,26 +275,12 @@ function renderFrame(time: number) {
     ctx.fillStyle = '#1e293b'
     ctx.strokeStyle = '#f59e0b'
     ctx.lineWidth = 2
-    ctx.fillRect(towerX - 16, towerY - 50, 32, 50)
-    ctx.strokeRect(towerX - 16, towerY - 50, 32, 50)
+    ctx.fillRect(towerCenterX - 16, towerBaseY - 50, 32, 50)
+    ctx.strokeRect(towerCenterX - 16, towerBaseY - 50, 32, 50)
 
     ctx.fillStyle = '#f59e0b'
     ctx.beginPath()
-    ctx.arc(towerX, towerY - 52, 11, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  // Muzzle Flash on Shot
-  if (muzzleFlashTimer > 0) {
-    const flashAlpha = muzzleFlashTimer / 0.15
-    ctx.beginPath()
-    ctx.arc(towerX, muzzleY, 14, 0, Math.PI * 2)
-    ctx.fillStyle = `rgba(254, 240, 138, ${flashAlpha})`
-    ctx.fill()
-
-    ctx.beginPath()
-    ctx.arc(towerX, muzzleY, 7, 0, Math.PI * 2)
-    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`
+    ctx.arc(towerCenterX, towerBaseY - 52, 11, 0, Math.PI * 2)
     ctx.fill()
   }
 
@@ -327,8 +290,10 @@ function renderFrame(time: number) {
     p.progress += p.speed * dt
     p.currentX = p.startX + (p.targetX - p.startX) * p.progress
 
+    const theme = getProjectileTheme(p.type, p.color)
+
     // Parabolic Arc Height calculation
-    const arcHeight = (p.type === 'magic_bolt' || p.type === 'laser') ? 0 : Math.sin(p.progress * Math.PI) * 22
+    const arcHeight = !theme.hasArc ? 0 : Math.sin(p.progress * Math.PI) * 22
     p.currentY = p.startY + (p.targetY - p.startY) * p.progress - arcHeight
 
     // Store Trail Points
@@ -341,171 +306,34 @@ function renderFrame(time: number) {
       pt.alpha -= dt * 3.5
       if (pt.alpha <= 0) continue
 
-      ctx.beginPath()
-      ctx.arc(pt.x, pt.y, (t / p.trail.length) * 3.5, 0, Math.PI * 2)
-      ctx.fillStyle = p.type === 'fireball' ? `rgba(249, 115, 22, ${pt.alpha * 0.7})` : 
-                     (p.type === 'frost_bolt' ? `rgba(6, 182, 212, ${pt.alpha * 0.7})` :
-                     (p.type === 'laser' ? `rgba(244, 63, 94, ${pt.alpha * 0.8})` :
-                     (p.type === 'magic_bolt' ? `rgba(56, 189, 248, ${pt.alpha * 0.7})` : `rgba(148, 163, 184, ${pt.alpha * 0.5})`)))
-      ctx.fill()
+      if (p.type === 'arrow') {
+        ctx.beginPath()
+        ctx.arc(pt.x, pt.y, 1.0, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(248, 250, 252, ${pt.alpha * 0.25})`
+        ctx.fill()
+      } else {
+        ctx.beginPath()
+        ctx.arc(pt.x, pt.y, (t / p.trail.length) * 3.5, 0, Math.PI * 2)
+        ctx.fillStyle = theme.trailColorCss
+        ctx.globalAlpha = pt.alpha
+        ctx.fill()
+        ctx.globalAlpha = 1.0
+      }
     }
 
-    // Render Projectile Head by Type
+    // Render Projectile Head by Type via unified renderer
     const angle = Math.atan2(p.targetY - p.startY, p.targetX - p.startX)
-    
-    if (p.type === 'arrow') {
-      // Arrow
-      ctx.save()
-      ctx.translate(p.currentX, p.currentY)
-      const arcDy = -Math.cos(p.progress * Math.PI) * 22 * Math.PI / (p.targetX - p.startX)
-      ctx.rotate(angle + arcDy * 0.4)
-
-      ctx.strokeStyle = '#78350f'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.moveTo(-10, 0)
-      ctx.lineTo(5, 0)
-      ctx.stroke()
-
-      ctx.fillStyle = '#e2e8f0'
-      ctx.beginPath()
-      ctx.moveTo(7, 0)
-      ctx.lineTo(2, -2.5)
-      ctx.lineTo(2, 2.5)
-      ctx.closePath()
-      ctx.fill()
-
-      ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 1.2
-      ctx.beginPath()
-      ctx.moveTo(-10, 0)
-      ctx.lineTo(-7, -2.5)
-      ctx.moveTo(-10, 0)
-      ctx.lineTo(-7, 2.5)
-      ctx.stroke()
-      ctx.restore()
-
-    } else if (p.type === 'fireball') {
-      // Fireball
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 7.5, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.5)'
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 5, 0, Math.PI * 2)
-      ctx.fillStyle = '#f97316'
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 2.5, 0, Math.PI * 2)
-      ctx.fillStyle = '#fef08a'
-      ctx.fill()
-
-    } else if (p.type === 'frost_bolt') {
-      // Frost Bolt
-      ctx.save()
-      ctx.translate(p.currentX, p.currentY)
-      ctx.rotate(time * 0.01)
-
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.5)'
-      ctx.beginPath()
-      ctx.arc(0, 0, 6.5, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.fillStyle = '#ffffff'
-      ctx.strokeStyle = '#0891b2'
-      ctx.lineWidth = 1.2
-      ctx.beginPath()
-      ctx.moveTo(0, -6)
-      ctx.lineTo(4, 0)
-      ctx.lineTo(0, 6)
-      ctx.lineTo(-4, 0)
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
-      ctx.restore()
-
-    } else if (p.type === 'laser') {
-      // Laser Beam Ray
-      ctx.beginPath()
-      ctx.moveTo(p.startX, p.startY)
-      ctx.lineTo(p.currentX, p.currentY)
-      ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)'
-      ctx.lineWidth = 5
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.moveTo(p.startX, p.startY)
-      ctx.lineTo(p.currentX, p.currentY)
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 1.8
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 4, 0, Math.PI * 2)
-      ctx.fillStyle = '#ffffff'
-      ctx.fill()
-
-    } else if (p.type === 'missile') {
-      // Missile
-      ctx.save()
-      ctx.translate(p.currentX, p.currentY)
-      ctx.rotate(angle)
-
-      ctx.fillStyle = '#334155'
-      ctx.fillRect(-8, -2.5, 11, 5)
-
-      ctx.fillStyle = '#ef4444'
-      ctx.beginPath()
-      ctx.moveTo(3, -2.5)
-      ctx.lineTo(7, 0)
-      ctx.lineTo(3, 2.5)
-      ctx.closePath()
-      ctx.fill()
-
-      ctx.fillStyle = '#fbbf24'
-      ctx.beginPath()
-      ctx.arc(-9, 0, 2.8, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-
-    } else if (p.type === 'cannonball') {
-      // Cannonball
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 5.5, 0, Math.PI * 2)
-      ctx.fillStyle = '#1e293b'
-      ctx.fill()
-      ctx.strokeStyle = '#475569'
-      ctx.lineWidth = 1.2
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.arc(p.currentX - 1.5, p.currentY - 1.5, 1.6, 0, Math.PI * 2)
-      ctx.fillStyle = '#94a3b8'
-      ctx.fill()
-
-    } else {
-      // Magic Bolt
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 6.5, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(p.currentX, p.currentY, 3, 0, Math.PI * 2)
-      ctx.fillStyle = '#ffffff'
-      ctx.fill()
-
-      ctx.strokeStyle = '#38bdf8'
-      ctx.lineWidth = 1.2
-      ctx.beginPath()
-      ctx.moveTo(p.currentX - 5, p.currentY)
-      ctx.lineTo(p.currentX + 5, p.currentY)
-      ctx.moveTo(p.currentX, p.currentY - 5)
-      ctx.lineTo(p.currentX, p.currentY + 5)
-      ctx.stroke()
-    }
+    renderCanvasProjectileHead(
+      ctx,
+      p.type,
+      p.currentX,
+      p.currentY,
+      angle,
+      p.startX,
+      p.startY,
+      p.progress,
+      time
+    )
 
     // Impact Check
     if (p.progress >= 1.0) {

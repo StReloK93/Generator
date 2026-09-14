@@ -9,6 +9,7 @@ import { combatEvents } from '../services/combatEvents'
 import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig } from '../types/map'
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
+import { getProjectileTheme } from '../utils/projectileEffectRenderer'
 
 export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
 export type SplashType = 'constant' | 'falloff'
@@ -1059,43 +1060,38 @@ export const useTowerStore = defineStore('towerStore', () => {
   function handleProjectileImpact(proj: Projectile, unitsPool: any[]) {
     const { tileWidth, tileHeight } = mapStore.project
     const tower = placedTowers.value.find(t => t.id === proj.towerId)
+    const theme = getProjectileTheme(proj.projectileType, proj.color)
+    const isArrow = proj.projectileType === 'arrow'
+    const isSplashHit = Boolean(proj.isSplash && proj.splashRadius > 0)
+    const splashRadiusPx = (proj.splashRadius || 1.5) * tileWidth * 0.65
+    const hitRingRadius = isSplashHit ? splashRadiusPx : (isArrow ? 14 : 18)
 
-    if (proj.isSplash && proj.splashRadius > 0) {
-      // --- SPLASH DAMAGE ---
-      const splashRadiusPx = proj.splashRadius * tileWidth * 0.65
+    // 1. Spawn Impact Shockwave Ring VFX for ALL hits (matching TowerLivePreview!)
+    explosionRings.value.push({
+      id: `ring-${Date.now()}-${Math.random()}`,
+      x: proj.targetX,
+      y: proj.targetY,
+      radius: 3,
+      maxRadius: hitRingRadius,
+      color: theme.shockwaveColorHex,
+      alpha: 0.92,
+      lifeTimer: 0,
+    })
 
-      // Add Explosion Ring VFX (Except for Arrow)
-      if (proj.projectileType !== 'arrow') {
-        let ringColor = proj.color || 0xf97316
-        if (proj.projectileType === 'frost_bolt') ringColor = 0x06b6d4
-        else if (proj.projectileType === 'laser') ringColor = 0xf43f5e
-        else if (proj.projectileType === 'magic_bolt') ringColor = 0x38bdf8
+    if (multiplayerStore.roomId && multiplayerStore.isHost) {
+      multiplayerStore.queueCombatEvent({
+        id: `hit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        type: 'COMBAT_HIT',
+        targetX: proj.targetX,
+        targetY: proj.targetY,
+        isSplash: isSplashHit,
+        splashRadius: proj.splashRadius || (isArrow ? 0.3 : 0.4),
+        projType: proj.projectileType,
+      })
+    }
 
-        explosionRings.value.push({
-          id: `ring-${Date.now()}-${Math.random()}`,
-          x: proj.targetX,
-          y: proj.targetY,
-          radius: 4,
-          maxRadius: splashRadiusPx,
-          color: ringColor,
-          alpha: 0.9,
-          lifeTimer: 0,
-        })
-      }
-
-      if (multiplayerStore.roomId && multiplayerStore.isHost) {
-        multiplayerStore.queueCombatEvent({
-          id: `hit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          type: 'COMBAT_HIT',
-          targetX: proj.targetX,
-          targetY: proj.targetY,
-          isSplash: true,
-          splashRadius: proj.splashRadius,
-          projType: proj.projectileType,
-        })
-      }
-
-      // Damage all units within splash radius via DamageCalculator
+    // 2. Apply Damage (Splash AoE or Direct Single-Target)
+    if (isSplashHit) {
       for (const u of unitsPool) {
         if (u.isDead) continue
         const distPx = Math.hypot(u.screenX - proj.targetX, (u.screenY - tileHeight * 0.5) - proj.targetY)
@@ -1112,26 +1108,19 @@ export const useTowerStore = defineStore('towerStore', () => {
         }
       }
     } else {
-      // --- DIRECT SINGLE-TARGET DAMAGE ---
       const targetUnit = unitsPool.find(u => u.id === proj.targetUnitId)
       if (targetUnit && !targetUnit.isDead) {
         applyDamageToUnit(targetUnit, proj.damage, tower)
       }
     }
 
-    // Spawn Impact Spark Particles via combatEvents
-    const isArrow = proj.projectileType === 'arrow'
-    const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
-    let sparkColor = 0xfbbf24
-    if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
-    else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
-    else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
-    else if (isArrow) sparkColor = 0xe2e8f0
+    // 3. Spawn Impact Spark Particles via combatEvents
+    const sparkCount = isArrow ? 8 : (isSplashHit ? 16 : 10)
 
     combatEvents.emitImpact({
       x: proj.targetX,
       y: proj.targetY,
-      color: sparkColor,
+      color: theme.sparkColorHex,
       count: sparkCount,
       projectileType: proj.projectileType,
     })

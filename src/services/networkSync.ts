@@ -6,6 +6,7 @@ import {
 } from '../types/multiplayer'
 import { UnitVariantType } from '../types/map'
 import { combatEvents } from './combatEvents'
+import { getProjectileTheme } from '../utils/projectileEffectRenderer'
 import characterManifest from '../assets/generated/characterManifest.json'
 
 function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
@@ -633,36 +634,32 @@ class NetworkSyncBuffer {
       const hitX = event.currentX || event.targetX || 0
       const hitY = event.currentY || event.targetY || 0
 
-      // Only spawn an explosion ring if no ring was recently spawned nearby (<32px)
-      if (event.isSplash || event.projType === 'cannonball' || event.projType === 'fireball') {
-        const hasNearbyRing = this.explosionRingsPool.some(
-          r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 32
-        )
-        if (!hasNearbyRing) {
-          let ring: ClientExplosionRing | null = null
-          for (let i = 0; i < this.explosionRingsPool.length; i++) {
-            if (!this.explosionRingsPool[i].active) {
-              ring = this.explosionRingsPool[i]
-              break
-            }
+      // Spawn shockwave ring for all hits (AoE wide, or single-target crisp ripple)
+      const hasNearbyRing = this.explosionRingsPool.some(
+        r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 20
+      )
+      if (!hasNearbyRing) {
+        let ring: ClientExplosionRing | null = null
+        for (let i = 0; i < this.explosionRingsPool.length; i++) {
+          if (!this.explosionRingsPool[i].active) {
+            ring = this.explosionRingsPool[i]
+            break
           }
-          if (!ring) ring = this.explosionRingsPool[0]
+        }
+        if (!ring) ring = this.explosionRingsPool[0]
 
-          if (ring) {
-            ring.id = `ring-${Date.now()}`
-            ring.x = hitX
-            ring.y = hitY
-            ring.radius = 4
-            ring.maxRadius = (event.splashRadius || 1.5) * 128 * 0.65
-            ring.color =
-              event.projType === 'fireball'
-                ? 0xef4444
-                : event.projType === 'magic_bolt'
-                  ? 0x38bdf8
-                  : 0xf59e0b
-            ring.alpha = 0.95
-            ring.active = true
-          }
+        if (ring) {
+          const theme = getProjectileTheme(event.projType || 'fireball')
+          const isArrow = event.projType === 'arrow'
+          const isSplash = Boolean(event.isSplash)
+          ring.id = `ring-${Date.now()}`
+          ring.x = hitX
+          ring.y = hitY
+          ring.radius = 3
+          ring.maxRadius = isSplash ? (event.splashRadius || 1.5) * 128 * 0.65 : (isArrow ? 14 : 18)
+          ring.color = theme.shockwaveColorHex
+          ring.alpha = 0.95
+          ring.active = true
         }
       }
 
@@ -731,42 +728,40 @@ class NetworkSyncBuffer {
    * Emits spark particles and splash explosion ring right at the exact impact position
    */
   private triggerLocalImpact(proj: ClientVisualProjectile) {
+    const theme = getProjectileTheme(proj.projectileType, proj.color)
     const isArrow = proj.projectileType === 'arrow'
-    const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
-    let sparkColor = proj.color || 0xfbbf24
-    if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
-    else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
-    else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
-    else if (isArrow) sparkColor = 0xe2e8f0
+    const isSplash = Boolean(proj.isSplash && proj.splashRadius > 0)
+    const sparkCount = isArrow ? 8 : (isSplash ? 16 : 10)
 
     combatEvents.emitImpact({
       x: proj.currentX,
       y: proj.currentY,
-      color: sparkColor,
+      color: theme.sparkColorHex,
       count: sparkCount,
       projectileType: proj.projectileType,
     })
 
-    if (proj.isSplash && proj.splashRadius > 0 && proj.projectileType !== 'arrow') {
-      let ring: ClientExplosionRing | null = null
-      for (let i = 0; i < this.explosionRingsPool.length; i++) {
-        if (!this.explosionRingsPool[i].active) {
-          ring = this.explosionRingsPool[i]
-          break
-        }
+    // Spawn Impact Shockwave Ring for ALL hits (matching TowerLivePreview!)
+    let ring: ClientExplosionRing | null = null
+    for (let i = 0; i < this.explosionRingsPool.length; i++) {
+      if (!this.explosionRingsPool[i].active) {
+        ring = this.explosionRingsPool[i]
+        break
       }
-      if (!ring) ring = this.explosionRingsPool[0]
+    }
+    if (!ring) ring = this.explosionRingsPool[0]
 
-      if (ring) {
-        ring.id = `ring-${Date.now()}-${Math.random()}`
-        ring.x = proj.currentX
-        ring.y = proj.currentY
-        ring.radius = 4
-        ring.maxRadius = proj.splashRadius * 128 * 0.65
-        ring.color = sparkColor
-        ring.alpha = 0.95
-        ring.active = true
-      }
+    if (ring) {
+      ring.id = `ring-${Date.now()}-${Math.random()}`
+      ring.x = proj.currentX
+      ring.y = proj.currentY
+      ring.radius = 3
+      ring.maxRadius = isSplash
+        ? (proj.splashRadius || 1.5) * 128 * 0.65
+        : (isArrow ? 14 : 18)
+      ring.color = theme.shockwaveColorHex
+      ring.alpha = 0.95
+      ring.active = true
     }
   }
 

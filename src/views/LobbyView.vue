@@ -213,6 +213,7 @@ import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
+import { lockLandscape } from '../utils/pwaOrientation'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 
@@ -249,6 +250,7 @@ watch(
   () => multiplayerStore.roomGameState,
   (state) => {
     if (state === 'in_game') {
+      lockLandscape()
       characterStore.entrySource = 'lobby'
       const code = multiplayerStore.roomId || (route.params.roomId as string)
       router.push(`/game/${code}`)
@@ -270,6 +272,7 @@ function copyRoomCode() {
 }
 
 function handleStartGame() {
+  lockLandscape()
   multiplayerStore.startGame(router)
 }
 

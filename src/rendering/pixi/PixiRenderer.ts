@@ -37,7 +37,13 @@ export class PixiRenderer {
   async init(containerEl: HTMLElement, width: number, height: number): Promise<void> {
     await this.context.init(containerEl, width, height)
 
-    // Mount layer hierarchy in world container
+    // Mount layer hierarchy in world container with explicit depth layers
+    this.context.worldContainer.sortableChildren = true
+    this.grid.container.zIndex = 10
+    this.map.layersContainer.zIndex = 100
+    this.overlay.overlayContainer.zIndex = 500
+    this.combat.combatGraphics.zIndex = 999999
+
     this.context.worldContainer.addChild(this.grid.container)
     this.context.worldContainer.addChild(this.map.layersContainer)
     this.context.worldContainer.addChild(this.overlay.overlayContainer)
@@ -91,6 +97,15 @@ export class PixiRenderer {
       project.tileWidth,
       project.tileHeight
     )
+
+    // Ensure combat animations (projectiles, lasers, explosions, sparks) ALWAYS render above all ground assets and entities
+    if (this.combat.combatGraphics.parent === this.context.worldContainer) {
+      this.combat.combatGraphics.zIndex = 999999
+      const children = this.context.worldContainer.children
+      if (children.length > 0 && children[children.length - 1] !== this.combat.combatGraphics) {
+        this.context.worldContainer.addChild(this.combat.combatGraphics)
+      }
+    }
 
     this.combat.renderCombat(
       towerStore,

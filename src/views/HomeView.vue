@@ -72,6 +72,18 @@
           {{ $t('home.assetEditor') }}
         </UiButton>
 
+        <!-- Install PWA Button (When supported / installable) -->
+        <UiButton
+          v-if="canInstallPwa"
+          variant="game-amber"
+          size="xs"
+          :leading-icon="Download"
+          class="animate-pulse"
+          @click="promptPwaInstall"
+        >
+          O'rnatish
+        </UiButton>
+
         <!-- Ghost Fullscreen Toggle -->
         <UiButton
           variant="ghost"
@@ -282,9 +294,11 @@ import {
   Search,
   Check,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Download
 } from 'lucide-vue-next'
 import { UiButton, UiModal, UiInput, UiLanguageSwitcher } from '../components/ui'
+import { canInstallPwa, promptPwaInstall, lockLandscape } from '../utils/pwaOrientation'
 import { useMapStore } from '../stores/mapStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
@@ -474,6 +488,9 @@ async function selectAndStartMap(mapData: any) {
 
     // Provide a smooth feedback buffer for the button loading spinner
     await new Promise(resolve => setTimeout(resolve, 350))
+
+    // Attempt to lock landscape orientation on game start
+    lockLandscape()
 
     await router.push(`/game/${cleanId}`)
   } catch (err) {

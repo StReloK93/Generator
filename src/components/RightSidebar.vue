@@ -637,7 +637,7 @@ const assetCategoryItems = computed<TabItem[]>(() => {
   ]
 
   for (const cat of assetStore.categories) {
-    if (cat === 'All') continue
+    if (cat === 'All' || cat === 'Favorites' || cat === 'UsedInMap') continue
     const catLabel = t(`assets.cat${cat}`) !== `assets.cat${cat}` ? t(`assets.cat${cat}`) : cat
     items.push({
       id: cat,

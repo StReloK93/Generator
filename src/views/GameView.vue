@@ -71,42 +71,6 @@
       <LobbyChat />
     </div>
 
-    <!-- 4. Mobile Portrait to Landscape Recommendation Overlay -->
-    <div 
-      v-if="isPortrait && !dismissOrientationAlert" 
-      class="fixed inset-0 z-60 bg-slate-950/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-200 select-none"
-    >
-      <div class="w-16 h-16 rounded-3xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center mb-4 shadow-xl shadow-amber-500/10">
-        <Smartphone class="w-8 h-8 rotate-90 text-amber-400 animate-pulse" />
-      </div>
-
-      <h3 class="text-base font-black text-white mb-1.5 tracking-wide">
-        {{ $t('game.rotateToLandscape') }}
-      </h3>
-      <p class="text-xs text-slate-400 max-w-xs mb-5 leading-relaxed">
-        {{ $t('game.rotateLandscapeDesc') }}
-      </p>
-
-      <div class="flex flex-col gap-2 w-full max-w-xs">
-        <UiButton 
-          variant="game-amber"
-          size="md"
-          :leading-icon="Maximize2"
-          class="w-full justify-center font-black"
-          @click="handleEnableFullscreen" 
-        >
-          {{ $t('game.fullscreen') }}
-        </UiButton>
-        <UiButton 
-          variant="secondary"
-          size="sm"
-          class="w-full justify-center"
-          @click="dismissOrientationAlert = true" 
-        >
-          {{ $t('game.continue') }}
-        </UiButton>
-      </div>
-    </div>
 
     <!-- 5. Game Over, Victory & Clan Select Modals -->
     <GameOverModal />
@@ -122,7 +86,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { Shield, Smartphone, Maximize2 } from 'lucide-vue-next'
+import { Shield } from 'lucide-vue-next'
 import { UiButton } from '../components/ui'
 import GameCanvas from '../components/game/GameCanvas.vue'
 import GameHud from '../components/game/GameHud.vue'
@@ -141,6 +105,7 @@ import { useAssetStore } from '../stores/assetStore'
 import { useI18n } from '../stores/i18nStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { toggleAppFullscreen } from '../utils/fullscreen'
+import { lockLandscape } from '../utils/pwaOrientation'
 import { 
   getGameMapDataById, 
   getEditorMapDataById,
@@ -165,22 +130,9 @@ const canvasRef = ref<any>(null)
 const isCanvasReady = ref(false)
 const isChatOpen = ref(false)
 const unreadCount = ref(0)
-const isPortrait = ref(false)
-const dismissOrientationAlert = ref(false)
 
 function handleCanvasReady() {
   isCanvasReady.value = true
-}
-
-function checkOrientation() {
-  if (typeof window === 'undefined') return
-  const isMobile = window.innerWidth < 1024 || ('ontouchstart' in window)
-  isPortrait.value = isMobile && (window.innerHeight > window.innerWidth)
-}
-
-async function handleEnableFullscreen() {
-  await toggleAppFullscreen()
-  dismissOrientationAlert.value = true
 }
 
 const isMapLoaded = computed(() => {
@@ -188,9 +140,8 @@ const isMapLoaded = computed(() => {
 })
 
 onMounted(async () => {
-  checkOrientation()
-  window.addEventListener('resize', checkOrientation)
-  window.addEventListener('orientationchange', checkOrientation)
+  // Lock screen to landscape orientation if supported
+  lockLandscape()
 
   // 1. Resolve Map or Multiplayer Room from route params
   const rawId = (route.params.mapId as string) || (route.params.roomId as string) || ''
@@ -273,10 +224,6 @@ function cleanupGameSession() {
   characterStore.loadingMessage = ''
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', checkOrientation)
-    window.removeEventListener('orientationchange', checkOrientation)
-  }
 }
 
 onBeforeRouteLeave((_to, _from, next) => {

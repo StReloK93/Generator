@@ -120,11 +120,10 @@ export const useAssetStore = defineStore('assetStore', () => {
 
   const categories = computed(() => {
     const set = new Set<string>()
-    set.add('All')
-    set.add('UsedInMap')
-    set.add('Favorites')
     for (const a of assets.value) {
-      if (a.category) set.add(a.category)
+      if (a.category && a.category !== 'All' && a.category !== 'Favorites' && a.category !== 'UsedInMap') {
+        set.add(a.category)
+      }
     }
     return Array.from(set)
   })

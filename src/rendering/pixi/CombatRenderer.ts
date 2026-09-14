@@ -3,6 +3,7 @@ import { GridCoord, MapProject } from '../../types/map'
 import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
+import { getProjectileTheme, renderPixiProjectileHead } from '../../utils/projectileEffectRenderer'
 
 export class CombatRenderer {
   public combatGraphics: Graphics
@@ -20,9 +21,11 @@ export class CombatRenderer {
 
   private activeProjIds = new Set<string>()
   private unsubscribeImpact?: () => void
+  private lastTime = 0
 
   constructor() {
     this.combatGraphics = new Graphics()
+    this.combatGraphics.zIndex = 999999
 
     // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
@@ -80,13 +83,15 @@ export class CombatRenderer {
         ? networkSyncBuffer.renderUnitsList
         : characterStore.units || []
     const hasUnits = units.length > 0
+    const hasSparks = this.combatSparks.length > 0
 
-    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits) {
+    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits && !hasSparks) {
       this.combatGraphics.clear()
       return
     }
 
     this.combatGraphics.clear()
+    this.combatGraphics.zIndex = 999999
 
     // 1. Attack Range Indicator
     if (towerToHighlight) {
@@ -193,6 +198,8 @@ export class CombatRenderer {
 
     // 2. Flying Animated Projectiles
     const nowTime = performance.now()
+    const dt = this.lastTime > 0 ? Math.min(0.1, (nowTime - this.lastTime) / 1000) : 0.016
+    this.lastTime = nowTime
     this.activeProjIds.clear()
 
     if (hasProjectiles) {
@@ -204,6 +211,7 @@ export class CombatRenderer {
         if (!proj || (proj.active === false && !isLocal)) continue
         this.activeProjIds.add(proj.id)
         const type = proj.projectileType || 'cannonball'
+        const theme = getProjectileTheme(type, proj.color)
 
         const totalDist =
           proj.totalDistance ||
@@ -212,7 +220,7 @@ export class CombatRenderer {
         const progress = Math.min(1.0, (proj.traveledDistance || 0) / totalDist)
 
         const arcHeight =
-          type === 'laser' || type === 'magic_bolt'
+          !theme.hasArc
             ? 0
             : Math.sin(progress * Math.PI) * Math.min(45, totalDist * 0.16)
 
@@ -239,128 +247,29 @@ export class CombatRenderer {
           pt.alpha = Math.max(0, pt.alpha - 0.04)
           if (pt.alpha <= 0) continue
 
-          const trailRadius = (t / trail.length) * 3.5
-          let trailColor = 0x94a3b8
-          let trailAlpha = pt.alpha * 0.5
-
-          if (type === 'fireball') {
-            trailColor = 0xf97316
-            trailAlpha = pt.alpha * 0.7
-          } else if (type === 'frost_bolt') {
-            trailColor = 0x06b6d4
-            trailAlpha = pt.alpha * 0.7
-          } else if (type === 'laser') {
-            trailColor = 0xf43f5e
-            trailAlpha = pt.alpha * 0.8
-          } else if (type === 'magic_bolt') {
-            trailColor = 0x38bdf8
-            trailAlpha = pt.alpha * 0.7
+          if (type === 'arrow') {
+            this.combatGraphics
+              .circle(pt.x, pt.y, 1.0)
+              .fill({ color: 0xf8fafc, alpha: pt.alpha * 0.25 })
+          } else {
+            const trailRadius = (t / trail.length) * 3.5
+            this.combatGraphics
+              .circle(pt.x, pt.y, Math.max(1, trailRadius))
+              .fill({ color: theme.trailColorHex, alpha: pt.alpha * theme.trailAlpha })
           }
-
-          this.combatGraphics
-            .circle(pt.x, pt.y, Math.max(1, trailRadius))
-            .fill({ color: trailColor, alpha: trailAlpha })
         }
 
-        // Render projectile heads
-        if (type === 'arrow') {
-          const arrowLength = 16
-          const tailX = renderX - Math.cos(angle) * arrowLength
-          const tailY = renderY - Math.sin(angle) * arrowLength
-
-          this.combatGraphics
-            .moveTo(tailX, tailY)
-            .lineTo(renderX, renderY)
-            .stroke({ width: 2.0, color: 0x78350f, alpha: 1.0 })
-
-          const tipX = renderX + Math.cos(angle) * 5
-          const tipY = renderY + Math.sin(angle) * 5
-          const leftWingX = renderX + Math.cos(angle + 2.5) * 4.5
-          const leftWingY = renderY + Math.sin(angle + 2.5) * 4.5
-          const rightWingX = renderX + Math.cos(angle - 2.5) * 4.5
-          const rightWingY = renderY + Math.sin(angle - 2.5) * 4.5
-
-          this.combatGraphics
-            .poly([tipX, tipY, leftWingX, leftWingY, rightWingX, rightWingY])
-            .fill({ color: 0xe2e8f0, alpha: 1.0 })
-            .stroke({ width: 1, color: 0x475569, alpha: 1.0 })
-
-          const featherLeftX = tailX + Math.cos(angle + 2.4) * 4
-          const featherLeftY = tailY + Math.sin(angle + 2.4) * 4
-          const featherRightX = tailX + Math.cos(angle - 2.4) * 4
-          const featherRightY = tailY + Math.sin(angle - 2.4) * 4
-
-          this.combatGraphics
-            .moveTo(tailX, tailY)
-            .lineTo(featherLeftX, featherLeftY)
-            .stroke({ width: 1.5, color: 0xef4444, alpha: 0.95 })
-          this.combatGraphics
-            .moveTo(tailX, tailY)
-            .lineTo(featherRightX, featherRightY)
-            .stroke({ width: 1.5, color: 0xef4444, alpha: 0.95 })
-        } else if (type === 'fireball') {
-          this.combatGraphics.circle(renderX, renderY, 7.5).fill({ color: 0xef4444, alpha: 0.5 })
-          this.combatGraphics.circle(renderX, renderY, 5.0).fill({ color: 0xf97316, alpha: 0.95 })
-          this.combatGraphics.circle(renderX, renderY, 2.5).fill({ color: 0xfef08a, alpha: 1.0 })
-        } else if (type === 'frost_bolt') {
-          this.combatGraphics.circle(renderX, renderY, 6.5).fill({ color: 0x06b6d4, alpha: 0.5 })
-          const rotAngle = nowTime * 0.008
-          const cosR = Math.cos(rotAngle)
-          const sinR = Math.sin(rotAngle)
-
-          const pTop = { x: renderX + -sinR * -6, y: renderY + cosR * -6 }
-          const pRight = { x: renderX + cosR * 4, y: renderY + sinR * 4 }
-          const pBottom = { x: renderX + -sinR * 6, y: renderY + cosR * 6 }
-          const pLeft = { x: renderX + cosR * -4, y: renderY + sinR * -4 }
-
-          this.combatGraphics
-            .poly([pTop, pRight, pBottom, pLeft])
-            .fill({ color: 0xffffff, alpha: 0.95 })
-            .stroke({ width: 1.2, color: 0x0891b2, alpha: 1.0 })
-        } else if (type === 'laser') {
-          this.combatGraphics
-            .moveTo(proj.startX, proj.startY)
-            .lineTo(renderX, renderY)
-            .stroke({ width: 5.0, color: 0xf43f5e, alpha: 0.45 })
-          this.combatGraphics
-            .moveTo(proj.startX, proj.startY)
-            .lineTo(renderX, renderY)
-            .stroke({ width: 1.8, color: 0xffffff, alpha: 1.0 })
-          this.combatGraphics.circle(renderX, renderY, 4.0).fill({ color: 0xffffff, alpha: 1.0 })
-        } else if (type === 'missile') {
-          const mLen = 14
-          const tailX = renderX - Math.cos(angle) * mLen
-          const tailY = renderY - Math.sin(angle) * mLen
-
-          this.combatGraphics
-            .moveTo(tailX, tailY)
-            .lineTo(renderX, renderY)
-            .stroke({ width: 4.5, color: 0x334155, alpha: 1.0 })
-
-          const tipX = renderX + Math.cos(angle) * 3.5
-          const tipY = renderY + Math.sin(angle) * 3.5
-          this.combatGraphics.circle(tipX, tipY, 2.8).fill({ color: 0xef4444, alpha: 1.0 })
-          this.combatGraphics.circle(tailX, tailY, 3.2).fill({ color: 0xfbbf24, alpha: 0.95 })
-        } else if (type === 'cannonball') {
-          this.combatGraphics
-            .circle(renderX, renderY, 5.5)
-            .fill({ color: 0x1e293b, alpha: 1.0 })
-            .stroke({ width: 1.2, color: 0x475569, alpha: 1.0 })
-          this.combatGraphics
-            .circle(renderX - 1.5, renderY - 1.5, 1.6)
-            .fill({ color: 0x94a3b8, alpha: 0.95 })
-        } else {
-          this.combatGraphics.circle(renderX, renderY, 6.5).fill({ color: 0x38bdf8, alpha: 0.5 })
-          this.combatGraphics.circle(renderX, renderY, 3.0).fill({ color: 0xffffff, alpha: 1.0 })
-          this.combatGraphics
-            .moveTo(renderX - 5, renderY)
-            .lineTo(renderX + 5, renderY)
-            .stroke({ width: 1.2, color: 0x38bdf8, alpha: 0.9 })
-          this.combatGraphics
-            .moveTo(renderX, renderY - 5)
-            .lineTo(renderX, renderY + 5)
-            .stroke({ width: 1.2, color: 0x38bdf8, alpha: 0.9 })
-        }
+        // Render projectile heads via unified renderer
+        renderPixiProjectileHead(
+          this.combatGraphics,
+          type,
+          renderX,
+          renderY,
+          angle,
+          proj.startX,
+          proj.startY,
+          nowTime
+        )
       }
     }
 
@@ -395,9 +304,9 @@ export class CombatRenderer {
     if (this.combatSparks.length > 0) {
       for (let i = this.combatSparks.length - 1; i >= 0; i--) {
         const sp = this.combatSparks[i]
-        sp.x += sp.vx * 0.016
-        sp.y += sp.vy * 0.016
-        sp.life -= 0.016
+        sp.x += sp.vx * dt
+        sp.y += sp.vy * dt
+        sp.life -= dt
         sp.alpha = Math.max(0, sp.life / 0.45)
 
         if (sp.alpha > 0) {

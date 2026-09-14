@@ -10,11 +10,22 @@
     </router-view>
     <UiToastContainer />
     <UiConfirmModal />
+    <DeviceOrientationGuard />
   </div>
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { UiToastContainer, UiConfirmModal } from './components/ui'
+import DeviceOrientationGuard from './components/common/DeviceOrientationGuard.vue'
+import { initPwaAndOrientation } from './utils/pwaOrientation'
+
+onMounted(() => {
+  const cleanup = initPwaAndOrientation()
+  onUnmounted(() => {
+    cleanup()
+  })
+})
 </script>
 
 <style>
