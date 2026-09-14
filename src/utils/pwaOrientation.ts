@@ -5,8 +5,35 @@ export const isMobileDevice = ref<boolean>(false)
 export const isFullscreen = ref<boolean>(false)
 export const isStandalone = ref<boolean>(false)
 export const canInstallPwa = ref<boolean>(false)
+export const isTelegramWebApp = ref<boolean>(false)
 
 let deferredInstallPrompt: any = null
+
+/**
+ * Initializes Telegram Mini App integration if running inside Telegram
+ */
+export function initTelegramWebApp(): void {
+  if (typeof window === 'undefined') return
+  const tg = (window as any).Telegram?.WebApp
+  if (tg) {
+    isTelegramWebApp.value = true
+    try {
+      tg.ready()
+      tg.expand()
+      if (typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes()
+      }
+      if (typeof tg.requestFullscreen === 'function') {
+        tg.requestFullscreen()
+      }
+      if (typeof tg.lockOrientation === 'function') {
+        tg.lockOrientation('landscape')
+      }
+    } catch (err) {
+      console.warn('[Telegram WebApp] Init warning:', err)
+    }
+  }
+}
 
 /**
  * Checks whether the current screen is in portrait orientation
@@ -45,7 +72,8 @@ export function checkStandalone(): boolean {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
-    (window.navigator as any).standalone === true
+    (window.navigator as any).standalone === true ||
+    isTelegramWebApp.value
   )
 }
 
@@ -55,6 +83,17 @@ export function checkStandalone(): boolean {
  */
 export async function lockLandscape(): Promise<boolean> {
   try {
+    // 0. Telegram Mini App native landscape & fullscreen if running in Telegram
+    const tg = (window as any).Telegram?.WebApp
+    if (tg) {
+      if (typeof tg.requestFullscreen === 'function') {
+        tg.requestFullscreen()
+      }
+      if (typeof tg.lockOrientation === 'function') {
+        tg.lockOrientation('landscape')
+      }
+    }
+
     // 1. Enter Fullscreen if not already in fullscreen
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       await document.documentElement.requestFullscreen().catch(() => {
@@ -123,6 +162,9 @@ export function initPwaAndOrientation(): () => void {
     isStandalone.value = checkStandalone()
     isFullscreen.value = !!document.fullscreenElement
   }
+
+  // Initialize Telegram Mini App if present
+  initTelegramWebApp()
 
   // Initial read
   updateState()

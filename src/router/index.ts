@@ -31,9 +31,22 @@ const routes = [
     name: 'game',
     component: () => import('../views/GameView.vue'),
   },
+  // Fallback for Telegram Mini App #tgWebAppData launch params or invalid routes
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
 ]
 
 export const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+// Navigation guard to seamlessly handle Telegram WebApp hash parameters
+router.beforeEach((to, _from, next) => {
+  if (to.fullPath.includes('tgWebApp') || to.path.includes('tgWebApp')) {
+    return next('/')
+  }
+  next()
 })
