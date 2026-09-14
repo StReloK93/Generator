@@ -128,6 +128,41 @@ Xarita muharriri (`EditorView`) va Asset muharriri (`AssetEditorView`) dan tashq
 
 ---
 
+## 🏛️ Isocraft Architecture Refactoring Rules & Standards (MAJBURIY)
+
+Loyiha arxitekturasi quyidagi qat'iy qatlamlar ajratilishiga bo'ysunishi **shart**:
+
+```text
+Vue UI (DOM, panellar, modallar, tugmalar, user lifecycle)
+   ↓
+Application / Controllers (GameController, EditorController, Tool handling)
+   ↓
+Game / Domain Logic (Pure TypeScript: movement, combat, damage, targeting, wave rules)
+   ↓
+Rendering Abstraction (Render interfaces, visual event bus)
+   ↓
+PixiJS (SpriteFactory, MapRenderer, UnitRenderer, TowerRenderer, CombatRenderer)
+```
+
+1. **Vue va PixiJS qat'iy ajratilgan**: Vue komponentlarida (`<template>` yoki `<script>`) to'g'ridan-to'g'ri `new PIXI.Sprite`, `new PIXI.Graphics`, `container.addChild` kabi PixiJS kodlari yozilmasin. Ular faqat render adapteri va controller orqali ulanadi.
+2. **PixiJS holat manbai (state) emas**: PixiJS faqat holatni chizadi. `towerStore -> IsoEngine.instance.someArray.push()` kabi to'g'ridan-to'g'ri singleton chaqiruvlari taqiqlanadi. Vizual effektlar va zarrachalar uchun Event/Command modeli (`combatEvents`) ishlatilsin.
+3. **God Object'lar yo'q**: `IsoEngine`, `characterStore`, `towerStore`, `mapStore`, `EditorCanvas.vue`, `GameCanvas.vue` kabi fayllar monolit bo'lib barcha vazifalarni birdan bajarmasligi, modullarga ajratilishi shart.
+4. **Pinia Store o'yin dvijogi emas**: Do'konda butun simulyatsiya yoki render kodi joylashtirilmaydi. O'yin qoidalari `domain/` ichidagi sof TypeScript funksiyalarga chiqariladi.
+5. **Domain logikasi ramkalardan mustaqil**: O'yin qoidalarida (`calculateDamage`, `updateMovement`, `selectTarget`) Vue yoki PixiJS importlari bo'lmasligi kerak (sof TypeScript).
+6. **Yagona haqiqat manbai (Single Source of Truth)**: Bir xil ma'lumot do'konda, dvijokda va komponentda takrorlanmasligi kerak. Render dvijogi pozitsiya va holatni o'yin holatidan hosil qiladi.
+7. **Modulli Render Qatlami (`src/rendering/pixi/`)**:
+   - `PixiContext`: Application lifecycle, canvas, DPR, FPS ticker.
+   - `GridRenderer`: Setka, chegaralar, koordinatalar, simmetriya o'qlari.
+   - `MapRenderer`: Qatlamlar, kafel spritelari, z-index chuqurlik tartibi, sprite pooling.
+   - `UnitRenderer`: Personajlar, to'lqinlar, HP bar, soyalar, elemental vizual effektlar.
+   - `TowerRenderer`: Minoralar, darajalar, doiraviy nishonlar, ghost preview.
+   - `CombatRenderer`: Snaryadlar, izlar, portlashlar, splash halqalari, sonli zarbalar.
+   - `OverlayRenderer`: Hover, tanlash, hudud to'ldirish, ruxsat etilgan zonalar, chiqish yo'llari.
+8. **Editor Arxitekturasi**: `EditorCanvas.vue` barcha chizish algoritmlarini o'z ichiga olmasdan, `EditorController` va `src/controllers/editor/tools/` (`BrushTool`, `EraserTool`, `BucketTool`, `LineTool`, `BoxTool`, `SelectTool`, `BuildableTool`) orqali boshqariladi.
+9. **Mavjud funksionallikni saqlash**: Refaktoring mavjud xarita formati, saqlangan loyihalar, ko'p o'yinchili o'yin va foydalanuvchi interfeysini aslo buzmasligi, bosqichma-bosqich va to'liq test/build tekshiruvlari bilan amalga oshirilishi shart.
+
+---
+
 ## 🚀 Ishga Tushirish (Quick Start)
 
 ```bash

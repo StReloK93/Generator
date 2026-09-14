@@ -1,4 +1,11 @@
-import { CompactUnitSnapshot, WorldSnapshotPayload, CompactCombatEvent } from '../types/multiplayer'
+import {
+  CompactUnitSnapshot,
+  WorldSnapshotPayload,
+  CompactCombatEvent,
+  NetworkSyncConfig,
+} from '../types/multiplayer'
+import { UnitVariantType } from '../types/map'
+import { combatEvents } from './combatEvents'
 import characterManifest from '../assets/generated/characterManifest.json'
 
 function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
@@ -7,12 +14,30 @@ function getModelActionFrameCount(model: string = 'male', action: string = 'Run'
     return model === 'warrior' ? 24 : 10
   }
   const actions = Object.values(meta.actions) as any[]
-  const act = actions.find((a: any) => a.id.toLowerCase() === action.toLowerCase())
-    || actions.find((a: any) => action.toLowerCase() === 'run' && /run|walk|sprint|move/i.test(a.id))
-    || actions.find((a: any) => action.toLowerCase() === 'idle' && /idle|stand|wait/i.test(a.id))
-    || actions.find((a: any) => action.toLowerCase() === 'pickup' && /die|death|dead|pickup|hit|collapse/i.test(a.id))
-    || actions[0]
+  const act =
+    actions.find((a: any) => a.id.toLowerCase() === action.toLowerCase()) ||
+    actions.find((a: any) => action.toLowerCase() === 'run' && /run|walk|sprint|move/i.test(a.id)) ||
+    actions.find((a: any) => action.toLowerCase() === 'idle' && /idle|stand|wait/i.test(a.id)) ||
+    actions.find(
+      (a: any) =>
+        action.toLowerCase() === 'pickup' && /die|death|dead|pickup|hit|collapse/i.test(a.id)
+    ) ||
+    actions[0]
   return act?.frameCount || (model === 'warrior' ? 24 : 10)
+}
+
+/**
+ * Single Source of Truth configuration for multiplayer network interpolation
+ */
+export const networkConfig: NetworkSyncConfig = {
+  /** Jitter buffer delay in ms (100ms covers 2.5 snapshot frames at 25Hz) */
+  interpolationDelay: 100,
+  /** Maximum number of snapshots kept in buffer */
+  maxBufferSnapshots: 20,
+  /** Maximum forward extrapolation time in ms when network packets stall */
+  maxExtrapolationMs: 100,
+  /** Spatial distance squared threshold (px^2) to trigger an immediate snap instead of lerp */
+  teleportThresholdSq: 10000,
 }
 
 export interface InterpolatedUnit {
@@ -35,17 +60,22 @@ export interface InterpolatedUnit {
   offsetY?: number
   animSpeed?: number
   unitScale?: number
+  unitVariant?: UnitVariantType
+  variantTint?: number | string
 }
 
 export interface ClientVisualProjectile {
   id: string
   towerId: string
+  targetUnitId?: string
   startX: number
   startY: number
   currentX: number
   currentY: number
   targetX: number
   targetY: number
+  totalDistance: number
+  traveledDistance: number
   progress: number
   speed: number
   color: number
@@ -78,12 +108,171 @@ export interface ClientDamageFloater {
   active: boolean
 }
 
+export interface BufferedSnapshot {
+  seq: number
+  time: number
+  receivedAt: number
+  units: Map<string, CompactUnitSnapshot>
+}
+
+/**
+ * High-performance Snapshot Buffer managing timestamp-ordered snapshots,
+ * sequence validation (rejecting stale/out-of-order packets), and zero-allocation Map recycling.
+ */
+export class SnapshotBuffer {
+  private snapshots: BufferedSnapshot[] = []
+  private lastSeq = 0
+  private lastTime = 0
+  private mapPool: Map<string, CompactUnitSnapshot>[] = []
+
+  public push(payload: WorldSnapshotPayload, receivedAt: number): boolean {
+    if (!payload || !payload.units) return false
+
+    // Drop stale or out-of-order packets
+    if (this.lastSeq > 0 && payload.seq <= this.lastSeq && payload.time <= this.lastTime) {
+      return false
+    }
+
+    this.lastSeq = Math.max(this.lastSeq, payload.seq)
+    this.lastTime = Math.max(this.lastTime, payload.time)
+
+    // Reuse or allocate map to prevent garbage collection spikes on mobile
+    let map = this.mapPool.pop()
+    if (!map) {
+      map = new Map<string, CompactUnitSnapshot>()
+    } else {
+      map.clear()
+    }
+
+    for (let i = 0; i < payload.units.length; i++) {
+      const u = payload.units[i]
+      map.set(u.id, u)
+    }
+
+    const snap: BufferedSnapshot = {
+      seq: payload.seq,
+      time: payload.time,
+      receivedAt,
+      units: map,
+    }
+
+    // Insert in chronological order (typically append at end)
+    if (this.snapshots.length === 0 || payload.time >= this.snapshots[this.snapshots.length - 1].time) {
+      this.snapshots.push(snap)
+    } else {
+      let inserted = false
+      for (let i = this.snapshots.length - 1; i >= 0; i--) {
+        if (payload.time >= this.snapshots[i].time) {
+          this.snapshots.splice(i + 1, 0, snap)
+          inserted = true
+          break
+        }
+      }
+      if (!inserted) {
+        this.snapshots.unshift(snap)
+      }
+    }
+
+    // Trim older snapshots exceeding buffer size
+    while (this.snapshots.length > networkConfig.maxBufferSnapshots) {
+      const old = this.snapshots.shift()
+      if (old) {
+        old.units.clear()
+        this.mapPool.push(old.units)
+      }
+    }
+
+    return true
+  }
+
+  public pruneOlderThan(cutoffTime: number): void {
+    // Preserve at least 2 snapshots so interpolation never starves
+    while (this.snapshots.length > 2 && this.snapshots[0].time < cutoffTime) {
+      const old = this.snapshots.shift()
+      if (old) {
+        old.units.clear()
+        this.mapPool.push(old.units)
+      }
+    }
+  }
+
+  public getLatestTime(): number {
+    if (this.snapshots.length === 0) return 0
+    return this.snapshots[this.snapshots.length - 1].time
+  }
+
+  public getSnapshotsForRender(renderTime: number): {
+    s0: BufferedSnapshot
+    s1: BufferedSnapshot
+    alpha: number
+    isExtrapolating: boolean
+  } | null {
+    const len = this.snapshots.length
+    if (len === 0) return null
+
+    if (len === 1) {
+      return {
+        s0: this.snapshots[0],
+        s1: this.snapshots[0],
+        alpha: 1.0,
+        isExtrapolating: false,
+      }
+    }
+
+    // renderTime is older than our earliest snapshot
+    if (renderTime <= this.snapshots[0].time) {
+      return {
+        s0: this.snapshots[0],
+        s1: this.snapshots[1],
+        alpha: 0.0,
+        isExtrapolating: false,
+      }
+    }
+
+    // Find the two consecutive snapshots that bound renderTime
+    for (let i = len - 1; i >= 0; i--) {
+      if (this.snapshots[i].time <= renderTime) {
+        if (i === len - 1) {
+          // renderTime is ahead of newest snapshot -> temporary network starvation/jitter
+          const s0 = this.snapshots[len - 2]
+          const s1 = this.snapshots[len - 1]
+          const dt = Math.max(1, s1.time - s0.time)
+          const extraTime = Math.min(networkConfig.maxExtrapolationMs, renderTime - s1.time)
+          const alpha = 1.0 + (extraTime / dt) * 0.9 // gentle damping to avoid overshoot
+          return { s0, s1, alpha, isExtrapolating: true }
+        }
+
+        const s0 = this.snapshots[i]
+        const s1 = this.snapshots[i + 1]
+        const dt = Math.max(1, s1.time - s0.time)
+        const alpha = Math.max(0.0, Math.min(1.0, (renderTime - s0.time) / dt))
+        return { s0, s1, alpha, isExtrapolating: false }
+      }
+    }
+
+    return {
+      s0: this.snapshots[0],
+      s1: this.snapshots[1],
+      alpha: 0.0,
+      isExtrapolating: false,
+    }
+  }
+
+  public clear(): void {
+    for (let i = 0; i < this.snapshots.length; i++) {
+      this.snapshots[i].units.clear()
+      this.mapPool.push(this.snapshots[i].units)
+    }
+    this.snapshots.length = 0
+    this.lastSeq = 0
+    this.lastTime = 0
+  }
+}
+
 class NetworkSyncBuffer {
-  // Snapshot ring buffer
-  private previousSnapshot: Map<string, CompactUnitSnapshot> | null = null
-  private previousTime = 0
-  private currentSnapshot: Map<string, CompactUnitSnapshot> | null = null
-  private currentTime = 0
+  // Snapshot buffer with jitter mitigation
+  public snapshotBuffer = new SnapshotBuffer()
+  private clientRenderTime: number | null = null
 
   // Public non-reactive interpolated units ready for 60 FPS Pixi rendering
   public renderUnitsMap = new Map<string, InterpolatedUnit>()
@@ -115,18 +304,21 @@ class NetworkSyncBuffer {
   }
 
   private initPools() {
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 60; i++) {
       this.projectilesPool.push({
         id: `pool-proj-${i}`,
         towerId: '',
+        targetUnitId: '',
         startX: 0,
         startY: 0,
         currentX: 0,
         currentY: 0,
         targetX: 0,
         targetY: 0,
+        totalDistance: 1,
+        traveledDistance: 0,
         progress: 0,
-        speed: 10,
+        speed: 1200,
         color: 0xffaa00,
         projectileType: 'cannonball',
         isSplash: false,
@@ -201,38 +393,51 @@ class NetworkSyncBuffer {
    */
   public pushSnapshot(payload: WorldSnapshotPayload) {
     if (!payload || !payload.units) return
-
     const now = performance.now()
-    this.previousSnapshot = this.currentSnapshot
-    this.previousTime = this.currentTime || (now - 40)
-
-    const nextMap = new Map<string, CompactUnitSnapshot>()
-    for (let i = 0; i < payload.units.length; i++) {
-      const u = payload.units[i]
-      nextMap.set(u.id, u)
-    }
-
-    this.currentSnapshot = nextMap
-    this.currentTime = now
+    this.snapshotBuffer.push(payload, now)
   }
 
   /**
-   * True 60 FPS interpolation step: lerps positions between previous & current snapshots
+   * True 60 FPS smooth interpolation step:
+   * Uses historical snapshot buffer with jitter delay (SSOT networkConfig.interpolationDelay)
+   * to guarantee continuous, zero-jumping motion on clients.
    */
   public interpolate(deltaSec: number) {
-    if (!this.currentSnapshot || this.currentSnapshot.size === 0) {
-      return
+    const latestServerTime = this.snapshotBuffer.getLatestTime()
+    if (latestServerTime === 0) return
+
+    const targetRenderTime = latestServerTime - networkConfig.interpolationDelay
+
+    if (this.clientRenderTime === null) {
+      this.clientRenderTime = targetRenderTime
+    } else {
+      // Advance local client render clock by frame delta
+      this.clientRenderTime += deltaSec * 1000
+
+      // Smooth clock drift compensation without sudden jumps
+      const drift = targetRenderTime - this.clientRenderTime
+      if (Math.abs(drift) > 400) {
+        // Hard snap after huge stutter or background tab sleep
+        this.clientRenderTime = targetRenderTime
+      } else if (drift > 20) {
+        // Speed up slightly to catch up with host
+        this.clientRenderTime += deltaSec * 1000 * 0.08
+      } else if (drift < -20) {
+        // Slow down slightly to let host stay ahead of jitter window
+        this.clientRenderTime -= deltaSec * 1000 * 0.08
+      }
     }
 
-    const now = performance.now()
-    const snapshotInterval = Math.max(15, this.currentTime - this.previousTime)
-    const totalElapsed = now - this.previousTime
+    const pair = this.snapshotBuffer.getSnapshotsForRender(this.clientRenderTime)
+    if (!pair) return
 
-    const currentIds = new Set<string>()
+    const { s0, s1, alpha, isExtrapolating } = pair
 
-    for (const [id, curr] of this.currentSnapshot.entries()) {
-      currentIds.add(id)
+    // Prune snapshots older than 500ms before current render time
+    this.snapshotBuffer.pruneOlderThan(this.clientRenderTime - 500)
 
+    // Update all units present in current bounding snapshots
+    for (const [id, curr] of s1.units.entries()) {
       let renderUnit = this.renderUnitsMap.get(id)
       if (!renderUnit) {
         renderUnit = {
@@ -255,56 +460,56 @@ class NetworkSyncBuffer {
           offsetY: curr.oy || 0,
           animSpeed: curr.as || 1.0,
           unitScale: curr.us || 1.0,
+          unitVariant: (curr.uv as any) || 'normal',
+          variantTint: curr.vt,
         }
         this.renderUnitsMap.set(id, renderUnit)
+        this.renderUnitsList.push(renderUnit)
       } else {
         renderUnit.unitScale = curr.us || renderUnit.unitScale || 1.0
+        if (curr.uv) renderUnit.unitVariant = curr.uv as any
+        if (curr.vt !== undefined) renderUnit.variantTint = curr.vt
       }
 
-      // Check for major lag or telephone sleep/wake-up jump (> 100px)
-      const distSq = (curr.x - renderUnit.screenX) ** 2 + (curr.y - renderUnit.screenY) ** 2
-      const isTeleportOrLagJump = distSq > 10000
+      const prev = s0.units.get(id)
 
-      const prev = this.previousSnapshot ? this.previousSnapshot.get(id) : null
+      let targetX = curr.x
+      let targetY = curr.y
+      let targetCol = curr.col
+      let targetRow = curr.row
 
-      if (isTeleportOrLagJump) {
-        // Snap immediately to host authoritative position after lag/stutter
-        renderUnit.screenX = curr.x
-        renderUnit.screenY = curr.y
-        renderUnit.currentCol = curr.col
-        renderUnit.currentRow = curr.row
-      } else if (prev && !renderUnit.isDead) {
-        let targetX = curr.x
-        let targetY = curr.y
-        let targetCol = curr.col
-        let targetRow = curr.row
+      if (prev) {
+        const dx = curr.x - prev.x
+        const dy = curr.y - prev.y
+        const distSq = dx * dx + dy * dy
 
-        if (totalElapsed <= snapshotInterval) {
-          const blend = Math.max(0.0, Math.min(1.0, totalElapsed / snapshotInterval))
-          targetX = prev.x + (curr.x - prev.x) * blend
-          targetY = prev.y + (curr.y - prev.y) * blend
-          targetCol = prev.col + (curr.col - prev.col) * blend
-          targetRow = prev.row + (curr.row - prev.row) * blend
+        if (distSq > networkConfig.teleportThresholdSq) {
+          // Hard snap on genuine teleport or forced reposition (> 100px)
+          targetX = alpha >= 0.5 ? curr.x : prev.x
+          targetY = alpha >= 0.5 ? curr.y : prev.y
+          targetCol = alpha >= 0.5 ? curr.col : prev.col
+          targetRow = alpha >= 0.5 ? curr.row : prev.row
         } else {
-          // Velocity extrapolation up to 120ms to prevent dead-stops between late packets
-          const extraTime = Math.min(120, totalElapsed - snapshotInterval)
-          const extraBlend = extraTime / snapshotInterval
-          targetX = curr.x + (curr.x - prev.x) * extraBlend * 0.95
-          targetY = curr.y + (curr.y - prev.y) * extraBlend * 0.95
-          targetCol = curr.col + (curr.col - prev.col) * extraBlend * 0.95
-          targetRow = curr.row + (curr.row - prev.row) * extraBlend * 0.95
+          // Continuous smooth lerp
+          targetX = prev.x + dx * alpha
+          targetY = prev.y + dy * alpha
+          targetCol = prev.col + (curr.col - prev.col) * alpha
+          targetRow = prev.row + (curr.row - prev.row) * alpha
         }
+      }
 
-        const followRate = Math.min(1.0, deltaSec * 35)
+      if (isExtrapolating) {
+        // Gentle velocity follow during network packet freeze
+        const followRate = Math.min(1.0, deltaSec * 25)
         renderUnit.screenX += (targetX - renderUnit.screenX) * followRate
         renderUnit.screenY += (targetY - renderUnit.screenY) * followRate
         renderUnit.currentCol += (targetCol - renderUnit.currentCol) * followRate
         renderUnit.currentRow += (targetRow - renderUnit.currentRow) * followRate
       } else {
-        renderUnit.screenX += (curr.x - renderUnit.screenX) * Math.min(1.0, deltaSec * 25)
-        renderUnit.screenY += (curr.y - renderUnit.screenY) * Math.min(1.0, deltaSec * 25)
-        renderUnit.currentCol = curr.col
-        renderUnit.currentRow = curr.row
+        renderUnit.screenX = targetX
+        renderUnit.screenY = targetY
+        renderUnit.currentCol = targetCol
+        renderUnit.currentRow = targetRow
       }
 
       renderUnit.direction = curr.d
@@ -322,7 +527,7 @@ class NetworkSyncBuffer {
         renderUnit.action = curr.a
         renderUnit.frameIndex = curr.f || 0
         renderUnit.animTimer = 0
-      } else if (Math.abs(renderUnit.frameIndex - curr.f) > 5) {
+      } else if (Math.abs(renderUnit.frameIndex - curr.f) > 6) {
         renderUnit.frameIndex = curr.f
       }
 
@@ -336,7 +541,7 @@ class NetworkSyncBuffer {
         // Local 60 FPS smooth animation frame progression
         const maxFrames = getModelActionFrameCount(renderUnit.characterModel, renderUnit.action)
         const animMultiplier = Math.max(0.1, renderUnit.animSpeed || 1.0)
-        const frameDuration = ((maxFrames > 15 ? 0.04 : 0.07) / 1.0) / animMultiplier
+        const frameDuration = (maxFrames > 15 ? 0.04 : 0.07) / animMultiplier
 
         renderUnit.animTimer = (renderUnit.animTimer || 0) + deltaSec
         if (renderUnit.animTimer >= frameDuration) {
@@ -346,17 +551,34 @@ class NetworkSyncBuffer {
       }
     }
 
-    // Clean up units that are removed from snapshot
-    for (const id of this.renderUnitsMap.keys()) {
-      if (!currentIds.has(id)) {
-        this.renderUnitsMap.delete(id)
+    // Clean up units removed from active snapshot
+    for (const [id, renderUnit] of this.renderUnitsMap.entries()) {
+      if (!s1.units.has(id)) {
+        if (renderUnit.isDead && renderUnit.deathFade > 0) {
+          renderUnit.deathFade = Math.max(0, renderUnit.deathFade - deltaSec * 1.2)
+          if (renderUnit.deathFade <= 0) {
+            this.renderUnitsMap.delete(id)
+          }
+        } else {
+          this.renderUnitsMap.delete(id)
+        }
       }
     }
 
-    // Keep renderUnitsList synchronized
-    this.renderUnitsList = Array.from(this.renderUnitsMap.values())
+    // Keep renderUnitsList synchronized in-place (Zero GC array allocations)
+    let writeIdx = 0
+    for (let i = 0; i < this.renderUnitsList.length; i++) {
+      const u = this.renderUnitsList[i]
+      if (this.renderUnitsMap.has(u.id)) {
+        if (writeIdx !== i) {
+          this.renderUnitsList[writeIdx] = u
+        }
+        writeIdx++
+      }
+    }
+    this.renderUnitsList.length = writeIdx
 
-    // 2. Animate local combat effects at 60 FPS
+    // Animate local combat effects at 60 FPS
     this.updateCombatEffects(deltaSec)
   }
 
@@ -367,19 +589,40 @@ class NetworkSyncBuffer {
     if (!event || !event.type) return
 
     if (event.type === 'TOWER_FIRE') {
-      // Spawn local projectile from pool
-      const proj = this.projectilesPool.find(p => !p.active) || this.projectilesPool[0]
+      let proj: ClientVisualProjectile | null = null
+      for (let i = 0; i < this.projectilesPool.length; i++) {
+        if (!this.projectilesPool[i].active) {
+          proj = this.projectilesPool[i]
+          break
+        }
+      }
+      if (!proj) proj = this.projectilesPool[0]
+
       if (proj) {
         proj.id = event.id || `proj-${Date.now()}`
         proj.towerId = event.towerId || ''
+        proj.targetUnitId = event.unitId || ''
         proj.startX = event.startX || 0
         proj.startY = event.startY || 0
         proj.currentX = event.startX || 0
         proj.currentY = event.startY || 0
         proj.targetX = event.targetX || 0
         proj.targetY = event.targetY || 0
+
+        // If target unit exists in interpolated render map, lock onto its current position
+        if (proj.targetUnitId) {
+          const u = this.renderUnitsMap.get(proj.targetUnitId)
+          if (u && !u.isDead) {
+            proj.targetX = u.screenX
+            proj.targetY = u.screenY - 32 - (u.offsetY || 0)
+          }
+        }
+
+        proj.totalDistance = Math.hypot(proj.targetX - proj.startX, proj.targetY - proj.startY) || 1
+        proj.traveledDistance = 0
         proj.progress = 0
-        proj.speed = event.speed || 12.0
+        // Speed in px/s: event.speed if already in px/s (>50), or convert from tile/s
+        proj.speed = event.speed && event.speed > 50 ? event.speed : (event.speed || 10) * 128 * 1.5
         proj.color = event.color || 0xf97316
         proj.projectileType = event.projType || 'cannonball'
         proj.isSplash = Boolean(event.isSplash)
@@ -390,34 +633,69 @@ class NetworkSyncBuffer {
       const hitX = event.currentX || event.targetX || 0
       const hitY = event.currentY || event.targetY || 0
 
-      // Spawn damage floater from pool
-      if (event.damage !== undefined && event.damage > 0) {
-        const df = this.damageFloatersPool.find(f => !f.active) || this.damageFloatersPool[0]
-        if (df) {
-          df.id = `df-${Date.now()}-${Math.random()}`
-          df.x = hitX + (Math.random() * 12 - 6)
-          df.y = hitY - 14
-          df.startY = df.y
-          df.text = `-${Math.round(event.damage)}`
-          df.color = event.isCrit ? 0xf59e0b : 0xffffff
-          df.alpha = 1.0
-          df.isCrit = Boolean(event.isCrit)
-          df.active = true
+      // Only spawn an explosion ring if no ring was recently spawned nearby (<32px)
+      if (event.isSplash || event.projType === 'cannonball' || event.projType === 'fireball') {
+        const hasNearbyRing = this.explosionRingsPool.some(
+          r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 32
+        )
+        if (!hasNearbyRing) {
+          let ring: ClientExplosionRing | null = null
+          for (let i = 0; i < this.explosionRingsPool.length; i++) {
+            if (!this.explosionRingsPool[i].active) {
+              ring = this.explosionRingsPool[i]
+              break
+            }
+          }
+          if (!ring) ring = this.explosionRingsPool[0]
+
+          if (ring) {
+            ring.id = `ring-${Date.now()}`
+            ring.x = hitX
+            ring.y = hitY
+            ring.radius = 4
+            ring.maxRadius = (event.splashRadius || 1.5) * 128 * 0.65
+            ring.color =
+              event.projType === 'fireball'
+                ? 0xef4444
+                : event.projType === 'magic_bolt'
+                  ? 0x38bdf8
+                  : 0xf59e0b
+            ring.alpha = 0.95
+            ring.active = true
+          }
         }
       }
 
-      // Spawn explosion ring from pool if splash or heavy hit
-      if (event.isSplash || event.projType === 'cannonball' || event.projType === 'fireball') {
-        const ring = this.explosionRingsPool.find(r => !r.active) || this.explosionRingsPool[0]
-        if (ring) {
-          ring.id = `ring-${Date.now()}`
-          ring.x = hitX
-          ring.y = hitY
-          ring.radius = 4
-          ring.maxRadius = (event.splashRadius || 1.5) * 36
-          ring.color = event.projType === 'fireball' ? 0xef4444 : (event.projType === 'magic_bolt' ? 0x38bdf8 : 0xf59e0b)
-          ring.alpha = 0.95
-          ring.active = true
+      // If hit has damage floater
+      if (event.damage !== undefined && event.damage > 0) {
+        let df: ClientDamageFloater | null = null
+        for (let i = 0; i < this.damageFloatersPool.length; i++) {
+          if (!this.damageFloatersPool[i].active) {
+            df = this.damageFloatersPool[i]
+            break
+          }
+        }
+        if (!df) df = this.damageFloatersPool[0]
+
+        if (df) {
+          let floaterX = hitX + (Math.random() * 20 - 10)
+          let floaterY = hitY - 36
+          if (event.unitId) {
+            const u = this.renderUnitsMap.get(event.unitId)
+            if (u) {
+              floaterX = u.screenX + (Math.random() * 20 - 10)
+              floaterY = u.screenY - 36 - (u.offsetY || 0)
+            }
+          }
+          df.id = `df-${Date.now()}-${Math.random()}`
+          df.x = floaterX
+          df.y = floaterY
+          df.startY = floaterY
+          df.text = `-${event.damage}`
+          df.color = event.isCrit ? 0xef4444 : 0xfbbf24
+          df.alpha = 1.0
+          df.isCrit = Boolean(event.isCrit)
+          df.active = true
         }
       }
     } else if (event.type === 'UNIT_DIED') {
@@ -425,7 +703,15 @@ class NetworkSyncBuffer {
       const hitY = event.targetY || 0
       const goldReward = event.goldReward || 0
       if (goldReward > 0) {
-        const df = this.damageFloatersPool.find(f => !f.active) || this.damageFloatersPool[0]
+        let df: ClientDamageFloater | null = null
+        for (let i = 0; i < this.damageFloatersPool.length; i++) {
+          if (!this.damageFloatersPool[i].active) {
+            df = this.damageFloatersPool[i]
+            break
+          }
+        }
+        if (!df) df = this.damageFloatersPool[0]
+
         if (df) {
           df.id = `gold-${Date.now()}-${Math.random()}`
           df.x = hitX + (Math.random() * 12 - 6)
@@ -442,27 +728,83 @@ class NetworkSyncBuffer {
   }
 
   /**
+   * Emits spark particles and splash explosion ring right at the exact impact position
+   */
+  private triggerLocalImpact(proj: ClientVisualProjectile) {
+    const isArrow = proj.projectileType === 'arrow'
+    const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
+    let sparkColor = proj.color || 0xfbbf24
+    if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
+    else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
+    else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
+    else if (isArrow) sparkColor = 0xe2e8f0
+
+    combatEvents.emitImpact({
+      x: proj.currentX,
+      y: proj.currentY,
+      color: sparkColor,
+      count: sparkCount,
+      projectileType: proj.projectileType,
+    })
+
+    if (proj.isSplash && proj.splashRadius > 0 && proj.projectileType !== 'arrow') {
+      let ring: ClientExplosionRing | null = null
+      for (let i = 0; i < this.explosionRingsPool.length; i++) {
+        if (!this.explosionRingsPool[i].active) {
+          ring = this.explosionRingsPool[i]
+          break
+        }
+      }
+      if (!ring) ring = this.explosionRingsPool[0]
+
+      if (ring) {
+        ring.id = `ring-${Date.now()}-${Math.random()}`
+        ring.x = proj.currentX
+        ring.y = proj.currentY
+        ring.radius = 4
+        ring.maxRadius = proj.splashRadius * 128 * 0.65
+        ring.color = sparkColor
+        ring.alpha = 0.95
+        ring.active = true
+      }
+    }
+  }
+
+  /**
    * Updates local visual projectile, explosion, and damage floater animations at 60 FPS
    */
   private updateCombatEffects(deltaSec: number) {
-    // 1. Update Projectiles
+    // 1. Update Projectiles with dynamic homing tracking
     for (let i = 0; i < this.projectilesPool.length; i++) {
       const proj = this.projectilesPool[i]
       if (!proj.active) continue
 
-      const dx = proj.targetX - proj.startX
-      const dy = proj.targetY - proj.startY
-      const dist = Math.hypot(dx, dy) || 1
+      // Dynamically track unit position in real-time
+      if (proj.targetUnitId) {
+        const targetUnit = this.renderUnitsMap.get(proj.targetUnitId)
+        if (targetUnit && !targetUnit.isDead) {
+          proj.targetX = targetUnit.screenX
+          proj.targetY = targetUnit.screenY - 32 - (targetUnit.offsetY || 0)
+        }
+      }
 
-      proj.progress += (proj.speed * 40 * deltaSec) / dist
-      if (proj.progress >= 1.0) {
-        proj.progress = 1.0
+      const dx = proj.targetX - proj.currentX
+      const dy = proj.targetY - proj.currentY
+      const distToTarget = Math.hypot(dx, dy)
+      const moveStep = proj.speed * deltaSec
+
+      if (distToTarget <= moveStep || distToTarget < 14) {
         proj.currentX = proj.targetX
         proj.currentY = proj.targetY
         proj.active = false
+        this.triggerLocalImpact(proj)
       } else {
-        proj.currentX = proj.startX + dx * proj.progress
-        proj.currentY = proj.startY + dy * proj.progress
+        const dirX = dx / distToTarget
+        const dirY = dy / distToTarget
+        proj.currentX += dirX * moveStep
+        proj.currentY += dirY * moveStep
+        proj.traveledDistance = (proj.traveledDistance || 0) + moveStep
+        proj.progress = Math.min(1.0, proj.traveledDistance / Math.max(1, proj.totalDistance))
       }
     }
 
@@ -494,13 +836,13 @@ class NetworkSyncBuffer {
   }
 
   public clear() {
-    this.previousSnapshot = null
-    this.currentSnapshot = null
+    this.clientRenderTime = null
+    this.snapshotBuffer.clear()
     this.renderUnitsMap.clear()
-    this.renderUnitsList = []
-    for (const p of this.projectilesPool) p.active = false
-    for (const r of this.explosionRingsPool) r.active = false
-    for (const df of this.damageFloatersPool) df.active = false
+    this.renderUnitsList.length = 0
+    for (let i = 0; i < this.projectilesPool.length; i++) this.projectilesPool[i].active = false
+    for (let i = 0; i < this.explosionRingsPool.length; i++) this.explosionRingsPool[i].active = false
+    for (let i = 0; i < this.damageFloatersPool.length; i++) this.damageFloatersPool[i].active = false
   }
 }
 

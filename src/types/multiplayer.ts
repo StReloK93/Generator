@@ -1,4 +1,4 @@
-import { MapProject } from './map'
+import { MapProject, UnitVariantType } from './map'
 
 export interface PlayerInfo {
   id: string
@@ -128,6 +128,8 @@ export interface CompactUnitSnapshot {
   us?: number // unit scale multiplier
   fl: number // bitflags: 1: isSpawned, 2: hasReachedEnd, 4: isDead
   df?: number // deathFade (0..1)
+  uv?: UnitVariantType // elemental unit variant
+  vt?: number | string // variant tint override
 }
 
 export interface WorldSnapshotPayload {
@@ -190,3 +192,15 @@ export const PLAYER_COLORS = [
 export function getSlotColor(slotIndex: number): string {
   return PLAYER_COLORS[slotIndex % PLAYER_COLORS.length] || '#ef4444'
 }
+
+export interface NetworkSyncConfig {
+  /** Jitter buffer delay in ms to ensure continuous interpolation (default: 100ms) */
+  interpolationDelay: number
+  /** Maximum number of snapshots kept in the ring buffer (default: 20) */
+  maxBufferSnapshots: number
+  /** Maximum forward extrapolation time in ms when packets are temporarily delayed (default: 100ms) */
+  maxExtrapolationMs: number
+  /** Spatial distance squared threshold (px^2) to trigger an immediate snap instead of lerp (default: 10000 = 100px) */
+  teleportThresholdSq: number
+}
+

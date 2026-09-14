@@ -20,6 +20,7 @@ import { useCharacterStore } from './characterStore'
 import { useTowerStore } from './towerStore'
 import { useNotificationStore } from './notificationStore'
 import { MapProject } from '../types/map'
+import { gridToScreen } from '../utils/isometric'
 
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const mapStore = useMapStore()
@@ -498,6 +499,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (tower) {
           const existing = towerStore.placedTowers.find(t => t.id === tower.id || (t.col === tower.col && t.row === tower.row))
           if (!existing) {
+            if (tower.screenX === undefined || tower.screenY === undefined) {
+              const pt = gridToScreen(tower.col, tower.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
+              tower.screenX = pt.x
+              tower.screenY = pt.y
+            }
             towerStore.placedTowers.push(tower)
             addSystemMessage(`${tower.builderName || 'Player'} built a tower at (${tower.col}, ${tower.row})!`)
 
@@ -628,6 +634,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
             // Add or update towers from host
             for (const hostTower of state.placedTowers) {
+              if (hostTower.screenX === undefined || hostTower.screenY === undefined) {
+                const pt = gridToScreen(hostTower.col, hostTower.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
+                hostTower.screenX = pt.x
+                hostTower.screenY = pt.y
+              }
               const existingIdx = towerStore.placedTowers.findIndex(t => t.id === hostTower.id)
               if (existingIdx === -1) {
                 towerStore.placedTowers.push({ ...hostTower })
@@ -897,6 +908,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           us: (u as any).unitScale || 1.0,
           fl,
           df: u.deathFade,
+          uv: (u.unitVariant as any) || 'normal',
+          vt: u.variantTint,
         })
       }
 

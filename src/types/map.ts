@@ -127,6 +127,20 @@ export interface MapGameSettings {
   scoreMultiplier?: number
 }
 
+export interface SpawnPointData {
+  id: string
+  col: number
+  row: number
+  spawnCol?: number
+  spawnRow?: number
+  name?: string
+  quadrant?: number
+  isCorner?: boolean
+  cornerName?: string
+  layerId?: string
+  assetId?: string
+}
+
 export interface MapProject {
   id: string
   name: string
@@ -138,6 +152,7 @@ export interface MapProject {
   showGrid: boolean
   gridColor: string
   layers: Layer[]
+  spawnPoints?: SpawnPointData[]
   customRoutes?: Record<string, GridCoord[]>
   customWaypoints?: Record<string, GridCoord[]>
   characterConfig?: {

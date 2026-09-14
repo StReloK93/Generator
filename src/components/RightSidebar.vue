@@ -617,6 +617,12 @@ watch([elementSearchQuery, activeTopTab], () => {
   displayLimit.value = 40
 })
 
+watch([() => assetStore.selectedCategory, () => mapStore.totalTilesCount], ([cat]) => {
+  if (cat === 'UsedInMap') {
+    assetStore.updateUsedInMap(mapStore.project.layers)
+  }
+}, { immediate: true })
+
 const topTabItems = computed<TabItem[]>(() => [
   { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
   { id: 'layers', label: t('sidebar.layersTab') || 'Layers', icon: Layers, count: mapStore.project.layers.length },

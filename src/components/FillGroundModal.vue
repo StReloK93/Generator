@@ -83,14 +83,17 @@
       <!-- Mode Explanation Hint -->
       <div class="p-2.5 rounded-xl border text-xs" :class="modeHintClass">
         <p class="font-medium leading-relaxed">
-          <span v-if="fillMode === 'empty-only'">
-            ✨ <strong>{{ $t('editor.fillOnlyEmpty') }}</strong>: {{ $t('editor.fillOnlyEmptyDesc') }}
+          <span v-if="fillMode === 'empty-only'" class="inline-flex items-center gap-1">
+            <Sparkles class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span><strong>{{ $t('editor.fillOnlyEmpty') }}</strong>: {{ $t('editor.fillOnlyEmptyDesc') }}</span>
           </span>
-          <span v-else-if="fillMode === 'replace'">
-            ⚠️ <strong>{{ $t('editor.replaceAllCells') }}</strong>: {{ $t('editor.replaceAllDesc') }}
+          <span v-else-if="fillMode === 'replace'" class="inline-flex items-center gap-1">
+            <AlertTriangle class="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span><strong>{{ $t('editor.replaceAllCells') }}</strong>: {{ $t('editor.replaceAllDesc') }}</span>
           </span>
-          <span v-else>
-            ➕ <strong>{{ $t('editor.stackAllCells') }}</strong>: {{ $t('editor.stackAllDesc') }}
+          <span v-else class="inline-flex items-center gap-1">
+            <Plus class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span><strong>{{ $t('editor.stackAllCells') }}</strong>: {{ $t('editor.stackAllDesc') }}</span>
           </span>
         </p>
       </div>
@@ -191,7 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { 
-  PaintBucket, Layers, Sparkles, Grid, Boxes, Search 
+  PaintBucket, Layers, Sparkles, Grid, Boxes, Search, AlertTriangle, Plus 
 } from 'lucide-vue-next'
 import { UiModal, UiButton, UiTabs, UiInput, UiBadge } from './ui'
 import { useMapStore } from '../stores/mapStore'

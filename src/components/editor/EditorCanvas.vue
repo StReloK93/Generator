@@ -472,6 +472,7 @@ import { useCharacterStore } from '../../stores/characterStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
+import { EditorController } from '../../controllers/editor/EditorController'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import { GridCoord, AssetItem, SelectedElementRef } from '../../types/map'
 import { cellKey, isInsideGrid, getBresenhamLine, getRectangleCells, floodFill } from '../../utils/isometric'
@@ -501,6 +502,22 @@ const buildableBoxStartPoint = ref<GridCoord | null>(null)
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
 const camera = usePixiCamera(engine, toRef(mapStore, 'project'))
+const editorController = new EditorController({
+  mapStore,
+  toolStore,
+  assetStore,
+  characterStore,
+  notify,
+  t,
+  engine,
+})
+
+watch(buildableSubTool, (val) => {
+  editorController.buildableTool.subTool = val
+})
+watch(buildableAction, (val) => {
+  editorController.buildableTool.action = val
+})
 
 const showGuide = ref(true)
 const isDraggingOver = ref(false)
@@ -584,6 +601,7 @@ onUnmounted(() => {
   }
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
+  editorController.destroy()
   engine.destroy()
 })
 
@@ -718,314 +736,17 @@ watch(() => toolStore.activeTool, (newTool) => {
 const isCtrlPressed = ref(false)
 const isShiftPressed = ref(false)
 
-// Track waypoint dragging during route draw
-const isDraggingWaypoint = ref(false)
-const draggedWaypointIndex = ref<number | null>(null)
-
-// Track last drawn cell during mouse drag to prevent duplicate placement in the same cell
-const lastDrawnCell = ref<GridCoord | null>(null)
-
-// --- Mouse / Tool Handling ---
-function executeCellClick(gridCoord: GridCoord, isContinuous = false, e?: MouseEvent | TouchEvent) {
-  if (mapStore.activeLayer?.locked) return
-  if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-    if (!assetStore.selectedAssetId || toolStore.activeTool === 'select') {
-      toolStore.setSelectedElement(null)
-    }
-    return
-  }
-
-  // Box Clear Tool (Click 1st corner, then 2nd corner to open BoxClearModal)
-  if (isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-    if (!boxClearStartPoint.value) {
-      boxClearStartPoint.value = { col: gridCoord.col, row: gridCoord.row }
-      toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
-      return
-    }
-
-    // 2nd corner clicked: calculate elements and open BoxClearModal!
-    const p0 = boxClearStartPoint.value
-    const p1 = gridCoord
-    const summary = mapStore.getBoxElementSummary(p0.col, p0.row, p1.col, p1.row)
-
-    if (summary.totalItems === 0) {
-      notify.info(t('editor.boxClearNoItems'))
-      cancelBoxClearMode()
-      return
-    }
-
-    toolStore.openBoxClearModal(summary)
-    cancelBoxClearMode()
-    return
-  }
-
-  // Buildable Zones Tool (Brush, Line, Box Area)
-  if (toolStore.activeTool === 'buildable') {
-    const isAllow = buildableAction.value === 'allow'
-
-    if (buildableSubTool.value === 'box') {
-      if (!buildableBoxStartPoint.value) {
-        buildableBoxStartPoint.value = { col: gridCoord.col, row: gridCoord.row }
-        toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
-        return
-      }
-
-      // 2nd corner clicked: execute Box Area on buildable cells!
-      const p0 = buildableBoxStartPoint.value
-      const p1 = gridCoord
-      const cells = getRectangleCells(p0.col, p0.row, p1.col, p1.row)
-      mapStore.batchSetBuildableCells(cells, isAllow)
-      buildableBoxStartPoint.value = null
-      toolStore.previewCells = []
-      return
-    }
-
-    if (buildableSubTool.value === 'line') {
-      toolStore.isMouseDown = true
-      toolStore.dragStartCell = gridCoord
-      toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
-      return
-    }
-
-    // Default 'brush' mode (Click / Continuous Drag)
-    const targetState = isAllow ? !mapStore.isCellBuildable(gridCoord.col, gridCoord.row) : false
-    mapStore.setCellBuildable(gridCoord.col, gridCoord.row, targetState)
-    hasDrawnInDrag.value = true
-    toolStore.isMouseDown = true
-    toolStore.dragStartCell = gridCoord
-    lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-    return
-  }
-
-  // Box Fill Tool (Click 1st corner, then 2nd corner to fill empty cells in bounding rectangle)
-  if (isBoxFillActive.value || toolStore.activeTool === 'box-fill') {
-    if (!assetStore.selectedAssetId) {
-      notify.warning(t('editor.selectAssetFirst'))
-      cancelBoxFillMode()
-      return
-    }
-
-    if (!boxFillStartPoint.value) {
-      boxFillStartPoint.value = { col: gridCoord.col, row: gridCoord.row }
-      toolStore.previewCells = [{ col: gridCoord.col, row: gridCoord.row }]
-      return
-    }
-
-    // 2nd corner clicked: execute Box Fill on empty cells
-    const p0 = boxFillStartPoint.value
-    const p1 = gridCoord
-    const count = mapStore.fillEmptyCellsInBox(
-      p0.col,
-      p0.row,
-      p1.col,
-      p1.row,
-      assetStore.selectedAssetId,
-      mapStore.activeLayerId
-    )
-
-    if (count > 0) {
-      notify.success(t('editor.boxFilledEmptyCount', { count }))
-    } else {
-      notify.info(t('editor.occupiedCellsCount'))
-    }
-
-    boxFillStartPoint.value = null
-    toolStore.previewCells = []
-    return
-  }
-
-  // Spawn Point Setting
-  if (characterStore.isSettingSpawnPoint) {
-    if (characterStore.spawnPointPlacementMode === 'add') {
-      characterStore.addSpawnPoint(gridCoord.col, gridCoord.row)
-    } else {
-      characterStore.relocateCurrentSpawnPoint(gridCoord.col, gridCoord.row)
-    }
-    characterStore.isSettingSpawnPoint = false
-    engine.renderCharacter(characterStore, mapStore.project)
-    return
-  }
-
-  // Custom Route Drawing
-  if (characterStore.isDrawingRoute) {
-    characterStore.addPathTile(gridCoord)
-    engine.renderCharacter(characterStore, mapStore.project)
-    return
-  }
-
-
-
-  // Moving Element
-  if (toolStore.isMovingElement && toolStore.selectedElement) {
-    mapStore.moveTileItem(
-      toolStore.selectedElement.col,
-      toolStore.selectedElement.row,
-      gridCoord.col,
-      gridCoord.row,
-      toolStore.selectedElement.itemId,
-      toolStore.selectedElement.layerId
-    )
-    toolStore.selectedElement.col = gridCoord.col
-    toolStore.selectedElement.row = gridCoord.row
-    toolStore.isMovingElement = false
-    return
-  }
-
-  // Eraser Tool (Direct deletion on active layer or covering element)
-  if (toolStore.activeTool === 'eraser') {
-    mapStore.removeTile(gridCoord.col, gridCoord.row, mapStore.activeLayerId, false)
-    hasDrawnInDrag.value = true
-    toolStore.isMouseDown = true
-    toolStore.dragStartCell = gridCoord
-    lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-    return
-  }
-
-  // Eyedropper / Picker Tool (Pick sprite asset from clicked cell)
-  if (toolStore.activeTool === 'picker') {
-    const key = cellKey(gridCoord.col, gridCoord.row)
-    let foundAssetId: string | null = null
-    const layer = mapStore.activeLayer
-    if (layer && layer.tiles[key]) {
-      const items = mapStore.getCellItems(gridCoord.col, gridCoord.row, layer.id)
-      if (items.length > 0) foundAssetId = items[items.length - 1].assetId
-    }
-    if (!foundAssetId) {
-      // Check visible layers
-      for (let i = mapStore.project.layers.length - 1; i >= 0; i--) {
-        const l = mapStore.project.layers[i]
-        if (!l.visible || l.locked) continue
-        const items = mapStore.getCellItems(gridCoord.col, gridCoord.row, l.id)
-        if (items.length > 0) {
-          foundAssetId = items[items.length - 1].assetId
-          mapStore.activeLayerId = l.id
-          break
-        }
-      }
-    }
-    if (foundAssetId) {
-      assetStore.selectAsset(foundAssetId)
-      toolStore.setTool(toolStore.lastDrawingTool || 'brush')
-    }
-    return
-  }
-
-  // Bucket Fill Tool (Flood Fill contiguous matching cells)
-  if (toolStore.activeTool === 'bucket') {
-    if (!assetStore.selectedAssetId) {
-      notify.warning(t('editor.selectAssetFirst'))
-      return
-    }
-    const activeTilesRecord: Record<string, { assetId: string }> = {}
-    for (const [key, items] of Object.entries(mapStore.activeLayer.tiles)) {
-      const itemArr = Array.isArray(items) ? items : [items]
-      if (itemArr.length > 0) activeTilesRecord[key] = { assetId: itemArr[itemArr.length - 1].assetId }
-    }
-    const targetCells = floodFill(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, activeTilesRecord, mapStore.project.cols, mapStore.project.rows)
-    const isCtrl = isCtrlPressed.value
-    const isShift = isShiftPressed.value
-    const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
-    if (targetCells.length > 0) {
-      mapStore.fillTiles(targetCells, assetStore.selectedAssetId, mapStore.activeLayerId, mode)
-    }
-    return
-  }
-
-  // Line Tool (Drag to draw preview & fill on mouseUp)
-  if (toolStore.activeTool === 'line') {
-    if (!assetStore.selectedAssetId) {
-      notify.warning(t('editor.selectAssetFirst'))
-      return
-    }
-    toolStore.isMouseDown = true
-    toolStore.dragStartCell = gridCoord
-    toolStore.previewCells = [gridCoord]
-    lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-    return
-  }
-
-  // Brush Tool / Placing Asset
-  if (toolStore.activeTool === 'brush' && assetStore.selectedAssetId) {
-    const placedAssetId = assetStore.selectedAssetId
-    const existingDirect = mapStore.getCellItems(gridCoord.col, gridCoord.row, mapStore.activeLayerId)
-
-    const isCtrl = !!((e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || isCtrlPressed.value)
-    const isShift = !!((e && 'shiftKey' in e && e.shiftKey) || isShiftPressed.value)
-
-    let effectiveMode: 'replace' | 'stack' | 'ask' = toolStore.placementMode
-    if (isCtrl) {
-      effectiveMode = 'replace'
-    } else if (isShift) {
-      effectiveMode = 'stack'
-    }
-
-    if (existingDirect.length > 0) {
-      if (effectiveMode === 'replace' && existingDirect.length === 1 && existingDirect[0].assetId === placedAssetId) {
-        toolStore.isMouseDown = true
-        toolStore.dragStartCell = gridCoord
-        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        return
-      }
-
-      if (effectiveMode === 'ask' && !isContinuous) {
-        toolStore.placementConflict = {
-          col: gridCoord.col,
-          row: gridCoord.row,
-          assetId: placedAssetId,
-        }
-        return
-      } else {
-        mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, effectiveMode === 'replace' ? 'replace' : 'stack', mapStore.activeLayerId, false)
-        hasDrawnInDrag.value = true
-      }
-    } else {
-      mapStore.setTile(gridCoord.col, gridCoord.row, placedAssetId, 'stack', mapStore.activeLayerId, false)
-      hasDrawnInDrag.value = true
-    }
-
-    toolStore.isMouseDown = true
-    toolStore.dragStartCell = gridCoord
-    lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-    return
-  }
-
-  // Select Tool (Select map element & open Element Inspector Driver)
-  if (toolStore.activeTool === 'select' || !assetStore.selectedAssetId) {
-    const allEls = mapStore.getAllElementsAtOrCoveringCell(gridCoord.col, gridCoord.row)
-    if (allEls.length > 0) {
-      // Prioritize active layer if element exists on it, otherwise pick topmost element
-      const activeLayerEntry = allEls.find(e => e.layerId === mapStore.activeLayerId)
-      const chosen = activeLayerEntry || allEls[0]
-      mapStore.activeLayerId = chosen.layerId
-
-      const newRef: SelectedElementRef = {
-        col: gridCoord.col,
-        row: gridCoord.row,
-        layerId: chosen.layerId,
-        itemId: chosen.item.id,
-      }
-
-      if (isCtrlPressed.value || isShiftPressed.value) {
-        toolStore.toggleSelectedElement(newRef)
-      } else {
-        toolStore.setSelectedElement(newRef)
-      }
-    } else {
-      if (!isCtrlPressed.value && !isShiftPressed.value) {
-        toolStore.clearSelection()
-      }
-    }
-    return
-  }
-}
-
+// --- Mouse & Tool Handling via EditorController ---
 function handleMouseDown(e: MouseEvent) {
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
+  editorController.isCtrlPressed = isCtrlPressed.value
+  editorController.isShiftPressed = isShiftPressed.value
+
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   if (e.button === 2) {
-    handleContextMenu()
+    editorController.handleContextMenu()
     return
   }
   if (e.button === 1 || camera.isSpacePressed.value || toolStore.activeTool === 'pan') {
@@ -1035,235 +756,43 @@ function handleMouseDown(e: MouseEvent) {
   if (mapStore.activeLayer?.locked) return
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
-  lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-
-  // Custom Route Drawing & Point Selection/Relocation Dragging
-  if (characterStore.isDrawingRoute) {
-    const wpList = characterStore.drawingWaypoints
-    const clickedWpIdx = wpList.findIndex(p => p.col === gridCoord.col && p.row === gridCoord.row)
-    
-    if (clickedWpIdx !== -1) {
-      if (characterStore.selectedWaypointIndex === clickedWpIdx) {
-        isDraggingWaypoint.value = true
-        draggedWaypointIndex.value = clickedWpIdx
-      } else {
-        characterStore.selectWaypoint(clickedWpIdx)
-        isDraggingWaypoint.value = true
-        draggedWaypointIndex.value = clickedWpIdx
-      }
-      engine.renderCharacter(characterStore, mapStore.project)
-      return
-    }
-
-    if (characterStore.selectedWaypointIndex !== null) {
-      characterStore.moveSelectedWaypoint(gridCoord)
-      engine.renderCharacter(characterStore, mapStore.project)
-      return
-    }
-
-    characterStore.addWaypoint(gridCoord)
-    engine.renderCharacter(characterStore, mapStore.project)
-    return
-  }
-
-  // Box Fill & Box Clear: handle clicks without triggering brush drawing or drag painting
-  if (isBoxFillActive.value || toolStore.activeTool === 'box-fill' || isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-    executeCellClick(gridCoord, false, e)
-    return
-  }
-
-  executeCellClick(gridCoord, false, e)
+  editorController.handlePointerDown(gridCoord, e)
 }
 
 function handleMouseMove(e: MouseEvent) {
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
+  editorController.isCtrlPressed = isCtrlPressed.value
+  editorController.isShiftPressed = isShiftPressed.value
+
   if (camera.isPanning.value) {
     camera.updatePan(e.clientX, e.clientY)
     return
   }
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
-  toolStore.setHoveredCell(gridCoord)
-
-  if (characterStore.isDrawingRoute && isDraggingWaypoint.value && draggedWaypointIndex.value !== null) {
-    const idx = draggedWaypointIndex.value
-    if (idx >= 0 && idx < characterStore.drawingWaypoints.length) {
-      const current = characterStore.drawingWaypoints[idx]
-      if (current.col !== gridCoord.col || current.row !== gridCoord.row) {
-        characterStore.setWaypointPosition(idx, gridCoord)
-        engine.renderCharacter(characterStore, mapStore.project)
-      }
-    }
-    return
-  }
-
-  if (isBoxFillActive.value || toolStore.activeTool === 'box-fill') {
-    if (boxFillStartPoint.value) {
-      toolStore.previewCells = getRectangleCells(
-        boxFillStartPoint.value.col,
-        boxFillStartPoint.value.row,
-        gridCoord.col,
-        gridCoord.row
-      )
-    } else {
-      toolStore.previewCells = []
-    }
-    return
-  }
-
-  if (isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-    if (boxClearStartPoint.value) {
-      toolStore.previewCells = getRectangleCells(
-        boxClearStartPoint.value.col,
-        boxClearStartPoint.value.row,
-        gridCoord.col,
-        gridCoord.row
-      )
-    } else {
-      toolStore.previewCells = []
-    }
-    return
-  }
-
-  if (toolStore.activeTool === 'buildable') {
-    if (buildableSubTool.value === 'box') {
-      if (buildableBoxStartPoint.value) {
-        toolStore.previewCells = getRectangleCells(
-          buildableBoxStartPoint.value.col,
-          buildableBoxStartPoint.value.row,
-          gridCoord.col,
-          gridCoord.row
-        )
-      } else if (toolStore.isMouseDown && toolStore.dragStartCell) {
-        toolStore.previewCells = getRectangleCells(
-          toolStore.dragStartCell.col,
-          toolStore.dragStartCell.row,
-          gridCoord.col,
-          gridCoord.row
-        )
-      } else {
-        toolStore.previewCells = []
-      }
-      return
-    }
-
-    if (buildableSubTool.value === 'line') {
-      if (toolStore.isMouseDown && toolStore.dragStartCell) {
-        toolStore.previewCells = getBresenhamLine(
-          toolStore.dragStartCell.col,
-          toolStore.dragStartCell.row,
-          gridCoord.col,
-          gridCoord.row
-        )
-      } else {
-        toolStore.previewCells = []
-      }
-      return
-    }
-
-    // Brush drag
-    if (toolStore.isMouseDown && toolStore.dragStartCell) {
-      const isSameAsLast = lastDrawnCell.value && lastDrawnCell.value.col === gridCoord.col && lastDrawnCell.value.row === gridCoord.row
-      if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        mapStore.setCellBuildable(gridCoord.col, gridCoord.row, buildableAction.value === 'allow')
-        hasDrawnInDrag.value = true
-      }
-    }
-    return
-  }
-
-  if (toolStore.isMouseDown && toolStore.dragStartCell) {
-    const isSameAsLast = lastDrawnCell.value && lastDrawnCell.value.col === gridCoord.col && lastDrawnCell.value.row === gridCoord.row
-
-    if (toolStore.activeTool === 'brush' && assetStore.selectedAssetId) {
-      if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        const isCtrl = e.ctrlKey || e.metaKey || isCtrlPressed.value
-        const isShift = e.shiftKey || isShiftPressed.value
-        const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
-        mapStore.setTile(gridCoord.col, gridCoord.row, assetStore.selectedAssetId, mode, mapStore.activeLayerId, false)
-        hasDrawnInDrag.value = true
-      }
-    } else if (toolStore.activeTool === 'eraser') {
-      if (!isSameAsLast && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-        lastDrawnCell.value = { col: gridCoord.col, row: gridCoord.row }
-        mapStore.removeTile(gridCoord.col, gridCoord.row, mapStore.activeLayerId, false)
-        hasDrawnInDrag.value = true
-      }
-    } else if (toolStore.activeTool === 'line') {
-      toolStore.previewCells = getBresenhamLine(toolStore.dragStartCell.col, toolStore.dragStartCell.row, gridCoord.col, gridCoord.row)
-    }
-  }
+  editorController.handlePointerMove(gridCoord, e)
 }
 
 function handleMouseUp(e?: MouseEvent) {
   if (e) {
     isCtrlPressed.value = e.ctrlKey || e.metaKey
     isShiftPressed.value = e.shiftKey
+    editorController.isCtrlPressed = isCtrlPressed.value
+    editorController.isShiftPressed = isShiftPressed.value
   }
   if (camera.isPanning.value) camera.endPan()
-
-  if (isDraggingWaypoint.value) {
-    isDraggingWaypoint.value = false
-    draggedWaypointIndex.value = null
-    characterStore.commitRouteState()
-    engine.renderCharacter(characterStore, mapStore.project)
-    return
-  }
-
-  if (toolStore.activeTool === 'buildable') {
-    const isAllow = buildableAction.value === 'allow'
-    if (buildableSubTool.value === 'line' && toolStore.previewCells.length > 0) {
-      mapStore.batchSetBuildableCells(toolStore.previewCells, isAllow)
-      toolStore.previewCells = []
-    } else if (buildableSubTool.value === 'box' && toolStore.isMouseDown && toolStore.dragStartCell && toolStore.previewCells.length > 1) {
-      mapStore.batchSetBuildableCells(toolStore.previewCells, isAllow)
-      toolStore.previewCells = []
-      buildableBoxStartPoint.value = null
-    } else if (hasDrawnInDrag.value) {
-      mapStore.pushHistory('Buildable zones edit')
-      hasDrawnInDrag.value = false
-    }
-    toolStore.isMouseDown = false
-    toolStore.dragStartCell = null
-    lastDrawnCell.value = null
-    return
-  }
-
-  if (isBoxFillActive.value || toolStore.activeTool === 'box-fill' || isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-    return
-  }
-
-  if (hasDrawnInDrag.value) {
-    mapStore.pushHistory(toolStore.activeTool === 'eraser' ? 'Eraser stroke' : 'Brush stroke')
-    hasDrawnInDrag.value = false
-  }
-
-  if (toolStore.isMouseDown && toolStore.dragStartCell && assetStore.selectedAssetId) {
-    if (toolStore.previewCells.length > 0) {
-      const isCtrl = (e && (e.ctrlKey || e.metaKey)) || isCtrlPressed.value
-      const isShift = (e && e.shiftKey) || isShiftPressed.value
-      const mode = isCtrl ? 'replace' : (isShift ? 'stack' : (toolStore.placementMode === 'replace' ? 'replace' : 'stack'))
-      mapStore.fillTiles(toolStore.previewCells, assetStore.selectedAssetId, mapStore.activeLayerId, mode)
-      toolStore.previewCells = []
-    }
-  }
-  toolStore.isMouseDown = false
-  toolStore.dragStartCell = null
-  lastDrawnCell.value = null
+  const rect = camera.getViewportRect(viewportContainerRef.value)
+  const clientX = e ? e.clientX : 0
+  const clientY = e ? e.clientY : 0
+  const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
+  editorController.handlePointerUp(gridCoord, e || new MouseEvent('mouseup'))
 }
 
 function handleMouseLeave() {
   if (camera.isPanning.value) camera.endPan()
-  if (hasDrawnInDrag.value) {
-    mapStore.pushHistory(toolStore.activeTool === 'eraser' ? 'Eraser stroke' : 'Brush stroke')
-    hasDrawnInDrag.value = false
-  }
   toolStore.setHoveredCell(null)
-  toolStore.isMouseDown = false
-  lastDrawnCell.value = null
+  editorController.getActiveTool().onCancel?.(editorController.ctx)
 }
 
 function handleWheel(e: WheelEvent) {
@@ -1271,44 +800,7 @@ function handleWheel(e: WheelEvent) {
 }
 
 function handleContextMenu() {
-  if (isBoxFillActive.value || toolStore.activeTool === 'box-fill') {
-    cancelBoxFillMode()
-    return
-  }
-  if (isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-    cancelBoxClearMode()
-    return
-  }
-  if (characterStore.isDrawingRoute) {
-    if (characterStore.selectedWaypointIndex !== null) {
-      characterStore.selectedWaypointIndex = null
-      engine.renderCharacter(characterStore, mapStore.project)
-      return
-    }
-  }
-  if (characterStore.selectedDoorIndex !== null) {
-    characterStore.selectedDoorIndex = null
-    engine.renderCharacter(characterStore, mapStore.project)
-    return
-  }
-  if (characterStore.isSettingSpawnPoint) {
-    characterStore.isSettingSpawnPoint = false
-    return
-  }
-  if (toolStore.isMovingElement) {
-    toolStore.isMovingElement = false
-    return
-  }
-  if (assetStore.selectedAssetId) {
-    assetStore.selectAsset(null)
-    return
-  }
-  if (toolStore.selectedElement) {
-    toolStore.setSelectedElement(null)
-    return
-  }
-  toolStore.previewCells = []
-  toolStore.isMouseDown = false
+  editorController.handleContextMenu()
 }
 
 // --- Touch Handling ---
@@ -1328,7 +820,8 @@ function handleTouchEnd(e: TouchEvent) {
   camera.handleTouchEnd(e, (clientX, clientY) => {
     const rect = camera.getViewportRect(viewportContainerRef.value)
     const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
-    executeCellClick(gridCoord, false)
+    editorController.handlePointerDown(gridCoord, e)
+    editorController.handlePointerUp(gridCoord, e)
   })
 }
 

@@ -5,9 +5,10 @@ import { useToolStore } from './toolStore'
 import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
-import { IsoEngine } from '../engine/IsoEngine'
+import { combatEvents } from '../services/combatEvents'
 import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig } from '../types/map'
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
+import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
 
 export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
 export type SplashType = 'constant' | 'falloff'
@@ -954,31 +955,9 @@ export const useTowerStore = defineStore('towerStore', () => {
    * 2. When playing: updates cooldowns, acquires targets, moves projectiles.
    */
   function updateCombatTick(deltaSec: number) {
-    // Always update floaters and explosion rings in-place without per-frame array re-allocations
-    let activeFloatersCount = 0
-    for (let i = 0; i < damageFloaters.value.length; i++) {
-      const df = damageFloaters.value[i]
-      df.lifeTimer += deltaSec
-      df.y -= deltaSec * 35 // Float upwards
-      df.alpha = Math.max(0, 1.0 - df.lifeTimer / 0.85)
-      if (df.lifeTimer < 0.85) {
-        damageFloaters.value[activeFloatersCount++] = df
-      }
-    }
-    damageFloaters.value.length = activeFloatersCount
-
-    let activeRingsCount = 0
-    for (let i = 0; i < explosionRings.value.length; i++) {
-      const ring = explosionRings.value[i]
-      ring.lifeTimer += deltaSec
-      const prog = ring.lifeTimer / 0.45
-      ring.radius = ring.maxRadius * prog
-      ring.alpha = Math.max(0, 1.0 - prog)
-      if (ring.lifeTimer < 0.45) {
-        explosionRings.value[activeRingsCount++] = ring
-      }
-    }
-    explosionRings.value.length = activeRingsCount
+    // 1. Advance damage floaters and explosion rings via CombatSimulation
+    damageFloaters.value.length = CombatSimulation.updateDamageFloaters(damageFloaters.value, deltaSec)
+    explosionRings.value.length = CombatSimulation.updateExplosionRings(explosionRings.value, deltaSec)
 
     if (!characterStore.isEnabled || !characterStore.isPlaying) {
       // Clear visual flying projectiles on pause/reset
@@ -991,65 +970,22 @@ export const useTowerStore = defineStore('towerStore', () => {
     const { tileWidth, tileHeight } = mapStore.project
     const activeUnits = characterStore.units.filter((u: any) => u.isSpawned && !u.hasReachedEnd && !u.isDead)
 
-    // 1. Towers Target Acquisition & Shooting
+    // 2. Towers Target Acquisition & Shooting via TargetingSystem
     for (let tIdx = 0; tIdx < placedTowers.value.length; tIdx++) {
       const tower = placedTowers.value[tIdx]
       tower.cooldownTimer -= deltaSec
 
       if (tower.cooldownTimer <= 0) {
-        let bestTarget: any = null
+        const bestTarget = TargetingSystem.selectTarget(
+          tower.col,
+          tower.row,
+          tower.range,
+          tower.targetStrategy || 'first',
+          activeUnits,
+          tower.targetUnitId
+        )
 
-        // 1. Check existing target lock (Sticky Target Focus)
-        // Stays focused on the same enemy until it dies or escapes range
-        if (tower.targetUnitId) {
-          const lockedUnit = activeUnits.find((u: any) => u.id === tower.targetUnitId)
-          if (lockedUnit && !lockedUnit.isDead && !lockedUnit.hasReachedEnd) {
-            if (Math.abs(lockedUnit.currentCol - tower.col) <= tower.range && Math.abs(lockedUnit.currentRow - tower.row) <= tower.range) {
-              const distInTiles = Math.hypot(lockedUnit.currentCol - tower.col, lockedUnit.currentRow - tower.row)
-              if (distInTiles <= tower.range) {
-                bestTarget = lockedUnit
-              }
-            }
-          }
-        }
-
-        // 2. If no valid locked target, acquire new target according to strategy
-        if (!bestTarget) {
-          tower.targetUnitId = null
-          let bestScore = -Infinity
-          const strategy = tower.targetStrategy || 'first'
-
-          for (let uIdx = 0; uIdx < activeUnits.length; uIdx++) {
-            const unit = activeUnits[uIdx]
-            if (Math.abs(unit.currentCol - tower.col) > tower.range || Math.abs(unit.currentRow - tower.row) > tower.range) {
-              continue
-            }
-            const distInTiles = Math.hypot(unit.currentCol - tower.col, unit.currentRow - tower.row)
-            if (distInTiles <= tower.range) {
-              let score = 0
-              if (strategy === 'first') {
-                score = unit.pathIndex + (unit.pathInterpolation || 0)
-              } else if (strategy === 'last') {
-                score = -(unit.pathIndex + (unit.pathInterpolation || 0))
-              } else if (strategy === 'strongest') {
-                score = unit.currentHp || 0
-              } else if (strategy === 'weakest') {
-                score = -(unit.currentHp || 0)
-              } else if (strategy === 'closest') {
-                score = -distInTiles
-              }
-
-              if (score > bestScore) {
-                bestScore = score
-                bestTarget = unit
-              }
-            }
-          }
-
-          if (bestTarget) {
-            tower.targetUnitId = bestTarget.id
-          }
-        }
+        tower.targetUnitId = bestTarget ? bestTarget.id : null
 
         if (bestTarget) {
           tower.cooldownTimer = tower.attackSpeed
@@ -1098,7 +1034,7 @@ export const useTowerStore = defineStore('towerStore', () => {
               targetX,
               targetY,
               color: tower.projectileColor,
-              speed: tower.projectileSpeed,
+              speed: projSpeedPx,
               isSplash: tower.isSplash,
               splashRadius: tower.splashRadius,
             })
@@ -1107,40 +1043,14 @@ export const useTowerStore = defineStore('towerStore', () => {
       }
     }
 
-    // 2. Advance Flying Projectiles & Handle Hits (In-place update)
-    let remainingProjectilesCount = 0
-
-    for (let pIdx = 0; pIdx < projectiles.value.length; pIdx++) {
-      const proj = projectiles.value[pIdx]
-      // Find target unit to update its current position in case it moved
-      const targetUnit = activeUnits.find((u: any) => u.id === proj.targetUnitId)
-      if (targetUnit) {
-        proj.targetX = targetUnit.screenX
-        proj.targetY = targetUnit.screenY - tileHeight * 0.5
-      }
-
-      const dx = proj.targetX - proj.currentX
-      const dy = proj.targetY - proj.currentY
-      const distToTarget = Math.hypot(dx, dy)
-
-      const moveStep = proj.speed * deltaSec
-
-      if (distToTarget <= moveStep || distToTarget < 12) {
-        // --- HIT TARGET / DETONATION ---
-        handleProjectileImpact(proj, activeUnits)
-      } else {
-        // Move towards target
-        const dirX = dx / distToTarget
-        const dirY = dy / distToTarget
-        proj.currentX += dirX * moveStep
-        proj.currentY += dirY * moveStep
-        proj.traveledDistance += moveStep
-
-        projectiles.value[remainingProjectilesCount++] = proj
-      }
-    }
-
-    projectiles.value.length = remainingProjectilesCount
+    // 3. Advance Flying Projectiles & Handle Impacts via CombatSimulation
+    projectiles.value.length = CombatSimulation.updateProjectiles(
+      projectiles.value,
+      activeUnits,
+      tileHeight,
+      deltaSec,
+      (proj) => handleProjectileImpact(proj, activeUnits)
+    )
   }
 
   /**
@@ -1185,21 +1095,19 @@ export const useTowerStore = defineStore('towerStore', () => {
         })
       }
 
-      // Damage all units within splash radius
+      // Damage all units within splash radius via DamageCalculator
       for (const u of unitsPool) {
         if (u.isDead) continue
         const distPx = Math.hypot(u.screenX - proj.targetX, (u.screenY - tileHeight * 0.5) - proj.targetY)
         const distInTiles = distPx / (tileWidth * 0.65)
 
         if (distInTiles <= proj.splashRadius) {
-          let dmg = proj.damage
-
-          if (proj.splashType === 'falloff') {
-            // Linear falloff: 100% damage at center, 35% damage at perimeter
-            const falloffFactor = Math.max(0.35, 1.0 - (distInTiles / proj.splashRadius) * 0.65)
-            dmg = Math.round(proj.damage * falloffFactor)
-          }
-
+          const dmg = DamageCalculator.calculateSplashDamage(
+            proj.damage,
+            distInTiles,
+            proj.splashRadius,
+            proj.splashType
+          )
           applyDamageToUnit(u, dmg, tower)
         }
       }
@@ -1211,31 +1119,22 @@ export const useTowerStore = defineStore('towerStore', () => {
       }
     }
 
-    // Spawn Impact Spark Particles into IsoEngine (100% matched with TowerLivePreview)
-    if (IsoEngine.instance) {
-      const isArrow = proj.projectileType === 'arrow'
-      const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
-      let sparkColor = 0xfbbf24
-      if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
-      else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
-      else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
-      else if (isArrow) sparkColor = 0xe2e8f0
+    // Spawn Impact Spark Particles via combatEvents
+    const isArrow = proj.projectileType === 'arrow'
+    const sparkCount = isArrow ? 4 : (proj.isSplash ? 16 : 10)
+    let sparkColor = 0xfbbf24
+    if (proj.projectileType === 'frost_bolt') sparkColor = 0x67e8f9
+    else if (proj.projectileType === 'laser') sparkColor = 0xf43f5e
+    else if (proj.projectileType === 'magic_bolt') sparkColor = 0xa855f7
+    else if (isArrow) sparkColor = 0xe2e8f0
 
-      for (let s = 0; s < sparkCount; s++) {
-        const ang = Math.random() * Math.PI * 2
-        const spd = isArrow ? (15 + Math.random() * 40) : (30 + Math.random() * 90)
-        IsoEngine.instance.combatSparks.push({
-          x: proj.targetX,
-          y: proj.targetY,
-          vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd * 0.7,
-          color: sparkColor,
-          alpha: 1.0,
-          size: isArrow ? (1.5 + Math.random() * 1.5) : (2 + Math.random() * 2.5),
-          life: 0.35 + Math.random() * 0.25,
-        })
-      }
-    }
+    combatEvents.emitImpact({
+      x: proj.targetX,
+      y: proj.targetY,
+      color: sparkColor,
+      count: sparkCount,
+      projectileType: proj.projectileType,
+    })
   }
 
   /**
@@ -1250,133 +1149,46 @@ export const useTowerStore = defineStore('towerStore', () => {
       unit.currentHp = unit.maxHp
     }
 
-    // 1. Check unit vulnerability amplifier (e.g. from Void trait)
-    let vulnMultiplier = 1.0
-    if (unit.statusEffects && Array.isArray(unit.statusEffects)) {
-      const voidEffect = unit.statusEffects.find((e: any) => e.type === 'void')
-      if (voidEffect && voidEffect.amplification) {
-        vulnMultiplier += voidEffect.amplification / 100
-      }
+    // 1. Calculate hit damage, elemental traits, immunities, and status effects via DamageCalculator
+    const result = DamageCalculator.calculateDamage(damage, sourceTower, unit)
+    const finalDamage = result.finalDamage
+
+    if (result.isResisted && result.resistedTrait) {
+      damageFloaters.value.push({
+        id: `resist-${Date.now()}-${Math.random()}`,
+        text: `RESIST (${result.resistedTrait.toUpperCase()})`,
+        x: unit.screenX + (Math.random() * 20 - 10),
+        y: unit.screenY - mapStore.project.tileHeight * 1.3,
+        color: 0x94a3b8,
+        alpha: 1.0,
+        lifeTimer: 0,
+      })
     }
 
-    let finalDamage = Math.round(damage * vulnMultiplier)
-    const unitImmunities: TowerTraitType[] = unit.immunities || []
+    if (result.stackCount && result.stackCount > 1) {
+      damageFloaters.value.push({
+        id: `stack-${Date.now()}-${Math.random()}`,
+        text: `x${result.stackCount} RAMP!`,
+        x: unit.screenX,
+        y: unit.screenY - mapStore.project.tileHeight * 1.35,
+        color: 0xfbbf24,
+        alpha: 0.9,
+        lifeTimer: 0.3,
+      })
+    }
 
-    // 2. Trait-specific calculations if sourceTower is present
-    if (sourceTower && sourceTower.traits && sourceTower.traits.length > 0) {
-      for (const trait of sourceTower.traits) {
-        // --- IMMUNITY CHECK ---
-        if (unitImmunities.includes(trait)) {
-          // Unit resists this element! Show silver/gold RESIST floater
-          damageFloaters.value.push({
-            id: `resist-${Date.now()}-${Math.random()}`,
-            text: `RESIST (${trait.toUpperCase()})`,
-            x: unit.screenX + (Math.random() * 20 - 10),
-            y: unit.screenY - mapStore.project.tileHeight * 1.3,
-            color: 0x94a3b8,
-            alpha: 1.0,
-            lifeTimer: 0,
-          })
-          continue
-        }
-
-        // --- TRAIT APPLIED ---
-        if (trait === 'fire') {
-          const fireBonus = Math.round((sourceTower.fireBonusDamage ?? 5) * vulnMultiplier)
-          finalDamage += fireBonus
-          
-          // Apply / refresh Burn DoT
-          const burnDps = sourceTower.burnDps ?? 4
-          const burnDur = sourceTower.burnDuration ?? 3.0
-          if (!unit.statusEffects) unit.statusEffects = []
-          const existing = unit.statusEffects.find((e: any) => e.type === 'fire')
-          if (existing) {
-            existing.duration = Math.max(existing.duration, burnDur)
-            existing.dps = Math.max(existing.dps || 0, burnDps)
-          } else {
-            unit.statusEffects.push({ type: 'fire', duration: burnDur, dps: burnDps, tickTimer: 0 })
-          }
-        } else if (trait === 'frost') {
-          const frostBonus = Math.round((sourceTower.frostBonusDamage ?? 2) * vulnMultiplier)
-          finalDamage += frostBonus
-
-          // Apply / refresh Frost Slow
-          const slowPct = sourceTower.slowPercent ?? 30
-          const slowDur = sourceTower.slowDuration ?? 2.5
-          if (!unit.statusEffects) unit.statusEffects = []
-          const existing = unit.statusEffects.find((e: any) => e.type === 'frost')
-          if (existing) {
-            existing.duration = Math.max(existing.duration, slowDur)
-            existing.slowPercent = Math.max(existing.slowPercent || 0, slowPct)
-          } else {
-            unit.statusEffects.push({ type: 'frost', duration: slowDur, slowPercent: slowPct })
-          }
-        } else if (trait === 'poison') {
-          const poisonDps = sourceTower.poisonDps ?? 6
-          const poisonDur = sourceTower.poisonDuration ?? 4.0
-          const poisonSlow = sourceTower.poisonSlowPercent ?? 10
-          if (!unit.statusEffects) unit.statusEffects = []
-          const existing = unit.statusEffects.find((e: any) => e.type === 'poison')
-          if (existing) {
-            existing.duration = Math.max(existing.duration, poisonDur)
-            existing.dps = Math.max(existing.dps || 0, poisonDps)
-            existing.slowPercent = Math.max(existing.slowPercent || 0, poisonSlow)
-          } else {
-            unit.statusEffects.push({ type: 'poison', duration: poisonDur, dps: poisonDps, slowPercent: poisonSlow, tickTimer: 0 })
-          }
-        } else if (trait === 'stacking') {
-          // Consecutive hit stacking ramping damage!
-          if (!unit.consecutiveHits) unit.consecutiveHits = {}
-          const currentHits = (unit.consecutiveHits[sourceTower.id] || 0) + 1
-          unit.consecutiveHits[sourceTower.id] = currentHits
-          const stackBonus = sourceTower.stackBonusDamage ?? 4
-          const maxSt = sourceTower.maxStacks ?? 10
-          const activeStacks = Math.min(maxSt, currentHits)
-          const extraStackDmg = Math.round(activeStacks * stackBonus * vulnMultiplier)
-          finalDamage += extraStackDmg
-
-          // Show stacking floater badge (e.g. "x3 Hit!")
-          if (activeStacks > 1) {
-            damageFloaters.value.push({
-              id: `stack-${Date.now()}-${Math.random()}`,
-              text: `x${activeStacks} RAMP!`,
-              x: unit.screenX,
-              y: unit.screenY - mapStore.project.tileHeight * 1.35,
-              color: 0xfbbf24,
-              alpha: 0.9,
-              lifeTimer: 0.3,
-            })
-          }
-        } else if (trait === 'blood') {
-          const bleedDps = sourceTower.bleedDps ?? 7
-          const bleedDur = sourceTower.bleedDuration ?? 3.5
-          if (!unit.statusEffects) unit.statusEffects = []
-          const existing = unit.statusEffects.find((e: any) => e.type === 'blood')
-          if (existing) {
-            existing.duration = Math.max(existing.duration, bleedDur)
-            existing.dps = Math.max(existing.dps || 0, bleedDps)
-          } else {
-            unit.statusEffects.push({ type: 'blood', duration: bleedDur, dps: bleedDps, tickTimer: 0 })
-          }
-        } else if (trait === 'electric') {
-          const electricBonus = Math.round((sourceTower.electricBonusDamage ?? 6) * vulnMultiplier)
-          finalDamage += electricBonus
-          // Micro stun / zap
-          const stunDur = sourceTower.stunDuration ?? 0.3
-          if (!unit.statusEffects) unit.statusEffects = []
-          unit.statusEffects.push({ type: 'electric', duration: stunDur, slowPercent: 90 })
-        } else if (trait === 'void') {
-          // Void damage amplification curse
-          const vuln = sourceTower.voidVulnPercent ?? 25
-          const dur = sourceTower.voidDuration ?? 4.0
-          if (!unit.statusEffects) unit.statusEffects = []
-          const existing = unit.statusEffects.find((e: any) => e.type === 'void')
-          if (existing) {
-            existing.duration = Math.max(existing.duration, dur)
-            existing.amplification = Math.max(existing.amplification || 0, vuln)
-          } else {
-            unit.statusEffects.push({ type: 'void', duration: dur, amplification: vuln })
-          }
+    // Apply or refresh status effects
+    if (result.appliedStatusEffects.length > 0) {
+      if (!unit.statusEffects) unit.statusEffects = []
+      for (const eff of result.appliedStatusEffects) {
+        const existing = unit.statusEffects.find((e: any) => e.type === eff.type)
+        if (existing) {
+          existing.duration = Math.max(existing.duration, eff.duration)
+          if (eff.dps !== undefined) existing.dps = Math.max(existing.dps || 0, eff.dps)
+          if (eff.slowPercent !== undefined) existing.slowPercent = Math.max(existing.slowPercent || 0, eff.slowPercent)
+          if (eff.amplification !== undefined) existing.amplification = Math.max(existing.amplification || 0, eff.amplification)
+        } else {
+          unit.statusEffects.push({ ...eff, tickTimer: 0 })
         }
       }
     }

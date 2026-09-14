@@ -1,3683 +1,2403 @@
 {
   "frames": {
-    "Medusa_0_Pickup0": {
+    "Medusa_3_Walk7": {
       "frame": {
         "x": 2,
         "y": 2,
-        "w": 156,
-        "h": 148
+        "w": 108,
+        "h": 77
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 94,
-        "w": 156,
-        "h": 148
+        "x": 50,
+        "y": 101,
+        "w": 108,
+        "h": 77
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Die0": {
+    "Medusa_3_Run7": {
       "frame": {
-        "x": 160,
+        "x": 112,
         "y": 2,
-        "w": 156,
-        "h": 148
+        "w": 108,
+        "h": 77
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 94,
-        "w": 156,
-        "h": 148
+        "x": 50,
+        "y": 101,
+        "w": 108,
+        "h": 77
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_045_Idle_010": {
+    "Medusa_angle_180_Walk7": {
       "frame": {
-        "x": 476,
+        "x": 222,
         "y": 2,
-        "w": 156,
-        "h": 148
+        "w": 108,
+        "h": 77
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 94,
-        "w": 156,
-        "h": 148
+        "x": 50,
+        "y": 101,
+        "w": 108,
+        "h": 77
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Idle_015": {
+    "Medusa_2_Idle_015": {
       "frame": {
-        "x": 634,
+        "x": 332,
         "y": 2,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 90,
+        "x": 81,
         "y": 97,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Idle5": {
+    "Medusa_2_Idle5": {
       "frame": {
-        "x": 785,
+        "x": 420,
         "y": 2,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 90,
+        "x": 81,
         "y": 97,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Pickup5": {
+    "Medusa_2_Pickup5": {
       "frame": {
-        "x": 936,
+        "x": 508,
         "y": 2,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 90,
+        "x": 81,
         "y": 97,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Die5": {
+    "Medusa_2_Die5": {
       "frame": {
-        "x": 1087,
+        "x": 596,
         "y": 2,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 90,
+        "x": 81,
         "y": 97,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_045_Idle_015": {
+    "Medusa_angle_135_Idle_015": {
       "frame": {
-        "x": 1238,
+        "x": 684,
         "y": 2,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 90,
+        "x": 81,
         "y": 97,
-        "w": 149,
-        "h": 148
+        "w": 86,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_0_Idle_016": {
+    "Medusa_angle_157_Idle_015": {
       "frame": {
-        "x": 1389,
+        "x": 772,
         "y": 2,
-        "w": 151,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 96,
-        "w": 151,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle6": {
-      "frame": {
-        "x": 1542,
-        "y": 2,
-        "w": 151,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 96,
-        "w": 151,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Pickup6": {
-      "frame": {
-        "x": 1695,
-        "y": 2,
-        "w": 151,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 96,
-        "w": 151,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Die6": {
-      "frame": {
-        "x": 1848,
-        "y": 2,
-        "w": 151,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 96,
-        "w": 151,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_045_Idle_016": {
-      "frame": {
-        "x": 2,
-        "y": 152,
-        "w": 151,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 96,
-        "w": 151,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_247_Walk4": {
-      "frame": {
-        "x": 155,
-        "y": 152,
-        "w": 134,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 120,
-        "y": 74,
-        "w": 134,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle_013": {
-      "frame": {
-        "x": 291,
-        "y": 152,
-        "w": 147,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 97,
-        "w": 147,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle3": {
-      "frame": {
-        "x": 440,
-        "y": 152,
-        "w": 147,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 97,
-        "w": 147,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Pickup3": {
-      "frame": {
-        "x": 589,
-        "y": 152,
-        "w": 147,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 97,
-        "w": 147,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Die3": {
-      "frame": {
-        "x": 738,
-        "y": 152,
-        "w": 147,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 97,
-        "w": 147,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_045_Idle_013": {
-      "frame": {
-        "x": 887,
-        "y": 152,
-        "w": 147,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 92,
-        "y": 97,
-        "w": 147,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle_017": {
-      "frame": {
-        "x": 1036,
-        "y": 152,
-        "w": 155,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 155,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle7": {
-      "frame": {
-        "x": 1193,
-        "y": 152,
-        "w": 155,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 155,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Pickup7": {
-      "frame": {
-        "x": 1350,
-        "y": 152,
-        "w": 155,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 155,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Die7": {
-      "frame": {
-        "x": 1507,
-        "y": 152,
-        "w": 155,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 155,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_045_Idle_017": {
-      "frame": {
-        "x": 1664,
-        "y": 152,
-        "w": 155,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 155,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_067_Walk5": {
-      "frame": {
-        "x": 1821,
-        "y": 152,
-        "w": 130,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 73,
-        "y": 91,
-        "w": 130,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle_012": {
-      "frame": {
-        "x": 2,
-        "y": 302,
-        "w": 151,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 96,
-        "w": 151,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle2": {
-      "frame": {
-        "x": 155,
-        "y": 302,
-        "w": 151,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 96,
-        "w": 151,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Pickup2": {
-      "frame": {
-        "x": 308,
-        "y": 302,
-        "w": 151,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 96,
-        "w": 151,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Die2": {
-      "frame": {
-        "x": 461,
-        "y": 302,
-        "w": 151,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 96,
-        "w": 151,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_045_Idle_012": {
-      "frame": {
-        "x": 614,
-        "y": 302,
-        "w": 151,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 96,
-        "w": 151,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_067_Walk6": {
-      "frame": {
-        "x": 767,
-        "y": 302,
-        "w": 127,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 95,
-        "w": 127,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_247_Walk3": {
-      "frame": {
-        "x": 896,
-        "y": 302,
-        "w": 139,
-        "h": 146
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 118,
-        "y": 73,
-        "w": 139,
-        "h": 146
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle_011": {
-      "frame": {
-        "x": 1037,
-        "y": 302,
-        "w": 156,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 156,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Idle1": {
-      "frame": {
-        "x": 1195,
-        "y": 302,
-        "w": 156,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 156,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Pickup1": {
-      "frame": {
-        "x": 1353,
-        "y": 302,
-        "w": 156,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 156,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_0_Die1": {
-      "frame": {
-        "x": 1511,
-        "y": 302,
-        "w": 156,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 156,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_045_Idle_011": {
-      "frame": {
-        "x": 1669,
-        "y": 302,
-        "w": 156,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 95,
-        "w": 156,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk6": {
-      "frame": {
-        "x": 1827,
-        "y": 302,
-        "w": 132,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 79,
-        "w": 132,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run6": {
-      "frame": {
-        "x": 2,
-        "y": 450,
-        "w": 132,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 79,
-        "w": 132,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk6": {
-      "frame": {
-        "x": 136,
-        "y": 450,
-        "w": 132,
-        "h": 145
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 79,
-        "w": 132,
-        "h": 145
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_247_Walk2": {
-      "frame": {
-        "x": 270,
-        "y": 450,
-        "w": 144,
-        "h": 144
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 116,
-        "y": 70,
-        "w": 144,
-        "h": 144
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk7": {
-      "frame": {
-        "x": 416,
-        "y": 450,
-        "w": 135,
-        "h": 143
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 78,
-        "w": 135,
-        "h": 143
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run7": {
-      "frame": {
-        "x": 553,
-        "y": 450,
-        "w": 135,
-        "h": 143
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 78,
-        "w": 135,
-        "h": 143
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk7": {
-      "frame": {
-        "x": 690,
-        "y": 450,
-        "w": 135,
-        "h": 143
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 78,
-        "w": 135,
-        "h": 143
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_067_Walk4": {
-      "frame": {
-        "x": 827,
-        "y": 450,
-        "w": 134,
-        "h": 142
+        "w": 91,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 66,
-        "y": 88,
-        "w": 134,
-        "h": 142
+        "y": 101,
+        "w": 91,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_4_Walk5": {
+    "Medusa_3_Idle_010": {
       "frame": {
-        "x": 963,
-        "y": 450,
-        "w": 138,
-        "h": 142
+        "x": 977,
+        "y": 2,
+        "w": 110,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 84,
-        "w": 138,
-        "h": 142
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_4_Run5": {
+    "Medusa_3_Idle0": {
       "frame": {
-        "x": 1103,
-        "y": 450,
-        "w": 138,
-        "h": 142
+        "x": 1537,
+        "y": 2,
+        "w": 110,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 84,
-        "w": 138,
-        "h": 142
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_225_Walk5": {
+    "Medusa_3_Pickup0": {
+      "frame": {
+        "x": 1649,
+        "y": 2,
+        "w": 110,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die0": {
+      "frame": {
+        "x": 1761,
+        "y": 2,
+        "w": 110,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle": {
+      "frame": {
+        "x": 1425,
+        "y": 2,
+        "w": 110,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_010": {
+      "frame": {
+        "x": 2,
+        "y": 81,
+        "w": 110,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 110,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle_012": {
+      "frame": {
+        "x": 114,
+        "y": 81,
+        "w": 103,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 101,
+        "w": 103,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle2": {
+      "frame": {
+        "x": 219,
+        "y": 81,
+        "w": 103,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 101,
+        "w": 103,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Pickup2": {
+      "frame": {
+        "x": 324,
+        "y": 81,
+        "w": 103,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 101,
+        "w": 103,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die2": {
+      "frame": {
+        "x": 429,
+        "y": 81,
+        "w": 103,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 101,
+        "w": 103,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_012": {
+      "frame": {
+        "x": 534,
+        "y": 81,
+        "w": 103,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 101,
+        "w": 103,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle_013": {
+      "frame": {
+        "x": 639,
+        "y": 81,
+        "w": 98,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 98,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle3": {
+      "frame": {
+        "x": 739,
+        "y": 81,
+        "w": 98,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 98,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Pickup3": {
+      "frame": {
+        "x": 839,
+        "y": 81,
+        "w": 98,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 98,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die3": {
+      "frame": {
+        "x": 939,
+        "y": 81,
+        "w": 98,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 98,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_013": {
+      "frame": {
+        "x": 1039,
+        "y": 81,
+        "w": 98,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 98,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle_015": {
+      "frame": {
+        "x": 1139,
+        "y": 81,
+        "w": 102,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 55,
+        "y": 102,
+        "w": 102,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle5": {
       "frame": {
         "x": 1243,
-        "y": 450,
-        "w": 138,
-        "h": 142
+        "y": 81,
+        "w": 102,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 85,
-        "y": 84,
-        "w": 138,
-        "h": 142
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_010": {
-      "frame": {
-        "x": 1541,
-        "y": 450,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle0": {
-      "frame": {
-        "x": 318,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup0": {
-      "frame": {
-        "x": 476,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die0": {
-      "frame": {
-        "x": 634,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle": {
-      "frame": {
-        "x": 160,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_010": {
-      "frame": {
-        "x": 950,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_011": {
-      "frame": {
-        "x": 1108,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle1": {
-      "frame": {
-        "x": 1266,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup1": {
-      "frame": {
-        "x": 1424,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die1": {
-      "frame": {
-        "x": 1582,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_011": {
-      "frame": {
-        "x": 1740,
-        "y": 597,
-        "w": 156,
-        "h": 141
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 76,
-        "w": 156,
-        "h": 141
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_012": {
-      "frame": {
-        "x": 2,
-        "y": 740,
-        "w": 151,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 76,
-        "w": 151,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle2": {
-      "frame": {
-        "x": 155,
-        "y": 740,
-        "w": 151,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 76,
-        "w": 151,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup2": {
-      "frame": {
-        "x": 308,
-        "y": 740,
-        "w": 151,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 76,
-        "w": 151,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die2": {
-      "frame": {
-        "x": 461,
-        "y": 740,
-        "w": 151,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 76,
-        "w": 151,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_012": {
-      "frame": {
-        "x": 614,
-        "y": 740,
-        "w": 151,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 76,
-        "w": 151,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_013": {
-      "frame": {
-        "x": 767,
-        "y": 740,
-        "w": 147,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 77,
-        "w": 147,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle3": {
-      "frame": {
-        "x": 916,
-        "y": 740,
-        "w": 147,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 77,
-        "w": 147,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup3": {
-      "frame": {
-        "x": 1065,
-        "y": 740,
-        "w": 147,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 77,
-        "w": 147,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die3": {
-      "frame": {
-        "x": 1214,
-        "y": 740,
-        "w": 147,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 77,
-        "w": 147,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_013": {
-      "frame": {
-        "x": 1363,
-        "y": 740,
-        "w": 147,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 77,
-        "w": 147,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_015": {
-      "frame": {
-        "x": 1512,
-        "y": 740,
-        "w": 149,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 78,
-        "w": 149,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle5": {
-      "frame": {
-        "x": 1663,
-        "y": 740,
-        "w": 149,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 78,
-        "w": 149,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup5": {
-      "frame": {
-        "x": 1814,
-        "y": 740,
-        "w": 149,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 78,
-        "w": 149,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die5": {
-      "frame": {
-        "x": 2,
-        "y": 882,
-        "w": 149,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 78,
-        "w": 149,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_015": {
-      "frame": {
-        "x": 153,
-        "y": 882,
-        "w": 149,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 81,
-        "y": 78,
-        "w": 149,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_016": {
-      "frame": {
-        "x": 304,
-        "y": 882,
-        "w": 152,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 152,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle6": {
-      "frame": {
-        "x": 458,
-        "y": 882,
-        "w": 152,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 152,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup6": {
-      "frame": {
-        "x": 612,
-        "y": 882,
-        "w": 152,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 152,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die6": {
-      "frame": {
-        "x": 766,
-        "y": 882,
-        "w": 152,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 152,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_016": {
-      "frame": {
-        "x": 920,
-        "y": 882,
-        "w": 152,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 152,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_017": {
-      "frame": {
-        "x": 1074,
-        "y": 882,
-        "w": 155,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 155,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle7": {
-      "frame": {
-        "x": 1231,
-        "y": 882,
-        "w": 155,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 155,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup7": {
-      "frame": {
-        "x": 1388,
-        "y": 882,
-        "w": 155,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 155,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die7": {
-      "frame": {
-        "x": 1545,
-        "y": 882,
-        "w": 155,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 155,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_017": {
-      "frame": {
-        "x": 1702,
-        "y": 882,
-        "w": 155,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 80,
-        "y": 77,
-        "w": 155,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle_014": {
-      "frame": {
-        "x": 1859,
-        "y": 882,
-        "w": 147,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 78,
-        "w": 147,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Idle4": {
-      "frame": {
-        "x": 2,
-        "y": 1024,
-        "w": 147,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 78,
-        "w": 147,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Pickup4": {
-      "frame": {
-        "x": 151,
-        "y": 1024,
-        "w": 147,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 78,
-        "w": 147,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Die4": {
-      "frame": {
-        "x": 300,
-        "y": 1024,
-        "w": 147,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 78,
-        "w": 147,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Idle_014": {
-      "frame": {
-        "x": 449,
-        "y": 1024,
-        "w": 147,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
-        "y": 78,
-        "w": 147,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_067_Walk7": {
-      "frame": {
-        "x": 598,
-        "y": 1024,
-        "w": 130,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 84,
-        "y": 99,
-        "w": 130,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk0": {
-      "frame": {
-        "x": 871,
-        "y": 1024,
-        "w": 139,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 76,
-        "w": 139,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run0": {
-      "frame": {
-        "x": 1153,
-        "y": 1024,
-        "w": 139,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 76,
-        "w": 139,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk0": {
-      "frame": {
-        "x": 1435,
-        "y": 1024,
-        "w": 139,
-        "h": 139
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 91,
-        "y": 76,
-        "w": 139,
-        "h": 139
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk4": {
-      "frame": {
-        "x": 1576,
-        "y": 1024,
-        "w": 148,
-        "h": 136
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 89,
-        "w": 148,
-        "h": 136
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run4": {
-      "frame": {
-        "x": 1726,
-        "y": 1024,
-        "w": 148,
-        "h": 136
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 89,
-        "w": 148,
-        "h": 136
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk4": {
-      "frame": {
-        "x": 1876,
-        "y": 1024,
-        "w": 148,
-        "h": 136
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 88,
-        "y": 89,
-        "w": 148,
-        "h": 136
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk1": {
-      "frame": {
-        "x": 2,
-        "y": 1165,
-        "w": 151,
-        "h": 135
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 90,
-        "y": 79,
-        "w": 151,
-        "h": 135
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run1": {
-      "frame": {
-        "x": 155,
-        "y": 1165,
-        "w": 151,
-        "h": 135
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 90,
-        "y": 79,
-        "w": 151,
-        "h": 135
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk1": {
-      "frame": {
-        "x": 308,
-        "y": 1165,
-        "w": 151,
-        "h": 135
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 90,
-        "y": 79,
-        "w": 151,
-        "h": 135
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk3": {
-      "frame": {
-        "x": 461,
-        "y": 1165,
-        "w": 158,
-        "h": 134
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 89,
-        "w": 158,
-        "h": 134
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run3": {
-      "frame": {
-        "x": 621,
-        "y": 1165,
-        "w": 158,
-        "h": 134
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 89,
-        "w": 158,
-        "h": 134
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk3": {
-      "frame": {
-        "x": 781,
-        "y": 1165,
-        "w": 158,
-        "h": 134
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 89,
-        "w": 158,
-        "h": 134
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Walk2": {
-      "frame": {
-        "x": 941,
-        "y": 1165,
-        "w": 161,
-        "h": 133
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 86,
-        "w": 161,
-        "h": 133
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_4_Run2": {
-      "frame": {
-        "x": 1104,
-        "y": 1165,
-        "w": 161,
-        "h": 133
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 86,
-        "w": 161,
-        "h": 133
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_225_Walk2": {
-      "frame": {
-        "x": 1267,
-        "y": 1165,
-        "w": 161,
-        "h": 133
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 89,
-        "y": 86,
-        "w": 161,
-        "h": 133
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_067_Idle_013": {
-      "frame": {
-        "x": 1430,
-        "y": 1165,
-        "w": 132,
-        "h": 132
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 82,
+        "x": 55,
         "y": 102,
-        "w": 132,
-        "h": 132
+        "w": 102,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_014": {
+    "Medusa_3_Pickup5": {
       "frame": {
-        "x": 1564,
-        "y": 1165,
-        "w": 136,
-        "h": 132
+        "x": 1347,
+        "y": 81,
+        "w": 102,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 78,
+        "x": 55,
         "y": 102,
-        "w": 136,
-        "h": 132
+        "w": 102,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_015": {
+    "Medusa_3_Die5": {
       "frame": {
-        "x": 1702,
-        "y": 1165,
-        "w": 137,
-        "h": 132
+        "x": 1451,
+        "y": 81,
+        "w": 102,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 76,
+        "x": 55,
+        "y": 102,
+        "w": 102,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_015": {
+      "frame": {
+        "x": 1555,
+        "y": 81,
+        "w": 102,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 55,
+        "y": 102,
+        "w": 102,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle_016": {
+      "frame": {
+        "x": 1659,
+        "y": 81,
+        "w": 106,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 102,
+        "w": 106,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle6": {
+      "frame": {
+        "x": 1767,
+        "y": 81,
+        "w": 106,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 102,
+        "w": 106,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Pickup6": {
+      "frame": {
+        "x": 1875,
+        "y": 81,
+        "w": 106,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 102,
+        "w": 106,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die6": {
+      "frame": {
+        "x": 2,
+        "y": 159,
+        "w": 106,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 102,
+        "w": 106,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_016": {
+      "frame": {
+        "x": 110,
+        "y": 159,
+        "w": 106,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 52,
+        "y": 102,
+        "w": 106,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle_017": {
+      "frame": {
+        "x": 218,
+        "y": 159,
+        "w": 109,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
         "y": 101,
-        "w": 137,
-        "h": 132
+        "w": 109,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_016": {
+    "Medusa_3_Idle7": {
       "frame": {
-        "x": 1841,
-        "y": 1165,
-        "w": 139,
-        "h": 132
+        "x": 329,
+        "y": 159,
+        "w": 109,
+        "h": 76
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 73,
-        "y": 100,
-        "w": 139,
-        "h": 132
+        "x": 50,
+        "y": 101,
+        "w": 109,
+        "h": 76
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_012": {
+    "Medusa_3_Pickup7": {
       "frame": {
-        "x": 2,
-        "y": 1302,
-        "w": 133,
-        "h": 131
+        "x": 440,
+        "y": 159,
+        "w": 109,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 101,
+        "w": 109,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die7": {
+      "frame": {
+        "x": 551,
+        "y": 159,
+        "w": 109,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 101,
+        "w": 109,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_017": {
+      "frame": {
+        "x": 662,
+        "y": 159,
+        "w": 109,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 101,
+        "w": 109,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_112_Walk7": {
+      "frame": {
+        "x": 773,
+        "y": 159,
+        "w": 111,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 58,
+        "y": 91,
+        "w": 111,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Walk4": {
+      "frame": {
+        "x": 886,
+        "y": 159,
+        "w": 129,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 129,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Run4": {
+      "frame": {
+        "x": 1017,
+        "y": 159,
+        "w": 129,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 129,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Walk4": {
+      "frame": {
+        "x": 1148,
+        "y": 159,
+        "w": 129,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 101,
+        "w": 129,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Walk5": {
+      "frame": {
+        "x": 1279,
+        "y": 159,
+        "w": 127,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 46,
+        "y": 101,
+        "w": 127,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Run5": {
+      "frame": {
+        "x": 1408,
+        "y": 159,
+        "w": 127,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 46,
+        "y": 101,
+        "w": 127,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Walk5": {
+      "frame": {
+        "x": 1537,
+        "y": 159,
+        "w": 127,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 46,
+        "y": 101,
+        "w": 127,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Walk6": {
+      "frame": {
+        "x": 1666,
+        "y": 159,
+        "w": 118,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 47,
+        "y": 101,
+        "w": 118,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Run6": {
+      "frame": {
+        "x": 1786,
+        "y": 159,
+        "w": 118,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 47,
+        "y": 101,
+        "w": 118,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Walk6": {
+      "frame": {
+        "x": 1906,
+        "y": 159,
+        "w": 118,
+        "h": 76
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 47,
+        "y": 101,
+        "w": 118,
+        "h": 76
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle_010": {
+      "frame": {
+        "x": 87,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 81,
-        "y": 102,
-        "w": 133,
-        "h": 131
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Walk3": {
+    "Medusa_2_Idle0": {
       "frame": {
-        "x": 137,
-        "y": 1302,
-        "w": 139,
-        "h": 131
+        "x": 512,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 63,
-        "y": 89,
-        "w": 139,
-        "h": 131
+        "x": 81,
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_010": {
+    "Medusa_2_Pickup0": {
       "frame": {
-        "x": 420,
-        "y": 1302,
-        "w": 140,
-        "h": 130
+        "x": 597,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 100,
-        "w": 140,
-        "h": 130
+        "x": 81,
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_011": {
+    "Medusa_2_Die0": {
       "frame": {
-        "x": 562,
-        "y": 1302,
-        "w": 138,
-        "h": 130
+        "x": 682,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 75,
-        "y": 101,
-        "w": 138,
-        "h": 130
+        "x": 81,
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Idle_017": {
+    "Medusa_2_Idle": {
       "frame": {
-        "x": 702,
-        "y": 1302,
-        "w": 140,
-        "h": 130
+        "x": 427,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 71,
-        "y": 100,
-        "w": 140,
-        "h": 130
+        "x": 81,
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Walk0": {
+    "Medusa_angle_135_Idle_010": {
       "frame": {
-        "x": 982,
-        "y": 1302,
-        "w": 136,
-        "h": 129
+        "x": 852,
+        "y": 237,
+        "w": 83,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 71,
-        "y": 99,
-        "w": 136,
-        "h": 129
+        "x": 81,
+        "y": 97,
+        "w": 83,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Walk1": {
+    "Medusa_2_Idle_016": {
       "frame": {
-        "x": 1120,
-        "y": 1302,
-        "w": 143,
-        "h": 123
+        "x": 937,
+        "y": 237,
+        "w": 84,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 63,
-        "y": 98,
-        "w": 143,
-        "h": 123
+        "x": 82,
+        "y": 97,
+        "w": 84,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_067_Walk2": {
+    "Medusa_2_Idle6": {
       "frame": {
-        "x": 1265,
-        "y": 1302,
-        "w": 144,
-        "h": 123
+        "x": 1023,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Pickup6": {
+      "frame": {
+        "x": 1109,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die6": {
+      "frame": {
+        "x": 1195,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_016": {
+      "frame": {
+        "x": 1281,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle_017": {
+      "frame": {
+        "x": 1367,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle7": {
+      "frame": {
+        "x": 1453,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Pickup7": {
+      "frame": {
+        "x": 1539,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die7": {
+      "frame": {
+        "x": 1625,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_017": {
+      "frame": {
+        "x": 1711,
+        "y": 237,
+        "w": 84,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 81,
+        "y": 97,
+        "w": 84,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Idle_010": {
+      "frame": {
+        "x": 1893,
+        "y": 237,
+        "w": 94,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 60,
-        "y": 91,
-        "w": 144,
-        "h": 123
+        "y": 101,
+        "w": 94,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Walk0": {
+    "Medusa_angle_157_Idle_016": {
       "frame": {
-        "x": 1542,
-        "y": 1302,
-        "w": 129,
-        "h": 122
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 79,
-        "y": 97,
-        "w": 129,
-        "h": 122
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_202_Idle_010": {
-      "frame": {
-        "x": 1822,
-        "y": 1302,
-        "w": 147,
-        "h": 120
+        "x": 2,
+        "y": 314,
+        "w": 93,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 63,
         "y": 101,
-        "w": 147,
-        "h": 120
+        "w": 93,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_017": {
+    "Medusa_angle_157_Idle_017": {
       "frame": {
-        "x": 2,
-        "y": 1435,
-        "w": 145,
-        "h": 120
+        "x": 97,
+        "y": 314,
+        "w": 94,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 64,
+        "x": 60,
         "y": 101,
-        "w": 145,
-        "h": 120
+        "w": 94,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Walk6": {
+    "Medusa_3_Idle_011": {
       "frame": {
-        "x": 149,
-        "y": 1435,
-        "w": 149,
-        "h": 120
+        "x": 193,
+        "y": 314,
+        "w": 106,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 51,
+        "y": 102,
+        "w": 106,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Idle1": {
+      "frame": {
+        "x": 301,
+        "y": 314,
+        "w": 106,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 51,
+        "y": 102,
+        "w": 106,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Pickup1": {
+      "frame": {
+        "x": 409,
+        "y": 314,
+        "w": 106,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 51,
+        "y": 102,
+        "w": 106,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_3_Die1": {
+      "frame": {
+        "x": 517,
+        "y": 314,
+        "w": 106,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 51,
+        "y": 102,
+        "w": 106,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_180_Idle_011": {
+      "frame": {
+        "x": 625,
+        "y": 314,
+        "w": 106,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 51,
+        "y": 102,
+        "w": 106,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_112_Walk6": {
+      "frame": {
+        "x": 733,
+        "y": 314,
+        "w": 116,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 89,
+        "w": 116,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Walk3": {
+      "frame": {
+        "x": 851,
+        "y": 314,
+        "w": 91,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 95,
+        "w": 91,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Run3": {
+      "frame": {
+        "x": 944,
+        "y": 314,
+        "w": 91,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 95,
+        "w": 91,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Walk3": {
+      "frame": {
+        "x": 1037,
+        "y": 314,
+        "w": 91,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 78,
+        "y": 95,
+        "w": 91,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Walk7": {
+      "frame": {
+        "x": 1130,
+        "y": 314,
+        "w": 96,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 97,
+        "w": 96,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Run7": {
+      "frame": {
+        "x": 1228,
+        "y": 314,
+        "w": 96,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 97,
+        "w": 96,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Walk7": {
+      "frame": {
+        "x": 1326,
+        "y": 314,
+        "w": 96,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 97,
+        "w": 96,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Walk3": {
+      "frame": {
+        "x": 1424,
+        "y": 314,
+        "w": 111,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 99,
+        "w": 111,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Walk7": {
+      "frame": {
+        "x": 1537,
+        "y": 314,
+        "w": 93,
+        "h": 75
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 62,
-        "y": 104,
-        "w": 149,
-        "h": 120
+        "y": 101,
+        "w": 93,
+        "h": 75
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_011": {
+    "Medusa_2_Idle_011": {
       "frame": {
-        "x": 300,
-        "y": 1435,
-        "w": 149,
-        "h": 119
+        "x": 1632,
+        "y": 314,
+        "w": 81,
+        "h": 74
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 64,
-        "y": 101,
-        "w": 149,
-        "h": 119
+        "x": 83,
+        "y": 98,
+        "w": 81,
+        "h": 74
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_012": {
+    "Medusa_2_Idle1": {
       "frame": {
-        "x": 451,
-        "y": 1435,
-        "w": 146,
-        "h": 119
+        "x": 1715,
+        "y": 314,
+        "w": 81,
+        "h": 74
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 66,
-        "y": 101,
-        "w": 146,
-        "h": 119
+        "x": 83,
+        "y": 98,
+        "w": 81,
+        "h": 74
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_013": {
+    "Medusa_2_Pickup1": {
       "frame": {
-        "x": 599,
-        "y": 1435,
-        "w": 139,
-        "h": 119
+        "x": 1798,
+        "y": 314,
+        "w": 81,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 98,
+        "w": 81,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die1": {
+      "frame": {
+        "x": 1881,
+        "y": 314,
+        "w": 81,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 98,
+        "w": 81,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_011": {
+      "frame": {
+        "x": 1964,
+        "y": 314,
+        "w": 81,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 83,
+        "y": 98,
+        "w": 81,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle_012": {
+      "frame": {
+        "x": 2,
+        "y": 391,
+        "w": 79,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 98,
+        "w": 79,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle2": {
+      "frame": {
+        "x": 83,
+        "y": 391,
+        "w": 79,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 98,
+        "w": 79,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Pickup2": {
+      "frame": {
+        "x": 164,
+        "y": 391,
+        "w": 79,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 98,
+        "w": 79,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die2": {
+      "frame": {
+        "x": 245,
+        "y": 391,
+        "w": 79,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 98,
+        "w": 79,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_012": {
+      "frame": {
+        "x": 326,
+        "y": 391,
+        "w": 79,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 85,
+        "y": 98,
+        "w": 79,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle_013": {
+      "frame": {
+        "x": 407,
+        "y": 391,
+        "w": 83,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 98,
+        "w": 83,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle3": {
+      "frame": {
+        "x": 492,
+        "y": 391,
+        "w": 83,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 98,
+        "w": 83,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Pickup3": {
+      "frame": {
+        "x": 577,
+        "y": 391,
+        "w": 83,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 98,
+        "w": 83,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die3": {
+      "frame": {
+        "x": 662,
+        "y": 391,
+        "w": 83,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 98,
+        "w": 83,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_013": {
+      "frame": {
+        "x": 747,
+        "y": 391,
+        "w": 83,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 98,
+        "w": 83,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle_014": {
+      "frame": {
+        "x": 832,
+        "y": 391,
+        "w": 86,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 98,
+        "w": 86,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Idle4": {
+      "frame": {
+        "x": 920,
+        "y": 391,
+        "w": 86,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 98,
+        "w": 86,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Pickup4": {
+      "frame": {
+        "x": 1008,
+        "y": 391,
+        "w": 86,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 98,
+        "w": 86,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Die4": {
+      "frame": {
+        "x": 1096,
+        "y": 391,
+        "w": 86,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 98,
+        "w": 86,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Idle_014": {
+      "frame": {
+        "x": 1184,
+        "y": 391,
+        "w": 86,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 98,
+        "w": 86,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Idle_011": {
+      "frame": {
+        "x": 1272,
+        "y": 391,
+        "w": 92,
+        "h": 74
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 62,
+        "y": 101,
+        "w": 92,
+        "h": 74
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Idle_013": {
+      "frame": {
+        "x": 1366,
+        "y": 391,
+        "w": 87,
+        "h": 74
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 68,
-        "y": 101,
-        "w": 139,
-        "h": 119
+        "y": 102,
+        "w": 87,
+        "h": 74
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_014": {
+    "Medusa_angle_157_Idle_014": {
       "frame": {
-        "x": 740,
-        "y": 1435,
-        "w": 136,
-        "h": 119
+        "x": 1455,
+        "y": 391,
+        "w": 87,
+        "h": 74
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 69,
         "y": 102,
-        "w": 136,
-        "h": 119
+        "w": 87,
+        "h": 74
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_015": {
+    "Medusa_angle_112_Walk5": {
       "frame": {
-        "x": 878,
-        "y": 1435,
-        "w": 138,
-        "h": 119
+        "x": 1544,
+        "y": 391,
+        "w": 118,
+        "h": 74
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 68,
-        "y": 102,
-        "w": 138,
-        "h": 119
+        "x": 52,
+        "y": 87,
+        "w": 118,
+        "h": 74
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_202_Idle_016": {
+    "Medusa_angle_157_Idle_012": {
       "frame": {
-        "x": 1018,
-        "y": 1435,
-        "w": 141,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 66,
-        "y": 102,
-        "w": 141,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Walk4": {
-      "frame": {
-        "x": 1161,
-        "y": 1435,
-        "w": 138,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 96,
-        "w": 138,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Run4": {
-      "frame": {
-        "x": 1301,
-        "y": 1435,
-        "w": 138,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 96,
-        "w": 138,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Walk4": {
-      "frame": {
-        "x": 1441,
-        "y": 1435,
-        "w": 138,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 96,
-        "w": 138,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_202_Walk1": {
-      "frame": {
-        "x": 1581,
-        "y": 1435,
-        "w": 140,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 100,
-        "w": 140,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_202_Walk7": {
-      "frame": {
-        "x": 1723,
-        "y": 1435,
-        "w": 143,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 63,
-        "y": 103,
-        "w": 143,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Walk5": {
-      "frame": {
-        "x": 1868,
-        "y": 1435,
-        "w": 142,
-        "h": 117
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 99,
-        "w": 142,
-        "h": 117
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Run5": {
-      "frame": {
-        "x": 2,
-        "y": 1557,
-        "w": 142,
-        "h": 117
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 99,
-        "w": 142,
-        "h": 117
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Walk5": {
-      "frame": {
-        "x": 146,
-        "y": 1557,
-        "w": 142,
-        "h": 117
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 62,
-        "y": 99,
-        "w": 142,
-        "h": 117
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_202_Walk5": {
-      "frame": {
-        "x": 290,
-        "y": 1557,
-        "w": 152,
-        "h": 117
+        "x": 1664,
+        "y": 391,
+        "w": 90,
+        "h": 73
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 64,
-        "y": 108,
-        "w": 152,
-        "h": 117
+        "y": 102,
+        "w": 90,
+        "h": 73
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_1_Idle_016": {
+    "Medusa_2_Walk6": {
+      "frame": {
+        "x": 1756,
+        "y": 391,
+        "w": 102,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 96,
+        "w": 102,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Run6": {
+      "frame": {
+        "x": 1860,
+        "y": 391,
+        "w": 102,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 96,
+        "w": 102,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_135_Walk6": {
+      "frame": {
+        "x": 2,
+        "y": 467,
+        "w": 102,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 65,
+        "y": 96,
+        "w": 102,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Walk4": {
+      "frame": {
+        "x": 106,
+        "y": 467,
+        "w": 117,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 55,
+        "y": 99,
+        "w": 117,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Walk5": {
+      "frame": {
+        "x": 225,
+        "y": 467,
+        "w": 112,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 100,
+        "w": 112,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_angle_157_Walk6": {
+      "frame": {
+        "x": 339,
+        "y": 467,
+        "w": 103,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 56,
+        "y": 101,
+        "w": 103,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "Medusa_2_Walk4": {
       "frame": {
         "x": 444,
-        "y": 1557,
-        "w": 141,
-        "h": 116
+        "y": 467,
+        "w": 99,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 107,
-        "w": 141,
-        "h": 116
+        "x": 73,
+        "y": 95,
+        "w": 99,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_1_Idle6": {
+    "Medusa_2_Run4": {
       "frame": {
-        "x": 587,
-        "y": 1557,
-        "w": 141,
-        "h": 116
+        "x": 545,
+        "y": 467,
+        "w": 99,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 107,
-        "w": 141,
-        "h": 116
+        "x": 73,
+        "y": 95,
+        "w": 99,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_1_Pickup6": {
+    "Medusa_angle_135_Walk4": {
       "frame": {
-        "x": 730,
-        "y": 1557,
-        "w": 141,
-        "h": 116
+        "x": 646,
+        "y": 467,
+        "w": 99,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 107,
-        "w": 141,
-        "h": 116
+        "x": 73,
+        "y": 95,
+        "w": 99,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_1_Die6": {
+    "Medusa_2_Walk5": {
       "frame": {
-        "x": 873,
-        "y": 1557,
-        "w": 141,
-        "h": 116
+        "x": 747,
+        "y": 467,
+        "w": 104,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 107,
-        "w": 141,
-        "h": 116
+        "x": 66,
+        "y": 95,
+        "w": 104,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_angle_090_Idle_016": {
+    "Medusa_2_Run5": {
       "frame": {
-        "x": 1016,
-        "y": 1557,
-        "w": 141,
-        "h": 116
+        "x": 853,
+        "y": 467,
+        "w": 104,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 72,
-        "y": 107,
-        "w": 141,
-        "h": 116
+        "x": 66,
+        "y": 95,
+        "w": 104,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     },
-    "Medusa_1_Idle_010": {
+    "Medusa_angle_135_Walk5": {
       "frame": {
-        "x": 1302,
-        "y": 1557,
-        "w": 141,
-        "h": 115
+        "x": 959,
+        "y": 467,
+        "w": 104,
+        "h": 71
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
+        "x": 66,
+        "y": 95,
+        "w": 104,
+        "h": 71
       },
       "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle0": {
-      "frame": {
-        "x": 2,
-        "y": 1676,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup0": {
-      "frame": {
-        "x": 145,
-        "y": 1676,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die0": {
-      "frame": {
-        "x": 288,
-        "y": 1676,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle": {
-      "frame": {
-        "x": 1874,
-        "y": 1557,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_010": {
-      "frame": {
-        "x": 574,
-        "y": 1676,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_013": {
-      "frame": {
-        "x": 717,
-        "y": 1676,
-        "w": 129,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 83,
-        "y": 109,
-        "w": 129,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle3": {
-      "frame": {
-        "x": 848,
-        "y": 1676,
-        "w": 129,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 83,
-        "y": 109,
-        "w": 129,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup3": {
-      "frame": {
-        "x": 979,
-        "y": 1676,
-        "w": 129,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 83,
-        "y": 109,
-        "w": 129,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die3": {
-      "frame": {
-        "x": 1110,
-        "y": 1676,
-        "w": 129,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 83,
-        "y": 109,
-        "w": 129,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_013": {
-      "frame": {
-        "x": 1241,
-        "y": 1676,
-        "w": 129,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 83,
-        "y": 109,
-        "w": 129,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_014": {
-      "frame": {
-        "x": 1372,
-        "y": 1676,
-        "w": 136,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 77,
-        "y": 109,
-        "w": 136,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle4": {
-      "frame": {
-        "x": 1510,
-        "y": 1676,
-        "w": 136,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 77,
-        "y": 109,
-        "w": 136,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup4": {
-      "frame": {
-        "x": 1648,
-        "y": 1676,
-        "w": 136,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 77,
-        "y": 109,
-        "w": 136,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die4": {
-      "frame": {
-        "x": 1786,
-        "y": 1676,
-        "w": 136,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 77,
-        "y": 109,
-        "w": 136,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_014": {
-      "frame": {
-        "x": 2,
-        "y": 1793,
-        "w": 136,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 77,
-        "y": 109,
-        "w": 136,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_015": {
-      "frame": {
-        "x": 140,
-        "y": 1793,
-        "w": 139,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 74,
-        "y": 108,
-        "w": 139,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle5": {
-      "frame": {
-        "x": 281,
-        "y": 1793,
-        "w": 139,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 74,
-        "y": 108,
-        "w": 139,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup5": {
-      "frame": {
-        "x": 422,
-        "y": 1793,
-        "w": 139,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 74,
-        "y": 108,
-        "w": 139,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die5": {
-      "frame": {
-        "x": 563,
-        "y": 1793,
-        "w": 139,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 74,
-        "y": 108,
-        "w": 139,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_015": {
-      "frame": {
-        "x": 704,
-        "y": 1793,
-        "w": 139,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 74,
-        "y": 108,
-        "w": 139,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_017": {
-      "frame": {
-        "x": 845,
-        "y": 1793,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle7": {
-      "frame": {
-        "x": 988,
-        "y": 1793,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup7": {
-      "frame": {
-        "x": 1131,
-        "y": 1793,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die7": {
-      "frame": {
-        "x": 1274,
-        "y": 1793,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_017": {
-      "frame": {
-        "x": 1417,
-        "y": 1793,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 71,
-        "y": 107,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Walk3": {
-      "frame": {
-        "x": 1560,
-        "y": 1793,
-        "w": 132,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 97,
-        "w": 132,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Run3": {
-      "frame": {
-        "x": 1694,
-        "y": 1793,
-        "w": 132,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 97,
-        "w": 132,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Walk3": {
-      "frame": {
-        "x": 1828,
-        "y": 1793,
-        "w": 132,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 97,
-        "w": 132,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Walk6": {
-      "frame": {
-        "x": 2,
-        "y": 1910,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 103,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Run6": {
-      "frame": {
-        "x": 145,
-        "y": 1910,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 103,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Walk6": {
-      "frame": {
-        "x": 288,
-        "y": 1910,
-        "w": 141,
-        "h": 115
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 68,
-        "y": 103,
-        "w": 141,
-        "h": 115
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_011": {
-      "frame": {
-        "x": 431,
-        "y": 1910,
-        "w": 133,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 108,
-        "w": 133,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle1": {
-      "frame": {
-        "x": 566,
-        "y": 1910,
-        "w": 133,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 108,
-        "w": 133,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup1": {
-      "frame": {
-        "x": 701,
-        "y": 1910,
-        "w": 133,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 108,
-        "w": 133,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die1": {
-      "frame": {
-        "x": 836,
-        "y": 1910,
-        "w": 133,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 108,
-        "w": 133,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_011": {
-      "frame": {
-        "x": 971,
-        "y": 1910,
-        "w": 133,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 78,
-        "y": 108,
-        "w": 133,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle_012": {
-      "frame": {
-        "x": 1106,
-        "y": 1910,
-        "w": 126,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 109,
-        "w": 126,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Idle2": {
-      "frame": {
-        "x": 1234,
-        "y": 1910,
-        "w": 126,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 109,
-        "w": 126,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Pickup2": {
-      "frame": {
-        "x": 1362,
-        "y": 1910,
-        "w": 126,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 109,
-        "w": 126,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_1_Die2": {
-      "frame": {
-        "x": 1490,
-        "y": 1910,
-        "w": 126,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 109,
-        "w": 126,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_090_Idle_012": {
-      "frame": {
-        "x": 1618,
-        "y": 1910,
-        "w": 126,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 85,
-        "y": 109,
-        "w": 126,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
-      }
-    },
-    "Medusa_angle_202_Walk2": {
-      "frame": {
-        "x": 1746,
-        "y": 1910,
-        "w": 154,
-        "h": 114
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 72,
-        "y": 108,
-        "w": 154,
-        "h": 114
-      },
-      "sourceSize": {
-        "w": 320,
-        "h": 320
+        "w": 256,
+        "h": 256
       }
     }
   },
@@ -3686,7 +2406,7 @@
     "format": "RGBA8888",
     "size": {
       "w": 2048,
-      "h": 2048
+      "h": 1024
     },
     "scale": "1"
   }

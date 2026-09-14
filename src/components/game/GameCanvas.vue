@@ -34,8 +34,8 @@ import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import { GridCoord, AssetItem } from '../../types/map'
-import { isInsideGrid } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
+import { GameController } from '../../controllers/game/GameController'
 
 const mapStore = useMapStore()
 const toolStore = useToolStore()
@@ -49,6 +49,16 @@ const { t } = useI18n()
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
 const camera = usePixiCamera(engine, toRef(mapStore, 'project'))
+const gameController = new GameController({
+  engine,
+  mapStore,
+  toolStore,
+  towerStore,
+  characterStore,
+  multiplayerStore,
+  notify,
+  t,
+})
 
 let resizeObserver: ResizeObserver | null = null
 let cleanListeners: (() => void) | null = null
@@ -129,27 +139,8 @@ onMounted(async () => {
     }
   }
 
-  // Hook up 60 FPS Game Simulation Ticker
-  engine.onTick = (rawDeltaSec: number) => {
-    characterStore.fps = engine.currentFps
-    const simSpeed = Math.max(0.1, Math.min(50.0, characterStore.gameSpeed || 1.0))
-    const effectiveDelta = rawDeltaSec * simSpeed
-
-    if (!multiplayerStore.roomId || multiplayerStore.isHost) {
-      characterStore.updateTick(effectiveDelta)
-      towerStore.updateCombatTick(effectiveDelta)
-
-      if (multiplayerStore.roomId && multiplayerStore.isHost) {
-        multiplayerStore.broadcastGameTick()
-      }
-    } else {
-      characterStore.updateClientInterpolation(rawDeltaSec)
-    }
-
-    engine.renderCharacter(characterStore, mapStore.project)
-    engine.renderTowersAndCombat(towerStore, mapStore.project, characterStore, toolStore.hoveredCell)
-    engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
-  }
+  // Hook up 60 FPS Game Simulation Ticker via GameController
+  gameController.setupSimulationLoop()
 
   characterStore.setLoadingProgress(100, t('loader.battlefieldReady'))
   // Double requestAnimationFrame ensures that GPU has completed drawing the frame buffer
@@ -203,113 +194,31 @@ onUnmounted(() => {
     resizeObserver.disconnect()
     resizeObserver = null
   }
-  engine.stopTicker()
+  gameController.destroy()
   engine.clearCombatVisuals()
   engine.clearCharacterVisuals()
   engine.buildableOverlayGraphics.clear()
   engine.destroy()
 })
 
-// --- Game Cell Tap / Click Handling ---
-let lastBuildTimestamp = 0
-let lastTouchTimestamp = 0
-let pendingBuildCell: GridCoord | null = null
-
-// Reset pending build cell if build mode is exited
+// --- Game Cell Tap / Click Handling via GameController ---
 watch(() => towerStore.activeBuildTowerId, (newId) => {
   if (!newId) {
-    pendingBuildCell = null
-    toolStore.setHoveredCell(null)
+    gameController.resetBuildState()
   }
 })
-
-function handleGameCellClick(gridCoord: GridCoord) {
-  if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-    towerStore.selectPlacedTower(null)
-    pendingBuildCell = null
-    toolStore.setHoveredCell(null)
-    return
-  }
-
-  // 1. If building a tower from shop (2-step confirmation)
-  if (towerStore.activeBuildTowerId) {
-    // Check if cell already has a placed tower!
-    const existingTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
-    if (existingTower) {
-      notify.warning(t('game.tileAlreadyOccupied'), t('game.cannotPlaceHere'))
-      pendingBuildCell = null
-      toolStore.setHoveredCell(null)
-      return
-    }
-
-    // Check if cell is blocked by spawn point or route
-    if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
-      notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
-      pendingBuildCell = null
-      toolStore.setHoveredCell(null)
-      return
-    }
-
-    // 1.1 First tap on a cell: Target and highlight this cell
-    if (!pendingBuildCell || pendingBuildCell.col !== gridCoord.col || pendingBuildCell.row !== gridCoord.row) {
-      pendingBuildCell = { col: gridCoord.col, row: gridCoord.row }
-      toolStore.setHoveredCell({ col: gridCoord.col, row: gridCoord.row })
-      towerStore.selectPlacedTower(null)
-      return
-    }
-
-    // 1.2 Second tap on the SAME active cell: Validate and place the tower!
-    const bp = towerStore.blueprints.find(b => b.id === towerStore.activeBuildTowerId)
-    if (bp) {
-      let currentGold = characterStore.gold
-      if (multiplayerStore.roomId) {
-        const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
-        if (myPl) currentGold = myPl.gold ?? 0
-      }
-
-      if (currentGold < bp.cost) {
-        notify.gold(t('game.needGoldForTower', { cost: bp.cost, current: currentGold }), t('game.notEnoughGold'))
-        return
-      }
-    }
-
-    const placed = towerStore.placeTowerAt(gridCoord.col, gridCoord.row)
-    if (placed) {
-      lastBuildTimestamp = Date.now()
-      pendingBuildCell = null
-      toolStore.setHoveredCell(null)
-      towerStore.selectBuildTower(null)
-      towerStore.selectPlacedTower(null)
-    }
-    return
-  }
-
-  // If a tower was just built within 450ms, ignore selecting it (prevents touch/synthetic click race condition)
-  if (Date.now() - lastBuildTimestamp < 450) {
-    towerStore.selectPlacedTower(null)
-    return
-  }
-
-  // 2. Check if a placed tower exists on this cell (explicit click to select/inspect)
-  const clickedTower = towerStore.placedTowers.find(t => t.col === gridCoord.col && t.row === gridCoord.row)
-  if (clickedTower) {
-    towerStore.selectPlacedTower(clickedTower.id)
-  } else {
-    towerStore.selectPlacedTower(null)
-  }
-}
 
 function handleMouseDown(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
 
   // Prevent synthetic mouse event right after touch
-  if (Date.now() - lastTouchTimestamp < 450) {
+  if (Date.now() - gameController.lastTouchTimestamp < 450) {
     return
   }
 
   if (e.button === 2) {
-    handleContextMenu()
+    gameController.handleContextMenu()
     return
   }
 
@@ -320,7 +229,7 @@ function handleMouseDown(e: MouseEvent) {
 
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
-  handleGameCellClick(gridCoord)
+  gameController.handleCellClick(gridCoord)
 }
 
 function handleMouseMove(e: MouseEvent) {
@@ -330,14 +239,7 @@ function handleMouseMove(e: MouseEvent) {
   }
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
-  
-  if (!towerStore.activeBuildTowerId || !pendingBuildCell) {
-    toolStore.setHoveredCell(gridCoord)
-  }
-
-  if (multiplayerStore.roomId && isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-    multiplayerStore.broadcastTeammateHover(gridCoord.col, gridCoord.row)
-  }
+  gameController.handlePointerMove(gridCoord)
 }
 
 function handleMouseUp() {
@@ -346,9 +248,7 @@ function handleMouseUp() {
 
 function handleMouseLeave() {
   if (camera.isPanning.value) camera.endPan()
-  if (!towerStore.activeBuildTowerId || !pendingBuildCell) {
-    toolStore.setHoveredCell(null)
-  }
+  gameController.handlePointerLeave()
 }
 
 function handleWheel(e: WheelEvent) {
@@ -356,20 +256,12 @@ function handleWheel(e: WheelEvent) {
 }
 
 function handleContextMenu() {
-  if (towerStore.activeBuildTowerId) {
-    pendingBuildCell = null
-    toolStore.setHoveredCell(null)
-    towerStore.selectBuildTower(null)
-    return
-  }
-  if (towerStore.selectedPlacedTowerId) {
-    towerStore.selectPlacedTower(null)
-  }
+  gameController.handleContextMenu()
 }
 
 // --- Touch Handling ---
 function handleTouchStart(e: TouchEvent) {
-  lastTouchTimestamp = Date.now()
+  gameController.lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   camera.handleTouchStart(e, viewportContainerRef.value)
@@ -382,11 +274,11 @@ function handleTouchMove(e: TouchEvent) {
 }
 
 function handleTouchEnd(e: TouchEvent) {
-  lastTouchTimestamp = Date.now()
+  gameController.lastTouchTimestamp = Date.now()
   camera.handleTouchEnd(e, (clientX, clientY) => {
     const rect = camera.getViewportRect(viewportContainerRef.value)
     const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
-    handleGameCellClick(gridCoord)
+    gameController.handleCellClick(gridCoord)
   })
 }
 

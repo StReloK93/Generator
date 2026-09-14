@@ -40,9 +40,20 @@ class AssetManagerService {
 
   // Precomputed manifest list
   public readonly manifest: AssetItem[] = (spriteManifestRaw as unknown) as AssetItem[]
+  private assetLookup = new Map<string, AssetItem>()
 
   constructor() {
+    for (const a of this.manifest) {
+      this.assetLookup.set(a.id, a)
+      if (a.name) this.assetLookup.set(a.name, a)
+      const clean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+      this.assetLookup.set(clean, a)
+    }
     this.registerBundles()
+  }
+
+  public getAssetItem(assetId: string): AssetItem | undefined {
+    return this.assetLookup.get(assetId) || this.assetLookup.get(assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, ''))
   }
 
   // Get base URL for static assets (compatible with Vite base e.g. /Generator/)

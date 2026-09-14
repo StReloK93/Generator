@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AssetItem, ToolType } from '../types/map'
 import { useToolStore } from './toolStore'
-import { useMapStore } from './mapStore'
+import { MapQueries } from '../domain/map'
 import { assetManager } from '../services/assetManager'
 
 export const useAssetStore = defineStore('assetStore', () => {
@@ -11,6 +11,7 @@ export const useAssetStore = defineStore('assetStore', () => {
   const selectedCategory = ref<string>('All')
   const searchQuery = ref<string>('')
   const isLoading = ref<boolean>(false)
+  const usedInMapAssetIds = ref<Set<string>>(new Set())
   const uploadProgress = ref<{ total: number; current: number; active: boolean }>({
     total: 0,
     current: 0,
@@ -18,6 +19,10 @@ export const useAssetStore = defineStore('assetStore', () => {
   })
 
   const isLoaded = ref(false)
+
+  function updateUsedInMap(layers?: any[] | null) {
+    usedInMapAssetIds.value = MapQueries.getUsedAssetIds(layers)
+  }
 
   // Instantly load precomputed sprite manifest from compiled atlases
   async function loadBuiltinSprites(): Promise<void> {
@@ -99,44 +104,25 @@ export const useAssetStore = defineStore('assetStore', () => {
     return assets.value.find(a => a.id === selectedAssetId.value) || null
   })
 
-  const FAVORITES_STORAGE_KEY = 'defensor_favorite_assets'
+  const favoriteAssetIds = ref<Set<string>>(new Set())
 
-  function loadInitialFavorites(): Set<string> {
-    try {
-      const raw = localStorage.getItem(FAVORITES_STORAGE_KEY)
-      if (raw) {
-        const arr = JSON.parse(raw)
-        if (Array.isArray(arr)) return new Set(arr)
-      }
-    } catch (e) {
-      console.warn('Failed to read favorite assets:', e)
-    }
-    return new Set<string>()
-  }
-
-  const favoriteAssetIds = ref<Set<string>>(loadInitialFavorites())
-
-  function toggleFavorite(assetId: string) {
-    const next = new Set(favoriteAssetIds.value)
-    if (next.has(assetId)) {
-      next.delete(assetId)
+  function toggleFavorite(id: string) {
+    if (favoriteAssetIds.value.has(id)) {
+      favoriteAssetIds.value.delete(id)
     } else {
-      next.add(assetId)
-    }
-    favoriteAssetIds.value = next
-    try {
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(next)))
-    } catch (e) {
-      console.warn('Failed to save favorite assets:', e)
+      favoriteAssetIds.value.add(id)
     }
   }
 
-  function isFavorite(assetId: string): boolean {
-    return favoriteAssetIds.value.has(assetId)
+  function isFavorite(id: string): boolean {
+    return favoriteAssetIds.value.has(id)
   }
 
   const categories = computed(() => {
-    const set = new Set<string>(['All'])
+    const set = new Set<string>()
+    set.add('All')
+    set.add('UsedInMap')
+    set.add('Favorites')
     for (const a of assets.value) {
       if (a.category) set.add(a.category)
     }
@@ -144,25 +130,7 @@ export const useAssetStore = defineStore('assetStore', () => {
   })
 
   const filteredAssets = computed(() => {
-    const mapStore = useMapStore()
-    const usedIds = new Set<string>()
-    if (selectedCategory.value === 'UsedInMap') {
-      if (mapStore.project?.layers) {
-        for (const layer of mapStore.project.layers) {
-          for (const items of Object.values(layer.tiles)) {
-            if (Array.isArray(items)) {
-              for (const cell of items) {
-                if (cell.assetId) {
-                  usedIds.add(cell.assetId)
-                  const clean = cell.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
-                  usedIds.add(clean)
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    const usedIds = usedInMapAssetIds.value
 
     return assets.value.filter(a => {
       let matchCat = true
@@ -397,6 +365,8 @@ export const useAssetStore = defineStore('assetStore', () => {
     clearAllAssets,
     clearCustomAssets,
     reconcileImportedAssets,
+    usedInMapAssetIds,
+    updateUsedInMap,
   }
 })
 

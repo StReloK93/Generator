@@ -8,6 +8,8 @@ import { useMultiplayerStore } from './multiplayerStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { gridToScreen, expandWaypointsToPath, extractWaypointsFromPath } from '../utils/isometric'
 import characterManifest from '../assets/generated/characterManifest.json'
+import { DoorDetector, RouteManager } from '../domain/pathfinding'
+import { CrowdSimulation, WaveManager, GameStateMachine } from '../domain/simulation'
 
 export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
 export type CharacterModel = 'male' | 'warrior' | (string & {})
@@ -325,41 +327,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function addSpawnPoint(col: number, row: number, customName?: string) {
-    const cols = mapStore.project.cols
-    const rows = mapStore.project.rows
-    const midC = Math.floor(cols / 2)
-    const midR = Math.floor(rows / 2)
-
-    let quadrant = 0
-    let cornerName = 'Circle 1 (North)'
-    if (col <= midC && row <= midR) {
-      quadrant = 0
-      cornerName = "Circle 1 (North)"
-    } else if (col >= midC && row <= midR) {
-      quadrant = 1
-      cornerName = "Circle 2 (East)"
-    } else if (col >= midC && row >= midR) {
-      quadrant = 2
-      cornerName = "Circle 3 (South)"
-    } else {
-      quadrant = 3
-      cornerName = "Circle 4 (West)"
-    }
-
-    const num = detectedDoors.value.length + 1
-    const newPoint: DoorInfo = {
-      id: `spawn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    const newPoint = DoorDetector.createSpawnPoint(
       col,
       row,
-      spawnCol: col,
-      spawnRow: row,
-      quadrant,
-      isCorner: true,
-      cornerName,
-      assetId: '',
-      layerId: 'layer-ground',
-      name: customName || `Route ${num}`,
-    }
+      mapStore.project.cols,
+      mapStore.project.rows,
+      detectedDoors.value.length,
+      customName
+    )
 
     detectedDoors.value.push(newPoint)
     selectedDoorIndex.value = detectedDoors.value.length - 1
@@ -378,41 +353,44 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const idx = (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) 
       ? Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value) 
       : 0
-    const pt = detectedDoors.value[idx]
-    if (pt) {
-      pt.col = col
-      pt.row = row
-      pt.spawnCol = col
-      pt.spawnRow = row
-      pt.name = `Route ${idx + 1}`
+    const d = detectedDoors.value[idx]
+    if (d) {
+      d.col = col
+      d.row = row
+      d.spawnCol = col
+      d.spawnRow = row
+      const { quadrant, cornerName } = DoorDetector.calculateQuadrant(col, row, mapStore.project.cols, mapStore.project.rows)
+      d.quadrant = quadrant
+      d.cornerName = cornerName
       syncSpawnPointsToProject()
       doorRoutesCache.value = {}
       spawnAtDoor(idx)
-      mapStore.pushHistory(`Moved spawn point to (${col}, ${row})`)
+      mapStore.pushHistory(`Relocated ${d.name || 'spawn point'} to (${col}, ${row})`)
     }
   }
 
   function removeSpawnPoint(idx: number) {
     if (idx < 0 || idx >= detectedDoors.value.length) return
-    const removed = detectedDoors.value[idx]
-    detectedDoors.value.splice(idx, 1)
-    if (detectedDoors.value.length === 0) {
-      selectedDoorIndex.value = null
-      units.value = []
-      statusMessage.value = "No spawn point configured"
-    } else if (selectedDoorIndex.value !== null) {
-      selectedDoorIndex.value = Math.max(0, Math.min(detectedDoors.value.length - 1, idx > 0 ? idx - 1 : 0))
+    const removed = detectedDoors.value.splice(idx, 1)[0]
+    if (selectedDoorIndex.value !== null) {
+      if (detectedDoors.value.length === 0) {
+        selectedDoorIndex.value = null
+      } else if (selectedDoorIndex.value >= detectedDoors.value.length) {
+        selectedDoorIndex.value = detectedDoors.value.length - 1
+      }
     }
-    syncSpawnPointsToProject()
     doorRoutesCache.value = {}
-    if (detectedDoors.value.length > 0 && selectedDoorIndex.value !== null) {
+    syncSpawnPointsToProject()
+    if (detectedDoors.value.length > 0) {
       spawnAtDoor(selectedDoorIndex.value)
+    } else {
+      units.value = []
     }
-    mapStore.pushHistory(`Deleted ${removed ? removed.name : 'route'}`)
+    mapStore.pushHistory(`Removed spawn point ${removed?.name || ''}`)
   }
 
   function syncSpawnPointsToProject() {
-    (mapStore.project as any).spawnPoints = detectedDoors.value.map(d => ({
+    mapStore.project.spawnPoints = detectedDoors.value.map(d => ({
       id: d.id,
       col: d.col,
       row: d.row,
@@ -422,57 +400,25 @@ export const useCharacterStore = defineStore('characterStore', () => {
       quadrant: d.quadrant,
       isCorner: d.isCorner,
       cornerName: d.cornerName,
+      layerId: d.layerId,
       assetId: d.assetId,
     }))
   }
 
   function getRouteForDoor(doorIdx: number): GridCoord[] {
-    const door = detectedDoors.value[doorIdx]
-    if (!door) return []
-    const doorKey = door.id || `door-${doorIdx}`
-
-    if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
-      return customRoutes.value[doorKey]
-    }
-
-    // Default route: only the spawn point cell until user draws their custom path
-    return [{ col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row }]
+    return RouteManager.getRouteForDoor(
+      detectedDoors.value[doorIdx],
+      doorIdx,
+      customRoutes.value
+    )
   }
 
   const blockedBuildingCellsSet = computed<Set<string>>(() => {
-    const set = new Set<string>()
-
-    // 1. All spawn points / doors
-    for (const d of detectedDoors.value) {
-      set.add(`${d.col},${d.row}`)
-      if (d.spawnCol !== undefined && d.spawnRow !== undefined) {
-        set.add(`${d.spawnCol},${d.spawnRow}`)
-      }
-    }
-
-    // 2. All custom routes for each door
-    if (customRoutes.value) {
-      for (const route of Object.values(customRoutes.value)) {
-        if (Array.isArray(route)) {
-          for (const pt of route) {
-            set.add(`${pt.col},${pt.row}`)
-          }
-        }
-      }
-    }
-
-    // 3. Project custom routes fallback
-    if (mapStore.project?.customRoutes) {
-      for (const route of Object.values(mapStore.project.customRoutes)) {
-        if (Array.isArray(route)) {
-          for (const pt of route) {
-            set.add(`${pt.col},${pt.row}`)
-          }
-        }
-      }
-    }
-
-    return set
+    return RouteManager.computeBlockedCells(
+      detectedDoors.value,
+      customRoutes.value,
+      mapStore.project?.customRoutes
+    )
   })
 
   function isCellBlockedForBuilding(col: number, row: number): boolean {
@@ -952,32 +898,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function addNewWave() {
-    const nextNum = waveConfigs.value.length + 1
-    const prevWave = waveConfigs.value[waveConfigs.value.length - 1]
-    const baseHp = prevWave ? Math.round(prevWave.unitHp * 1.5) : 200
-    const baseCount = prevWave ? Math.min(50, prevWave.unitCount + 2) : 10
-    const baseUnitBonus = prevWave?.unitBonus ?? prevWave?.goldReward ?? 1
-    const baseEndBonus = prevWave ? Math.min(500, Math.max(10, Math.round((prevWave.endWaveBonus ?? 50) * 1.25))) : 50
-
-    waveConfigs.value.push({
-      waveNumber: nextNum,
-      name: `Wave ${nextNum}`,
-      unitHp: baseHp,
-      unitSpeed: 3.5,
-      unitCount: baseCount,
-      isBoss: nextNum % 5 === 0,
-      goldReward: baseUnitBonus,
-      unitBonus: baseUnitBonus,
-      endWaveBonus: baseEndBonus,
-      characterModel: prevWave?.characterModel || 'male',
-      animSpeed: prevWave?.animSpeed || 1.0,
-      offsetY: prevWave?.offsetY || 0,
-      unitScale: prevWave?.unitScale || 1.0,
-      unitVariant: prevWave?.unitVariant || 'normal',
-      variantTint: prevWave?.variantTint,
-      immunities: prevWave?.immunities ? [...prevWave.immunities] : [],
-    })
-
+    const newWave = WaveManager.createNextWave(waveConfigs.value)
+    waveConfigs.value.push(newWave)
     syncWavesToProject()
     selectWave(waveConfigs.value.length - 1)
   }
@@ -985,10 +907,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function deleteWave(idx: number) {
     if (waveConfigs.value.length <= 1) return
     waveConfigs.value.splice(idx, 1)
-    // Re-number remaining waves
-    waveConfigs.value.forEach((w, i) => {
-      w.waveNumber = i + 1
-    })
+    WaveManager.reindexWaves(waveConfigs.value)
     syncWavesToProject()
     selectWave(Math.max(0, idx - 1))
   }
@@ -1149,20 +1068,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function calculateDirection(fromCol: number, fromRow: number, toCol: number, toRow: number): number {
-    const fromScreen = gridToScreen(fromCol, fromRow, mapStore.project.tileWidth, mapStore.project.tileHeight)
-    const toScreen = gridToScreen(toCol, toRow, mapStore.project.tileWidth, mapStore.project.tileHeight)
-
-    const dx = toScreen.x - fromScreen.x
-    const dy = toScreen.y - fromScreen.y
-
-    if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return 2
-
-    let angle = Math.atan2(dy, dx)
-    if (angle < 0) angle += 2 * Math.PI
-
-    const sector = Math.floor(((angle + Math.PI / 8) % (2 * Math.PI)) / (Math.PI / 4))
-    const dirMap = [1, 2, 3, 4, 5, 6, 7, 0]
-    return dirMap[sector] !== undefined ? dirMap[sector] : 2
+    return CrowdSimulation.calculateDirection(
+      fromCol,
+      fromRow,
+      toCol,
+      toRow,
+      mapStore.project.tileWidth,
+      mapStore.project.tileHeight
+    )
   }
 
   /**
@@ -1237,58 +1150,27 @@ export const useCharacterStore = defineStore('characterStore', () => {
         continue
       }
 
-      // --- 1. PROCESS STATUS EFFECTS (DoTs, Slows, Stuns, Buffs) ---
+      // --- 1. PROCESS STATUS EFFECTS via CrowdSimulation (DoTs, Slows, Stuns, Buffs) ---
       let maxSlowPercent = 0
       if (unit.statusEffects && unit.statusEffects.length > 0) {
-        let activeEffectsCount = 0
-        for (let eIdx = 0; eIdx < unit.statusEffects.length; eIdx++) {
-          const effect = unit.statusEffects[eIdx]
-          effect.duration -= deltaSec
+        const effectRes = CrowdSimulation.processStatusEffects(unit, deltaSec)
+        maxSlowPercent = effectRes.maxSlowPercent
 
-          if (effect.slowPercent && effect.slowPercent > maxSlowPercent) {
-            maxSlowPercent = effect.slowPercent
-          }
-
-          // DoT Tick Damage (e.g. burn, poison, bleed)
-          if (effect.dps && effect.dps > 0 && !unit.isDead) {
-            effect.tickTimer = (effect.tickTimer || 0) + deltaSec
-            if (effect.tickTimer >= 0.5) {
-              const tickDmg = Math.max(1, Math.round(effect.dps * effect.tickTimer))
-              effect.tickTimer = 0
-              unit.currentHp = Math.max(0, unit.currentHp - tickDmg)
-
-              let dotColor = 0xf97316
-              let dotText = `-${tickDmg}`
-              if (effect.type === 'fire') { dotColor = 0xef4444; dotText = `-${tickDmg} 🔥` }
-              else if (effect.type === 'poison') { dotColor = 0x10b981; dotText = `-${tickDmg} 🧪` }
-              else if (effect.type === 'blood') { dotColor = 0xf43f5e; dotText = `-${tickDmg} 🩸` }
-
-              towerStore.damageFloaters.push({
-                id: `dot-${Date.now()}-${Math.random()}`,
-                text: dotText,
-                x: unit.screenX + (Math.random() * 16 - 8),
-                y: unit.screenY - tileHeight * 1.05,
-                color: dotColor,
-                alpha: 1.0,
-                lifeTimer: 0,
-              })
-
-              if (unit.currentHp <= 0) {
-                unit.isDead = true
-                unit.action = 'Pickup'
-                unit.frameIndex = 0
-                unit.animTimer = 0
-                unit.deathFade = 1.0
-                totalKills.value++
-              }
-            }
-          }
-
-          if (effect.duration > 0) {
-            unit.statusEffects[activeEffectsCount++] = effect
-          }
+        if (effectRes.dotDamage > 0) {
+          towerStore.damageFloaters.push({
+            id: `dot-${Date.now()}-${Math.random()}`,
+            text: effectRes.dotText || `-${effectRes.dotDamage}`,
+            x: unit.screenX + (Math.random() * 16 - 8),
+            y: unit.screenY - tileHeight * 1.05,
+            color: effectRes.dotColor || 0xf97316,
+            alpha: 1.0,
+            lifeTimer: 0,
+          })
         }
-        unit.statusEffects.length = activeEffectsCount
+
+        if (effectRes.unitDied) {
+          totalKills.value++
+        }
       }
 
       if (unit.isDead) continue
@@ -1321,10 +1203,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
       if (unitDist >= route.length - 1) {
         if (!unit.hasReachedEnd) {
           unit.hasReachedEnd = true
-          // Deduct life in Game Mode
+          // Deduct life in Game Mode via GameStateMachine
           if (isGameMode.value && gameState.value === 'wave_running') {
-            playerLives.value = Math.max(0, playerLives.value - 1)
-            if (playerLives.value <= 0) {
+            const lifeRes = GameStateMachine.deductLife(playerLives.value)
+            playerLives.value = lifeRes.remainingLives
+            if (lifeRes.isGameOver) {
               gameState.value = 'game_over'
               isPlaying.value = false
               statusMessage.value = "Defeat! All lives lost."
@@ -1371,19 +1254,19 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       const baseScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
 
-      // Side-by-side (2 units side-by-side) perpendicular offset calculation
+      // Side-by-side (2 units side-by-side) perpendicular offset via CrowdSimulation
       if (formation.value === 'pairs' && unit.sideOffset !== 0) {
-        const ptAScreen = gridToScreen(ptA.col, ptA.row, tileWidth, tileHeight)
-        const ptBScreen = gridToScreen(ptB.col, ptB.row, tileWidth, tileHeight)
-        const dx = ptBScreen.x - ptAScreen.x
-        const dy = ptBScreen.y - ptAScreen.y
-        const len = Math.hypot(dx, dy) || 1
-        const perpX = -dy / len
-        const perpY = dx / len
-
-        const offsetDist = tileWidth * 0.15 * unit.sideOffset
-        unit.screenX = baseScreen.x + perpX * offsetDist
-        unit.screenY = baseScreen.y + perpY * offsetDist
+        const offsetPt = CrowdSimulation.calculateSideOffset(
+          baseScreen.x,
+          baseScreen.y,
+          ptA,
+          ptB,
+          unit.sideOffset,
+          tileWidth,
+          tileHeight
+        )
+        unit.screenX = offsetPt.screenX
+        unit.screenY = offsetPt.screenY
       } else {
         unit.screenX = baseScreen.x
         unit.screenY = baseScreen.y
@@ -1434,7 +1317,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
             totalGoldEarned.value += reward
           }
 
-          if (currentWaveIndex.value >= waveConfigs.value.length - 1) {
+          const completion = GameStateMachine.evaluateWaveCompletion(
+            currentWaveIndex.value,
+            waveConfigs.value.length
+          )
+
+          if (completion.isVictory) {
             gameState.value = 'victory'
             isPlaying.value = false
             statusMessage.value = "Victory! All waves successfully cleared!"

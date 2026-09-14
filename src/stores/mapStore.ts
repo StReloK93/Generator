@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { MapProject, Layer, TileItem, ProjectHistoryItem, GridCoord, BoxClearModalData, BoxAssetSummary } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
-import { useAssetStore } from './assetStore'
+import { assetManager } from '../services/assetManager'
+import { MapQueries, TileMutations } from '../domain/map'
 
 export interface PlacedElementEntry {
   item: TileItem
@@ -71,13 +72,7 @@ export const useMapStore = defineStore('mapStore', () => {
   const canRedo = computed(() => historyIndex.value < history.value.length - 1)
 
   const totalTilesCount = computed(() => {
-    let count = 0
-    for (const layer of project.value.layers) {
-      for (const items of Object.values(layer.tiles)) {
-        count += Array.isArray(items) ? items.length : 1
-      }
-    }
-    return count
+    return MapQueries.countTotalTiles(project.value.layers)
   })
 
   // All placed elements across all layers for the Right Panel Outliner
@@ -465,8 +460,7 @@ export const useMapStore = defineStore('mapStore', () => {
       }
     }
 
-    const assetStore = useAssetStore()
-    const asset = assetStore.assets.find(a => a.id === assetId)
+    const asset = assetId ? assetManager.getAssetItem(assetId) : undefined
 
     const spanX = asset?.spanX || 1
     const spanY = asset?.spanY || 1
@@ -912,8 +906,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked || cells.length === 0) return
 
-    const assetStore = useAssetStore()
-    const asset = assetId ? assetStore.assets.find(a => a.id === assetId) : null
+    const asset = assetId ? assetManager.getAssetItem(assetId) : null
 
     for (const { col, row } of cells) {
       if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) continue
@@ -975,8 +968,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return 0
 
-    const assetStore = useAssetStore()
-    const asset = assetStore.assets.find(a => a.id === assetId)
+    const asset = assetId ? assetManager.getAssetItem(assetId) : null
     if (!asset) return 0
 
     const spanX = asset.spanX || 1
@@ -1051,8 +1043,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return 0
 
-    const assetStore = useAssetStore()
-    const asset = assetStore.assets.find(a => a.id === assetId)
+    const asset = assetId ? assetManager.getAssetItem(assetId) : null
     if (!asset) return 0
 
     const spanX = asset.spanX || 1
@@ -1177,8 +1168,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const layer = project.value.layers.find(l => l.id === layerId)
     if (!layer || layer.locked) return 0
 
-    const assetStore = useAssetStore()
-    const asset = assetStore.assets.find(a => a.id === assetId)
+    const asset = assetId ? assetManager.getAssetItem(assetId) : null
     if (!asset) return 0
 
     const spanX = asset.spanX || 1
@@ -1257,7 +1247,6 @@ export const useMapStore = defineStore('mapStore', () => {
     const maxRow = Math.min(project.value.rows - 1, Math.max(row0, row1))
 
     const totalCells = (maxCol - minCol + 1) * (maxRow - minRow + 1)
-    const assetStore = useAssetStore()
 
     const assetMap = new Map<string, BoxAssetSummary>()
     const layerItems: Record<string, { totalItems: number; assets: BoxAssetSummary[] }> = {}
@@ -1295,10 +1284,10 @@ export const useMapStore = defineStore('mapStore', () => {
             totalItems++
             layerItemCount++
 
-            const asset = assetStore.assets.find(a => a.id === item.assetId)
+            const asset = assetManager.getAssetItem(item.assetId)
             const assetName = asset?.name || item.assetId
             const category = asset?.category || 'General'
-            const previewSrc = assetStore.getAssetPreview(item.assetId) || asset?.previewSrc || asset?.src || ''
+            const previewSrc = assetManager.getPreviewDataUrl(item.assetId) || asset?.previewSrc || asset?.src || ''
 
             // Global map
             if (!assetMap.has(item.assetId)) {
