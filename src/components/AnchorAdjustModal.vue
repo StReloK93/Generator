@@ -5,6 +5,7 @@
     :subtitle="$t('anchor.subtitle')"
     :icon="Crosshair"
     icon-color="brand"
+    :teleport="true"
     size="4xl"
     @close="$emit('close')"
   >

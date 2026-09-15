@@ -83,7 +83,7 @@ export interface TowerLevelConfig extends TowerTraitsConfig {
   damage: number
   attackSpeed: number // seconds per attack
   range: number // attack range in tiles
-  projectileType?: 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
+  projectileType?: 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile' | 'fire_laser' | 'fire_splash'
   projectileSpeed?: number
   projectileColor?: number
   isSplash?: boolean
@@ -175,6 +175,7 @@ export interface MapProject {
   waveConfigs?: WaveConfig[]
   currentWaveIndex?: number
   buildableCells?: string[] // list of `${col},${row}` cells where towers can be built. If empty/undefined, all valid cells are buildable
+  waterCells?: string[] // list of `${col},${row}` cells designated as animated water
   buildMode?: 'all' | 'custom'
   createdAt: number
   updatedAt: number
@@ -204,7 +205,7 @@ export interface AssetItem {
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'water' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 
@@ -224,6 +225,7 @@ export interface ProjectHistoryItem {
   layers: Layer[]
   buildableCells?: string[]
   buildMode?: 'all' | 'custom'
+  waterCells?: string[]
 }
 
 export interface SelectedElementRef {

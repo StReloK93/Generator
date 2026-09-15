@@ -3,6 +3,7 @@ import { GridCoord, MapProject } from '../../types/map'
 import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
+import { assetManager } from '../../services/assetManager'
 import { getProjectileTheme, renderPixiProjectileHead } from '../../utils/projectileEffectRenderer'
 
 export class CombatRenderer {
@@ -136,11 +137,12 @@ export class CombatRenderer {
           }
           buildGhostSprite.visible = true
           buildGhostSprite.position.set(pt.x, pt.y)
-          buildGhostSprite.alpha = 0.55
-          buildGhostSprite.anchor.set(0.5, 0.88)
-          const texW = texture.width && texture.width > 10 ? texture.width : 256
-          const baseScale = (tileWidth * 1.0) / texW
-          buildGhostSprite.scale.set(baseScale * 0.98)
+          const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
+          const scale = (bp?.scale || asset?.scale || 1.0)
+          const anchorX = asset?.anchorX ?? bp?.anchorX ?? 0.5
+          const anchorY = asset?.anchorY ?? bp?.anchorY ?? 0.88
+          buildGhostSprite.scale.set(scale)
+          buildGhostSprite.anchor.set(anchorX, anchorY)
         } else {
           buildGhostSprite.visible = false
         }
@@ -251,6 +253,11 @@ export class CombatRenderer {
             this.combatGraphics
               .circle(pt.x, pt.y, 1.0)
               .fill({ color: 0xf8fafc, alpha: pt.alpha * 0.25 })
+          } else if (type === 'fire_splash') {
+            const trailRadius = (t / trail.length) * 6.5
+            this.combatGraphics
+              .circle(pt.x, pt.y, Math.max(1.5, trailRadius))
+              .fill({ color: theme.trailColorHex, alpha: pt.alpha * theme.trailAlpha })
           } else {
             const trailRadius = (t / trail.length) * 3.5
             this.combatGraphics

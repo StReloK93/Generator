@@ -477,7 +477,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords } from 'lucide-vue-next'
+import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords, Bomb } from 'lucide-vue-next'
 import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge, UiTabs, UiSwitch } from './ui'
 import { useTowerStore, ProjectileType, SplashType } from '../stores/towerStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -495,16 +495,21 @@ const { t } = useI18n()
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
 
-const categories = computed(() => [
-  { id: 'all', label: t('assets.catAll') },
-  { id: 'walls', label: t('assets.catWalls') },
-  { id: 'ground', label: t('assets.catGround') },
-  { id: 'stairs', label: t('assets.catStairs') },
-  { id: 'props', label: t('assets.catProps') },
-])
+const categories = computed(() => {
+  const items = [
+    { id: 'all', label: t('assets.catAll') || 'Barchasi' },
+    { id: 'builtin', label: t('config.builtinTowers') || 'Asosiy minoralar' },
+  ]
+  if (assetStore.customAssets.length > 0) {
+    items.push({ id: 'custom', label: t('common.custom') || 'Maxsus' })
+  }
+  return items
+})
 
 const projectileTypes = computed(() => [
   { id: 'fireball', label: t('towers.projectileFireball'), icon: Flame },
+  { id: 'fire_laser', label: t('towers.projectileFireLaser'), icon: Sparkles },
+  { id: 'fire_splash', label: t('towers.projectileFireSplash'), icon: Bomb },
   { id: 'arrow', label: t('towers.projectileArrow'), icon: ArrowRight },
   { id: 'magic_bolt', label: t('towers.projectileMagic'), icon: Zap },
   { id: 'cannonball', label: t('towers.projectileCannonball'), icon: CircleDot },
@@ -524,26 +529,29 @@ function getAssetThumbnail(asset: AssetItem | any): string {
 }
 
 const filteredAssets = computed(() => {
-  let list = assetStore.assets
+  let list = assetStore.assets.filter(item => {
+    const cat = (item.category || '').toLowerCase()
+    const name = (item.name || '').toLowerCase()
+    const id = (item.id || '').toLowerCase()
+    const path = (item.fileRelativePath || '').toLowerCase()
 
-  // Filter by category
-  if (selectedCategory.value !== 'all') {
-    list = list.filter(item => {
-      const lower = (item.name || item.id || '').toLowerCase()
-      if (selectedCategory.value === 'walls') {
-        return lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway') || lower.includes('column') || lower.includes('support')
-      }
-      if (selectedCategory.value === 'ground') {
-        return lower.includes('dirt') || lower.includes('planks') || (lower.includes('stone') && !lower.includes('wall') && !lower.includes('column'))
-      }
-      if (selectedCategory.value === 'stairs') {
-        return lower.includes('stairs') || lower.includes('bridge')
-      }
-      if (selectedCategory.value === 'props') {
-        return lower.includes('barrel') || lower.includes('chest') || lower.includes('crate') || lower.includes('table') || lower.includes('chair') || lower.includes('display') || lower.includes('bookcase')
-      }
-      return true
-    })
+    const isTower =
+      cat === 'towers' ||
+      path.includes('towers/') ||
+      path.includes('tower_') ||
+      name.includes('tower') ||
+      id.includes('tower') ||
+      item.isSample === false ||
+      cat === 'custom' ||
+      id.startsWith('custom-')
+
+    return isTower
+  })
+
+  if (selectedCategory.value === 'builtin') {
+    list = list.filter(item => !item.id.startsWith('custom-') && item.category !== 'Custom')
+  } else if (selectedCategory.value === 'custom') {
+    list = list.filter(item => item.id.startsWith('custom-') || item.category === 'Custom' || item.isSample === false)
   }
 
   // Filter by search query
@@ -555,7 +563,7 @@ const filteredAssets = computed(() => {
   return list
 })
 
-const selectedAsset = ref<AssetItem | null>(assetStore.assets.find(a => (a.name || '').toLowerCase().includes('column')) || assetStore.assets[0] || null)
+const selectedAsset = ref<AssetItem | null>(assetStore.assets.find(a => (a.category || '').toLowerCase() === 'towers' || (a.name || '').toLowerCase().includes('tower')) || assetStore.assets[0] || null)
 
 const selectedAssetPreview = computed(() => {
   if (!selectedAsset.value) return ''

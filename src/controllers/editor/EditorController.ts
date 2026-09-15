@@ -8,6 +8,7 @@ import { LineTool } from './tools/LineTool'
 import { BoxTool } from './tools/BoxTool'
 import { SelectTool } from './tools/SelectTool'
 import { BuildableTool } from './tools/BuildableTool'
+import { WaterTool } from './tools/WaterTool'
 
 export class EditorController {
   public ctx: EditorToolContext
@@ -20,6 +21,7 @@ export class EditorController {
   public boxTool = new BoxTool()
   public selectTool = new SelectTool()
   public buildableTool = new BuildableTool()
+  public waterTool = new WaterTool()
 
   // Route & Waypoint dragging state
   public isDraggingWaypoint = false
@@ -47,6 +49,7 @@ export class EditorController {
       return this.boxTool
     }
     if (active === 'buildable') return this.buildableTool
+    if (active === 'water') return this.waterTool
     if (active === 'select' || !this.ctx.assetStore.selectedAssetId) return this.selectTool
     return this.brushTool
   }

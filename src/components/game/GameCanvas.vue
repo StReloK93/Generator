@@ -74,6 +74,7 @@ function getAssetMap(): Map<string, AssetItem> {
 function updateEngineState() {
   if (!engine.isInitialized) return
   engine.syncLayers(mapStore.project, getAssetMap())
+  engine.syncWater(mapStore.project)
   engine.renderGrid(
     mapStore.project,
     false, // No grid overlay in game mode for clean cinematic look

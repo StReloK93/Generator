@@ -112,6 +112,7 @@ export const useMapStore = defineStore('mapStore', () => {
       timestamp: Date.now(),
       layers: cloneLayers(project.value.layers),
       buildableCells: project.value.buildableCells ? [...project.value.buildableCells] : undefined,
+      waterCells: project.value.waterCells ? [...project.value.waterCells] : undefined,
       buildMode: project.value.buildMode,
     })
 
@@ -131,6 +132,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (state) {
       project.value.layers = cloneLayers(state.layers)
       project.value.buildableCells = state.buildableCells ? [...state.buildableCells] : undefined
+      project.value.waterCells = state.waterCells ? [...state.waterCells] : undefined
       project.value.buildMode = state.buildMode || 'all'
       project.value.updatedAt = Date.now()
     }
@@ -143,6 +145,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (state) {
       project.value.layers = cloneLayers(state.layers)
       project.value.buildableCells = state.buildableCells ? [...state.buildableCells] : undefined
+      project.value.waterCells = state.waterCells ? [...state.waterCells] : undefined
       project.value.buildMode = state.buildMode || 'all'
       project.value.updatedAt = Date.now()
     }
@@ -217,6 +220,7 @@ export const useMapStore = defineStore('mapStore', () => {
       customRoutes: {},
       customWaypoints: {},
       buildableCells: undefined,
+      waterCells: undefined,
       buildMode: 'all',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -1844,12 +1848,87 @@ export const useMapStore = defineStore('mapStore', () => {
     pushHistory(buildable ? 'Set all cells buildable' : 'Cleared all buildable cells')
   }
 
+  function isCellWater(col: number, row: number): boolean {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return false
+    const cells = project.value.waterCells
+    return Array.isArray(cells) && cells.includes(`${col},${row}`)
+  }
+
+  function toggleWaterCell(col: number, row: number) {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return
+    if (!project.value.waterCells) {
+      project.value.waterCells = []
+    }
+    const key = `${col},${row}`
+    const idx = project.value.waterCells.indexOf(key)
+    if (idx !== -1) {
+      project.value.waterCells.splice(idx, 1)
+    } else {
+      project.value.waterCells.push(key)
+    }
+    project.value.updatedAt = Date.now()
+  }
+
+  function setCellWater(col: number, row: number, isWater: boolean) {
+    if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) return
+    if (!project.value.waterCells) {
+      project.value.waterCells = []
+    }
+    const key = `${col},${row}`
+    const idx = project.value.waterCells.indexOf(key)
+    if (isWater && idx === -1) {
+      project.value.waterCells.push(key)
+    } else if (!isWater && idx !== -1) {
+      project.value.waterCells.splice(idx, 1)
+    }
+    project.value.updatedAt = Date.now()
+  }
+
+  function batchSetWaterCells(cells: GridCoord[], isWater: boolean) {
+    if (!cells || cells.length === 0) return
+    if (!project.value.waterCells) {
+      project.value.waterCells = []
+    }
+    const currentSet = new Set(project.value.waterCells)
+    for (const c of cells) {
+      if (!isInsideGrid(c.col, c.row, project.value.cols, project.value.rows)) continue
+      const key = `${c.col},${c.row}`
+      if (isWater) {
+        currentSet.add(key)
+      } else {
+        currentSet.delete(key)
+      }
+    }
+    project.value.waterCells = Array.from(currentSet)
+    project.value.updatedAt = Date.now()
+    pushHistory(isWater ? `Added ${cells.length} water cells` : `Removed ${cells.length} water cells`)
+  }
+
+  function clearAllWaterCells() {
+    project.value.waterCells = []
+    project.value.updatedAt = Date.now()
+    pushHistory('Cleared all water cells')
+  }
+
+  function fillAllWaterCells() {
+    const list: string[] = []
+    for (let c = 0; c < project.value.cols; c++) {
+      for (let r = 0; r < project.value.rows; r++) {
+        list.push(`${c},${r}`)
+      }
+    }
+    project.value.waterCells = list
+    project.value.updatedAt = Date.now()
+    pushHistory('Filled all cells with water')
+  }
+
   if (history.value.length === 0) {
     history.value.push({
       description: 'Initial state',
       timestamp: Date.now(),
       layers: cloneLayers(project.value.layers),
       buildableCells: project.value.buildableCells ? [...project.value.buildableCells] : undefined,
+      waterCells: project.value.waterCells ? [...project.value.waterCells] : undefined,
       buildMode: project.value.buildMode,
     })
     historyIndex.value = 0
@@ -1928,5 +2007,11 @@ export const useMapStore = defineStore('mapStore', () => {
     setCellBuildable,
     batchSetBuildableCells,
     setAllCellsBuildable,
+    isCellWater,
+    toggleWaterCell,
+    setCellWater,
+    batchSetWaterCells,
+    clearAllWaterCells,
+    fillAllWaterCells,
   }
 })

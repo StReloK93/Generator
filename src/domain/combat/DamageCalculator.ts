@@ -37,56 +37,56 @@ export class DamageCalculator {
         }
 
         if (trait === 'fire') {
-          const fireBonus = Math.round((towerTraitsConfig.fireBonusDamage ?? 5) * vulnMultiplier)
+          const fireBonus = Math.round((towerTraitsConfig.fireBonusDamage || 0) * vulnMultiplier)
           finalDamage += fireBonus
           appliedEffects.push({
             type: 'fire',
-            duration: towerTraitsConfig.burnDuration ?? 3.0,
-            dps: towerTraitsConfig.burnDps ?? 4,
+            duration: towerTraitsConfig.burnDuration || 3.0,
+            dps: towerTraitsConfig.burnDps || 4,
           })
         } else if (trait === 'frost') {
-          const frostBonus = Math.round((towerTraitsConfig.frostBonusDamage ?? 2) * vulnMultiplier)
+          const frostBonus = Math.round((towerTraitsConfig.frostBonusDamage || 0) * vulnMultiplier)
           finalDamage += frostBonus
           appliedEffects.push({
             type: 'frost',
-            duration: towerTraitsConfig.slowDuration ?? 2.5,
-            slowPercent: towerTraitsConfig.slowPercent ?? 30,
+            duration: towerTraitsConfig.slowDuration || 2.5,
+            slowPercent: towerTraitsConfig.slowPercent || 30,
           })
         } else if (trait === 'poison') {
           appliedEffects.push({
             type: 'poison',
-            duration: towerTraitsConfig.poisonDuration ?? 4.0,
-            dps: towerTraitsConfig.poisonDps ?? 6,
-            slowPercent: towerTraitsConfig.poisonSlowPercent ?? 10,
+            duration: towerTraitsConfig.poisonDuration || 4.0,
+            dps: towerTraitsConfig.poisonDps || 6,
+            slowPercent: towerTraitsConfig.poisonSlowPercent || 10,
           })
         } else if (trait === 'stacking') {
           const towerId = towerTraitsConfig.id || 'default'
           const currentHits = ((target?.consecutiveHits?.[towerId] || 0) + 1)
-          const maxSt = towerTraitsConfig.maxStacks ?? 10
+          const maxSt = towerTraitsConfig.maxStacks || 10
           const activeStacks = Math.min(maxSt, currentHits)
           stackCount = activeStacks
-          const stackBonus = towerTraitsConfig.stackBonusDamage ?? 4
+          const stackBonus = towerTraitsConfig.stackBonusDamage || 0
           const extraStackDmg = Math.round(activeStacks * stackBonus * vulnMultiplier)
           finalDamage += extraStackDmg
         } else if (trait === 'blood') {
           appliedEffects.push({
             type: 'blood',
-            duration: towerTraitsConfig.bleedDuration ?? 3.5,
-            dps: towerTraitsConfig.bleedDps ?? 7,
+            duration: towerTraitsConfig.bleedDuration || 3.5,
+            dps: towerTraitsConfig.bleedDps || 7,
           })
         } else if (trait === 'electric') {
-          const electricBonus = Math.round((towerTraitsConfig.electricBonusDamage ?? 6) * vulnMultiplier)
+          const electricBonus = Math.round((towerTraitsConfig.electricBonusDamage || 0) * vulnMultiplier)
           finalDamage += electricBonus
           appliedEffects.push({
             type: 'electric',
-            duration: towerTraitsConfig.stunDuration ?? 0.3,
+            duration: towerTraitsConfig.stunDuration || 0.3,
             slowPercent: 90,
           })
         } else if (trait === 'void') {
           appliedEffects.push({
             type: 'void',
-            duration: towerTraitsConfig.voidDuration ?? 4.0,
-            amplification: towerTraitsConfig.voidVulnPercent ?? 25,
+            duration: towerTraitsConfig.voidDuration || 4.0,
+            amplification: towerTraitsConfig.voidVulnPercent || 25,
           })
         }
       }

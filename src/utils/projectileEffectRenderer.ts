@@ -91,6 +91,28 @@ export const PROJECTILE_THEMES: Record<ProjectileType, ProjectileVisualTheme> = 
     shockwaveColorCss: '#38bdf8',
     hasArc: false,
   },
+  fire_laser: {
+    type: 'fire_laser',
+    trailColorHex: 0xf97316,
+    trailColorCss: 'rgba(249, 115, 22, 0.85)',
+    trailAlpha: 0.85,
+    sparkColorHex: 0xfbbf24,
+    sparkColorCss: '#fbbf24',
+    shockwaveColorHex: 0xef4444,
+    shockwaveColorCss: '#ef4444',
+    hasArc: false,
+  },
+  fire_splash: {
+    type: 'fire_splash',
+    trailColorHex: 0xef4444,
+    trailColorCss: 'rgba(239, 68, 68, 0.85)',
+    trailAlpha: 0.85,
+    sparkColorHex: 0xfbbf24,
+    sparkColorCss: '#fbbf24',
+    shockwaveColorHex: 0xf97316,
+    shockwaveColorCss: '#f97316',
+    hasArc: true,
+  },
 }
 
 export function getProjectileTheme(type: string, customColor?: number): ProjectileVisualTheme {
@@ -224,6 +246,33 @@ export function renderPixiProjectileHead(
       .lineTo(renderX, renderY)
       .stroke({ width: 1.8, color: 0xffffff, alpha: 1.0 })
     g.circle(renderX, renderY, 4.0).fill({ color: 0xffffff, alpha: 1.0 })
+  } else if (type === 'fire_laser') {
+    // Continuous fiery laser beam with molten white-gold plasma core
+    g.moveTo(startX, startY)
+      .lineTo(renderX, renderY)
+      .stroke({ width: 7.0, color: 0xef4444, alpha: 0.4 })
+    g.moveTo(startX, startY)
+      .lineTo(renderX, renderY)
+      .stroke({ width: 3.6, color: 0xf97316, alpha: 0.85 })
+    g.moveTo(startX, startY)
+      .lineTo(renderX, renderY)
+      .stroke({ width: 1.6, color: 0xfef08a, alpha: 1.0 })
+    const pulseR = 5.5 + Math.sin(time * 0.02) * 1.5
+    g.circle(renderX, renderY, pulseR).fill({ color: 0xef4444, alpha: 0.6 })
+    g.circle(renderX, renderY, 3.2).fill({ color: 0xffffff, alpha: 1.0 })
+  } else if (type === 'fire_splash') {
+    // Massive Raging Magma / Meteor Fireball
+    const pulse = Math.sin(time * 0.015) * 1.5
+    g.circle(renderX, renderY, 12.0 + pulse).fill({ color: 0x991b1b, alpha: 0.45 })
+    g.circle(renderX, renderY, 8.5 + pulse * 0.5).fill({ color: 0xef4444, alpha: 0.85 })
+    g.circle(renderX, renderY, 5.5).fill({ color: 0xf97316, alpha: 0.95 })
+    g.circle(renderX, renderY, 3.0).fill({ color: 0xfef08a, alpha: 1.0 })
+    for (let f = 0; f < 3; f++) {
+      const orbAngle = time * 0.008 + (f * Math.PI * 2) / 3
+      const ox = renderX + Math.cos(orbAngle) * 9.5
+      const oy = renderY + Math.sin(orbAngle) * 9.5
+      g.circle(ox, oy, 1.8).fill({ color: 0xfbbf24, alpha: 0.9 })
+    }
   } else if (type === 'missile') {
     // Rocket missile with nose cone and exhaust thrust
     const mLen = 14
@@ -386,6 +435,69 @@ export function renderCanvasProjectileHead(
     ctx.arc(renderX, renderY, 4, 0, Math.PI * 2)
     ctx.fillStyle = '#ffffff'
     ctx.fill()
+  } else if (type === 'fire_laser') {
+    ctx.beginPath()
+    ctx.moveTo(startX, startY)
+    ctx.lineTo(renderX, renderY)
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'
+    ctx.lineWidth = 7
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(startX, startY)
+    ctx.lineTo(renderX, renderY)
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.85)'
+    ctx.lineWidth = 3.6
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(startX, startY)
+    ctx.lineTo(renderX, renderY)
+    ctx.strokeStyle = '#fef08a'
+    ctx.lineWidth = 1.6
+    ctx.stroke()
+
+    const pulseR = 5.5 + Math.sin(time * 0.02) * 1.5
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, pulseR, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.6)'
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 3.2, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  } else if (type === 'fire_splash') {
+    const pulse = Math.sin(time * 0.015) * 1.5
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 12.0 + pulse, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(153, 27, 27, 0.45)'
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 8.5 + pulse * 0.5, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.85)'
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 5.5, 0, Math.PI * 2)
+    ctx.fillStyle = '#f97316'
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 3.0, 0, Math.PI * 2)
+    ctx.fillStyle = '#fef08a'
+    ctx.fill()
+
+    for (let f = 0; f < 3; f++) {
+      const orbAngle = time * 0.008 + (f * Math.PI * 2) / 3
+      const ox = renderX + Math.cos(orbAngle) * 9.5
+      const oy = renderY + Math.sin(orbAngle) * 9.5
+      ctx.beginPath()
+      ctx.arc(ox, oy, 1.8, 0, Math.PI * 2)
+      ctx.fillStyle = '#fbbf24'
+      ctx.fill()
+    }
   } else if (type === 'missile') {
     ctx.save()
     ctx.translate(renderX, renderY)

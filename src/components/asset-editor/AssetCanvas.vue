@@ -7,7 +7,28 @@
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseUp"
+    @dragover.prevent="handleDragOver"
+    @dragenter.prevent="handleDragEnter"
+    @dragleave.prevent="handleDragLeave"
+    @drop.prevent="handleDrop"
   >
+    <!-- Drag & Drop Fullscreen Visual Target Overlay -->
+    <div 
+      v-if="isDraggingFiles"
+      class="absolute inset-4 z-50 rounded-3xl border-2 border-dashed border-cyan-400 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center gap-3 text-cyan-300 pointer-events-none animate-in fade-in zoom-in-95 duration-150 shadow-[0_0_50px_rgba(6,182,212,0.3)]"
+    >
+      <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-400 animate-bounce shadow-lg">
+        <UploadCloud class="w-8 h-8" />
+      </div>
+      <div class="text-center">
+        <h4 class="text-base font-bold text-white tracking-wide">
+          {{ $t('assetEditor.dropImageTitle') || 'Rasmni bu yerga tashlang' }}
+        </h4>
+        <p class="text-xs text-cyan-200/80 mt-1 max-w-sm">
+          {{ $t('assetEditor.dropImageSubtitle') || 'PNG, WebP, JPG yoki SVG formatidagi rasmlar avtomatik kompozitsiyaga qo\'shiladi' }}
+        </p>
+      </div>
+    </div>
     <!-- Background Grid / Work Area Canvas -->
     <div 
       class="relative transition-transform duration-75 shadow-2xl rounded-2xl border border-slate-800/80 overflow-hidden checker-pattern"
@@ -82,7 +103,7 @@
         v-for="part in store.sortedParts"
         :key="part.id"
         v-show="part.visible"
-        class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-move transition-shadow"
+        class="absolute cursor-move transition-shadow"
         :style="{
           left: `${store.canvasWidth / 2 + part.x}px`,
           top: `${store.canvasHeight / 2 + part.y}px`,
@@ -322,7 +343,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
-import { ZoomIn, ZoomOut, RotateCcw, Grid, Scaling, X } from 'lucide-vue-next'
+import { ZoomIn, ZoomOut, RotateCcw, Grid, Scaling, X, UploadCloud } from 'lucide-vue-next'
 import { UiIconButton, UiButton } from '../ui'
 import { useAssetEditorStore, type CompositePart } from '../../stores/assetEditorStore'
 import { useAssetStore } from '../../stores/assetStore'
@@ -332,6 +353,92 @@ const assetStore = useAssetStore()
 
 const viewportRef = ref<HTMLElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+
+// Drag & Drop File state
+const isDraggingFiles = ref(false)
+let dragCounter = 0
+
+function handleDragEnter(e: DragEvent) {
+  dragCounter++
+  if (e.dataTransfer && (e.dataTransfer.types.includes('Files') || e.dataTransfer.types.includes('application/json'))) {
+    isDraggingFiles.value = true
+  }
+}
+
+function handleDragOver(e: DragEvent) {
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  isDraggingFiles.value = true
+}
+
+function handleDragLeave(_e: DragEvent) {
+  dragCounter--
+  if (dragCounter <= 0) {
+    dragCounter = 0
+    isDraggingFiles.value = false
+  }
+}
+
+async function handleDrop(e: DragEvent) {
+  dragCounter = 0
+  isDraggingFiles.value = false
+
+  const rect = viewportRef.value?.getBoundingClientRect()
+  let dropX = 0
+  let dropY = 0
+
+  if (rect) {
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const viewCenterX = rect.width / 2 + store.panX
+    const viewCenterY = rect.height / 2 + store.panY
+    dropX = Math.round((mouseX - viewCenterX) / store.zoom)
+    dropY = Math.round((mouseY - viewCenterY) / store.zoom)
+  }
+
+  // 1. Dropped internal sprite from Sidebar JSON
+  const jsonData = e.dataTransfer?.getData('application/json')
+  if (jsonData) {
+    try {
+      const parsed = JSON.parse(jsonData)
+      if (parsed && (parsed.assetId || parsed.id)) {
+        store.addPartFromAsset({
+          id: parsed.assetId || parsed.id,
+          name: parsed.name || 'Sprite',
+          src: parsed.src || '',
+          previewSrc: parsed.previewSrc || parsed.src || '',
+        }, dropX, dropY)
+        return
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // 2. Dropped external image files from OS Desktop / Explorer
+  const files = e.dataTransfer?.files
+  if (files && files.length > 0) {
+    await processAndAddFiles(files, dropX, dropY)
+  }
+}
+
+async function processAndAddFiles(files: FileList | File[], initialX = 0, initialY = 0) {
+  const addedAssets = await assetStore.uploadFiles(files)
+  if (addedAssets && addedAssets.length > 0) {
+    for (let i = 0; i < addedAssets.length; i++) {
+      const a = addedAssets[i]
+      const offsetX = initialX + i * 24
+      const offsetY = initialY + i * 24
+      store.addPartFromAsset({
+        id: a.id,
+        name: a.name,
+        src: a.src,
+        previewSrc: a.previewSrc,
+      }, offsetX, offsetY)
+    }
+  }
+}
 
 // Dragging, Scaling & Panning state
 const isDraggingPart = ref(false)
@@ -638,7 +745,7 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 // Export canvas image to transparent PNG Data URL with dynamic bounding box (no clipping!)
-async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string; width: number; height: number }> {
+async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string; width: number; height: number; anchorX: number; anchorY: number }> {
   // 1. Pre-load all images
   const loadedImages: { img: HTMLImageElement; part: typeof store.parts[0] }[] = []
   
@@ -658,9 +765,16 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
     throw new Error('No visible layers found to export')
   }
 
-  // 2. Compute dynamic bounding box across ALL parts regardless of how low or high they are
-  let minPartX = Infinity, maxPartX = -Infinity
-  let minPartY = Infinity, maxPartY = -Infinity
+  // 2. Compute dynamic bounding box across ALL parts relative to diamond base (center X=0, center Y=100)
+  const diamondCenterX = 0
+  const diamondCenterY = 100
+  const diamondGroundY = 164 // bottom vertex of diamond (100 + 64)
+  const diamondTopY = 36     // top vertex of diamond (100 - 64)
+  const diamondHalfWidth = 128 // left (-128) and right (+128) vertices
+
+  let minTopY = diamondTopY
+  let maxBottomY = diamondGroundY
+  let maxExtX = diamondHalfWidth
 
   for (const { img, part } of loadedImages) {
     if (!img.width || !img.height) continue
@@ -681,33 +795,41 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
     const top = part.y - boundH / 2
     const bottom = part.y + boundH / 2
 
-    if (left < minPartX) minPartX = left
-    if (right > maxPartX) maxPartX = right
-    if (top < minPartY) minPartY = top
-    if (bottom > maxPartY) maxPartY = bottom
+    if (top < minTopY) minTopY = top
+    if (bottom > maxBottomY) maxBottomY = bottom
+
+    // Ensure 100% strict horizontal symmetry around X = 0 (diamond center axis)
+    const extX = Math.max(Math.abs(left), Math.abs(right))
+    if (extX > maxExtX) maxExtX = extX
   }
 
-  // Extra safety margin around bounding box to prevent clipping
-  const padding = 64
-  const renderWidth = Math.max(128, Math.ceil(maxPartX - minPartX + padding * 2))
-  const renderHeight = Math.max(128, Math.ceil(maxPartY - minPartY + padding * 2))
+  // Symmetrical width around diamond center X = 0
+  const pad = 2
+  const halfWidth = Math.ceil(maxExtX + pad)
+  const exportWidth = halfWidth * 2
+  const exportMinX = -halfWidth
+
+  // Vertical bounds: tightly crop to sprite content
+  const exportMinY = Math.floor(minTopY - pad)
+  const exportMaxY = Math.ceil(maxBottomY + pad)
+  const exportHeight = exportMaxY - exportMinY
 
   const offscreen = document.createElement('canvas')
-  offscreen.width = renderWidth
-  offscreen.height = renderHeight
+  offscreen.width = exportWidth
+  offscreen.height = exportHeight
   const ctx = offscreen.getContext('2d', { willReadFrequently: true })
   if (!ctx) throw new Error('Canvas 2D context unavailable')
 
-  ctx.clearRect(0, 0, renderWidth, renderHeight)
+  ctx.clearRect(0, 0, exportWidth, exportHeight)
 
-  // 3. Draw each part sorted by z-index into dynamically bounded canvas
+  // 3. Draw each part sorted by z-index into diamond-aligned canvas
   for (const { img, part } of loadedImages) {
     if (!img.width || !img.height) continue
     ctx.save()
     ctx.globalAlpha = part.opacity
 
-    const drawX = part.x - minPartX + padding
-    const drawY = part.y - minPartY + padding
+    const drawX = part.x - exportMinX
+    const drawY = part.y - exportMinY
 
     ctx.translate(drawX, drawY)
     ctx.rotate((part.rotation * Math.PI) / 180)
@@ -717,50 +839,20 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
     ctx.restore()
   }
 
-  // 4. Auto-trim transparent pixel borders
-  const imgData = ctx.getImageData(0, 0, renderWidth, renderHeight)
-  const data = imgData.data
-  let minX = renderWidth, minY = renderHeight, maxX = 0, maxY = 0
-  let hasPixels = false
-
-  for (let y = 0; y < renderHeight; y++) {
-    for (let x = 0; x < renderWidth; x++) {
-      const a = data[(y * renderWidth + x) * 4 + 3]
-      if (a > 10) {
-        hasPixels = true
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
-      }
-    }
-  }
-
-  let finalCanvas = offscreen
-  if (hasPixels) {
-    const pad = 2
-    const cropX = Math.max(0, minX - pad)
-    const cropY = Math.max(0, minY - pad)
-    const cropW = Math.min(renderWidth - cropX, maxX - minX + pad * 2)
-    const cropH = Math.min(renderHeight - cropY, maxY - minY + pad * 2)
-
-    const trimmedCanvas = document.createElement('canvas')
-    trimmedCanvas.width = cropW
-    trimmedCanvas.height = cropH
-    const trimCtx = trimmedCanvas.getContext('2d')
-    if (trimCtx) {
-      trimCtx.drawImage(offscreen, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-      finalCanvas = trimmedCanvas
-    }
-  }
+  // Anchor X is strictly 0.5 (dead center of diamond)
+  // Anchor Y is the bottom of the sprite content
+  const anchorX = 0.5
+  const anchorY = Number(((maxBottomY - exportMinY) / exportHeight).toFixed(4))
 
   return new Promise((resolve) => {
-    finalCanvas.toBlob((blob) => {
+    offscreen.toBlob((blob) => {
       resolve({
         blob: blob!,
-        dataUrl: finalCanvas.toDataURL('image/png'),
-        width: finalCanvas.width,
-        height: finalCanvas.height,
+        dataUrl: offscreen.toDataURL('image/png'),
+        width: exportWidth,
+        height: exportHeight,
+        anchorX,
+        anchorY,
       })
     }, 'image/png')
   })
@@ -769,6 +861,7 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
 defineExpose({
   exportToTransparentBlob,
   openQuickScaleModal,
+  processAndAddFiles,
 })
 
 onMounted(() => {

@@ -158,34 +158,49 @@ function spawnProjectile() {
 
 function handleImpact(p: LiveProjectile) {
   const theme = getProjectileTheme(p.type, p.color)
+  const isFireSplash = p.type === 'fire_splash'
+  const isSplashHit = p.isSplash || isFireSplash
 
   // 1. Spawn Splash Shockwave Ring if AoE or standard impact
-  const splashPx = Math.max(18, (p.splashRadius || 1.5) * 22)
+  const splashPx = Math.max(18, (p.splashRadius || (isFireSplash ? 2.5 : 1.5)) * 22)
   activeShockwaves.push({
     x: p.targetX,
     y: p.targetY,
     rx: 4,
     ry: 2,
-    maxRadius: p.isSplash ? splashPx : 14,
+    maxRadius: isSplashHit ? splashPx : 14,
     color: theme.shockwaveColorCss,
     alpha: 1.0,
     life: 0.5
   })
 
+  if (isFireSplash) {
+    activeShockwaves.push({
+      x: p.targetX,
+      y: p.targetY,
+      rx: 2,
+      ry: 1,
+      maxRadius: splashPx * 0.6,
+      color: '#fef08a',
+      alpha: 1.0,
+      life: 0.35
+    })
+  }
+
   // 2. Spawn Impact Spark Particles
-  const sparkCount = p.isSplash ? 16 : 9
+  const sparkCount = isFireSplash ? 22 : (isSplashHit ? 16 : 9)
   for (let i = 0; i < sparkCount; i++) {
     const ang = Math.random() * Math.PI * 2
-    const spd = 25 + Math.random() * 80
+    const spd = 25 + Math.random() * (isFireSplash ? 110 : 80)
     activeSparks.push({
       x: p.targetX,
       y: p.targetY,
       vx: Math.cos(ang) * spd,
-      vy: Math.sin(ang) * spd * 0.7,
-      color: theme.sparkColorCss,
+      vy: Math.sin(ang) * spd,
+      color: isFireSplash ? (i % 2 === 0 ? '#f97316' : '#fef08a') : theme.sparkColorCss,
       alpha: 1.0,
-      size: 2 + Math.random() * 2.5,
-      life: 0.35 + Math.random() * 0.25
+      size: 1.5 + Math.random() * (isFireSplash ? 3.0 : 2),
+      life: 0.3 + Math.random() * 0.25
     })
   }
 }
@@ -311,6 +326,13 @@ function renderFrame(time: number) {
         ctx.arc(pt.x, pt.y, 1.0, 0, Math.PI * 2)
         ctx.fillStyle = `rgba(248, 250, 252, ${pt.alpha * 0.25})`
         ctx.fill()
+      } else if (p.type === 'fire_splash') {
+        ctx.beginPath()
+        ctx.arc(pt.x, pt.y, (t / p.trail.length) * 6.5, 0, Math.PI * 2)
+        ctx.fillStyle = theme.trailColorCss
+        ctx.globalAlpha = pt.alpha
+        ctx.fill()
+        ctx.globalAlpha = 1.0
       } else {
         ctx.beginPath()
         ctx.arc(pt.x, pt.y, (t / p.trail.length) * 3.5, 0, Math.PI * 2)

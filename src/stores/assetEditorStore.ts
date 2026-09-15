@@ -115,7 +115,7 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
   }
 
   // Add piece to canvas
-  function addPartFromAsset(asset: { id: string; name: string; src?: string; previewSrc?: string }) {
+  function addPartFromAsset(asset: { id: string; name: string; src?: string; previewSrc?: string }, x = 0, y = 0) {
     const nextZ = parts.value.length > 0 
       ? Math.max(...parts.value.map(p => p.zIndex)) + 1 
       : 1
@@ -128,8 +128,8 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
       assetId: asset.id,
       assetName: asset.name,
       src,
-      x: 0,
-      y: 0,
+      x,
+      y,
       scaleX: 1.0,
       scaleY: 1.0,
       rotation: 0,
@@ -142,6 +142,7 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
     parts.value.push(newPart)
     selectedPartIds.value = [newPart.id]
     recordHistory()
+    return newPart
   }
 
   function removePart(partId: string) {

@@ -1,8 +1,28 @@
 {
   "frames": {
-    "stoneWallTop_S": {
+    "woodWallRoofRight_E": {
       "frame": {
         "x": 2,
+        "y": 2,
+        "w": 136,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 303,
+        "w": 136,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_S": {
+      "frame": {
+        "x": 140,
         "y": 2,
         "w": 161,
         "h": 151
@@ -22,7 +42,7 @@
     },
     "woodWallRoofLeft_W": {
       "frame": {
-        "x": 165,
+        "x": 303,
         "y": 2,
         "w": 141,
         "h": 151
@@ -42,7 +62,7 @@
     },
     "woodWallRoofRight_N": {
       "frame": {
-        "x": 308,
+        "x": 446,
         "y": 2,
         "w": 141,
         "h": 151
@@ -62,7 +82,7 @@
     },
     "stoneWallTop_N": {
       "frame": {
-        "x": 451,
+        "x": 589,
         "y": 2,
         "w": 161,
         "h": 137
@@ -82,7 +102,7 @@
     },
     "stoneWallTop_E": {
       "frame": {
-        "x": 614,
+        "x": 752,
         "y": 2,
         "w": 161,
         "h": 135

@@ -9,6 +9,7 @@ export class PixiContext {
   public worldContainer: Container
   public currentFps: number = 60
   public onTick?: (deltaSec: number) => void
+  public onFrame?: (deltaSec: number) => void
 
   constructor() {
     this.app = new Application()
@@ -49,8 +50,12 @@ export class PixiContext {
         lastFpsSampleTime = now
       }
 
+      const deltaSec = ticker.deltaTime / 60
+      if (this.onFrame) {
+        this.onFrame(deltaSec)
+      }
       if (this.onTick) {
-        this.onTick(ticker.deltaTime / 60)
+        this.onTick(deltaSec)
       }
     })
 

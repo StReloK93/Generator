@@ -109,6 +109,16 @@
         @click="toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')"
       />
 
+      <!-- Water Tool (W) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Waves"
+        :active="toolStore.activeTool === 'water'"
+        :title="`${$t('editor.waterTool') || 'Suv qatlami'} (W)`"
+        @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
+      />
+
       <div class="h-px w-full bg-slate-800 my-0.5"></div>
 
       <!-- Quick Fill All Empty (Shift+E) -->
@@ -210,6 +220,71 @@
           @click="toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
         >
           {{ $t('common.done') }}
+        </UiButton>
+      </div>
+    </div>
+
+    <!-- Floating HUD when in Water Mode -->
+    <div 
+      v-if="toolStore.activeTool === 'water'"
+      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-sky-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-sky-200 animate-in fade-in slide-in-from-top-2 select-none"
+    >
+      <div class="flex items-center gap-1.5 shrink-0">
+        <Waves class="w-4 h-4 text-sky-400 shrink-0 animate-pulse" />
+        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.waterLayer') || 'Suv Qatlami' }}</span>
+        <span class="font-mono text-[11px] text-sky-300 font-semibold">
+          ({{ mapStore.project.waterCells?.length || 0 }} {{ $t('common.cells') || 'katak' }})
+        </span>
+      </div>
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Sub-tool Selector: Brush / Line / Box Area -->
+      <UiTabs
+        v-model="waterSubTool"
+        variant="segmented"
+        size="xs"
+        :items="[
+          { id: 'brush', label: $t('tools.brush') || 'Brush', icon: Paintbrush },
+          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
+          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+        ]"
+      />
+
+      <!-- Action: Water (+) vs Dry (-) -->
+      <UiTabs
+        v-model="waterAction"
+        :variant="waterAction === 'water' ? 'emerald' : 'segmented'"
+        size="xs"
+        :items="[
+          { id: 'water', label: $t('editor.waterAdd') || 'Suv (+)', icon: Plus },
+          { id: 'dry', label: $t('editor.waterDry') || 'Quruqlik (-)', icon: Minus },
+        ]"
+      />
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <div class="flex items-center gap-1">
+        <UiButton
+          variant="secondary"
+          size="xs"
+          @click="mapStore.fillAllWaterCells(); engine.syncWater(mapStore.project)"
+        >
+          {{ $t('editor.fillAllWater') || 'Hammasi' }}
+        </UiButton>
+        <UiButton
+          variant="danger"
+          size="xs"
+          @click="mapStore.clearAllWaterCells(); engine.syncWater(mapStore.project)"
+        >
+          {{ $t('common.clear') || 'Tozalash' }}
+        </UiButton>
+        <UiButton
+          variant="primary"
+          size="xs"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'water' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.done') || 'Tayyor' }}
         </UiButton>
       </div>
     </div>
@@ -460,7 +535,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
-  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle 
+  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves 
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
@@ -499,6 +574,10 @@ const buildableSubTool = ref<'brush' | 'line' | 'box'>('brush')
 const buildableAction = ref<'allow' | 'block'>('allow')
 const buildableBoxStartPoint = ref<GridCoord | null>(null)
 
+// Water Layer Sub-tool ('brush' | 'line' | 'box') & Action Mode ('water' | 'dry')
+const waterSubTool = ref<'brush' | 'line' | 'box'>('brush')
+const waterAction = ref<'water' | 'dry'>('water')
+
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
 const camera = usePixiCamera(engine, toRef(mapStore, 'project'))
@@ -517,6 +596,13 @@ watch(buildableSubTool, (val) => {
 })
 watch(buildableAction, (val) => {
   editorController.buildableTool.action = val
+})
+
+watch(waterSubTool, (val) => {
+  editorController.waterTool.subTool = val
+})
+watch(waterAction, (val) => {
+  editorController.waterTool.action = val
 })
 
 const showGuide = ref(true)
@@ -540,6 +626,7 @@ function getAssetMap(): Map<string, AssetItem> {
 function updateEngineState() {
   if (!engine.isInitialized) return
   engine.syncLayers(mapStore.project, getAssetMap())
+  engine.syncWater(mapStore.project)
   engine.renderGrid(
     mapStore.project,
     toolStore.showGrid,
@@ -704,6 +791,19 @@ watch(() => [
       toolStore.showBuildableZones,
       toolStore.activeTool
     )
+  }
+}, { deep: true })
+
+watch(() => [
+  mapStore.project.waterCells,
+  mapStore.project.waterCells?.length,
+  mapStore.project.cols,
+  mapStore.project.rows,
+  mapStore.project.tileWidth,
+  mapStore.project.tileHeight,
+], () => {
+  if (engine.isInitialized) {
+    engine.syncWater(mapStore.project)
   }
 }, { deep: true })
 
@@ -1091,6 +1191,10 @@ function handleKeyDown(e: KeyboardEvent) {
         buildableSubTool.value = 'brush'
         return
       }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'brush'
+        return
+      }
       if (isBoxFillActive.value) cancelBoxFillMode()
       if (isBoxClearActive.value) cancelBoxClearMode()
       toolStore.setTool('brush')
@@ -1100,6 +1204,10 @@ function handleKeyDown(e: KeyboardEvent) {
       e.preventDefault()
       if (toolStore.activeTool === 'buildable') {
         buildableAction.value = 'block'
+        return
+      }
+      if (toolStore.activeTool === 'water') {
+        waterAction.value = 'dry'
         return
       }
       if (isBoxFillActive.value) cancelBoxFillMode()
@@ -1127,6 +1235,10 @@ function handleKeyDown(e: KeyboardEvent) {
         buildableSubTool.value = 'line'
         return
       }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'line'
+        return
+      }
       if (isBoxFillActive.value) cancelBoxFillMode()
       if (isBoxClearActive.value) cancelBoxClearMode()
       toolStore.setTool('line')
@@ -1138,8 +1250,19 @@ function handleKeyDown(e: KeyboardEvent) {
         buildableSubTool.value = 'box'
         return
       }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'box'
+        return
+      }
       toggleBoxFillMode()
       return
+    }
+    if (code === 'KeyW' || key === 'w') {
+      if (!e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')
+        return
+      }
     }
     if (code === 'KeyZ' || key === 'z') {
       if (!e.ctrlKey && !e.metaKey) {

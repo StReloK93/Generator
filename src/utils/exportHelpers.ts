@@ -269,6 +269,7 @@ export function buildFullProjectJsonPayload(
       waveConfigs: resolvedWaveConfigs,
       currentWaveIndex: resolvedCurrentWaveIndex,
       buildableCells: project.buildableCells || [],
+      waterCells: project.waterCells || [],
       buildMode: project.buildMode || 'all',
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
@@ -355,6 +356,9 @@ export function importProjectFromJson(
             }
           }
         }
+        
+        project.waterCells = Array.isArray(project.waterCells) ? project.waterCells : []
+        project.buildableCells = Array.isArray(project.buildableCells) ? project.buildableCells : []
         
         const characterData = data.characterData || {
           customRoutes: project.customRoutes || {},

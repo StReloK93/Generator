@@ -118,11 +118,14 @@ export class TowerRenderer {
         if (sprite.texture !== texture) {
           sprite.texture = texture
         }
-        sprite.visible = true
-        const texW = texture.width && texture.width > 10 ? texture.width : 256
-        const baseScale = (tileWidth * 1.0) / texW
-        sprite.scale.set(baseScale * 0.98)
-        sprite.anchor.set(0.5, 0.88)
+        const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
+        const scale = (bp?.scale || asset?.scale || 1.0) * ((tower as any).scale || 1.0)
+        const anchorX = (tower as any).anchorX !== undefined ? (tower as any).anchorX : (asset?.anchorX ?? bp?.anchorX ?? 0.5)
+        const anchorY = (tower as any).anchorY !== undefined ? (tower as any).anchorY : (asset?.anchorY ?? bp?.anchorY ?? 0.88)
+        
+        sprite.scale.set(scale)
+        sprite.anchor.set(anchorX, anchorY)
+        sprite.position.set(0, 0)
       }
 
       const isSelected = selectedPlacedTowerId === tower.id

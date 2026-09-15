@@ -3,18 +3,38 @@
     
     <!-- Sidebar Header -->
     <div class="p-3 border-b border-slate-800/80 flex items-center justify-between gap-2 shrink-0 bg-slate-950/40">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold shrink-0">
           <Boxes class="w-4 h-4" />
         </div>
-        <div>
-          <h3 class="font-bold text-xs text-white">{{ $t('sidebar.spriteLibrary') }}</h3>
-          <p class="text-[10px] text-slate-400">{{ $t('assetEditor.addComponents') }}</p>
+        <div class="min-w-0">
+          <h3 class="font-bold text-xs text-white truncate">{{ $t('sidebar.spriteLibrary') }}</h3>
+          <p class="text-[10px] text-slate-400 truncate">{{ $t('assetEditor.addComponents') }}</p>
         </div>
       </div>
-      <UiBadge variant="cyan" size="xs">
-        {{ filteredAssets.length }}
-      </UiBadge>
+      
+      <div class="flex items-center gap-1.5 shrink-0">
+        <UiBadge variant="cyan" size="xs">
+          {{ filteredAssets.length }}
+        </UiBadge>
+        <UiButton
+          size="xs"
+          variant="secondary"
+          :leading-icon="Upload"
+          :title="$t('assetEditor.importAsset')"
+          @click="triggerSidebarFileInput"
+        >
+          <span class="text-[10px]">{{ $t('common.upload') }}</span>
+        </UiButton>
+        <input 
+          ref="sidebarFileInputRef"
+          type="file"
+          multiple
+          accept="image/*,.png,.webp,.jpg,.jpeg,.svg"
+          class="hidden"
+          @change="handleSidebarFileInput"
+        />
+      </div>
     </div>
 
     <!-- Search input -->
@@ -43,8 +63,10 @@
       <div
         v-for="asset in filteredAssets"
         :key="asset.id"
-        class="group relative rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-400/60 hover:bg-slate-800/60 p-1.5 flex flex-col items-center justify-center cursor-pointer transition-all duration-150 aspect-square hover:scale-105 active:scale-95 shadow-sm overflow-hidden"
-        :title="`${asset.name} (${$t('assetEditor.clickToAdd')})`"
+        draggable="true"
+        class="group relative rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-cyan-400/60 hover:bg-slate-800/60 p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-150 aspect-square hover:scale-105 active:scale-95 shadow-sm overflow-hidden"
+        :title="`${asset.name} (${$t('assetEditor.clickOrDragToAdd')})`"
+        @dragstart="handleDragStart($event, asset)"
         @click="handleAdd(asset)"
       >
         <!-- Sprite Image (Trimmed and centered for Asset Editor) -->
@@ -68,15 +90,15 @@
     <!-- Quick Tip Footer -->
     <div class="p-2 border-t border-slate-800 bg-slate-950/60 text-[10px] text-slate-400 flex items-center gap-1.5 shrink-0">
       <Sparkles class="w-3.5 h-3.5 text-amber-400 shrink-0" />
-      <span class="truncate">{{ $t('assetEditor.clickToAdd') }}</span>
+      <span class="truncate">{{ $t('assetEditor.clickOrDragToAdd') }}</span>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Boxes, Search, Plus, Sparkles } from 'lucide-vue-next'
-import { UiInput, UiBadge, UiTabs, TabItem } from '../ui'
+import { Boxes, Search, Plus, Sparkles, Upload } from 'lucide-vue-next'
+import { UiInput, UiBadge, UiButton, UiTabs, TabItem } from '../ui'
 import { useAssetStore } from '../../stores/assetStore'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
 import { useI18n } from '../../stores/i18nStore'
@@ -88,9 +110,41 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 const selectedCategory = ref('all')
+const sidebarFileInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerSidebarFileInput() {
+  sidebarFileInputRef.value?.click()
+}
+
+async function handleSidebarFileInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  const newAssets = await assetStore.uploadFiles(files)
+  if (newAssets && newAssets.length > 0) {
+    selectedCategory.value = 'custom'
+  }
+  target.value = ''
+}
+
+function handleDragStart(e: DragEvent, asset: AssetItem) {
+  if (!e.dataTransfer) return
+  const preview = assetStore.getAssetPreview(asset)
+  const payload = {
+    id: asset.id,
+    name: asset.name,
+    src: preview || asset.src || '',
+    previewSrc: preview,
+  }
+  e.dataTransfer.setData('application/json', JSON.stringify(payload))
+  e.dataTransfer.effectAllowed = 'copy'
+}
 
 const categories = computed<TabItem[]>(() => [
   { id: 'all', label: t('assets.catAll') },
+  { id: 'custom', label: t('common.custom'), count: assetStore.customAssets.length || undefined },
+  { id: 'towers', label: t('common.towers') || 'Towers' },
   { id: 'walls', label: t('assets.catWalls') },
   { id: 'ground', label: t('assets.catGround') },
   { id: 'stairs', label: t('assets.catStairs') },
@@ -104,6 +158,12 @@ const filteredAssets = computed(() => {
   if (selectedCategory.value !== 'all') {
     list = list.filter(item => {
       const lower = (item.name || item.id || '').toLowerCase()
+      if (selectedCategory.value === 'custom') {
+        return item.id.startsWith('custom-') || item.category === 'Custom' || item.isSample === false
+      }
+      if (selectedCategory.value === 'towers') {
+        return lower.includes('tower') || lower.includes('turret') || lower.includes('cannon') || item.category?.toLowerCase() === 'towers'
+      }
       if (selectedCategory.value === 'walls') {
         return lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway') || lower.includes('column') || lower.includes('support')
       }

@@ -11,7 +11,7 @@ import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
 import { getProjectileTheme } from '../utils/projectileEffectRenderer'
 
-export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
+export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile' | 'fire_laser' | 'fire_splash'
 export type SplashType = 'constant' | 'falloff'
 export type TargetStrategy = 'first' | 'last' | 'strongest' | 'weakest' | 'closest'
 
@@ -240,28 +240,13 @@ export const useTowerStore = defineStore('towerStore', () => {
 
     ensureBlueprintLevels(bp)
 
-    // Auto-update color and speed according to projectile type
-    if (bp.projectileType === 'cannonball') {
-      bp.projectileColor = 0x334155
-      if (!bp.projectileSpeed || bp.projectileSpeed > 12) bp.projectileSpeed = 8.5
-    } else if (bp.projectileType === 'magic_bolt') {
-      bp.projectileColor = 0x38bdf8
-      if (!bp.projectileSpeed || bp.projectileSpeed < 14) bp.projectileSpeed = 16.0
-    } else if (bp.projectileType === 'fireball') {
-      bp.projectileColor = 0xf97316
-      if (!bp.projectileSpeed || bp.projectileSpeed > 14) bp.projectileSpeed = 10.5
-    } else if (bp.projectileType === 'arrow') {
-      bp.projectileColor = 0xd97706
-      if (!bp.projectileSpeed || bp.projectileSpeed < 15) bp.projectileSpeed = 18.0
-    } else if (bp.projectileType === 'frost_bolt') {
-      bp.projectileColor = 0x06b6d4
-      if (!bp.projectileSpeed || bp.projectileSpeed < 12) bp.projectileSpeed = 14.0
-    } else if (bp.projectileType === 'laser') {
-      bp.projectileColor = 0xec4899
-      if (!bp.projectileSpeed || bp.projectileSpeed < 20) bp.projectileSpeed = 26.0
-    } else if (bp.projectileType === 'missile') {
-      bp.projectileColor = 0xe11d48
-      if (!bp.projectileSpeed || bp.projectileSpeed > 14) bp.projectileSpeed = 12.0
+    // Ensure default projectileColor and speed if not defined
+    if (bp.projectileColor === undefined) {
+      const theme = getProjectileTheme(bp.projectileType)
+      bp.projectileColor = theme.trailColorHex
+    }
+    if (!bp.projectileSpeed) {
+      bp.projectileSpeed = 14.0
     }
 
     // Instantly update all placed towers on the map of this blueprint type in real-time!
@@ -594,43 +579,45 @@ export const useTowerStore = defineStore('towerStore', () => {
     const { tileWidth, tileHeight } = mapStore.project
     const ptScreen = gridToScreen(col, row, tileWidth, tileHeight)
 
+    const lvl1 = bp.levels?.[0] || extractLevelConfigFromBp(bp, 1)
+
     const newTower: PlacedTower = {
       id: `tower-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       blueprintId: bp.id,
-      name: bp.name,
+      name: lvl1.name || bp.name,
       col,
       row,
       screenX: ptScreen.x,
       screenY: ptScreen.y,
       level: 1,
-      damage: bp.damage,
-      attackSpeed: bp.attackSpeed,
-      range: bp.range,
-      projectileType: bp.projectileType,
-      projectileSpeed: bp.projectileSpeed,
-      projectileColor: bp.projectileColor,
-      isSplash: bp.isSplash,
-      splashRadius: bp.splashRadius,
-      splashType: bp.splashType,
-      traits: bp.traits ? [...bp.traits] : [],
-      fireBonusDamage: bp.fireBonusDamage,
-      burnDps: bp.burnDps,
-      burnDuration: bp.burnDuration,
-      slowPercent: bp.slowPercent,
-      slowDuration: bp.slowDuration,
-      frostBonusDamage: bp.frostBonusDamage,
-      poisonDps: bp.poisonDps,
-      poisonDuration: bp.poisonDuration,
-      poisonSlowPercent: bp.poisonSlowPercent,
-      stackBonusDamage: bp.stackBonusDamage,
-      maxStacks: bp.maxStacks,
-      bleedDps: bp.bleedDps,
-      bleedDuration: bp.bleedDuration,
-      electricBonusDamage: bp.electricBonusDamage,
-      chainTargets: bp.chainTargets,
-      stunDuration: bp.stunDuration,
-      voidVulnPercent: bp.voidVulnPercent,
-      voidDuration: bp.voidDuration,
+      damage: lvl1.damage,
+      attackSpeed: lvl1.attackSpeed,
+      range: lvl1.range,
+      projectileType: (lvl1.projectileType as ProjectileType) || bp.projectileType,
+      projectileSpeed: lvl1.projectileSpeed || bp.projectileSpeed,
+      projectileColor: lvl1.projectileColor !== undefined ? lvl1.projectileColor : bp.projectileColor,
+      isSplash: lvl1.isSplash !== undefined ? lvl1.isSplash : !!bp.isSplash,
+      splashRadius: lvl1.splashRadius ?? bp.splashRadius,
+      splashType: lvl1.splashType ?? bp.splashType,
+      traits: lvl1.traits ? [...lvl1.traits] : (bp.traits ? [...bp.traits] : []),
+      fireBonusDamage: lvl1.fireBonusDamage,
+      burnDps: lvl1.burnDps,
+      burnDuration: lvl1.burnDuration,
+      slowPercent: lvl1.slowPercent,
+      slowDuration: lvl1.slowDuration,
+      frostBonusDamage: lvl1.frostBonusDamage,
+      poisonDps: lvl1.poisonDps,
+      poisonDuration: lvl1.poisonDuration,
+      poisonSlowPercent: lvl1.poisonSlowPercent,
+      stackBonusDamage: lvl1.stackBonusDamage,
+      maxStacks: lvl1.maxStacks,
+      bleedDps: lvl1.bleedDps,
+      bleedDuration: lvl1.bleedDuration,
+      electricBonusDamage: lvl1.electricBonusDamage,
+      chainTargets: lvl1.chainTargets,
+      stunDuration: lvl1.stunDuration,
+      voidVulnPercent: lvl1.voidVulnPercent,
+      voidDuration: lvl1.voidDuration,
       cooldownTimer: Math.random() * 0.3, // slight initial offset
       totalDamageDealt: 0,
       killsCount: 0,
@@ -939,11 +926,46 @@ export const useTowerStore = defineStore('towerStore', () => {
     const rawBlueprints = p.towerBlueprints || p.towerData?.towerBlueprints || []
     if (rawBlueprints && Array.isArray(rawBlueprints) && rawBlueprints.length > 0) {
       const defaultClanId = clans.value[0]?.id || 'clan-default'
-      blueprints.value = rawBlueprints.map((bp: any) => ({
-        ...bp,
-        clanId: bp.clanId || defaultClanId,
-        assetId: bp.assetId || (bp.assetName ? `sprite-${bp.assetName.replace(/\.[^/.]+$/, '')}` : ''),
-      }))
+      blueprints.value = rawBlueprints.map((bp: any) => {
+        const res = {
+          ...bp,
+          clanId: bp.clanId || defaultClanId,
+          assetId: bp.assetId || (bp.assetName ? `sprite-${bp.assetName.replace(/\.[^/.]+$/, '')}` : ''),
+        }
+        if (res.levels && Array.isArray(res.levels) && res.levels.length > 0) {
+          const l1 = res.levels[0]
+          if (l1.damage !== undefined) res.damage = l1.damage
+          if (l1.cost !== undefined) res.cost = l1.cost
+          if (l1.attackSpeed !== undefined) res.attackSpeed = l1.attackSpeed
+          if (l1.range !== undefined) res.range = l1.range
+          if (l1.projectileType !== undefined) res.projectileType = l1.projectileType
+          if (l1.projectileSpeed !== undefined) res.projectileSpeed = l1.projectileSpeed
+          if (l1.projectileColor !== undefined) res.projectileColor = l1.projectileColor
+          if (l1.isSplash !== undefined) res.isSplash = l1.isSplash
+          if (l1.splashRadius !== undefined) res.splashRadius = l1.splashRadius
+          if (l1.splashType !== undefined) res.splashType = l1.splashType
+          if (l1.traits !== undefined) res.traits = [...l1.traits]
+          if (l1.fireBonusDamage !== undefined) res.fireBonusDamage = l1.fireBonusDamage
+          if (l1.burnDps !== undefined) res.burnDps = l1.burnDps
+          if (l1.burnDuration !== undefined) res.burnDuration = l1.burnDuration
+          if (l1.slowPercent !== undefined) res.slowPercent = l1.slowPercent
+          if (l1.slowDuration !== undefined) res.slowDuration = l1.slowDuration
+          if (l1.frostBonusDamage !== undefined) res.frostBonusDamage = l1.frostBonusDamage
+          if (l1.poisonDps !== undefined) res.poisonDps = l1.poisonDps
+          if (l1.poisonDuration !== undefined) res.poisonDuration = l1.poisonDuration
+          if (l1.poisonSlowPercent !== undefined) res.poisonSlowPercent = l1.poisonSlowPercent
+          if (l1.stackBonusDamage !== undefined) res.stackBonusDamage = l1.stackBonusDamage
+          if (l1.maxStacks !== undefined) res.maxStacks = l1.maxStacks
+          if (l1.bleedDps !== undefined) res.bleedDps = l1.bleedDps
+          if (l1.bleedDuration !== undefined) res.bleedDuration = l1.bleedDuration
+          if (l1.electricBonusDamage !== undefined) res.electricBonusDamage = l1.electricBonusDamage
+          if (l1.chainTargets !== undefined) res.chainTargets = l1.chainTargets
+          if (l1.stunDuration !== undefined) res.stunDuration = l1.stunDuration
+          if (l1.voidVulnPercent !== undefined) res.voidVulnPercent = l1.voidVulnPercent
+          if (l1.voidDuration !== undefined) res.voidDuration = l1.voidDuration
+        }
+        return res
+      })
     } else {
       blueprints.value = []
     }
@@ -1062,8 +1084,10 @@ export const useTowerStore = defineStore('towerStore', () => {
     const tower = placedTowers.value.find(t => t.id === proj.towerId)
     const theme = getProjectileTheme(proj.projectileType, proj.color)
     const isArrow = proj.projectileType === 'arrow'
-    const isSplashHit = Boolean(proj.isSplash && proj.splashRadius > 0)
-    const splashRadiusPx = (proj.splashRadius || 1.5) * tileWidth * 0.65
+    const isFireSplash = proj.projectileType === 'fire_splash'
+    const isSplashHit = Boolean(proj.isSplash && (proj.splashRadius || 0) > 0)
+    const effectiveSplashRadius = proj.splashRadius || 1.5
+    const splashRadiusPx = effectiveSplashRadius * tileWidth * 0.65
     const hitRingRadius = isSplashHit ? splashRadiusPx : (isArrow ? 14 : 18)
 
     // 1. Spawn Impact Shockwave Ring VFX for ALL hits (matching TowerLivePreview!)
@@ -1074,9 +1098,23 @@ export const useTowerStore = defineStore('towerStore', () => {
       radius: 3,
       maxRadius: hitRingRadius,
       color: theme.shockwaveColorHex,
-      alpha: 0.92,
+      alpha: isFireSplash ? 0.96 : 0.92,
       lifeTimer: 0,
     })
+
+    if (isFireSplash) {
+      // Extra inner plasma flame ring for mega fire splash
+      explosionRings.value.push({
+        id: `ring-inner-${Date.now()}-${Math.random()}`,
+        x: proj.targetX,
+        y: proj.targetY,
+        radius: 2,
+        maxRadius: hitRingRadius * 0.6,
+        color: 0xfef08a,
+        alpha: 0.98,
+        lifeTimer: 0,
+      })
+    }
 
     if (multiplayerStore.roomId && multiplayerStore.isHost) {
       multiplayerStore.queueCombatEvent({
@@ -1085,7 +1123,7 @@ export const useTowerStore = defineStore('towerStore', () => {
         targetX: proj.targetX,
         targetY: proj.targetY,
         isSplash: isSplashHit,
-        splashRadius: proj.splashRadius || (isArrow ? 0.3 : 0.4),
+        splashRadius: effectiveSplashRadius,
         projType: proj.projectileType,
       })
     }
@@ -1097,12 +1135,12 @@ export const useTowerStore = defineStore('towerStore', () => {
         const distPx = Math.hypot(u.screenX - proj.targetX, (u.screenY - tileHeight * 0.5) - proj.targetY)
         const distInTiles = distPx / (tileWidth * 0.65)
 
-        if (distInTiles <= proj.splashRadius) {
+        if (distInTiles <= effectiveSplashRadius) {
           const dmg = DamageCalculator.calculateSplashDamage(
             proj.damage,
             distInTiles,
-            proj.splashRadius,
-            proj.splashType
+            effectiveSplashRadius,
+            proj.splashType || 'falloff'
           )
           applyDamageToUnit(u, dmg, tower)
         }
@@ -1115,12 +1153,12 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     // 3. Spawn Impact Spark Particles via combatEvents
-    const sparkCount = isArrow ? 8 : (isSplashHit ? 16 : 10)
+    const sparkCount = isFireSplash ? 24 : (isArrow ? 8 : (isSplashHit ? 16 : 10))
 
     combatEvents.emitImpact({
       x: proj.targetX,
       y: proj.targetY,
-      color: theme.sparkColorHex,
+      color: isFireSplash ? 0xf97316 : theme.sparkColorHex,
       count: sparkCount,
       projectileType: proj.projectileType,
     })

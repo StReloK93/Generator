@@ -150,7 +150,7 @@ export const useAssetStore = defineStore('assetStore', () => {
   })
 
   // Upload user files / folder: analyzes bounding box for custom uploaded files
-  async function uploadFiles(files: FileList | File[]): Promise<number> {
+  async function uploadFiles(files: FileList | File[]): Promise<AssetItem[]> {
     const fileArray = Array.from(files).filter(file => {
       const type = file.type.toLowerCase()
       const name = file.name.toLowerCase()
@@ -162,12 +162,12 @@ export const useAssetStore = defineStore('assetStore', () => {
              name.endsWith('.svg')
     })
 
-    if (fileArray.length === 0) return 0
+    if (fileArray.length === 0) return []
 
     isLoading.value = true
     uploadProgress.value = { total: fileArray.length, current: 0, active: true }
 
-    let addedCount = 0
+    const addedAssets: AssetItem[] = []
 
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i]
@@ -206,7 +206,7 @@ export const useAssetStore = defineStore('assetStore', () => {
         }
 
         assets.value.push(newAsset)
-        addedCount++
+        addedAssets.push(newAsset)
 
         if (!selectedAssetId.value) {
           selectedAssetId.value = newAsset.id
@@ -221,7 +221,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     uploadProgress.value.active = false
     isLoading.value = false
 
-    return addedCount
+    return addedAssets
   }
 
   function selectAsset(id: string | null) {
@@ -338,8 +338,13 @@ export const useAssetStore = defineStore('assetStore', () => {
     selectedAssetId.value = item.id
   }
 
+  const customAssets = computed(() =>
+    assets.value.filter(a => a.id.startsWith('custom-') || a.category === 'Custom' || a.isSample === false)
+  )
+
   return {
     assets,
+    customAssets,
     selectedAssetId,
     selectedAsset,
     selectedCategory,
@@ -370,7 +375,7 @@ export const useAssetStore = defineStore('assetStore', () => {
 })
 
 // Helper to read file as Data URL
-function readFileAsDataUrl(file: File): Promise<string> {
+export function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)
@@ -380,7 +385,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 // Alpha Bounding Box Analyzer for custom uploaded images
-function analyzeImage(src: string): Promise<{
+export function analyzeImage(src: string): Promise<{
   width: number
   height: number
   anchorX: number

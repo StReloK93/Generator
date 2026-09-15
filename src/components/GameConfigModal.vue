@@ -1652,7 +1652,7 @@ import {
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
   Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
   ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, Ghost, Droplet, Crown,
-  TrendingDown, TrendingUp, Equal, Bird
+  TrendingDown, TrendingUp, Equal, Bird, Bomb
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -1959,6 +1959,8 @@ const spawnModeOptions = computed(() => [
 
 const projectileOptions = computed(() => [
   { id: 'fireball', name: t('towers.projectileFireball'), icon: Flame },
+  { id: 'fire_laser', name: t('towers.projectileFireLaser'), icon: Sparkles },
+  { id: 'fire_splash', name: t('towers.projectileFireSplash'), icon: Bomb },
   { id: 'arrow', name: t('towers.projectileArrow'), icon: ArrowRight },
   { id: 'magic_bolt', name: t('towers.projectileMagic'), icon: Zap },
   { id: 'cannonball', name: t('towers.projectileCannonball'), icon: CircleDot },
@@ -1967,40 +1969,50 @@ const projectileOptions = computed(() => [
   { id: 'missile', name: t('towers.projectileMissile'), icon: Rocket },
 ])
 
-// Change Sprite Modal State
+// Change Sprite Modal State (Only Tower Assets!)
 const isChangeSpriteModalOpen = ref(false)
 const spriteModalSearchQuery = ref('')
 const selectedSpriteCategory = ref('all')
 const tempSelectedAssetId = ref('')
 
-const spriteCategories = computed(() => [
-  { id: 'all', label: t('assets.catAll') },
-  { id: 'walls', label: t('assets.catWalls') },
-  { id: 'ground', label: t('assets.catGround') },
-  { id: 'stairs', label: t('assets.catStairs') },
-  { id: 'props', label: t('assets.catProps') },
-])
+const spriteCategories = computed(() => {
+  const items = [
+    { id: 'all', label: t('assets.catAll') || 'Barchasi' },
+    { id: 'builtin', label: t('config.builtinTowers') || 'Asosiy minoralar' },
+  ]
+  if (assetStore.customAssets.length > 0) {
+    items.push({ id: 'custom', label: t('common.custom') || 'Maxsus' })
+  }
+  return items
+})
 
 const filteredModalAssets = computed(() => {
-  let list = assetStore.assets
-  if (selectedSpriteCategory.value !== 'all') {
-    list = list.filter(item => {
-      const lower = (item.name || item.id || '').toLowerCase()
-      if (selectedSpriteCategory.value === 'walls') {
-        return lower.includes('wall') || lower.includes('gate') || lower.includes('door') || lower.includes('archway') || lower.includes('column') || lower.includes('support')
-      }
-      if (selectedSpriteCategory.value === 'ground') {
-        return lower.includes('dirt') || lower.includes('planks') || (lower.includes('stone') && !lower.includes('wall') && !lower.includes('column'))
-      }
-      if (selectedSpriteCategory.value === 'stairs') {
-        return lower.includes('stairs') || lower.includes('bridge')
-      }
-      if (selectedSpriteCategory.value === 'props') {
-        return lower.includes('barrel') || lower.includes('chest') || lower.includes('crate') || lower.includes('table') || lower.includes('chair') || lower.includes('display') || lower.includes('bookcase')
-      }
-      return true
-    })
+  // STRICTLY filter to Tower assets only (standard towers and user custom created towers)
+  let list = assetStore.assets.filter(item => {
+    const cat = (item.category || '').toLowerCase()
+    const name = (item.name || '').toLowerCase()
+    const id = (item.id || '').toLowerCase()
+    const path = (item.fileRelativePath || '').toLowerCase()
+
+    const isTower =
+      cat === 'towers' ||
+      path.includes('towers/') ||
+      path.includes('tower_') ||
+      name.includes('tower') ||
+      id.includes('tower') ||
+      item.isSample === false ||
+      cat === 'custom' ||
+      id.startsWith('custom-')
+
+    return isTower
+  })
+
+  if (selectedSpriteCategory.value === 'builtin') {
+    list = list.filter(item => !item.id.startsWith('custom-') && item.category !== 'Custom')
+  } else if (selectedSpriteCategory.value === 'custom') {
+    list = list.filter(item => item.id.startsWith('custom-') || item.category === 'Custom' || item.isSample === false)
   }
+
   const query = spriteModalSearchQuery.value.trim().toLowerCase()
   if (query) {
     list = list.filter(item => (item.name || '').toLowerCase().includes(query))

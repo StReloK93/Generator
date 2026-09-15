@@ -8,10 +8,12 @@ import { OverlayRenderer } from './OverlayRenderer'
 import { TowerRenderer } from './TowerRenderer'
 import { CombatRenderer } from './CombatRenderer'
 import { UnitRenderer } from './UnitRenderer'
+import { WaterRenderer } from './WaterRenderer'
 
 export class PixiRenderer {
   public context: PixiContext
   public grid: GridRenderer
+  public water: WaterRenderer
   public map: MapRenderer
   public overlay: OverlayRenderer
   public towers: TowerRenderer
@@ -23,6 +25,7 @@ export class PixiRenderer {
   constructor() {
     this.context = new PixiContext()
     this.grid = new GridRenderer()
+    this.water = new WaterRenderer()
     this.map = new MapRenderer()
     this.overlay = new OverlayRenderer()
     this.towers = new TowerRenderer()
@@ -40,14 +43,21 @@ export class PixiRenderer {
     // Mount layer hierarchy in world container with explicit depth layers
     this.context.worldContainer.sortableChildren = true
     this.grid.container.zIndex = 10
+    this.water.container.zIndex = 25
     this.map.layersContainer.zIndex = 100
     this.overlay.overlayContainer.zIndex = 500
     this.combat.combatGraphics.zIndex = 999999
 
     this.context.worldContainer.addChild(this.grid.container)
+    this.context.worldContainer.addChild(this.water.container)
     this.context.worldContainer.addChild(this.map.layersContainer)
     this.context.worldContainer.addChild(this.overlay.overlayContainer)
     this.context.worldContainer.addChild(this.combat.combatGraphics)
+
+    // Continuous visual animations (single common UV scroll & shore foam pulsation)
+    this.context.onFrame = (deltaSec: number) => {
+      this.water.update(deltaSec)
+    }
 
     this.isInitialized = true
   }
@@ -81,6 +91,10 @@ export class PixiRenderer {
 
   syncLayers(project: MapProject, assetMap: Map<string, AssetItem>): void {
     this.map.syncLayers(project, assetMap)
+  }
+
+  syncWater(project: MapProject): void {
+    this.water.syncWater(project)
   }
 
   renderTowersAndCombat(
@@ -212,6 +226,7 @@ export class PixiRenderer {
   destroy(): void {
     this.clearVisuals()
     this.grid.destroy()
+    this.water.destroy()
     this.map.destroy()
     this.overlay.destroy()
     this.towers.destroy(this.map.layersContainer)

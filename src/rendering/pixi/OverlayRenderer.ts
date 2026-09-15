@@ -128,6 +128,9 @@ export class OverlayRenderer {
     } else if (activeTool === 'box-fill') {
       strokeColor = 0x38bdf8
       fillColor = 0x0284c7
+    } else if (activeTool === 'water') {
+      strokeColor = 0x38bdf8
+      fillColor = 0x0284c7
     } else if (!activeAsset) {
       strokeColor = 0xa855f7
       fillColor = 0xa855f7
@@ -140,6 +143,7 @@ export class OverlayRenderer {
         alpha:
           activeTool === 'box-fill' ||
           activeTool === 'box-clear' ||
+          activeTool === 'water' ||
           activeTool.startsWith('buildable')
             ? 0.35
             : 0.28,
@@ -153,6 +157,7 @@ export class OverlayRenderer {
       activeTool !== 'box-clear' &&
       activeTool !== 'eraser' &&
       activeTool !== 'picker' &&
+      activeTool !== 'water' &&
       !activeTool.startsWith('buildable') &&
       this.getTexture
     ) {
@@ -233,11 +238,12 @@ export class OverlayRenderer {
     const isEraser = activeTool === 'eraser' || activeTool === 'buildable-block'
     const isBoxClear = activeTool === 'box-clear'
     const isBoxFill = activeTool === 'box-fill'
+    const isWater = activeTool === 'water'
     const isBuildable = activeTool === 'buildable' || activeTool.startsWith('buildable')
     const color =
       isEraser || isBoxClear
         ? 0xef4444
-        : isBoxFill
+        : isBoxFill || isWater
           ? 0x0284c7
           : isBuildable
             ? 0x10b981
@@ -245,7 +251,7 @@ export class OverlayRenderer {
     const strokeColor =
       isEraser || isBoxClear
         ? 0xf87171
-        : isBoxFill
+        : isBoxFill || isWater
           ? 0x38bdf8
           : isBuildable
             ? 0x34d399

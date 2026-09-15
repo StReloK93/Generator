@@ -3,6 +3,7 @@ import path from 'path'
 import sharp from 'sharp'
 
 const SPRITES_DIR = path.resolve('src/assets/sprites')
+const TOWERS_DIR = path.resolve('src/assets/towers')
 const CHARS_ROOT_DIR = path.resolve('src/assets/characters')
 const PUBLIC_ATLAS_DIR = path.resolve('public/assets/atlases')
 const SRC_GENERATED_DIR = path.resolve('src/assets/generated')
@@ -324,6 +325,12 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
 }
 
 async function run() {
+  if (process.argv.includes('--towers') || process.argv.includes('--only=towers')) {
+    const { execSync } = await import('child_process')
+    execSync('node scripts/buildTowersAtlas.js', { stdio: 'inherit' })
+    return
+  }
+
   console.log('🚀 Generating 100% Non-Clipping PixiJS Pure-WebP Atlases & Precomputed Manifests...')
 
   // Clean legacy PNG files from atlases directory if any
@@ -655,21 +662,25 @@ async function run() {
   console.log(`  ✅ Character manifest written (${Object.keys(characterManifest).length} models: ${Object.keys(characterManifest).join(', ')})`)
 
   // 2. Separate environment sprites into 3 logical categories
-  console.log('📦 Processing environment sprites...')
-  const spriteFiles = fs.readdirSync(SPRITES_DIR).filter((f) => f.endsWith('.webp') || f.endsWith('.png'))
+  console.log('📦 Processing environment sprites and towers...')
+  const spriteEntries = fs.readdirSync(SPRITES_DIR).filter((f) => f.endsWith('.webp') || f.endsWith('.png')).map((f) => ({ dir: SPRITES_DIR, file: f, isTower: false }))
+  if (fs.existsSync(TOWERS_DIR)) {
+    const towerEntries = fs.readdirSync(TOWERS_DIR).filter((f) => f.endsWith('.webp') || f.endsWith('.png')).map((f) => ({ dir: TOWERS_DIR, file: f, isTower: true }))
+    spriteEntries.push(...towerEntries)
+  }
 
   const terrainFrames = []
   const structuresFrames = []
   const propsFrames = []
   const manifestItems = []
 
-  for (const file of spriteFiles) {
-    const meta = await analyzeAndTrim(path.join(SPRITES_DIR, file))
+  for (const entry of spriteEntries) {
+    const meta = await analyzeAndTrim(path.join(entry.dir, entry.file))
     const baseName = meta.name
     const lower = baseName.toLowerCase()
 
     let category = 'Other'
-    if (lower.startsWith('tower')) {
+    if (entry.isTower || lower.startsWith('tower')) {
       category = 'Towers'
       structuresFrames.push(meta)
     } else if (lower.startsWith('dirt') || lower.startsWith('planks') || (lower.startsWith('stone') && !lower.includes('wall') && !lower.includes('column'))) {
@@ -702,16 +713,18 @@ async function run() {
       .replace(/([a-z])([A-Z])/g, '$1 $2')
     formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
 
-    // Calculate smart anchor
-    const standardAnchorY = meta.maxY < meta.origH * 0.4 
-      ? Number((meta.maxY / meta.origH).toFixed(4)) 
-      : (meta.origH > meta.origW * 0.8 ? 0.88 : 0.5)
+    // Calculate smart anchor (Towers use exact bottom-most pixel)
+    const standardAnchorY = (entry.isTower || category === 'Towers')
+      ? Number((meta.maxY / meta.origH).toFixed(4))
+      : (meta.maxY < meta.origH * 0.4 
+        ? Number((meta.maxY / meta.origH).toFixed(4)) 
+        : (meta.origH > meta.origW * 0.8 ? 0.88 : 0.5))
 
     manifestItems.push({
       id: `sprite-${baseName}`,
       name: formattedName,
       baseName,
-      fileRelativePath: file,
+      fileRelativePath: entry.isTower ? `towers/${entry.file}` : entry.file,
       category,
       width: meta.origW,
       height: meta.origH,

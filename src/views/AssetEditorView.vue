@@ -68,6 +68,25 @@
 
       <!-- Right: Export & Save Actions -->
       <div class="flex items-center gap-2 shrink-0">
+        <!-- Import External Asset Image -->
+        <UiButton 
+          variant="secondary" 
+          size="sm" 
+          :leading-icon="Upload"
+          @click="triggerHeaderFileInput"
+        >
+          <span class="hidden sm:inline">{{ $t('assetEditor.importAsset') }}</span>
+          <span class="sm:hidden">{{ $t('common.upload') }}</span>
+        </UiButton>
+        <input 
+          ref="headerFileInputRef"
+          type="file"
+          multiple
+          accept="image/*,.png,.webp,.jpg,.jpeg,.svg"
+          class="hidden"
+          @change="handleHeaderFileInput"
+        />
+
         <!-- Save to Game Project Assets -->
         <UiButton 
           variant="game-amber" 
@@ -155,6 +174,7 @@ import {
   Undo2, 
   Redo2, 
   Download, 
+  Upload,
   Sparkles, 
   Layers, 
   Move, 
@@ -176,6 +196,7 @@ const assetStore = useAssetStore()
 const { t } = useI18n()
 
 const canvasComponentRef = ref<any>(null)
+const headerFileInputRef = ref<HTMLInputElement | null>(null)
 const rightActiveTab = ref<'layers' | 'transform'>('layers')
 const toastMessage = ref('')
 
@@ -204,6 +225,27 @@ function handleBackToHome() {
   router.push('/')
 }
 
+function triggerHeaderFileInput() {
+  headerFileInputRef.value?.click()
+}
+
+async function handleHeaderFileInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  try {
+    if (canvasComponentRef.value?.processAndAddFiles) {
+      await canvasComponentRef.value.processAndAddFiles(files)
+      showToast(t('assetEditor.importedFiles', { count: files.length }))
+    }
+  } catch (err) {
+    console.error('[AssetEditor] File import error:', err)
+  } finally {
+    target.value = ''
+  }
+}
+
 async function handleDownloadPng() {
   if (!canvasComponentRef.value) return
 
@@ -226,7 +268,7 @@ async function handleSaveToProject() {
   if (!canvasComponentRef.value) return
 
   try {
-    const { dataUrl, width, height } = await canvasComponentRef.value.exportToTransparentBlob()
+    const { dataUrl, width, height, anchorX, anchorY } = await canvasComponentRef.value.exportToTransparentBlob()
     const cleanName = (store.assetName.trim() || 'Custom Asset').replace(/_/g, ' ')
     const assetId = `custom-asset-${Date.now()}`
 
@@ -240,8 +282,8 @@ async function handleSaveToProject() {
       previewSrc: dataUrl,
       width,
       height,
-      anchorX: 0.5,
-      anchorY: 0.88,
+      anchorX: anchorX ?? 0.5,
+      anchorY: anchorY ?? 0.88,
       spanX: 1,
       spanY: 1,
       scale: 1.0,

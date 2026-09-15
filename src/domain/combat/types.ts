@@ -1,6 +1,6 @@
 import { TowerTraitType, TowerTraitsConfig, TowerLevelConfig } from '../../types/map'
 
-export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile'
+export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile' | 'fire_laser' | 'fire_splash'
 export type SplashType = 'constant' | 'falloff'
 export type TargetStrategy = 'first' | 'last' | 'strongest' | 'weakest' | 'closest'
 

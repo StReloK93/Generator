@@ -202,6 +202,10 @@ export class IsoEngine {
   }
 
   // Overlays & Editing
+  public syncWater(project: MapProject): void {
+    this.renderer.syncWater(project)
+  }
+
   renderBuildableOverlay(project: MapProject, isVisible: boolean, activeTool?: string): void {
     this.renderer.renderBuildableOverlay(project, isVisible, activeTool)
   }
