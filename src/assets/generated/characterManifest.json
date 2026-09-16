@@ -51,7 +51,7 @@
     "cellWidth": 256,
     "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.896,
+    "anchorY": 0.895,
     "scale": 1,
     "actions": {
       "Idle": {
@@ -74,7 +74,7 @@
     "cellWidth": 256,
     "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.894,
+    "anchorY": 0.895,
     "scale": 1,
     "actions": {
       "Idle": {
@@ -97,7 +97,7 @@
     "cellWidth": 256,
     "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.884,
+    "anchorY": 0.895,
     "scale": 1,
     "actions": {
       "Idle": {
@@ -120,13 +120,13 @@
       }
     }
   },
-  "medusa": {
-    "id": "medusa",
-    "name": "Medusa",
+  "orc": {
+    "id": "orc",
+    "name": "Orc",
     "cellWidth": 256,
     "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.897,
+    "anchorY": 0.895,
     "scale": 1,
     "actions": {
       "Idle": {
@@ -139,24 +139,7 @@
         "id": "Run",
         "label": "Run",
         "icon": "🏃",
-        "frameCount": 8
-      }
-    }
-  },
-  "orc": {
-    "id": "orc",
-    "name": "Orc",
-    "cellWidth": 256,
-    "cellHeight": 512,
-    "anchorX": 0.5,
-    "anchorY": 0.898,
-    "scale": 1,
-    "actions": {
-      "Idle": {
-        "id": "Idle",
-        "label": "Idle",
-        "icon": "🧘",
-        "frameCount": 1
+        "frameCount": 24
       }
     }
   },
@@ -166,7 +149,7 @@
     "cellWidth": 256,
     "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.898,
+    "anchorY": 0.895,
     "scale": 1,
     "actions": {
       "Idle": {

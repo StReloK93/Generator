@@ -23,14 +23,15 @@ const PRIMARY_ANGLES = {
 
 // Visual scale tuning so all characters stand proportionally on 256x512
 const CHAR_CONFIGS = {
-  barry: { scale: 1.15, isSheetGrid: true },
-  bird: { scale: 1.10, isSheetGrid: true },
+  barry: { scale: 1.15, isSheetGrid: true, baselineY: 463 },
+  bird: { scale: 1.10, isSheetGrid: true, baselineY: 483 },
   demon: { scale: 1.70, isSheetGrid: true },
   female: { scale: 1.20, isSheetGrid: true },
   male: { scale: 1.0, isAlreadyDiscrete: true },
   medusa: { scale: 1.75, isSheetGrid: true },
+  orc: { scale: 1.35, isSheetGrid: true, baselineY: 460 },
   warrior: { scale: 1.75, isSheetGrid: true },
-  zombi: { scale: 0.95, isAngleDiscrete: true },
+  zombi: { scale: 0.95, isAngleDiscrete: true, baselineY: 463 },
 }
 
 // Detect uniform square cell size
@@ -136,7 +137,7 @@ async function standardizeAllCharacters() {
           const relX = f.minX - avgCenterX
           const relY = f.minY - avgFeetY
           const destLeft = Math.min(CANVAS_W - scaledW, Math.max(0, Math.round(TARGET_CENTER_X + relX * cfg.scale)))
-          const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round(TARGET_BASELINE_Y + relY * cfg.scale)))
+          const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round((cfg.baselineY || TARGET_BASELINE_Y) + relY * cfg.scale)))
 
           const finalBuf = await sharp({
             create: {
@@ -202,7 +203,7 @@ async function standardizeAllCharacters() {
           const relX = minX - footCenterX
           const relY = minY - footY
           const destLeft = Math.min(CANVAS_W - scaledW, Math.max(0, Math.round(TARGET_CENTER_X + relX * cfg.scale)))
-          const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round(TARGET_BASELINE_Y + relY * cfg.scale)))
+          const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round((cfg.baselineY || TARGET_BASELINE_Y) + relY * cfg.scale)))
 
           const idleImg = await sharp({
             create: {
@@ -290,7 +291,7 @@ async function standardizeAllCharacters() {
             const relX = cell.minX - avgCenterX
             const relY = cell.minY - avgFeetY
             const destLeft = Math.min(CANVAS_W - scaledW, Math.max(0, Math.round(TARGET_CENTER_X + relX * cfg.scale)))
-            const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round(TARGET_BASELINE_Y + relY * cfg.scale)))
+            const destTop = Math.min(CANVAS_H - scaledH, Math.max(0, Math.round((cfg.baselineY || TARGET_BASELINE_Y) + relY * cfg.scale)))
 
             const finalBuf = await sharp({
               create: {

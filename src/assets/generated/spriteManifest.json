@@ -8625,6 +8625,52 @@
     "isSample": true
   },
   {
+    "id": "sprite-tower_ice1",
+    "name": "Tower_ice1",
+    "baseName": "tower_ice1",
+    "fileRelativePath": "towers/tower_ice1.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 134,
+    "trimHeight": 177,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 63,
+      "minY": 303,
+      "maxX": 196,
+      "maxY": 479
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
+    "id": "sprite-tower_ice2",
+    "name": "Tower_ice2",
+    "baseName": "tower_ice2",
+    "fileRelativePath": "towers/tower_ice2.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 140,
+    "trimHeight": 188,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 58,
+      "minY": 291,
+      "maxX": 197,
+      "maxY": 478
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
     "id": "sprite-roofSingleWall_E",
     "name": "Roof Single Wall (E)",
     "baseName": "roofSingleWall_E",

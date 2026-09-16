@@ -325,12 +325,6 @@ async function buildMultiPageAtlas(baseName, frames, maxW = 2048, maxH = 4096) {
 }
 
 async function run() {
-  if (process.argv.includes('--towers') || process.argv.includes('--only=towers')) {
-    const { execSync } = await import('child_process')
-    execSync('node scripts/buildTowersAtlas.js', { stdio: 'inherit' })
-    return
-  }
-
   console.log('🚀 Generating 100% Non-Clipping PixiJS Pure-WebP Atlases & Precomputed Manifests...')
 
   // Clean legacy PNG files from atlases directory if any
@@ -470,9 +464,8 @@ async function run() {
         }
       }
 
-      // Standardized Ground Anchor (consistent across all models: ~0.898 on 512 canvas)
-      const avgFeetY = sampleFeetYList.length > 0 ? (sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length) : (detectedCellH * 0.898)
-      const anchorY = Math.round((avgFeetY / detectedCellH) * 1000) / 1000
+      // Standardized Ground Anchor (fixed to canonical 458/512 = 0.895 so internal canvas pixel shifts take real visual effect)
+      const anchorY = detectedCellH === 512 ? 0.895 : (sampleFeetYList.length > 0 ? Math.round((sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length / detectedCellH) * 1000) / 1000 : 0.895)
 
       const charAtlasRes = await buildMultiPageAtlas(`characters_${charId}`, charFrames, 2048, 2048)
       allCharacterSheets.push(...charAtlasRes.generatedSheetNames)
