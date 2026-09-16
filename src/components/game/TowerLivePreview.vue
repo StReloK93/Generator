@@ -20,6 +20,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { TowerBlueprint } from '../../stores/towerStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { getProjectileTheme, renderCanvasProjectileHead } from '../../utils/projectileEffectRenderer'
+import { getProjectileDef } from '../../utils/projectileCatalog'
 
 const props = defineProps<{
   blueprint: TowerBlueprint
@@ -74,6 +75,10 @@ interface LiveSpark {
   alpha: number
   size: number
   life: number
+  maxLife: number
+  type: 'ice_shard' | 'snowflake' | 'fire_ember' | 'lightning_arc' | 'acid_drop' | 'arcane_star' | 'void_blood' | 'shrapnel' | 'holy_cross' | 'default'
+  rot: number
+  vRot: number
 }
 
 const activeProjectiles: LiveProjectile[] = []
@@ -158,10 +163,12 @@ function spawnProjectile() {
 
 function handleImpact(p: LiveProjectile) {
   const theme = getProjectileTheme(p.type, p.color)
-  const isFireSplash = p.type === 'fire_splash'
+  const projDef = getProjectileDef(p.type)
+  const cat = projDef?.category || (p.isSplash ? 'fire' : 'siege')
+  const isFireSplash = p.type === 'fire_splash' || p.type === 'fire_meteor'
   const isSplashHit = p.isSplash || isFireSplash
 
-  // 1. Spawn Splash Shockwave Ring if AoE or standard impact
+  // 1. Spawn Splash Shockwave Ring with exact elemental color
   const splashPx = Math.max(18, (p.splashRadius || (isFireSplash ? 2.5 : 1.5)) * 22)
   activeShockwaves.push({
     x: p.targetX,
@@ -171,7 +178,7 @@ function handleImpact(p: LiveProjectile) {
     maxRadius: isSplashHit ? splashPx : 14,
     color: theme.shockwaveColorCss,
     alpha: 1.0,
-    life: 0.5
+    life: 0.45
   })
 
   if (isFireSplash) {
@@ -187,20 +194,64 @@ function handleImpact(p: LiveProjectile) {
     })
   }
 
-  // 2. Spawn Impact Spark Particles
-  const sparkCount = isFireSplash ? 22 : (isSplashHit ? 16 : 9)
+  // 2. Spawn Impact Spark Particles based on elemental category
+  const sparkCount = isFireSplash ? 24 : (isSplashHit ? 18 : 10)
   for (let i = 0; i < sparkCount; i++) {
     const ang = Math.random() * Math.PI * 2
-    const spd = 25 + Math.random() * (isFireSplash ? 110 : 80)
+    const spd = (cat === 'electro' ? 80 : 30) + Math.random() * (cat === 'fire' || cat === 'frost' ? 90 : 70)
+    
+    let sType: LiveSpark['type'] = 'default'
+    let sCol = theme.sparkColorCss
+    let sSize = 1.6 + Math.random() * 2.2
+    let sLife = 0.32 + Math.random() * 0.2
+
+    if (cat === 'frost') {
+      sType = i % 3 === 0 ? 'snowflake' : 'ice_shard'
+      sCol = i % 3 === 0 ? '#ffffff' : (i % 2 === 0 ? '#67e8f9' : '#38bdf8')
+      sSize = 2.0 + Math.random() * 2.5
+    } else if (cat === 'fire') {
+      sType = 'fire_ember'
+      sCol = i % 4 === 0 ? '#fef08a' : (i % 3 === 0 ? '#fbbf24' : (i % 2 === 0 ? '#f97316' : '#ef4444'))
+      sSize = 1.8 + Math.random() * 3.0
+    } else if (cat === 'electro') {
+      sType = 'lightning_arc'
+      sCol = i % 2 === 0 ? '#38bdf8' : (i % 3 === 0 ? '#ffffff' : '#60a5fa')
+      sSize = 1.4 + Math.random() * 2.0
+      sLife = 0.2 + Math.random() * 0.12
+    } else if (cat === 'poison') {
+      sType = 'acid_drop'
+      sCol = i % 3 === 0 ? '#d9f99d' : (i % 2 === 0 ? '#84cc16' : '#22c55e')
+      sSize = 2.2 + Math.random() * 2.4
+    } else if (cat === 'arcane') {
+      sType = 'arcane_star'
+      sCol = i % 3 === 0 ? '#ffffff' : (i % 2 === 0 ? '#c084fc' : '#a855f7')
+      sSize = 2.4 + Math.random() * 2.8
+    } else if (cat === 'void') {
+      sType = 'void_blood'
+      sCol = i % 3 === 0 ? '#881337' : (i % 2 === 0 ? '#f43f5e' : '#7c3aed')
+      sSize = 2.0 + Math.random() * 2.4
+    } else if (cat === 'holy') {
+      sType = 'holy_cross'
+      sCol = i % 2 === 0 ? '#ffffff' : '#fde047'
+      sSize = 2.6 + Math.random() * 2.8
+    } else if (cat === 'siege') {
+      sType = 'shrapnel'
+      sCol = i % 3 === 0 ? '#f59e0b' : (i % 2 === 0 ? '#94a3b8' : '#64748b')
+    }
+
     activeSparks.push({
       x: p.targetX,
       y: p.targetY,
       vx: Math.cos(ang) * spd,
       vy: Math.sin(ang) * spd,
-      color: isFireSplash ? (i % 2 === 0 ? '#f97316' : '#fef08a') : theme.sparkColorCss,
+      color: sCol,
       alpha: 1.0,
-      size: 1.5 + Math.random() * (isFireSplash ? 3.0 : 2),
-      life: 0.3 + Math.random() * 0.25
+      size: sSize,
+      life: sLife,
+      maxLife: sLife,
+      type: sType,
+      rot: Math.random() * Math.PI * 2,
+      vRot: (Math.random() - 0.5) * 12
     })
   }
 }
@@ -377,15 +428,79 @@ function renderFrame(time: number) {
     const sp = activeSparks[i]
     sp.x += sp.vx * dt
     sp.y += sp.vy * dt
+    sp.rot += (sp.vRot || 0) * dt
     sp.life -= dt
-    sp.alpha = Math.max(0, sp.life / 0.45)
+    sp.alpha = Math.max(0, sp.life / (sp.maxLife || 0.45))
 
-    ctx.beginPath()
-    ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2)
-    ctx.fillStyle = sp.color
-    ctx.globalAlpha = sp.alpha
-    ctx.fill()
-    ctx.globalAlpha = 1.0
+    if (sp.alpha > 0) {
+      ctx.save()
+      ctx.globalAlpha = sp.alpha
+      if (sp.type === 'fire_ember') {
+        sp.vy -= 120 * dt // Buoyant rising fire embers
+        ctx.beginPath()
+        ctx.arc(sp.x, sp.y, sp.size * (sp.alpha * 0.8 + 0.2), 0, Math.PI * 2)
+        ctx.fillStyle = sp.color
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(sp.x, sp.y, sp.size * 0.4, 0, Math.PI * 2)
+        ctx.fillStyle = '#ffffff'
+        ctx.fill()
+      } else if (sp.type === 'ice_shard') {
+        ctx.translate(sp.x, sp.y)
+        ctx.rotate(sp.rot)
+        ctx.beginPath()
+        ctx.moveTo(sp.size * 1.5, 0)
+        ctx.lineTo(0, sp.size * 0.6)
+        ctx.lineTo(-sp.size * 1.5, 0)
+        ctx.lineTo(0, -sp.size * 0.6)
+        ctx.closePath()
+        ctx.fillStyle = sp.color
+        ctx.fill()
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 0.8
+        ctx.stroke()
+      } else if (sp.type === 'snowflake') {
+        ctx.translate(sp.x, sp.y)
+        ctx.rotate(sp.rot)
+        ctx.strokeStyle = sp.color
+        ctx.lineWidth = 1.2
+        for (let spoke = 0; spoke < 3; spoke++) {
+          ctx.beginPath()
+          ctx.moveTo(-sp.size * 1.2, 0)
+          ctx.lineTo(sp.size * 1.2, 0)
+          ctx.stroke()
+          ctx.rotate(Math.PI / 3)
+        }
+      } else if (sp.type === 'lightning_arc') {
+        ctx.strokeStyle = sp.color
+        ctx.lineWidth = 1.8
+        ctx.beginPath()
+        ctx.moveTo(sp.x, sp.y)
+        ctx.lineTo(sp.x + sp.vx * dt * 3, sp.y + sp.vy * dt * 3)
+        ctx.stroke()
+      } else if (sp.type === 'arcane_star' || sp.type === 'holy_cross') {
+        ctx.translate(sp.x, sp.y)
+        ctx.rotate(sp.rot)
+        ctx.strokeStyle = sp.color
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(-sp.size * 1.3, 0)
+        ctx.lineTo(sp.size * 1.3, 0)
+        ctx.moveTo(0, -sp.size * 1.3)
+        ctx.lineTo(0, sp.size * 1.3)
+        ctx.stroke()
+        ctx.fillStyle = '#ffffff'
+        ctx.beginPath()
+        ctx.arc(0, 0, sp.size * 0.35, 0, Math.PI * 2)
+        ctx.fill()
+      } else {
+        ctx.beginPath()
+        ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2)
+        ctx.fillStyle = sp.color
+        ctx.fill()
+      }
+      ctx.restore()
+    }
 
     if (sp.life <= 0) activeSparks.splice(i, 1)
   }

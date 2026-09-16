@@ -6,12 +6,12 @@ import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { combatEvents } from '../services/combatEvents'
-import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig } from '../types/map'
+import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig, ProjectileType } from '../types/map'
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
 import { getProjectileTheme } from '../utils/projectileEffectRenderer'
 
-export type ProjectileType = 'cannonball' | 'arrow' | 'magic_bolt' | 'fireball' | 'frost_bolt' | 'laser' | 'missile' | 'fire_laser' | 'fire_splash'
+export type { ProjectileType }
 export type SplashType = 'constant' | 'falloff'
 export type TargetStrategy = 'first' | 'last' | 'strongest' | 'weakest' | 'closest'
 

@@ -5,20 +5,27 @@ import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
 import { assetManager } from '../../services/assetManager'
 import { getProjectileTheme, renderPixiProjectileHead } from '../../utils/projectileEffectRenderer'
+import { getProjectileDef } from '../../utils/projectileCatalog'
+
+export interface CombatSparkParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  color: number
+  alpha: number
+  size: number
+  life: number
+  maxLife: number
+  type: 'ice_shard' | 'snowflake' | 'fire_ember' | 'lightning_arc' | 'acid_drop' | 'arcane_star' | 'void_blood' | 'shrapnel' | 'holy_cross' | 'default'
+  rot: number
+  vRot: number
+}
 
 export class CombatRenderer {
   public combatGraphics: Graphics
   private combatTrails = new Map<string, { x: number; y: number; alpha: number; size: number }[]>()
-  public combatSparks: {
-    x: number
-    y: number
-    vx: number
-    vy: number
-    color: number
-    alpha: number
-    size: number
-    life: number
-  }[] = []
+  public combatSparks: CombatSparkParticle[] = []
 
   private activeProjIds = new Set<string>()
   private unsubscribeImpact?: () => void
@@ -30,19 +37,68 @@ export class CombatRenderer {
 
     // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
-      const count = evt.count || 8
+      const projDef = evt.projectileType ? getProjectileDef(evt.projectileType) : null
+      const cat = projDef?.category || (evt.isSplash ? 'fire' : 'siege')
+      const count = evt.count || (evt.isSplash ? 20 : 10)
+
       for (let s = 0; s < count; s++) {
-        const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.5
-        const speed = 40 + Math.random() * 80
+        const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.6
+        const speed = (cat === 'electro' ? 80 : 35) + Math.random() * (cat === 'fire' || cat === 'frost' ? 95 : 75)
+        
+        let sparkType: CombatSparkParticle['type'] = 'default'
+        let pColor = evt.color ?? 0xfbbf24
+        let pSize = 1.8 + Math.random() * 2.5
+        let pLife = 0.32 + Math.random() * 0.22
+
+        if (cat === 'frost') {
+          sparkType = s % 3 === 0 ? 'snowflake' : 'ice_shard'
+          pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0x67e8f9 : 0x38bdf8)
+          pSize = 2.2 + Math.random() * 2.8
+          pLife = 0.38 + Math.random() * 0.2
+        } else if (cat === 'fire') {
+          sparkType = 'fire_ember'
+          pColor = s % 4 === 0 ? 0xfef08a : (s % 3 === 0 ? 0xfbbf24 : (s % 2 === 0 ? 0xf97316 : 0xef4444))
+          pSize = 2.0 + Math.random() * 3.2
+        } else if (cat === 'electro') {
+          sparkType = 'lightning_arc'
+          pColor = s % 2 === 0 ? 0x38bdf8 : (s % 3 === 0 ? 0xffffff : 0x60a5fa)
+          pSize = 1.5 + Math.random() * 2.0
+          pLife = 0.2 + Math.random() * 0.15
+        } else if (cat === 'poison') {
+          sparkType = 'acid_drop'
+          pColor = s % 3 === 0 ? 0xd9f99d : (s % 2 === 0 ? 0x84cc16 : 0x22c55e)
+          pSize = 2.4 + Math.random() * 2.6
+        } else if (cat === 'arcane') {
+          sparkType = 'arcane_star'
+          pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0xc084fc : 0xa855f7)
+          pSize = 2.5 + Math.random() * 3.0
+        } else if (cat === 'void') {
+          sparkType = 'void_blood'
+          pColor = s % 3 === 0 ? 0x881337 : (s % 2 === 0 ? 0xf43f5e : 0x7c3aed)
+          pSize = 2.2 + Math.random() * 2.5
+        } else if (cat === 'holy') {
+          sparkType = 'holy_cross'
+          pColor = s % 2 === 0 ? 0xffffff : 0xfde047
+          pSize = 2.8 + Math.random() * 3.0
+        } else if (cat === 'siege') {
+          sparkType = 'shrapnel'
+          pColor = s % 3 === 0 ? 0xf59e0b : (s % 2 === 0 ? 0x94a3b8 : 0x64748b)
+          pSize = 2.0 + Math.random() * 2.4
+        }
+
         this.combatSparks.push({
           x: evt.x,
           y: evt.y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          color: evt.color ?? 0xfbbf24,
+          color: pColor,
           alpha: 1.0,
-          size: 1.5 + Math.random() * 2,
-          life: 0.35 + Math.random() * 0.15,
+          size: pSize,
+          life: pLife,
+          maxLife: pLife,
+          type: sparkType,
+          rot: Math.random() * Math.PI * 2,
+          vRot: (Math.random() - 0.5) * 12,
         })
       }
     })
@@ -250,25 +306,17 @@ export class CombatRenderer {
           this.combatTrails.set(proj.id, trail)
         }
         trail.push({ x: renderX, y: renderY, alpha: 1.0, size: 3.5 })
-        if (trail.length > (type === 'fire_splash' ? 12 : 8)) trail.shift()
+        if (trail.length > 8) trail.shift()
 
         for (let t = 0; t < trail.length; t++) {
           const pt = trail[t]
-          pt.alpha = Math.max(0, pt.alpha - (type === 'fire_splash' ? 0.025 : 0.04))
+          pt.alpha = Math.max(0, pt.alpha - 0.04)
           if (pt.alpha <= 0) continue
 
           if (type === 'arrow') {
             this.combatGraphics
               .circle(pt.x, pt.y, 1.0)
               .fill({ color: 0xf8fafc, alpha: pt.alpha * 0.25 })
-          } else if (type === 'fire_splash') {
-            const trailRadius = (t / trail.length) * 12.0
-            this.combatGraphics
-              .circle(pt.x, pt.y, Math.max(3.0, trailRadius))
-              .fill({ color: 0xdc2626, alpha: pt.alpha * 0.6 })
-            this.combatGraphics
-              .circle(pt.x, pt.y, Math.max(1.5, trailRadius * 0.55))
-              .fill({ color: 0xfbbf24, alpha: pt.alpha * 0.95 })
           } else {
             const trailRadius = (t / trail.length) * 3.5
             this.combatGraphics
@@ -324,11 +372,51 @@ export class CombatRenderer {
         const sp = this.combatSparks[i]
         sp.x += sp.vx * dt
         sp.y += sp.vy * dt
+        sp.rot += (sp.vRot || 0) * dt
         sp.life -= dt
-        sp.alpha = Math.max(0, sp.life / 0.45)
+        sp.alpha = Math.max(0, sp.life / (sp.maxLife || 0.45))
 
         if (sp.alpha > 0) {
-          this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha })
+          if (sp.type === 'fire_ember') {
+            sp.vy -= 120 * dt // Buoyant rising fire embers
+            this.combatGraphics.circle(sp.x, sp.y, sp.size * (sp.alpha * 0.8 + 0.2)).fill({ color: sp.color, alpha: sp.alpha })
+            this.combatGraphics.circle(sp.x, sp.y, sp.size * 0.4).fill({ color: 0xffffff, alpha: sp.alpha })
+          } else if (sp.type === 'ice_shard') {
+            const cosR = Math.cos(sp.rot)
+            const sinR = Math.sin(sp.rot)
+            const s = sp.size
+            this.combatGraphics.poly([
+              { x: sp.x + cosR * s * 1.5, y: sp.y + sinR * s * 1.5 },
+              { x: sp.x - sinR * s * 0.6, y: sp.y + cosR * s * 0.6 },
+              { x: sp.x - cosR * s * 1.5, y: sp.y - sinR * s * 1.5 },
+              { x: sp.x + sinR * s * 0.6, y: sp.y - cosR * s * 0.6 },
+            ]).fill({ color: sp.color, alpha: sp.alpha }).stroke({ width: 0.8, color: 0xffffff, alpha: sp.alpha * 0.8 })
+          } else if (sp.type === 'snowflake') {
+            const s = sp.size * 1.2
+            for (let spoke = 0; spoke < 3; spoke++) {
+              const ang = sp.rot + (spoke * Math.PI) / 3
+              const dx = Math.cos(ang) * s
+              const dy = Math.sin(ang) * s
+              this.combatGraphics.moveTo(sp.x - dx, sp.y - dy).lineTo(sp.x + dx, sp.y + dy).stroke({ width: 1.2, color: sp.color, alpha: sp.alpha })
+            }
+          } else if (sp.type === 'lightning_arc') {
+            const lx = sp.x + sp.vx * dt * 3
+            const ly = sp.y + sp.vy * dt * 3
+            this.combatGraphics.moveTo(sp.x, sp.y).lineTo(lx, ly).stroke({ width: 1.8, color: sp.color, alpha: sp.alpha })
+            this.combatGraphics.circle(sp.x, sp.y, 1.2).fill({ color: 0xffffff, alpha: sp.alpha })
+          } else if (sp.type === 'acid_drop') {
+            this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha * 0.85 })
+            this.combatGraphics.circle(sp.x, sp.y, sp.size * 1.5).stroke({ width: 1.0, color: 0xa3e635, alpha: sp.alpha * 0.4 })
+          } else if (sp.type === 'arcane_star' || sp.type === 'holy_cross') {
+            const s = sp.size * 1.3
+            const cosR = Math.cos(sp.rot)
+            const sinR = Math.sin(sp.rot)
+            this.combatGraphics.moveTo(sp.x - cosR * s, sp.y - sinR * s).lineTo(sp.x + cosR * s, sp.y + sinR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
+            this.combatGraphics.moveTo(sp.x + sinR * s, sp.y - cosR * s).lineTo(sp.x - sinR * s, sp.y + cosR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
+            this.combatGraphics.circle(sp.x, sp.y, s * 0.35).fill({ color: 0xffffff, alpha: sp.alpha })
+          } else {
+            this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha })
+          }
         }
 
         if (sp.life <= 0) {

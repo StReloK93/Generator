@@ -8671,6 +8671,75 @@
     "isSample": true
   },
   {
+    "id": "sprite-tower_ice3",
+    "name": "Tower_ice3",
+    "baseName": "tower_ice3",
+    "fileRelativePath": "towers/tower_ice3.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 109,
+    "trimHeight": 142,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 73,
+      "minY": 333,
+      "maxX": 181,
+      "maxY": 474
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
+    "id": "sprite-tower_ice4",
+    "name": "Tower_ice4",
+    "baseName": "tower_ice4",
+    "fileRelativePath": "towers/tower_ice4.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 146,
+    "trimHeight": 143,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 54,
+      "minY": 340,
+      "maxX": 199,
+      "maxY": 482
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
+    "id": "sprite-tower_ice5",
+    "name": "Tower_ice5",
+    "baseName": "tower_ice5",
+    "fileRelativePath": "towers/tower_ice5.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 116,
+    "trimHeight": 151,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 69,
+      "minY": 328,
+      "maxX": 184,
+      "maxY": 478
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
     "id": "sprite-roofSingleWall_E",
     "name": "Roof Single Wall (E)",
     "baseName": "roofSingleWall_E",

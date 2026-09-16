@@ -1,8 +1,48 @@
 {
   "frames": {
-    "woodWallRoofRight_E": {
+    "stoneWallTop_W": {
       "frame": {
         "x": 2,
+        "y": 2,
+        "w": 161,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 358,
+        "w": 161,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofLeft_S": {
+      "frame": {
+        "x": 165,
+        "y": 2,
+        "w": 136,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 120,
+        "y": 303,
+        "w": 136,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofRight_E": {
+      "frame": {
+        "x": 303,
         "y": 2,
         "w": 136,
         "h": 152
@@ -22,7 +62,7 @@
     },
     "stoneWallTop_S": {
       "frame": {
-        "x": 140,
+        "x": 441,
         "y": 2,
         "w": 161,
         "h": 151
@@ -42,7 +82,7 @@
     },
     "woodWallRoofLeft_W": {
       "frame": {
-        "x": 303,
+        "x": 604,
         "y": 2,
         "w": 141,
         "h": 151
@@ -62,7 +102,7 @@
     },
     "woodWallRoofRight_N": {
       "frame": {
-        "x": 446,
+        "x": 747,
         "y": 2,
         "w": 141,
         "h": 151
@@ -80,9 +120,69 @@
         "h": 512
       }
     },
+    "tower_ice5": {
+      "frame": {
+        "x": 890,
+        "y": 2,
+        "w": 116,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 328,
+        "w": 116,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower_ice4": {
+      "frame": {
+        "x": 1008,
+        "y": 2,
+        "w": 146,
+        "h": 143
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 340,
+        "w": 146,
+        "h": 143
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower_ice3": {
+      "frame": {
+        "x": 1156,
+        "y": 2,
+        "w": 109,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 333,
+        "w": 109,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
     "stoneWallTop_N": {
       "frame": {
-        "x": 589,
+        "x": 1267,
         "y": 2,
         "w": 161,
         "h": 137
@@ -102,7 +202,7 @@
     },
     "stoneWallTop_E": {
       "frame": {
-        "x": 752,
+        "x": 1430,
         "y": 2,
         "w": 161,
         "h": 135
@@ -125,7 +225,7 @@
     "image": "structures_atlas_1.webp",
     "format": "RGBA8888",
     "size": {
-      "w": 1024,
+      "w": 2048,
       "h": 256
     },
     "scale": "1"

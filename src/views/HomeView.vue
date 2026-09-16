@@ -69,7 +69,19 @@
           custom-class="desktop-only-btn hidden! lg:inline-flex!"
           @click="router.push('/asset-editor')"
         >
-          {{ $t('home.assetEditor') }}
+          {{ $t('home.assetEditor') || 'Assetlar' }}
+        </UiButton>
+
+        <!-- Projectile Editor (Desktop / Mobile) -->
+        <UiButton
+          v-if="isDesktopDevice"
+          variant="secondary"
+          size="xs"
+          :leading-icon="Crosshair"
+          custom-class="desktop-only-btn hidden! lg:inline-flex!"
+          @click="router.push('/projectile-editor')"
+        >
+          {{ $t('towers.projectileStudio') }}
         </UiButton>
 
         <!-- Install PWA Button (When supported / installable) -->
@@ -288,6 +300,7 @@ import {
   Users,
   Layers,
   Palette,
+  Crosshair,
   Map,
   Shield,
   Upload,

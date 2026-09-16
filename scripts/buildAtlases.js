@@ -467,7 +467,16 @@ async function run() {
       // Standardized Ground Anchor (fixed to canonical 458/512 = 0.895 so internal canvas pixel shifts take real visual effect)
       const anchorY = detectedCellH === 512 ? 0.895 : (sampleFeetYList.length > 0 ? Math.round((sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length / detectedCellH) * 1000) / 1000 : 0.895)
 
-      const charAtlasRes = await buildMultiPageAtlas(`characters_${charId}`, charFrames, 2048, 2048)
+      // Deduplicate frames by name to ensure zero duplicate keys in PixiJS Cache
+      const uniqueFramesMap = new Map()
+      for (const f of charFrames) {
+        if (!uniqueFramesMap.has(f.name)) {
+          uniqueFramesMap.set(f.name, f)
+        }
+      }
+      const dedupedCharFrames = Array.from(uniqueFramesMap.values())
+
+      const charAtlasRes = await buildMultiPageAtlas(`characters_${charId}`, dedupedCharFrames, 2048, 2048)
       allCharacterSheets.push(...charAtlasRes.generatedSheetNames)
       totalCharacterWebpSize += charAtlasRes.totalWebpSize
 

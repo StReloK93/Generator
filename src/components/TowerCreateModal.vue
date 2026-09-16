@@ -117,7 +117,7 @@
         </div>
       </UiCard>
 
-      <!-- 2. Name & Cost -->
+      <!-- 2. Name & Cost (Uniform Range Slider) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <UiInput
           v-model="form.name"
@@ -125,13 +125,13 @@
           :placeholder="$t('towers.towerNamePlaceholder')"
         />
 
-        <UiNumberInput
+        <UiSlider
           v-model="form.cost"
           :label="$t('towers.buildCostLabel')"
           :min="10"
-          :max="5000"
+          :max="2000"
           :step="10"
-          unit=" Gold"
+          unit=" gold"
         />
       </div>
 
@@ -166,15 +166,89 @@
         </div>
       </UiCard>
 
-      <!-- 4. Projectile Type -->
-      <div class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-slate-300">{{ $t('towers.projectileTypeLabel') }}</span>
-        <UiTabs
-          v-model="form.projectileType"
-          :items="projectileTypes"
-          variant="amber"
-          size="sm"
-        />
+      <!-- 4. Projectile Type & Visual Selector (80 Types) -->
+      <div class="flex flex-col gap-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-slate-800">
+          <div class="flex items-center gap-1.5">
+            <Crosshair class="w-4 h-4 text-amber-400" />
+            <span class="text-xs font-bold text-slate-200">{{ $t('towers.projectileTypeLabel') }}</span>
+          </div>
+          <UiButton
+            variant="game-amber"
+            size="xs"
+            :leading-icon="Sparkles"
+            @click="isProjectileModalOpen = true"
+          >
+            {{ $t('towers.chooseFrom80') || 'Barcha 80 xil snaryadlar' }}
+          </UiButton>
+        </div>
+
+        <!-- Active Selected Projectile Display Card -->
+        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div 
+              class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
+              :style="{ 
+                backgroundColor: `${activeProjectileDef.colorCss}20`, 
+                borderColor: `${activeProjectileDef.colorCss}60`,
+                color: activeProjectileDef.colorCss
+              }"
+            >
+              <component :is="activeProjectileDef.icon" class="w-4.5 h-4.5" />
+            </div>
+            <div class="flex flex-col min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-bold text-slate-100 truncate">
+                  {{ getLocalizedProjectileName(activeProjectileDef) }}
+                </span>
+                <span 
+                  class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
+                  :style="{
+                    color: activeProjectileDef.colorCss,
+                    borderColor: `${activeProjectileDef.colorCss}40`,
+                    backgroundColor: `${activeProjectileDef.colorCss}15`
+                  }"
+                >
+                  {{ activeProjectileDef.category }}
+                </span>
+                <span v-if="activeProjectileDef.isLaser" class="text-[9px] font-mono text-purple-300 bg-purple-950/60 px-1 py-0.2 rounded border border-purple-800/60">
+                  Beam
+                </span>
+              </div>
+              <span class="text-[10px] text-slate-400 truncate mt-0.5">
+                {{ activeProjectileDef.description }}
+              </span>
+            </div>
+          </div>
+
+          <UiButton
+            variant="secondary"
+            size="xs"
+            :leading-icon="Crosshair"
+            @click="isProjectileModalOpen = true"
+          >
+            {{ $t('common.change') || 'Tanlash' }}
+          </UiButton>
+        </div>
+
+        <!-- Quick Selector for this Element Category -->
+        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-1">
+          <button
+            v-for="quickP in currentCategoryProjectiles"
+            :key="quickP.id"
+            type="button"
+            :class="[
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-all cursor-pointer shrink-0',
+              (form.projectileType || 'fireball') === quickP.id
+                ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/40'
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+            ]"
+            @click="form.projectileType = quickP.id"
+          >
+            <component :is="quickP.icon" class="w-3 h-3" :style="{ color: quickP.colorCss }" />
+            <span>{{ getLocalizedProjectileName(quickP) }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- 5. Splash Damage Toggle & Radius -->
@@ -473,11 +547,19 @@
       </UiButton>
     </template>
   </UiModal>
+
+  <!-- SELECT PROJECTILE TYPE MODAL (80 Types) -->
+  <ProjectileSelectModal
+    :is-open="isProjectileModalOpen"
+    :model-value="form.projectileType || 'fireball'"
+    @update:model-value="(val) => form.projectileType = val"
+    @close="isProjectileModalOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords, Bomb } from 'lucide-vue-next'
+import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords, Bomb, Crosshair } from 'lucide-vue-next'
 import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge, UiTabs, UiSwitch } from './ui'
 import { useTowerStore, ProjectileType, SplashType } from '../stores/towerStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -486,14 +568,28 @@ import { useI18n } from '../stores/i18nStore'
 import { AssetItem, TowerTraitType } from '../types/map'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon } from '../utils/towerClans'
+import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
+import { getProjectileDef, getProjectilesByCategory } from '../utils/projectileCatalog'
 
 const towerStore = useTowerStore()
 const assetStore = useAssetStore()
 const notify = useNotificationStore()
-const { t } = useI18n()
+const { t, currentLocale } = useI18n()
+
+function getLocalizedProjectileName(p: any): string {
+  if (!p) return ''
+  if (currentLocale.value === 'uz' && p.nameUz) return p.nameUz
+  if (currentLocale.value === 'ru' && p.nameRu) return p.nameRu
+  return p.name || p.nameUz || p.id
+}
 
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
+
+// Projectile Selector State (80 Types)
+const isProjectileModalOpen = ref(false)
+const activeProjectileDef = computed(() => getProjectileDef(form.value.projectileType || 'fireball'))
+const currentCategoryProjectiles = computed(() => getProjectilesByCategory(activeProjectileDef.value.category))
 
 const categories = computed(() => {
   const items = [
@@ -505,18 +601,6 @@ const categories = computed(() => {
   }
   return items
 })
-
-const projectileTypes = computed(() => [
-  { id: 'fireball', label: t('towers.projectileFireball'), icon: Flame },
-  { id: 'fire_laser', label: t('towers.projectileFireLaser'), icon: Sparkles },
-  { id: 'fire_splash', label: t('towers.projectileFireSplash'), icon: Bomb },
-  { id: 'arrow', label: t('towers.projectileArrow'), icon: ArrowRight },
-  { id: 'magic_bolt', label: t('towers.projectileMagic'), icon: Zap },
-  { id: 'cannonball', label: t('towers.projectileCannonball'), icon: CircleDot },
-  { id: 'frost_bolt', label: t('towers.projectileFrost'), icon: Snowflake },
-  { id: 'laser', label: t('towers.projectileLaser'), icon: Radio },
-  { id: 'missile', label: t('towers.projectileMissile'), icon: Rocket },
-])
 
 const splashTypeOptions = computed(() => [
   { id: 'falloff', label: t('traits.splashFalloff'), icon: TrendingDown },

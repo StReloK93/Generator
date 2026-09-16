@@ -18,19 +18,28 @@ export function initTelegramWebApp(): void {
   if (tg) {
     isTelegramWebApp.value = true
     try {
-      tg.ready()
-      tg.expand()
-      if (typeof tg.disableVerticalSwipes === 'function') {
-        tg.disableVerticalSwipes()
+      if (typeof tg.ready === 'function') tg.ready()
+      if (typeof tg.expand === 'function') tg.expand()
+
+      const isVersionAtLeast = (v: string): boolean => {
+        try {
+          return typeof tg.isVersionAtLeast === 'function' ? tg.isVersionAtLeast(v) : false
+        } catch {
+          return false
+        }
       }
-      if (typeof tg.requestFullscreen === 'function') {
-        tg.requestFullscreen()
+
+      if (isVersionAtLeast('7.7') && typeof tg.disableVerticalSwipes === 'function') {
+        try { tg.disableVerticalSwipes() } catch {}
       }
-      if (typeof tg.lockOrientation === 'function') {
-        tg.lockOrientation('landscape')
+      if (isVersionAtLeast('8.0') && typeof tg.requestFullscreen === 'function') {
+        try { tg.requestFullscreen() } catch {}
       }
-    } catch (err) {
-      console.warn('[Telegram WebApp] Init warning:', err)
+      if (isVersionAtLeast('8.0') && typeof tg.lockOrientation === 'function') {
+        try { tg.lockOrientation('landscape') } catch {}
+      }
+    } catch {
+      // Silently ignore legacy Telegram client limitations
     }
   }
 }
@@ -86,31 +95,68 @@ export async function lockLandscape(): Promise<boolean> {
     // 0. Telegram Mini App native landscape & fullscreen if running in Telegram
     const tg = (window as any).Telegram?.WebApp
     if (tg) {
-      if (typeof tg.requestFullscreen === 'function') {
-        tg.requestFullscreen()
-      }
-      if (typeof tg.lockOrientation === 'function') {
-        tg.lockOrientation('landscape')
+      const isVersionAtLeast = (v: string) => typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast(v)
+      if (isVersionAtLeast('8.0')) {
+        if (typeof tg.requestFullscreen === 'function') try { tg.requestFullscreen() } catch {}
+        if (typeof tg.lockOrientation === 'function') try { tg.lockOrientation('landscape') } catch {}
       }
     }
 
-    // 1. Enter Fullscreen if not already in fullscreen
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      await document.documentElement.requestFullscreen().catch(() => {
-        // Fullscreen request might require gesture or fail on some iOS versions
-      })
+    // 1. Enter Fullscreen on document element (supporting all browser vendor prefixes)
+    const doc = document as any
+    const docEl = (document.documentElement || document.body) as any
+    const isAlreadyFs = Boolean(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    )
+
+    if (!isAlreadyFs) {
+      const requestFs =
+        docEl.requestFullscreen ||
+        docEl.webkitRequestFullscreen ||
+        docEl.webkitRequestFullScreen ||
+        docEl.mozRequestFullScreen ||
+        docEl.msRequestFullscreen
+
+      if (requestFs) {
+        try {
+          await requestFs.call(docEl)
+        } catch {
+          // Fullscreen request might require gesture or fail on some iOS versions
+        }
+      }
     }
 
     // 2. Attempt Screen Orientation Lock
     const screenAny = window.screen as any
-    if (screenAny?.orientation?.lock) {
-      await screenAny.orientation.lock('landscape').catch(() => {
-        // Ignored if unsupported by browser / platform
-      })
-      return true
+    const orient = screenAny?.orientation
+    if (orient && typeof orient.lock === 'function') {
+      try {
+        await orient.lock('landscape')
+        return true
+      } catch {
+        try {
+          await orient.lock('landscape-primary')
+          return true
+        } catch {}
+      }
     } else if (screenAny?.lockOrientation) {
-      screenAny.lockOrientation('landscape')
-      return true
+      try {
+        screenAny.lockOrientation('landscape')
+        return true
+      } catch {}
+    } else if (screenAny?.webkitLockOrientation) {
+      try {
+        screenAny.webkitLockOrientation('landscape')
+        return true
+      } catch {}
+    } else if (screenAny?.mozLockOrientation) {
+      try {
+        screenAny.mozLockOrientation('landscape')
+        return true
+      } catch {}
     }
   } catch {
     // Silently continue

@@ -22,6 +22,11 @@ const routes = [
     component: () => import('../views/AssetEditorView.vue'),
   },
   {
+    path: '/projectile-editor',
+    name: 'projectile-editor',
+    component: () => import('../views/ProjectileEditorView.vue'),
+  },
+  {
     path: '/lobby/:roomId',
     name: 'lobby',
     component: () => import('../views/LobbyView.vue'),

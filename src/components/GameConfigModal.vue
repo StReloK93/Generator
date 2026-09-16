@@ -314,12 +314,12 @@
 
           <!-- Active Level Parameters: Cost, Damage, Speed, Range -->
           <UiCard variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <!-- Cost for this level -->
-            <UiNumberInput 
-              :model-value="activeLevelConfig.cost"
+            <!-- Cost for this level (Uniform Range Slider) -->
+            <UiSlider 
+              :model-value="activeLevelConfig.cost || (selectedLevelIndex === 0 ? 50 : 100)"
               :label="selectedLevelIndex === 0 ? $t('config.buildCost') : $t('config.upgradeCost')"
               :min="10"
-              :max="5000"
+              :max="2000"
               :step="10"
               unit=" gold"
               @update:model-value="(val) => updateActiveLevel({ cost: val || (selectedLevelIndex === 0 ? 50 : 100) })"
@@ -359,20 +359,88 @@
             />
           </UiCard>
 
-          <!-- Projectile Type & Color -->
-          <div class="flex flex-col gap-1.5">
-            <span class="text-[11px] font-semibold text-slate-300">{{ $t('config.projectileTypeAnim') }}</span>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              <UiButton 
-                v-for="pType in projectileOptions" 
-                :key="pType.id"
-                :variant="activeLevelConfig.projectileType === pType.id ? 'game-amber' : 'secondary'"
+          <!-- Projectile Type & Visual Selector (80 Types Catalog) -->
+          <div class="flex flex-col gap-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-slate-800">
+              <div class="flex items-center gap-1.5">
+                <Crosshair class="w-4 h-4 text-amber-400" />
+                <span class="text-xs font-bold text-slate-200">{{ $t('config.projectileTypeAnim') }}</span>
+              </div>
+              <UiButton
+                variant="game-amber"
                 size="xs"
-                :leading-icon="pType.icon"
-                @click="updateActiveLevel({ projectileType: pType.id as any })"
+                :leading-icon="Sparkles"
+                @click="isProjectileModalOpen = true"
               >
-                <span>{{ pType.name }}</span>
+                {{ $t('towers.chooseFrom80') || 'Barcha 80 xil snaryadlar' }}
               </UiButton>
+            </div>
+
+            <!-- Active Selected Projectile Display Card -->
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div 
+                  class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
+                  :style="{ 
+                    backgroundColor: `${activeProjectileDef.colorCss}20`, 
+                    borderColor: `${activeProjectileDef.colorCss}60`,
+                    color: activeProjectileDef.colorCss
+                  }"
+                >
+                  <component :is="activeProjectileDef.icon" class="w-4.5 h-4.5" />
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs font-bold text-slate-100 truncate">
+                      {{ activeProjectileDef.name }}
+                    </span>
+                    <span 
+                      class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
+                      :style="{
+                        color: activeProjectileDef.colorCss,
+                        borderColor: `${activeProjectileDef.colorCss}40`,
+                        backgroundColor: `${activeProjectileDef.colorCss}15`
+                      }"
+                    >
+                      {{ activeProjectileDef.category }}
+                    </span>
+                    <span v-if="activeProjectileDef.isLaser" class="text-[9px] font-mono text-purple-300 bg-purple-950/60 px-1 py-0.2 rounded border border-purple-800/60">
+                      Beam
+                    </span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 truncate mt-0.5">
+                    {{ activeProjectileDef.description }}
+                  </span>
+                </div>
+              </div>
+
+              <UiButton
+                variant="secondary"
+                size="xs"
+                :leading-icon="Crosshair"
+                @click="isProjectileModalOpen = true"
+              >
+                {{ $t('common.change') || 'Tanlash' }}
+              </UiButton>
+            </div>
+
+            <!-- Quick Selector for this Element Category -->
+            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-1">
+              <button
+                v-for="quickP in currentCategoryProjectiles"
+                :key="quickP.id"
+                type="button"
+                :class="[
+                  'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-all cursor-pointer shrink-0',
+                  (activeLevelConfig.projectileType || 'fireball') === quickP.id
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/40'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                ]"
+                @click="updateActiveLevel({ projectileType: quickP.id })"
+              >
+                <component :is="quickP.icon" class="w-3 h-3" :style="{ color: quickP.colorCss }" />
+                <span>{{ quickP.name }}</span>
+              </button>
             </div>
           </div>
 
@@ -1641,6 +1709,14 @@
       </div>
     </div>
   </UiModal>
+
+  <!-- SELECT PROJECTILE TYPE MODAL (80 Types) -->
+  <ProjectileSelectModal
+    :is-open="isProjectileModalOpen"
+    :model-value="activeLevelConfig.projectileType || 'fireball'"
+    @update:model-value="(val) => updateActiveLevel({ projectileType: val })"
+    @close="isProjectileModalOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -1679,6 +1755,8 @@ import { getClanIcon, CLAN_AVAILABLE_ICONS, CLAN_AVAILABLE_COLORS } from '../uti
 import { requestAppFullscreen } from '../utils/fullscreen'
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
+import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
+import { getProjectileDef, getProjectilesByCategory } from '../utils/projectileCatalog'
 import characterManifest from '../assets/generated/characterManifest.json'
 import { useI18n } from '../stores/i18nStore'
 import { sanitizeMapId } from '../services/mapManager'
@@ -1957,17 +2035,10 @@ const spawnModeOptions = computed(() => [
   { id: 'single_door', label: t('config.selectedDoorOnly'), icon: MapPin },
 ])
 
-const projectileOptions = computed(() => [
-  { id: 'fireball', name: t('towers.projectileFireball'), icon: Flame },
-  { id: 'fire_laser', name: t('towers.projectileFireLaser'), icon: Sparkles },
-  { id: 'fire_splash', name: t('towers.projectileFireSplash'), icon: Bomb },
-  { id: 'arrow', name: t('towers.projectileArrow'), icon: ArrowRight },
-  { id: 'magic_bolt', name: t('towers.projectileMagic'), icon: Zap },
-  { id: 'cannonball', name: t('towers.projectileCannonball'), icon: CircleDot },
-  { id: 'frost_bolt', name: t('towers.projectileFrost'), icon: Snowflake },
-  { id: 'laser', name: t('towers.projectileLaser'), icon: Radio },
-  { id: 'missile', name: t('towers.projectileMissile'), icon: Rocket },
-])
+// Projectile Selector State (80 Types)
+const isProjectileModalOpen = ref(false)
+const activeProjectileDef = computed(() => getProjectileDef(activeLevelConfig.value?.projectileType || 'fireball'))
+const currentCategoryProjectiles = computed(() => getProjectilesByCategory(activeProjectileDef.value.category))
 
 // Change Sprite Modal State (Only Tower Assets!)
 const isChangeSpriteModalOpen = ref(false)

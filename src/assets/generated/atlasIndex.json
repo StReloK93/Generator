@@ -11,18 +11,13 @@
   ],
   "characters": [
     "characters_barry",
-    "characters_bird_0",
-    "characters_bird_1",
-    "characters_bird_2",
+    "characters_bird",
     "characters_demon",
-    "characters_female_0",
-    "characters_female_1",
+    "characters_female",
     "characters_male",
-    "characters_orc_0",
-    "characters_orc_1",
+    "characters_orc",
     "characters_warrior_0",
     "characters_warrior_1",
-    "characters_warrior_2",
     "characters_zombi"
   ]
 }

@@ -120,9 +120,69 @@
         "h": 512
       }
     },
-    "stoneWallTop_N": {
+    "tower_ice5": {
       "frame": {
         "x": 890,
+        "y": 2,
+        "w": 116,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 69,
+        "y": 328,
+        "w": 116,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower_ice4": {
+      "frame": {
+        "x": 1008,
+        "y": 2,
+        "w": 146,
+        "h": 143
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 54,
+        "y": 340,
+        "w": 146,
+        "h": 143
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower_ice3": {
+      "frame": {
+        "x": 1156,
+        "y": 2,
+        "w": 109,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 333,
+        "w": 109,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_N": {
+      "frame": {
+        "x": 1267,
         "y": 2,
         "w": 161,
         "h": 137
@@ -142,7 +202,7 @@
     },
     "stoneWallTop_E": {
       "frame": {
-        "x": 1053,
+        "x": 1430,
         "y": 2,
         "w": 161,
         "h": 135

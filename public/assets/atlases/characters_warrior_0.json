@@ -2,7 +2,7 @@
   "frames": {
     "Warrior_6_Run12": {
       "frame": {
-        "x": 102,
+        "x": 2,
         "y": 2,
         "w": 98,
         "h": 210
@@ -22,7 +22,7 @@
     },
     "Warrior_6_Run11": {
       "frame": {
-        "x": 302,
+        "x": 102,
         "y": 2,
         "w": 98,
         "h": 208
@@ -42,7 +42,7 @@
     },
     "Warrior_6_Run13": {
       "frame": {
-        "x": 502,
+        "x": 202,
         "y": 2,
         "w": 98,
         "h": 208
@@ -62,7 +62,7 @@
     },
     "Warrior_6_Run14": {
       "frame": {
-        "x": 702,
+        "x": 302,
         "y": 2,
         "w": 98,
         "h": 207
@@ -82,7 +82,7 @@
     },
     "Warrior_6_Run10": {
       "frame": {
-        "x": 900,
+        "x": 402,
         "y": 2,
         "w": 96,
         "h": 203
@@ -102,7 +102,7 @@
     },
     "Warrior_6_Run15": {
       "frame": {
-        "x": 1098,
+        "x": 500,
         "y": 2,
         "w": 98,
         "h": 203
@@ -122,7 +122,7 @@
     },
     "Warrior_4_Idle0": {
       "frame": {
-        "x": 1542,
+        "x": 600,
         "y": 2,
         "w": 84,
         "h": 200
@@ -142,7 +142,7 @@
     },
     "Warrior_4_Idle": {
       "frame": {
-        "x": 1628,
+        "x": 686,
         "y": 2,
         "w": 84,
         "h": 200
@@ -162,7 +162,7 @@
     },
     "Warrior_6_Run9": {
       "frame": {
-        "x": 1814,
+        "x": 772,
         "y": 2,
         "w": 98,
         "h": 200
@@ -182,7 +182,7 @@
     },
     "Warrior_4_Pickup0": {
       "frame": {
-        "x": 1914,
+        "x": 872,
         "y": 2,
         "w": 84,
         "h": 200
@@ -202,8 +202,8 @@
     },
     "Warrior_4_Die0": {
       "frame": {
-        "x": 2,
-        "y": 214,
+        "x": 958,
+        "y": 2,
         "w": 84,
         "h": 200
       },
@@ -222,8 +222,8 @@
     },
     "Warrior_6_Run16": {
       "frame": {
-        "x": 188,
-        "y": 214,
+        "x": 1044,
+        "y": 2,
         "w": 98,
         "h": 198
       },
@@ -242,8 +242,8 @@
     },
     "Warrior_6_Run8": {
       "frame": {
-        "x": 388,
-        "y": 214,
+        "x": 1144,
+        "y": 2,
         "w": 98,
         "h": 196
       },
@@ -262,8 +262,8 @@
     },
     "Warrior_5_Idle0": {
       "frame": {
-        "x": 876,
-        "y": 214,
+        "x": 1244,
+        "y": 2,
         "w": 95,
         "h": 194
       },
@@ -282,8 +282,8 @@
     },
     "Warrior_5_Idle": {
       "frame": {
-        "x": 973,
-        "y": 214,
+        "x": 1341,
+        "y": 2,
         "w": 95,
         "h": 194
       },
@@ -302,8 +302,8 @@
     },
     "Warrior_6_Run7": {
       "frame": {
-        "x": 1170,
-        "y": 214,
+        "x": 1438,
+        "y": 2,
         "w": 98,
         "h": 194
       },
@@ -322,8 +322,8 @@
     },
     "Warrior_5_Pickup0": {
       "frame": {
-        "x": 1270,
-        "y": 214,
+        "x": 1538,
+        "y": 2,
         "w": 95,
         "h": 194
       },
@@ -342,8 +342,8 @@
     },
     "Warrior_5_Die0": {
       "frame": {
-        "x": 1367,
-        "y": 214,
+        "x": 1635,
+        "y": 2,
         "w": 95,
         "h": 194
       },
@@ -362,8 +362,8 @@
     },
     "Warrior_6_Run0": {
       "frame": {
-        "x": 2,
-        "y": 416,
+        "x": 1732,
+        "y": 2,
         "w": 116,
         "h": 193
       },
@@ -382,8 +382,8 @@
     },
     "Warrior_6_Run": {
       "frame": {
-        "x": 120,
-        "y": 416,
+        "x": 1850,
+        "y": 2,
         "w": 116,
         "h": 193
       },
@@ -402,8 +402,8 @@
     },
     "Warrior_6_Run1": {
       "frame": {
-        "x": 356,
-        "y": 416,
+        "x": 2,
+        "y": 214,
         "w": 116,
         "h": 193
       },
@@ -422,8 +422,8 @@
     },
     "Warrior_6_Run17": {
       "frame": {
-        "x": 574,
-        "y": 416,
+        "x": 120,
+        "y": 214,
         "w": 98,
         "h": 193
       },
@@ -442,8 +442,8 @@
     },
     "Warrior_6_Run22": {
       "frame": {
-        "x": 783,
-        "y": 416,
+        "x": 220,
+        "y": 214,
         "w": 107,
         "h": 193
       },
@@ -462,8 +462,8 @@
     },
     "Warrior_6_Run23": {
       "frame": {
-        "x": 1007,
-        "y": 416,
+        "x": 329,
+        "y": 214,
         "w": 113,
         "h": 193
       },
@@ -482,8 +482,8 @@
     },
     "Warrior_6_Run6": {
       "frame": {
-        "x": 1222,
-        "y": 416,
+        "x": 444,
+        "y": 214,
         "w": 98,
         "h": 191
       },
@@ -502,8 +502,8 @@
     },
     "Warrior_5_Run3": {
       "frame": {
-        "x": 1440,
-        "y": 416,
+        "x": 544,
+        "y": 214,
         "w": 116,
         "h": 189
       },
@@ -522,8 +522,8 @@
     },
     "Warrior_5_Run4": {
       "frame": {
-        "x": 1665,
-        "y": 416,
+        "x": 662,
+        "y": 214,
         "w": 105,
         "h": 189
       },
@@ -542,8 +542,8 @@
     },
     "Warrior_6_Run19": {
       "frame": {
-        "x": 1872,
-        "y": 416,
+        "x": 769,
+        "y": 214,
         "w": 98,
         "h": 189
       },
@@ -562,8 +562,8 @@
     },
     "Warrior_6_Run2": {
       "frame": {
-        "x": 113,
-        "y": 611,
+        "x": 869,
+        "y": 214,
         "w": 109,
         "h": 189
       },
@@ -582,8 +582,8 @@
     },
     "Warrior_6_Run20": {
       "frame": {
-        "x": 324,
-        "y": 611,
+        "x": 980,
+        "y": 214,
         "w": 98,
         "h": 189
       },
@@ -602,8 +602,8 @@
     },
     "Warrior_6_Run21": {
       "frame": {
-        "x": 528,
-        "y": 611,
+        "x": 1080,
+        "y": 214,
         "w": 102,
         "h": 189
       },
@@ -622,8 +622,8 @@
     },
     "Warrior_5_Run2": {
       "frame": {
-        "x": 760,
-        "y": 611,
+        "x": 1184,
+        "y": 214,
         "w": 126,
         "h": 187
       },
@@ -642,8 +642,8 @@
     },
     "Warrior_5_Run5": {
       "frame": {
-        "x": 983,
-        "y": 611,
+        "x": 1312,
+        "y": 214,
         "w": 93,
         "h": 187
       },
@@ -662,8 +662,8 @@
     },
     "Warrior_5_Run6": {
       "frame": {
-        "x": 1162,
-        "y": 611,
+        "x": 1407,
+        "y": 214,
         "w": 82,
         "h": 187
       },
@@ -682,8 +682,8 @@
     },
     "Warrior_5_Run7": {
       "frame": {
-        "x": 1340,
-        "y": 611,
+        "x": 1491,
+        "y": 214,
         "w": 92,
         "h": 187
       },
@@ -702,8 +702,8 @@
     },
     "Warrior_6_Run3": {
       "frame": {
-        "x": 1538,
-        "y": 611,
+        "x": 1585,
+        "y": 214,
         "w": 102,
         "h": 187
       },
@@ -722,8 +722,8 @@
     },
     "Warrior_5_Run8": {
       "frame": {
-        "x": 1748,
-        "y": 611,
+        "x": 1689,
+        "y": 214,
         "w": 104,
         "h": 186
       },
@@ -742,8 +742,8 @@
     },
     "Warrior_6_Run18": {
       "frame": {
-        "x": 2,
-        "y": 802,
+        "x": 1795,
+        "y": 214,
         "w": 98,
         "h": 186
       },
@@ -762,8 +762,8 @@
     },
     "Warrior_5_Run10": {
       "frame": {
-        "x": 227,
-        "y": 802,
+        "x": 1895,
+        "y": 214,
         "w": 123,
         "h": 184
       },
@@ -782,8 +782,8 @@
     },
     "Warrior_5_Run9": {
       "frame": {
-        "x": 470,
-        "y": 802,
+        "x": 2,
+        "y": 409,
         "w": 116,
         "h": 184
       },
@@ -802,8 +802,8 @@
     },
     "Warrior_5_Run1": {
       "frame": {
-        "x": 721,
-        "y": 802,
+        "x": 120,
+        "y": 409,
         "w": 131,
         "h": 182
       },
@@ -822,8 +822,8 @@
     },
     "Warrior_5_Run17": {
       "frame": {
-        "x": 945,
-        "y": 802,
+        "x": 253,
+        "y": 409,
         "w": 89,
         "h": 182
       },
@@ -842,8 +842,8 @@
     },
     "Warrior_5_Run18": {
       "frame": {
-        "x": 1123,
-        "y": 802,
+        "x": 344,
+        "y": 409,
         "w": 85,
         "h": 182
       },
@@ -862,8 +862,8 @@
     },
     "Warrior_5_Run19": {
       "frame": {
-        "x": 1312,
-        "y": 802,
+        "x": 431,
+        "y": 409,
         "w": 100,
         "h": 182
       },
@@ -882,8 +882,8 @@
     },
     "Warrior_5_Run20": {
       "frame": {
-        "x": 1528,
-        "y": 802,
+        "x": 533,
+        "y": 409,
         "w": 112,
         "h": 182
       },
@@ -902,8 +902,8 @@
     },
     "Warrior_6_Run4": {
       "frame": {
-        "x": 1742,
-        "y": 802,
+        "x": 647,
+        "y": 409,
         "w": 98,
         "h": 182
       },
@@ -922,8 +922,8 @@
     },
     "Warrior_6_Run5": {
       "frame": {
-        "x": 1942,
-        "y": 802,
+        "x": 747,
+        "y": 409,
         "w": 98,
         "h": 182
       },
@@ -942,8 +942,8 @@
     },
     "Warrior_5_Run0": {
       "frame": {
-        "x": 542,
-        "y": 990,
+        "x": 847,
+        "y": 409,
         "w": 133,
         "h": 180
       },
@@ -962,8 +962,8 @@
     },
     "Warrior_5_Run": {
       "frame": {
-        "x": 677,
-        "y": 990,
+        "x": 982,
+        "y": 409,
         "w": 133,
         "h": 180
       },
@@ -982,8 +982,8 @@
     },
     "Warrior_5_Run11": {
       "frame": {
-        "x": 940,
-        "y": 990,
+        "x": 1117,
+        "y": 409,
         "w": 126,
         "h": 180
       },
@@ -1002,8 +1002,8 @@
     },
     "Warrior_5_Run15": {
       "frame": {
-        "x": 1184,
-        "y": 990,
+        "x": 1245,
+        "y": 409,
         "w": 114,
         "h": 180
       },
@@ -1022,8 +1022,8 @@
     },
     "Warrior_5_Run16": {
       "frame": {
-        "x": 1404,
-        "y": 990,
+        "x": 1361,
+        "y": 409,
         "w": 102,
         "h": 180
       },
@@ -1042,8 +1042,8 @@
     },
     "Warrior_5_Run21": {
       "frame": {
-        "x": 1631,
-        "y": 990,
+        "x": 1465,
+        "y": 409,
         "w": 121,
         "h": 180
       },
@@ -1062,8 +1062,8 @@
     },
     "Warrior_5_Run23": {
       "frame": {
-        "x": 1887,
-        "y": 990,
+        "x": 1588,
+        "y": 409,
         "w": 131,
         "h": 180
       },
@@ -1082,8 +1082,8 @@
     },
     "Warrior_5_Run13": {
       "frame": {
-        "x": 134,
-        "y": 1172,
+        "x": 1721,
+        "y": 409,
         "w": 130,
         "h": 179
       },
@@ -1102,8 +1102,8 @@
     },
     "Warrior_5_Run14": {
       "frame": {
-        "x": 391,
-        "y": 1172,
+        "x": 1853,
+        "y": 409,
         "w": 123,
         "h": 179
       },
@@ -1122,8 +1122,8 @@
     },
     "Warrior_5_Run22": {
       "frame": {
-        "x": 646,
-        "y": 1172,
+        "x": 2,
+        "y": 595,
         "w": 128,
         "h": 179
       },
@@ -1142,8 +1142,8 @@
     },
     "Warrior_5_Run12": {
       "frame": {
-        "x": 911,
-        "y": 1172,
+        "x": 132,
+        "y": 595,
         "w": 133,
         "h": 177
       },
@@ -1162,8 +1162,8 @@
     },
     "Warrior_7_Run0": {
       "frame": {
-        "x": 1814,
-        "y": 1172,
+        "x": 267,
+        "y": 595,
         "w": 190,
         "h": 166
       },
@@ -1182,8 +1182,8 @@
     },
     "Warrior_7_Run": {
       "frame": {
-        "x": 2,
-        "y": 1353,
+        "x": 459,
+        "y": 595,
         "w": 190,
         "h": 166
       },
@@ -1202,8 +1202,8 @@
     },
     "Warrior_7_Run12": {
       "frame": {
-        "x": 386,
-        "y": 1353,
+        "x": 651,
+        "y": 595,
         "w": 190,
         "h": 166
       },
@@ -1222,8 +1222,8 @@
     },
     "Warrior_7_Run1": {
       "frame": {
-        "x": 769,
-        "y": 1353,
+        "x": 843,
+        "y": 595,
         "w": 189,
         "h": 165
       },
@@ -1242,8 +1242,8 @@
     },
     "Warrior_7_Run13": {
       "frame": {
-        "x": 1153,
-        "y": 1353,
+        "x": 1034,
+        "y": 595,
         "w": 191,
         "h": 165
       },
@@ -1262,8 +1262,8 @@
     },
     "Warrior_7_Run23": {
       "frame": {
-        "x": 1537,
-        "y": 1353,
+        "x": 1227,
+        "y": 595,
         "w": 189,
         "h": 165
       },
@@ -1282,8 +1282,8 @@
     },
     "Warrior_7_Run11": {
       "frame": {
-        "x": 2,
-        "y": 1521,
+        "x": 1418,
+        "y": 595,
         "w": 191,
         "h": 163
       },
@@ -1302,8 +1302,8 @@
     },
     "Warrior_7_Run14": {
       "frame": {
-        "x": 388,
-        "y": 1521,
+        "x": 1611,
+        "y": 595,
         "w": 191,
         "h": 163
       },
@@ -1322,8 +1322,8 @@
     },
     "Warrior_7_Run2": {
       "frame": {
-        "x": 774,
-        "y": 1521,
+        "x": 1804,
+        "y": 595,
         "w": 191,
         "h": 163
       },
@@ -1342,8 +1342,8 @@
     },
     "Warrior_7_Run22": {
       "frame": {
-        "x": 1160,
-        "y": 1521,
+        "x": 2,
+        "y": 776,
         "w": 191,
         "h": 163
       },
@@ -1362,8 +1362,8 @@
     },
     "Warrior_7_Run3": {
       "frame": {
-        "x": 1546,
-        "y": 1521,
+        "x": 195,
+        "y": 776,
         "w": 191,
         "h": 158
       },
@@ -1382,8 +1382,8 @@
     },
     "Warrior_7_Run10": {
       "frame": {
-        "x": 2,
-        "y": 1686,
+        "x": 388,
+        "y": 776,
         "w": 191,
         "h": 156
       },
@@ -1402,8 +1402,8 @@
     },
     "Warrior_7_Run15": {
       "frame": {
-        "x": 388,
-        "y": 1686,
+        "x": 581,
+        "y": 776,
         "w": 191,
         "h": 156
       },
@@ -1422,8 +1422,8 @@
     },
     "Warrior_7_Run20": {
       "frame": {
-        "x": 772,
-        "y": 1686,
+        "x": 774,
+        "y": 776,
         "w": 189,
         "h": 156
       },
@@ -1442,8 +1442,8 @@
     },
     "Warrior_7_Run21": {
       "frame": {
-        "x": 1154,
-        "y": 1686,
+        "x": 965,
+        "y": 776,
         "w": 189,
         "h": 156
       },
@@ -1462,8 +1462,8 @@
     },
     "Warrior_0_Run0": {
       "frame": {
-        "x": 2,
-        "y": 1844,
+        "x": 1156,
+        "y": 776,
         "w": 173,
         "h": 155
       },
@@ -1482,8 +1482,8 @@
     },
     "Warrior_0_Run": {
       "frame": {
-        "x": 177,
-        "y": 1844,
+        "x": 1331,
+        "y": 776,
         "w": 173,
         "h": 155
       },
@@ -1502,8 +1502,8 @@
     },
     "Warrior_0_Run1": {
       "frame": {
-        "x": 527,
-        "y": 1844,
+        "x": 1506,
+        "y": 776,
         "w": 173,
         "h": 154
       },
@@ -1522,8 +1522,8 @@
     },
     "Warrior_0_Run23": {
       "frame": {
-        "x": 877,
-        "y": 1844,
+        "x": 1681,
+        "y": 776,
         "w": 173,
         "h": 154
       },
@@ -1542,8 +1542,8 @@
     },
     "Warrior_7_Run9": {
       "frame": {
-        "x": 1243,
-        "y": 1844,
+        "x": 1856,
+        "y": 776,
         "w": 189,
         "h": 154
       },
@@ -1562,8 +1562,8 @@
     },
     "Warrior_0_Run2": {
       "frame": {
-        "x": 1609,
-        "y": 1844,
+        "x": 2,
+        "y": 941,
         "w": 173,
         "h": 153
       },
@@ -1582,8 +1582,8 @@
     },
     "Warrior_0_Run22": {
       "frame": {
-        "x": 1784,
-        "y": 1844,
+        "x": 177,
+        "y": 941,
         "w": 173,
         "h": 153
       },
@@ -1594,6 +1594,1566 @@
         "y": 315,
         "w": 173,
         "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run2": {
+      "frame": {
+        "x": 352,
+        "y": 941,
+        "w": 173,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 323,
+        "w": 173,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run3": {
+      "frame": {
+        "x": 527,
+        "y": 941,
+        "w": 175,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 41,
+        "y": 323,
+        "w": 175,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run19": {
+      "frame": {
+        "x": 704,
+        "y": 941,
+        "w": 191,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 32,
+        "y": 307,
+        "w": 191,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run4": {
+      "frame": {
+        "x": 897,
+        "y": 941,
+        "w": 190,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 32,
+        "y": 305,
+        "w": 190,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run8": {
+      "frame": {
+        "x": 1089,
+        "y": 941,
+        "w": 191,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 305,
+        "w": 191,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run21": {
+      "frame": {
+        "x": 1282,
+        "y": 941,
+        "w": 173,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 42,
+        "y": 316,
+        "w": 173,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run3": {
+      "frame": {
+        "x": 1457,
+        "y": 941,
+        "w": 173,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 42,
+        "y": 316,
+        "w": 173,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run1": {
+      "frame": {
+        "x": 1632,
+        "y": 941,
+        "w": 173,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 322,
+        "w": 173,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run16": {
+      "frame": {
+        "x": 1807,
+        "y": 941,
+        "w": 191,
+        "h": 149
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 305,
+        "w": 191,
+        "h": 149
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run7": {
+      "frame": {
+        "x": 2,
+        "y": 1096,
+        "w": 191,
+        "h": 149
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 307,
+        "w": 191,
+        "h": 149
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run19": {
+      "frame": {
+        "x": 195,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 319,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run20": {
+      "frame": {
+        "x": 370,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 317,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run4": {
+      "frame": {
+        "x": 545,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 317,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run0": {
+      "frame": {
+        "x": 720,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 322,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run": {
+      "frame": {
+        "x": 895,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 322,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run14": {
+      "frame": {
+        "x": 1070,
+        "y": 1096,
+        "w": 191,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 316,
+        "w": 191,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run22": {
+      "frame": {
+        "x": 1263,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 322,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run23": {
+      "frame": {
+        "x": 1438,
+        "y": 1096,
+        "w": 173,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 322,
+        "w": 173,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run18": {
+      "frame": {
+        "x": 1613,
+        "y": 1096,
+        "w": 191,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 34,
+        "y": 307,
+        "w": 191,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Idle0": {
+      "frame": {
+        "x": 1806,
+        "y": 1096,
+        "w": 82,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 315,
+        "w": 82,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Idle": {
+      "frame": {
+        "x": 1890,
+        "y": 1096,
+        "w": 82,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 315,
+        "w": 82,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run13": {
+      "frame": {
+        "x": 2,
+        "y": 1247,
+        "w": 196,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 315,
+        "w": 196,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run4": {
+      "frame": {
+        "x": 200,
+        "y": 1247,
+        "w": 173,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 41,
+        "y": 325,
+        "w": 173,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Idle0": {
+      "frame": {
+        "x": 375,
+        "y": 1247,
+        "w": 179,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 315,
+        "w": 179,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Idle": {
+      "frame": {
+        "x": 556,
+        "y": 1247,
+        "w": 179,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 315,
+        "w": 179,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Pickup0": {
+      "frame": {
+        "x": 737,
+        "y": 1247,
+        "w": 82,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 315,
+        "w": 82,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Die0": {
+      "frame": {
+        "x": 821,
+        "y": 1247,
+        "w": 82,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 88,
+        "y": 315,
+        "w": 82,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Pickup0": {
+      "frame": {
+        "x": 905,
+        "y": 1247,
+        "w": 179,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 315,
+        "w": 179,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Die0": {
+      "frame": {
+        "x": 1086,
+        "y": 1247,
+        "w": 179,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 315,
+        "w": 179,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run18": {
+      "frame": {
+        "x": 1267,
+        "y": 1247,
+        "w": 173,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 319,
+        "w": 173,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_1_Idle0": {
+      "frame": {
+        "x": 1442,
+        "y": 1247,
+        "w": 95,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 316,
+        "w": 95,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_1_Idle": {
+      "frame": {
+        "x": 1539,
+        "y": 1247,
+        "w": 95,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 316,
+        "w": 95,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Idle0": {
+      "frame": {
+        "x": 1636,
+        "y": 1247,
+        "w": 179,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 316,
+        "w": 179,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Idle": {
+      "frame": {
+        "x": 1817,
+        "y": 1247,
+        "w": 179,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 316,
+        "w": 179,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run2": {
+      "frame": {
+        "x": 2,
+        "y": 1394,
+        "w": 191,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 38,
+        "y": 331,
+        "w": 191,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run15": {
+      "frame": {
+        "x": 195,
+        "y": 1394,
+        "w": 184,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 318,
+        "w": 184,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run5": {
+      "frame": {
+        "x": 381,
+        "y": 1394,
+        "w": 191,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 32,
+        "y": 307,
+        "w": 191,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_1_Pickup0": {
+      "frame": {
+        "x": 574,
+        "y": 1394,
+        "w": 95,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 316,
+        "w": 95,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_1_Die0": {
+      "frame": {
+        "x": 671,
+        "y": 1394,
+        "w": 95,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 82,
+        "y": 316,
+        "w": 95,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Pickup0": {
+      "frame": {
+        "x": 768,
+        "y": 1394,
+        "w": 179,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 316,
+        "w": 179,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Die0": {
+      "frame": {
+        "x": 949,
+        "y": 1394,
+        "w": 179,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 316,
+        "w": 179,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run12": {
+      "frame": {
+        "x": 1130,
+        "y": 1394,
+        "w": 196,
+        "h": 143
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 24,
+        "y": 313,
+        "w": 196,
+        "h": 143
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run5": {
+      "frame": {
+        "x": 1328,
+        "y": 1394,
+        "w": 173,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 319,
+        "w": 173,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Run14": {
+      "frame": {
+        "x": 1503,
+        "y": 1394,
+        "w": 98,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 331,
+        "w": 98,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run1": {
+      "frame": {
+        "x": 1603,
+        "y": 1394,
+        "w": 191,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 329,
+        "w": 191,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run13": {
+      "frame": {
+        "x": 1796,
+        "y": 1394,
+        "w": 191,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 29,
+        "y": 329,
+        "w": 191,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run14": {
+      "frame": {
+        "x": 2,
+        "y": 1540,
+        "w": 191,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 29,
+        "y": 331,
+        "w": 191,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run12": {
+      "frame": {
+        "x": 195,
+        "y": 1540,
+        "w": 196,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 315,
+        "w": 196,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run21": {
+      "frame": {
+        "x": 393,
+        "y": 1540,
+        "w": 173,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 323,
+        "w": 173,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run6": {
+      "frame": {
+        "x": 568,
+        "y": 1540,
+        "w": 191,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 34,
+        "y": 307,
+        "w": 191,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run11": {
+      "frame": {
+        "x": 761,
+        "y": 1540,
+        "w": 191,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 30,
+        "y": 314,
+        "w": 191,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run13": {
+      "frame": {
+        "x": 954,
+        "y": 1540,
+        "w": 195,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 25,
+        "y": 314,
+        "w": 195,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Run13": {
+      "frame": {
+        "x": 1151,
+        "y": 1540,
+        "w": 98,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 329,
+        "w": 98,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run3": {
+      "frame": {
+        "x": 1251,
+        "y": 1540,
+        "w": 191,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 332,
+        "w": 191,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run5": {
+      "frame": {
+        "x": 1444,
+        "y": 1540,
+        "w": 173,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 41,
+        "y": 325,
+        "w": 173,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_7_Run17": {
+      "frame": {
+        "x": 1619,
+        "y": 1540,
+        "w": 189,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 36,
+        "y": 307,
+        "w": 189,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run14": {
+      "frame": {
+        "x": 1810,
+        "y": 1540,
+        "w": 191,
+        "h": 139
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 30,
+        "y": 315,
+        "w": 191,
+        "h": 139
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run10": {
+      "frame": {
+        "x": 2,
+        "y": 1684,
+        "w": 186,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 35,
+        "y": 316,
+        "w": 186,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Run15": {
+      "frame": {
+        "x": 190,
+        "y": 1684,
+        "w": 98,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 79,
+        "y": 333,
+        "w": 98,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run0": {
+      "frame": {
+        "x": 290,
+        "y": 1684,
+        "w": 191,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 329,
+        "w": 191,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run": {
+      "frame": {
+        "x": 483,
+        "y": 1684,
+        "w": 191,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 329,
+        "w": 191,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run12": {
+      "frame": {
+        "x": 676,
+        "y": 1684,
+        "w": 191,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 29,
+        "y": 329,
+        "w": 191,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run15": {
+      "frame": {
+        "x": 869,
+        "y": 1684,
+        "w": 189,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 31,
+        "y": 332,
+        "w": 189,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run23": {
+      "frame": {
+        "x": 1060,
+        "y": 1684,
+        "w": 191,
+        "h": 138
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 38,
+        "y": 329,
+        "w": 191,
+        "h": 138
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run15": {
+      "frame": {
+        "x": 1253,
+        "y": 1684,
+        "w": 184,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 316,
+        "w": 184,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run17": {
+      "frame": {
+        "x": 1439,
+        "y": 1684,
+        "w": 173,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 45,
+        "y": 319,
+        "w": 173,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run6": {
+      "frame": {
+        "x": 1614,
+        "y": 1684,
+        "w": 175,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 319,
+        "w": 175,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Run12": {
+      "frame": {
+        "x": 1791,
+        "y": 1684,
+        "w": 98,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 77,
+        "y": 329,
+        "w": 98,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run11": {
+      "frame": {
+        "x": 2,
+        "y": 1824,
+        "w": 191,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 316,
+        "w": 191,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run16": {
+      "frame": {
+        "x": 195,
+        "y": 1824,
+        "w": 175,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 37,
+        "y": 320,
+        "w": 175,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_4_Run20": {
+      "frame": {
+        "x": 372,
+        "y": 1824,
+        "w": 173,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 41,
+        "y": 323,
+        "w": 173,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run8": {
+      "frame": {
+        "x": 547,
+        "y": 1824,
+        "w": 173,
+        "h": 136
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 45,
+        "y": 318,
+        "w": 173,
+        "h": 136
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run7": {
+      "frame": {
+        "x": 722,
+        "y": 1824,
+        "w": 173,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 45,
+        "y": 319,
+        "w": 173,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_0_Run9": {
+      "frame": {
+        "x": 897,
+        "y": 1824,
+        "w": 180,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 40,
+        "y": 317,
+        "w": 180,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Idle0": {
+      "frame": {
+        "x": 1079,
+        "y": 1824,
+        "w": 193,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 33,
+        "y": 325,
+        "w": 193,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Idle": {
+      "frame": {
+        "x": 1274,
+        "y": 1824,
+        "w": 193,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 33,
+        "y": 325,
+        "w": 193,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_3_Run22": {
+      "frame": {
+        "x": 1469,
+        "y": 1824,
+        "w": 191,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 38,
+        "y": 331,
+        "w": 191,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "Warrior_2_Pickup0": {
+      "frame": {
+        "x": 1662,
+        "y": 1824,
+        "w": 193,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 33,
+        "y": 325,
+        "w": 193,
+        "h": 135
       },
       "sourceSize": {
         "w": 256,
