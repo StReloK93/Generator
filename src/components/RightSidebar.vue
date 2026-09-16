@@ -592,6 +592,7 @@ import { useMapStore, PlacedElementEntry } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
+import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { AssetItem, ToolType } from '../types/map'
 import AnchorAdjustModal from './AnchorAdjustModal.vue'
@@ -605,6 +606,7 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
+const towerStore = useTowerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -842,7 +844,22 @@ function openAnchorModal(asset: AssetItem) {
 
 function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: number; spanY: number; scale: number }) {
   if (selectedAssetForAnchor.value) {
-    assetStore.updateAssetProperties(selectedAssetForAnchor.value.id, updates)
+    const asset = selectedAssetForAnchor.value
+    // 1. Update Asset Store and Central AssetManager
+    assetStore.updateAssetProperties(asset.id, updates)
+
+    // 2. Update all already placed instances on the map
+    mapStore.updateAllItemsOfAsset(asset.id, updates)
+
+    // 3. Update any Tower Blueprints using this asset
+    for (const bp of towerStore.blueprints) {
+      if (bp.assetId === asset.id || bp.assetName === asset.name || bp.assetName === asset.id) {
+        towerStore.syncBlueprintChanges(bp.id)
+      }
+    }
+
+    mapStore.pushHistory(`Updated anchor for ${asset.name}`)
+    notify.success(t('anchor.savedSuccess') || 'Anchor updated and applied to map')
     selectedAssetForAnchor.value = null
   }
 }

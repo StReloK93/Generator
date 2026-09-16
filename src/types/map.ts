@@ -184,6 +184,7 @@ export interface MapProject {
 export interface AssetItem {
   id: string
   name: string
+  baseName?: string
   src: string // original full data URL or blob URL
   previewSrc?: string // preview thumbnail for gallery display
   trimmedSrc?: string // trimmed standalone graphic specifically for Asset Redactor

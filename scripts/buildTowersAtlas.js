@@ -234,9 +234,6 @@ async function run() {
       .replace(/([a-z])([A-Z])/g, '$1 $2')
     formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
 
-    // Standard anchor calculation for isometric towers (exact bottom-most pixel)
-    const standardAnchorY = Number((meta.maxY / meta.origH).toFixed(4))
-
     manifestTowerItems.push({
       id: `sprite-${baseName}`,
       name: formattedName,
@@ -248,7 +245,7 @@ async function run() {
       trimWidth: meta.trimW,
       trimHeight: meta.trimH,
       anchorX: 0.5,
-      anchorY: standardAnchorY,
+      anchorY: 0.88,
       contentBounds: { minX: meta.minX, minY: meta.minY, maxX: meta.maxX, maxY: meta.maxY },
       spanX: 1,
       spanY: 1,

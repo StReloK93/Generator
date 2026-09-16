@@ -261,17 +261,25 @@ export function renderPixiProjectileHead(
     g.circle(renderX, renderY, pulseR).fill({ color: 0xef4444, alpha: 0.6 })
     g.circle(renderX, renderY, 3.2).fill({ color: 0xffffff, alpha: 1.0 })
   } else if (type === 'fire_splash') {
-    // Massive Raging Magma / Meteor Fireball
-    const pulse = Math.sin(time * 0.015) * 1.5
-    g.circle(renderX, renderY, 12.0 + pulse).fill({ color: 0x991b1b, alpha: 0.45 })
-    g.circle(renderX, renderY, 8.5 + pulse * 0.5).fill({ color: 0xef4444, alpha: 0.85 })
-    g.circle(renderX, renderY, 5.5).fill({ color: 0xf97316, alpha: 0.95 })
-    g.circle(renderX, renderY, 3.0).fill({ color: 0xfef08a, alpha: 1.0 })
-    for (let f = 0; f < 3; f++) {
-      const orbAngle = time * 0.008 + (f * Math.PI * 2) / 3
-      const ox = renderX + Math.cos(orbAngle) * 9.5
-      const oy = renderY + Math.sin(orbAngle) * 9.5
-      g.circle(ox, oy, 1.8).fill({ color: 0xfbbf24, alpha: 0.9 })
+    // Massive Raging Magma / Meteor Fireball (Mega Splash)
+    const pulse = Math.sin(time * 0.015) * 2.5
+    // 1. Outermost Roaring Crimson Corona
+    g.circle(renderX, renderY, 20.0 + pulse).fill({ color: 0x7f1d1d, alpha: 0.4 })
+    // 2. Secondary Intense Red Flare
+    g.circle(renderX, renderY, 15.0 + pulse * 0.6).fill({ color: 0xdc2626, alpha: 0.75 })
+    // 3. Bright Orange Molten Core
+    g.circle(renderX, renderY, 10.5 + pulse * 0.3).fill({ color: 0xf97316, alpha: 0.95 })
+    // 4. Inner Golden Solar Plasma
+    g.circle(renderX, renderY, 6.5).fill({ color: 0xfbbf24, alpha: 1.0 })
+    // 5. Blazing White-Hot Center
+    g.circle(renderX, renderY, 3.5).fill({ color: 0xffffff, alpha: 1.0 })
+    // 6. Revolving Orbiting Plasma Sparks (4 orbs)
+    for (let f = 0; f < 4; f++) {
+      const orbAngle = time * 0.009 + (f * Math.PI * 2) / 4
+      const dist = 14.5 + Math.sin(time * 0.02 + f) * 2.0
+      const ox = renderX + Math.cos(orbAngle) * dist
+      const oy = renderY + Math.sin(orbAngle) * dist
+      g.circle(ox, oy, 2.5).fill({ color: 0xfef08a, alpha: 0.95 })
     }
   } else if (type === 'missile') {
     // Rocket missile with nose cone and exhaust thrust
@@ -468,34 +476,46 @@ export function renderCanvasProjectileHead(
     ctx.fillStyle = '#ffffff'
     ctx.fill()
   } else if (type === 'fire_splash') {
-    const pulse = Math.sin(time * 0.015) * 1.5
+    const pulse = Math.sin(time * 0.015) * 2.5
+    // 1. Outermost Roaring Crimson Corona
     ctx.beginPath()
-    ctx.arc(renderX, renderY, 12.0 + pulse, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(153, 27, 27, 0.45)'
+    ctx.arc(renderX, renderY, 20.0 + pulse, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.4)'
     ctx.fill()
 
+    // 2. Secondary Intense Red Flare
     ctx.beginPath()
-    ctx.arc(renderX, renderY, 8.5 + pulse * 0.5, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.85)'
+    ctx.arc(renderX, renderY, 15.0 + pulse * 0.6, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.75)'
     ctx.fill()
 
+    // 3. Bright Orange Molten Core
     ctx.beginPath()
-    ctx.arc(renderX, renderY, 5.5, 0, Math.PI * 2)
+    ctx.arc(renderX, renderY, 10.5 + pulse * 0.3, 0, Math.PI * 2)
     ctx.fillStyle = '#f97316'
     ctx.fill()
 
+    // 4. Inner Golden Solar Plasma
     ctx.beginPath()
-    ctx.arc(renderX, renderY, 3.0, 0, Math.PI * 2)
-    ctx.fillStyle = '#fef08a'
+    ctx.arc(renderX, renderY, 6.5, 0, Math.PI * 2)
+    ctx.fillStyle = '#fbbf24'
     ctx.fill()
 
-    for (let f = 0; f < 3; f++) {
-      const orbAngle = time * 0.008 + (f * Math.PI * 2) / 3
-      const ox = renderX + Math.cos(orbAngle) * 9.5
-      const oy = renderY + Math.sin(orbAngle) * 9.5
+    // 5. Blazing White-Hot Center
+    ctx.beginPath()
+    ctx.arc(renderX, renderY, 3.5, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+
+    // 6. Revolving Orbiting Plasma Sparks (4 orbs)
+    for (let f = 0; f < 4; f++) {
+      const orbAngle = time * 0.009 + (f * Math.PI * 2) / 4
+      const dist = 14.5 + Math.sin(time * 0.02 + f) * 2.0
+      const ox = renderX + Math.cos(orbAngle) * dist
+      const oy = renderY + Math.sin(orbAngle) * dist
       ctx.beginPath()
-      ctx.arc(ox, oy, 1.8, 0, Math.PI * 2)
-      ctx.fillStyle = '#fbbf24'
+      ctx.arc(ox, oy, 2.5, 0, Math.PI * 2)
+      ctx.fillStyle = '#fef08a'
       ctx.fill()
     }
   } else if (type === 'missile') {

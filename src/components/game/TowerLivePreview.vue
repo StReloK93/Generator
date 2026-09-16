@@ -327,10 +327,18 @@ function renderFrame(time: number) {
         ctx.fillStyle = `rgba(248, 250, 252, ${pt.alpha * 0.25})`
         ctx.fill()
       } else if (p.type === 'fire_splash') {
+        const trailRadius = (t / p.trail.length) * 12.0
+        // Outer roaring fire
         ctx.beginPath()
-        ctx.arc(pt.x, pt.y, (t / p.trail.length) * 6.5, 0, Math.PI * 2)
-        ctx.fillStyle = theme.trailColorCss
-        ctx.globalAlpha = pt.alpha
+        ctx.arc(pt.x, pt.y, Math.max(3.0, trailRadius), 0, Math.PI * 2)
+        ctx.fillStyle = '#dc2626'
+        ctx.globalAlpha = pt.alpha * 0.6
+        ctx.fill()
+        // Inner molten gold
+        ctx.beginPath()
+        ctx.arc(pt.x, pt.y, Math.max(1.5, trailRadius * 0.55), 0, Math.PI * 2)
+        ctx.fillStyle = '#fbbf24'
+        ctx.globalAlpha = pt.alpha * 0.95
         ctx.fill()
         ctx.globalAlpha = 1.0
       } else {

@@ -207,6 +207,7 @@ export const useAssetStore = defineStore('assetStore', () => {
 
         assets.value.push(newAsset)
         addedAssets.push(newAsset)
+        assetManager.registerCustomAssetItem(newAsset)
 
         if (!selectedAssetId.value) {
           selectedAssetId.value = newAsset.id
@@ -240,6 +241,7 @@ export const useAssetStore = defineStore('assetStore', () => {
     if (index !== -1) {
       assets.value[index] = { ...assets.value[index], ...updates }
     }
+    assetManager.updateAssetItem(id, updates)
   }
 
   function updateAssetAnchor(id: string, anchorX: number, anchorY: number) {
@@ -335,6 +337,7 @@ export const useAssetStore = defineStore('assetStore', () => {
 
   function addCustomAsset(item: AssetItem) {
     assets.value.unshift(item)
+    assetManager.registerCustomAssetItem(item)
     selectedAssetId.value = item.id
   }
 
@@ -474,9 +477,10 @@ export function analyzeImage(src: string): Promise<{
         )
 
         const previewSrc = previewCanvas.toDataURL('image/png')
-        const standardAnchorY = maxY < height * 0.4 
-          ? Number((maxY / height).toFixed(4)) 
-          : (height > width * 0.8 ? 0.88 : 0.5)
+        const halfDiamondH = (width * 1) / 4
+        const standardAnchorY = maxY > halfDiamondH
+          ? Number(((maxY - halfDiamondH) / height).toFixed(4))
+          : (maxY < height * 0.4 ? Number((maxY / height).toFixed(4)) : (height > width * 0.8 ? 0.88 : 0.5))
 
         resolve({
           width,

@@ -138,7 +138,11 @@ export class CombatRenderer {
           buildGhostSprite.visible = true
           buildGhostSprite.position.set(pt.x, pt.y)
           const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
-          const scale = (bp?.scale || asset?.scale || 1.0)
+          const spanX = bp?.spanX || asset?.spanX || 1
+          const assetWidth = asset?.width || (texture.width > 0 ? texture.width : tileWidth)
+          const baseScale = (tileWidth * spanX) / (assetWidth || tileWidth)
+
+          const scale = baseScale * (bp?.scale || asset?.scale || 1.0)
           const anchorX = asset?.anchorX ?? bp?.anchorX ?? 0.5
           const anchorY = asset?.anchorY ?? bp?.anchorY ?? 0.88
           buildGhostSprite.scale.set(scale)
@@ -222,7 +226,11 @@ export class CombatRenderer {
         const progress = Math.min(1.0, (proj.traveledDistance || 0) / totalDist)
 
         const arcHeight =
-          !theme.hasArc
+          type === 'arrow'
+            ? Math.sin(progress * Math.PI) * Math.min(48, totalDist * 0.18)
+            : type === 'fire_splash'
+            ? Math.sin(progress * Math.PI) * Math.min(60, totalDist * 0.25)
+            : !theme.hasArc
             ? 0
             : Math.sin(progress * Math.PI) * Math.min(45, totalDist * 0.16)
 
@@ -242,11 +250,11 @@ export class CombatRenderer {
           this.combatTrails.set(proj.id, trail)
         }
         trail.push({ x: renderX, y: renderY, alpha: 1.0, size: 3.5 })
-        if (trail.length > 8) trail.shift()
+        if (trail.length > (type === 'fire_splash' ? 12 : 8)) trail.shift()
 
         for (let t = 0; t < trail.length; t++) {
           const pt = trail[t]
-          pt.alpha = Math.max(0, pt.alpha - 0.04)
+          pt.alpha = Math.max(0, pt.alpha - (type === 'fire_splash' ? 0.025 : 0.04))
           if (pt.alpha <= 0) continue
 
           if (type === 'arrow') {
@@ -254,10 +262,13 @@ export class CombatRenderer {
               .circle(pt.x, pt.y, 1.0)
               .fill({ color: 0xf8fafc, alpha: pt.alpha * 0.25 })
           } else if (type === 'fire_splash') {
-            const trailRadius = (t / trail.length) * 6.5
+            const trailRadius = (t / trail.length) * 12.0
             this.combatGraphics
-              .circle(pt.x, pt.y, Math.max(1.5, trailRadius))
-              .fill({ color: theme.trailColorHex, alpha: pt.alpha * theme.trailAlpha })
+              .circle(pt.x, pt.y, Math.max(3.0, trailRadius))
+              .fill({ color: 0xdc2626, alpha: pt.alpha * 0.6 })
+            this.combatGraphics
+              .circle(pt.x, pt.y, Math.max(1.5, trailRadius * 0.55))
+              .fill({ color: 0xfbbf24, alpha: pt.alpha * 0.95 })
           } else {
             const trailRadius = (t / trail.length) * 3.5
             this.combatGraphics

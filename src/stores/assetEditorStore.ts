@@ -27,8 +27,8 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
   const selectedPartIds = ref<string[]>([])
   const clipboard = ref<CompositePart[]>([])
   
-  // Canvas settings
-  const canvasWidth = ref(512)
+  // Canvas settings (standard 256x512 isometric asset dimensions)
+  const canvasWidth = ref(256)
   const canvasHeight = ref(512)
   const zoom = ref(1.0)
   const panX = ref(0)

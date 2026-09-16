@@ -47,19 +47,19 @@
         class="absolute inset-0 w-full h-full pointer-events-none"
       ></canvas>
 
-      <!-- 2:1 Isometric Diamond Base Guide -->
+      <!-- 2:1 Isometric Diamond Base Guide (Always at the very bottom of the 256x512 canvas) -->
       <svg 
         v-if="store.showGridGuide"
         class="absolute inset-0 w-full h-full pointer-events-none opacity-60"
         :viewBox="`0 0 ${store.canvasWidth} ${store.canvasHeight}`"
       >
-        <!-- Center diamond base 128x64 or 256x128 -->
+        <!-- Diamond base 256x128 at the bottom (center at 128, 448; bottom tip at 128, 512) -->
         <polygon 
           :points="`
-            ${store.canvasWidth / 2}, ${store.canvasHeight / 2 + 100 - 64} 
-            ${store.canvasWidth / 2 + 128}, ${store.canvasHeight / 2 + 100} 
-            ${store.canvasWidth / 2}, ${store.canvasHeight / 2 + 100 + 64} 
-            ${store.canvasWidth / 2 - 128}, ${store.canvasHeight / 2 + 100}
+            ${store.canvasWidth / 2}, ${store.canvasHeight - 128} 
+            ${store.canvasWidth}, ${store.canvasHeight - 64} 
+            ${store.canvasWidth / 2}, ${store.canvasHeight} 
+            0, ${store.canvasHeight - 64}
           `"
           fill="rgba(56, 189, 248, 0.08)"
           stroke="#38bdf8"
@@ -69,18 +69,18 @@
 
         <!-- Secondary grid lines -->
         <line 
-          :x1="store.canvasWidth / 2 - 128" 
-          :y1="store.canvasHeight / 2 + 100" 
-          :x2="store.canvasWidth / 2 + 128" 
-          :y2="store.canvasHeight / 2 + 100" 
+          x1="0" 
+          :y1="store.canvasHeight - 64" 
+          :x2="store.canvasWidth" 
+          :y2="store.canvasHeight - 64" 
           stroke="rgba(56, 189, 248, 0.4)" 
           stroke-width="1" 
         />
         <line 
           :x1="store.canvasWidth / 2" 
-          :y1="store.canvasHeight / 2 + 100 - 64" 
+          :y1="store.canvasHeight - 128" 
           :x2="store.canvasWidth / 2" 
-          :y2="store.canvasHeight / 2 + 100 + 64" 
+          :y2="store.canvasHeight" 
           stroke="rgba(56, 189, 248, 0.4)" 
           stroke-width="1" 
         />
@@ -89,9 +89,9 @@
         <line 
           v-if="store.showCenterOrigin"
           :x1="store.canvasWidth / 2" 
-          y1="20" 
+          y1="10" 
           :x2="store.canvasWidth / 2" 
-          :y2="store.canvasHeight - 20" 
+          :y2="store.canvasHeight - 10" 
           stroke="rgba(245, 158, 11, 0.5)" 
           stroke-width="1" 
           stroke-dasharray="3 3"
@@ -106,7 +106,7 @@
         class="absolute cursor-move transition-shadow"
         :style="{
           left: `${store.canvasWidth / 2 + part.x}px`,
-          top: `${store.canvasHeight / 2 + part.y}px`,
+          top: `${store.canvasHeight - 64 + part.y}px`,
           zIndex: part.zIndex,
           opacity: part.opacity,
           transform: `translate(-50%, -50%) scaleX(${part.scaleX}) scaleY(${part.scaleY}) rotate(${part.rotation}deg)`,
@@ -744,7 +744,7 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-// Export canvas image to transparent PNG Data URL with dynamic bounding box (no clipping!)
+// Export canvas image to transparent PNG Data URL (fixed standard 256x512 with diamond base at the bottom)
 async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string; width: number; height: number; anchorX: number; anchorY: number }> {
   // 1. Pre-load all images
   const loadedImages: { img: HTMLImageElement; part: typeof store.parts[0] }[] = []
@@ -765,54 +765,11 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
     throw new Error('No visible layers found to export')
   }
 
-  // 2. Compute dynamic bounding box across ALL parts relative to diamond base (center X=0, center Y=100)
-  const diamondCenterX = 0
-  const diamondCenterY = 100
-  const diamondGroundY = 164 // bottom vertex of diamond (100 + 64)
-  const diamondTopY = 36     // top vertex of diamond (100 - 64)
-  const diamondHalfWidth = 128 // left (-128) and right (+128) vertices
-
-  let minTopY = diamondTopY
-  let maxBottomY = diamondGroundY
-  let maxExtX = diamondHalfWidth
-
-  for (const { img, part } of loadedImages) {
-    if (!img.width || !img.height) continue
-    const scaleX = Math.abs(part.scaleX) || 1
-    const scaleY = Math.abs(part.scaleY) || 1
-    const rad = (part.rotation * Math.PI) / 180
-    const cos = Math.abs(Math.cos(rad))
-    const sin = Math.abs(Math.sin(rad))
-
-    const w = img.width * scaleX
-    const h = img.height * scaleY
-    // Rotated dimensions
-    const boundW = w * cos + h * sin
-    const boundH = w * sin + h * cos
-
-    const left = part.x - boundW / 2
-    const right = part.x + boundW / 2
-    const top = part.y - boundH / 2
-    const bottom = part.y + boundH / 2
-
-    if (top < minTopY) minTopY = top
-    if (bottom > maxBottomY) maxBottomY = bottom
-
-    // Ensure 100% strict horizontal symmetry around X = 0 (diamond center axis)
-    const extX = Math.max(Math.abs(left), Math.abs(right))
-    if (extX > maxExtX) maxExtX = extX
-  }
-
-  // Symmetrical width around diamond center X = 0
-  const pad = 2
-  const halfWidth = Math.ceil(maxExtX + pad)
-  const exportWidth = halfWidth * 2
-  const exportMinX = -halfWidth
-
-  // Vertical bounds: tightly crop to sprite content
-  const exportMinY = Math.floor(minTopY - pad)
-  const exportMaxY = Math.ceil(maxBottomY + pad)
-  const exportHeight = exportMaxY - exportMinY
+  // 2. Fixed standard 256x512 canvas with diamond base at bottom center (128, 448)
+  const exportWidth = 256
+  const exportHeight = 512
+  const diamondCenterX = 128
+  const diamondCenterY = 448
 
   const offscreen = document.createElement('canvas')
   offscreen.width = exportWidth
@@ -822,14 +779,14 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
 
   ctx.clearRect(0, 0, exportWidth, exportHeight)
 
-  // 3. Draw each part sorted by z-index into diamond-aligned canvas
+  // 3. Draw each part sorted by z-index relative to diamond center
   for (const { img, part } of loadedImages) {
     if (!img.width || !img.height) continue
     ctx.save()
     ctx.globalAlpha = part.opacity
 
-    const drawX = part.x - exportMinX
-    const drawY = part.y - exportMinY
+    const drawX = diamondCenterX + part.x
+    const drawY = diamondCenterY + part.y
 
     ctx.translate(drawX, drawY)
     ctx.rotate((part.rotation * Math.PI) / 180)
@@ -839,10 +796,9 @@ async function exportToTransparentBlob(): Promise<{ blob: Blob; dataUrl: string;
     ctx.restore()
   }
 
-  // Anchor X is strictly 0.5 (dead center of diamond)
-  // Anchor Y is the bottom of the sprite content
+  // Anchor is strictly (0.5, 0.88) corresponding to diamond center (128, 448) on 256x512 canvas
   const anchorX = 0.5
-  const anchorY = Number(((maxBottomY - exportMinY) / exportHeight).toFixed(4))
+  const anchorY = 0.88
 
   return new Promise((resolve) => {
     offscreen.toBlob((blob) => {

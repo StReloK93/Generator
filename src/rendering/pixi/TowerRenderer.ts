@@ -119,7 +119,11 @@ export class TowerRenderer {
           sprite.texture = texture
         }
         const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
-        const scale = (bp?.scale || asset?.scale || 1.0) * ((tower as any).scale || 1.0)
+        const spanX = (tower as any).spanX || bp?.spanX || asset?.spanX || 1
+        const assetWidth = asset?.width || (texture.width > 0 ? texture.width : tileWidth)
+        const baseScale = (tileWidth * spanX) / (assetWidth || tileWidth)
+
+        const scale = baseScale * (bp?.scale || asset?.scale || 1.0) * ((tower as any).scale || 1.0)
         const anchorX = (tower as any).anchorX !== undefined ? (tower as any).anchorX : (asset?.anchorX ?? bp?.anchorX ?? 0.5)
         const anchorY = (tower as any).anchorY !== undefined ? (tower as any).anchorY : (asset?.anchorY ?? bp?.anchorY ?? 0.88)
         
@@ -154,20 +158,6 @@ export class TowerRenderer {
             .fill({ color: colHex, alpha: 0.12 })
             .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
         }
-
-        // Overhead Builder Gem Badge
-        const topY = -tileHeight * 1.32
-        selection
-          .poly([
-            { x: 0, y: topY - 10 },
-            { x: 8, y: topY },
-            { x: 0, y: topY + 10 },
-            { x: -8, y: topY },
-          ])
-          .fill({ color: colHex, alpha: 0.95 })
-          .stroke({ width: 1.8, color: 0xffffff, alpha: 0.95 })
-
-        selection.circle(0, topY, 3).fill({ color: 0xffffff, alpha: 0.9 })
 
         ;(container as any)._wasSelected = isSelected
         ;(container as any)._wasBuilderColor = builderColor

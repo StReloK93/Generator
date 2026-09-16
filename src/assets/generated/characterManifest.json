@@ -3,28 +3,16 @@
     "id": "barry",
     "name": "Barry",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.682,
-    "scale": 1.69,
+    "anchorY": 0.895,
+    "scale": 1,
     "actions": {
-      "Idle_LookSides": {
-        "id": "Idle_LookSides",
-        "label": "Idle_LookSides",
-        "icon": "🧘",
-        "frameCount": 24
-      },
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 24
-      },
-      "Run_Forward": {
-        "id": "Run_Forward",
-        "label": "Run_Forward",
-        "icon": "🏃",
-        "frameCount": 15
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -38,28 +26,16 @@
     "id": "bird",
     "name": "Bird",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
     "anchorY": 0.895,
-    "scale": 1.01,
+    "scale": 1,
     "actions": {
-      "Ground_Idle": {
-        "id": "Ground_Idle",
-        "label": "Ground_Idle",
-        "icon": "🧘",
-        "frameCount": 12
-      },
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 12
-      },
-      "Ground_Run": {
-        "id": "Ground_Run",
-        "label": "Ground_Run",
-        "icon": "🏃",
-        "frameCount": 12
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -73,22 +49,16 @@
     "id": "demon",
     "name": "Demon",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.715,
-    "scale": 1.35,
+    "anchorY": 0.896,
+    "scale": 1,
     "actions": {
-      "Idle_Simple": {
-        "id": "Idle_Simple",
-        "label": "Idle_Simple",
-        "icon": "🧘",
-        "frameCount": 12
-      },
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 12
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -102,28 +72,16 @@
     "id": "female",
     "name": "Female",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.788,
-    "scale": 1.15,
+    "anchorY": 0.894,
+    "scale": 1,
     "actions": {
-      "Idle_Sword": {
-        "id": "Idle_Sword",
-        "label": "Idle_Sword",
-        "icon": "🧘",
-        "frameCount": 16
-      },
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 16
-      },
-      "Run_Sword": {
-        "id": "Run_Sword",
-        "label": "Run_Sword",
-        "icon": "🏃",
-        "frameCount": 20
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -140,7 +98,7 @@
     "cellHeight": 512,
     "anchorX": 0.5,
     "anchorY": 0.884,
-    "scale": 0.52,
+    "scale": 1,
     "actions": {
       "Idle": {
         "id": "Idle",
@@ -166,28 +124,16 @@
     "id": "medusa",
     "name": "Medusa",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.796,
-    "scale": 1.39,
+    "anchorY": 0.897,
+    "scale": 1,
     "actions": {
-      "Idle_01": {
-        "id": "Idle_01",
-        "label": "Idle_01",
-        "icon": "🧘",
-        "frameCount": 8
-      },
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 8
-      },
-      "Walk": {
-        "id": "Walk",
-        "label": "Walk",
-        "icon": "🚶",
-        "frameCount": 8
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -197,20 +143,37 @@
       }
     }
   },
-  "warrior": {
-    "id": "warrior",
-    "name": "Warrior",
+  "orc": {
+    "id": "orc",
+    "name": "Orc",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.66,
-    "scale": 1.48,
+    "anchorY": 0.898,
+    "scale": 1,
     "actions": {
       "Idle": {
         "id": "Idle",
         "label": "Idle",
         "icon": "🧘",
-        "frameCount": 24
+        "frameCount": 1
+      }
+    }
+  },
+  "warrior": {
+    "id": "warrior",
+    "name": "Warrior",
+    "cellWidth": 256,
+    "cellHeight": 512,
+    "anchorX": 0.5,
+    "anchorY": 0.898,
+    "scale": 1,
+    "actions": {
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
+        "frameCount": 1
       },
       "Run": {
         "id": "Run",
@@ -224,64 +187,22 @@
     "id": "zombi",
     "name": "Zombi",
     "cellWidth": 256,
-    "cellHeight": 256,
+    "cellHeight": 512,
     "anchorX": 0.5,
-    "anchorY": 0.85,
-    "scale": 1.07,
+    "anchorY": 0.895,
+    "scale": 1,
     "actions": {
-      "Run_Body_000_0": {
-        "id": "Run_Body_000_0",
-        "label": "Run_Body_000_0",
-        "icon": "🏃",
+      "Idle": {
+        "id": "Idle",
+        "label": "Idle",
+        "icon": "🧘",
         "frameCount": 1
       },
       "Run": {
         "id": "Run",
         "label": "Run",
         "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_045_0": {
-        "id": "Run_Body_045_0",
-        "label": "Run_Body_045_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_090_0": {
-        "id": "Run_Body_090_0",
-        "label": "Run_Body_090_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_135_0": {
-        "id": "Run_Body_135_0",
-        "label": "Run_Body_135_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_180_0": {
-        "id": "Run_Body_180_0",
-        "label": "Run_Body_180_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_225_0": {
-        "id": "Run_Body_225_0",
-        "label": "Run_Body_225_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_270_0": {
-        "id": "Run_Body_270_0",
-        "label": "Run_Body_270_0",
-        "icon": "🏃",
-        "frameCount": 1
-      },
-      "Run_Body_315_0": {
-        "id": "Run_Body_315_0",
-        "label": "Run_Body_315_0",
-        "icon": "🏃",
-        "frameCount": 1
+        "frameCount": 12
       }
     }
   }

@@ -349,16 +349,17 @@ async function run() {
   const allCharacterSheets = []
   let totalCharacterWebpSize = 0
 
-  const angleToDirMap = {
-    '045': 0, // North-East (Up-Right)
-    '090': 1, // East (Right)
-    '135': 2, // South-East (Down-Right)
-    '180': 3, // South (Down)
-    '225': 4, // South-West (Down-Left)
-    '270': 5, // West (Left)
-    '315': 6, // North-West (Up-Left)
-    '000': 7, // North (Up)
-    '360': 7,
+  // Angle to 8-directional isometric mapping function (0..7)
+  function angleToDirection(angleStr) {
+    const ang = parseInt(angleStr, 10) % 360
+    if (ang >= 23 && ang < 68) return 0   // 045 NE
+    if (ang >= 68 && ang < 113) return 1  // 090 E
+    if (ang >= 113 && ang < 158) return 2 // 135 SE
+    if (ang >= 158 && ang < 203) return 3 // 180 S
+    if (ang >= 203 && ang < 248) return 4 // 225 SW
+    if (ang >= 248 && ang < 293) return 5 // 270 W
+    if (ang >= 293 && ang < 338) return 6 // 315 NW
+    return 7                              // 000 N (or 338..360 / 0..22)
   }
 
   if (fs.existsSync(CHARS_ROOT_DIR)) {
@@ -380,166 +381,21 @@ async function run() {
       const sampleFeetYList = []
       const sampleHeightList = []
       let detectedCellW = 256
-      let detectedCellH = 256
+      let detectedCellH = 512
 
       for (const file of files) {
         const filePath = path.join(charDir, file)
         const baseName = file.replace(/\.[^/.]+$/, '')
-        const meta = await sharp(filePath).metadata()
-        const imgW = meta.width || 256
-        const imgH = meta.height || 256
 
-        // Check if this file is a sprite sheet (e.g. 1536x1024, or contains multiple frames / angles)
-        const hasAnglePattern = /_\d{2,3}$/.test(baseName) || /_Body_/i.test(baseName)
-        const isSpriteSheet = imgW > 256 || imgH > 512 || (hasAnglePattern && imgW >= 256)
+        // Discrete Single Frame with explicit direction number (e.g. Male_0_Idle0.png, Barry_2_Run5.png)
+        const directDirMatch = baseName.match(/^(?:[A-Za-z0-9]+_)?(\d)_([A-Za-z]+)(\d*)$/)
 
-        if (isSpriteSheet && (imgW > 256 || imgH > 256 || hasAnglePattern)) {
-          // Parse action name and angle
-          let angle = '135'
-          const angleMatch = baseName.match(/_?(\d{2,3})$/)
-          let nameWithoutAngle = baseName
-          if (angleMatch) {
-            angle = angleMatch[1].padStart(3, '0')
-            nameWithoutAngle = baseName.substring(0, angleMatch.index).replace(/_$/, '')
-          }
+        if (directDirMatch) {
+          const dir = parseInt(directDirMatch[1], 10)
+          const actionRaw = directDirMatch[2]
+          const action = actionRaw.charAt(0).toUpperCase() + actionRaw.slice(1)
+          const frameIdx = directDirMatch[3] ? parseInt(directDirMatch[3], 10) : 0
 
-          let actionClean = nameWithoutAngle
-            .replace(new RegExp(`^(${folder}|character|unit|model)_?`, 'i'), '')
-            .replace(/_?(body|sheet|anim|action|frames?)$/i, '')
-            .replace(/^(\d+)_?/, '')
-
-          const action = actionClean ? (actionClean.charAt(0).toUpperCase() + actionClean.slice(1)) : 'Action'
-
-          const grid = detectSheetGrid(imgW, imgH)
-          const cols = grid.cols
-          const rows = grid.rows
-          const cellW = grid.cellW
-          const cellH = grid.cellH
-          detectedCellW = cellW
-          detectedCellH = cellH
-          const totalSheetFrames = cols * rows
-
-          if (!actionsMap[action]) {
-            actionsMap[action] = {
-              id: action,
-              label: action,
-              icon: getActionIcon(action),
-              frameCount: totalSheetFrames,
-            }
-          } else {
-            actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, totalSheetFrames)
-          }
-
-          const lowerActForMap = action.toLowerCase()
-          if (lowerActForMap.includes('run') || lowerActForMap.includes('walk') || lowerActForMap.includes('sprint') || lowerActForMap.includes('move')) {
-            actionsMap['Run'] = {
-              id: 'Run',
-              label: 'Run',
-              icon: '🏃',
-              frameCount: totalSheetFrames,
-            }
-          }
-          if (lowerActForMap.includes('idle') || lowerActForMap.includes('stand') || lowerActForMap.includes('wait')) {
-            actionsMap['Idle'] = {
-              id: 'Idle',
-              label: 'Idle',
-              icon: '🧘',
-              frameCount: totalSheetFrames,
-            }
-          }
-
-          const sliced = await sliceAndAnalyzeSheet(filePath, `temp_${charPrefix}_${action}_${angle}_`, cols, rows)
-          const dir = angleToDirMap[angle]
-
-          for (let idx = 0; idx < sliced.length; idx++) {
-            const frame = sliced[idx]
-            if (sampleFeetYList.length < 20 && frame.maxY > 0) {
-              sampleFeetYList.push(frame.maxY)
-              sampleHeightList.push(frame.trimH)
-            }
-
-            if (dir !== undefined) {
-              charFrames.push({
-                ...frame,
-                name: `${charPrefix}_${dir}_${action}${idx}`,
-              })
-              if (idx === 0) {
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_${action}0`,
-                })
-              }
-              const lowerAct = action.toLowerCase()
-              if (lowerAct.includes('idle') || lowerAct.includes('stand') || lowerAct.includes('wait')) {
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Idle${idx}`,
-                })
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Pickup${idx}`,
-                })
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Die${idx}`,
-                })
-                if (idx === 0) {
-                  charFrames.push({
-                    ...frame,
-                    name: `${charPrefix}_${dir}_Idle`,
-                  })
-                  charFrames.push({
-                    ...frame,
-                    name: `${charPrefix}_${dir}_Idle0`,
-                  })
-                  charFrames.push({
-                    ...frame,
-                    name: `${charPrefix}_${dir}_Pickup0`,
-                  })
-                  charFrames.push({
-                    ...frame,
-                    name: `${charPrefix}_${dir}_Die0`,
-                  })
-                }
-              }
-              if (lowerAct.includes('run') || lowerAct.includes('walk') || lowerAct.includes('sprint') || lowerAct.includes('jog') || lowerAct.includes('move')) {
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Run${idx}`,
-                })
-                if (idx === 0) {
-                  charFrames.push({
-                    ...frame,
-                    name: `${charPrefix}_${dir}_Run0`,
-                  })
-                }
-              }
-              if (lowerAct.includes('die') || lowerAct.includes('death') || lowerAct.includes('dead') || lowerAct.includes('pickup') || lowerAct.includes('hit') || lowerAct.includes('collapse')) {
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Pickup${idx}`,
-                })
-                charFrames.push({
-                  ...frame,
-                  name: `${charPrefix}_${dir}_Die${idx}`,
-                })
-              }
-            }
-
-            // Full angle key
-            charFrames.push({
-              ...frame,
-              name: `${charPrefix}_angle_${angle}_${action}${idx}`,
-            })
-            if (idx === 0) {
-              charFrames.push({
-                ...frame,
-                name: `${charPrefix}_angle_${angle}_${action}0`,
-              })
-            }
-          }
-        } else {
-          // Discrete Single Frame PNG/WebP (e.g. Male_0_Idle0.png or 0_Idle_0.png)
           const trimmed = await analyzeAndTrim(filePath)
           detectedCellW = trimmed.origW
           detectedCellH = trimmed.origH
@@ -548,96 +404,75 @@ async function run() {
             sampleHeightList.push(trimmed.trimH)
           }
 
-          const nameMatch = baseName.match(/^(?:[A-Za-z0-9]+_)?(\d)_([A-Za-z]+)(\d*)$/)
-          if (nameMatch) {
-            const dir = parseInt(nameMatch[1], 10)
-            const actionRaw = nameMatch[2]
-            const action = actionRaw.charAt(0).toUpperCase() + actionRaw.slice(1)
-            const frameIdx = nameMatch[3] ? parseInt(nameMatch[3], 10) : 0
-
-            if (!actionsMap[action]) {
-              actionsMap[action] = {
-                id: action,
-                label: action,
-                icon: getActionIcon(action),
-                frameCount: 1,
-              }
+          if (!actionsMap[action]) {
+            actionsMap[action] = {
+              id: action,
+              label: action,
+              icon: getActionIcon(action),
+              frameCount: 1,
             }
-            actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, frameIdx + 1)
+          }
+          actionsMap[action].frameCount = Math.max(actionsMap[action].frameCount, frameIdx + 1)
 
-            charFrames.push({
-              ...trimmed,
-              name: `${charPrefix}_${dir}_${action}${frameIdx}`,
-            })
+          charFrames.push({
+            ...trimmed,
+            name: `${charPrefix}_${dir}_${action}${frameIdx}`,
+          })
+          if (frameIdx === 0) {
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_${action}0` })
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_${action}` })
+          }
+          const lowerAct = action.toLowerCase()
+          if (lowerAct.includes('idle') || lowerAct.includes('stand') || lowerAct.includes('wait')) {
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Idle${frameIdx}` })
             if (frameIdx === 0) {
-              charFrames.push({
-                ...trimmed,
-                name: `${charPrefix}_${dir}_${action}0`,
-              })
+              charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Idle0` })
+              charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Idle` })
             }
-            const lowerAct = action.toLowerCase()
-            if (lowerAct.includes('idle') || lowerAct.includes('stand') || lowerAct.includes('wait')) {
-              charFrames.push({
-                ...trimmed,
-                name: `${charPrefix}_${dir}_Idle${frameIdx}`,
-              })
-              if (frameIdx === 0) {
-                charFrames.push({
-                  ...trimmed,
-                  name: `${charPrefix}_${dir}_Idle`,
-                })
-                charFrames.push({
-                  ...trimmed,
-                  name: `${charPrefix}_${dir}_Idle0`,
-                })
-              }
+          }
+          if (lowerAct.includes('run') || lowerAct.includes('walk') || lowerAct.includes('sprint') || lowerAct.includes('jog') || lowerAct.includes('move')) {
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Run${frameIdx}` })
+            if (frameIdx === 0) {
+              charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Run0` })
+              charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Run` })
             }
-            if (lowerAct.includes('run') || lowerAct.includes('walk') || lowerAct.includes('sprint') || lowerAct.includes('jog') || lowerAct.includes('move')) {
-              charFrames.push({
-                ...trimmed,
-                name: `${charPrefix}_${dir}_Run${frameIdx}`,
-              })
-              if (frameIdx === 0) {
-                charFrames.push({
-                  ...trimmed,
-                  name: `${charPrefix}_${dir}_Run0`,
-                })
-              }
-            }
-            if (lowerAct.includes('die') || lowerAct.includes('death') || lowerAct.includes('dead') || lowerAct.includes('pickup') || lowerAct.includes('hit') || lowerAct.includes('collapse')) {
-              charFrames.push({
-                ...trimmed,
-                name: `${charPrefix}_${dir}_Pickup${frameIdx}`,
-              })
-              charFrames.push({
-                ...trimmed,
-                name: `${charPrefix}_${dir}_Die${frameIdx}`,
-              })
-            }
-          } else {
-            charFrames.push(trimmed)
+          }
+          if (lowerAct.includes('die') || lowerAct.includes('death') || lowerAct.includes('dead') || lowerAct.includes('pickup') || lowerAct.includes('hit') || lowerAct.includes('collapse')) {
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Pickup${frameIdx}` })
+            charFrames.push({ ...trimmed, name: `${charPrefix}_${dir}_Die${frameIdx}` })
           }
         }
       }
 
-      // Smart Anchor & Scale calculation
-      const avgFeetY = sampleFeetYList.length > 0 ? (sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length) : (detectedCellH * 0.75)
-      const avgHeight = sampleHeightList.length > 0 ? (sampleHeightList.reduce((a, b) => a + b, 0) / sampleHeightList.length) : 100
-      const anchorY = Math.round((avgFeetY / detectedCellH) * 1000) / 1000
-
-      let scale = 1.0
-      if (charId === 'male') scale = 0.52
-      else if (charId === 'warrior') scale = 1.48
-      else if (charId === 'demon') scale = 1.35
-      else if (charId === 'female') scale = 1.15
-      else {
-        const targetScreenHeight = 90
-        scale = Math.round((targetScreenHeight / Math.max(30, avgHeight)) * (detectedCellW / 128) * 100) / 100
-      }
-
-      if (Object.keys(actionsMap).length === 0) {
+      // Ensure fallback Idle, Pickup, and Die action textures exist
+      if (!actionsMap['Idle']) {
         actionsMap['Idle'] = { id: 'Idle', label: 'Idle', icon: '🧘', frameCount: 1 }
       }
+
+      for (let dir = 0; dir < 8; dir++) {
+        // Fallback Idle0 if missing
+        const hasIdle0 = charFrames.some((f) => f.name === `${charPrefix}_${dir}_Idle0`)
+        if (!hasIdle0) {
+          const run0 = charFrames.find((f) => f.name === `${charPrefix}_${dir}_Run0` || f.name === `${charPrefix}_${dir}_Run`)
+          if (run0) {
+            charFrames.push({ ...run0, name: `${charPrefix}_${dir}_Idle0` })
+            charFrames.push({ ...run0, name: `${charPrefix}_${dir}_Idle` })
+          }
+        }
+        // Fallback Pickup0 and Die0 if missing
+        const hasPickup0 = charFrames.some((f) => f.name === `${charPrefix}_${dir}_Pickup0`)
+        if (!hasPickup0) {
+          const baseFrame = charFrames.find((f) => f.name === `${charPrefix}_${dir}_Idle0` || f.name === `${charPrefix}_${dir}_Run0`)
+          if (baseFrame) {
+            charFrames.push({ ...baseFrame, name: `${charPrefix}_${dir}_Pickup0` })
+            charFrames.push({ ...baseFrame, name: `${charPrefix}_${dir}_Die0` })
+          }
+        }
+      }
+
+      // Standardized Ground Anchor (consistent across all models: ~0.898 on 512 canvas)
+      const avgFeetY = sampleFeetYList.length > 0 ? (sampleFeetYList.reduce((a, b) => a + b, 0) / sampleFeetYList.length) : (detectedCellH * 0.898)
+      const anchorY = Math.round((avgFeetY / detectedCellH) * 1000) / 1000
 
       const charAtlasRes = await buildMultiPageAtlas(`characters_${charId}`, charFrames, 2048, 2048)
       allCharacterSheets.push(...charAtlasRes.generatedSheetNames)
@@ -650,10 +485,10 @@ async function run() {
         cellHeight: detectedCellH,
         anchorX: 0.5,
         anchorY: anchorY,
-        scale: scale,
+        scale: 1.0,
         actions: actionsMap,
       }
-      console.log(`  ✅ Registered character "${charTitle}" with actions: ${Object.keys(actionsMap).join(', ')}`)
+      console.log(`  ✅ Registered character "${charTitle}" (anchorY: ${anchorY}) with actions: ${Object.keys(actionsMap).join(', ')}`)
     }
   }
 
@@ -713,13 +548,6 @@ async function run() {
       .replace(/([a-z])([A-Z])/g, '$1 $2')
     formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1)
 
-    // Calculate smart anchor (Towers use exact bottom-most pixel)
-    const standardAnchorY = (entry.isTower || category === 'Towers')
-      ? Number((meta.maxY / meta.origH).toFixed(4))
-      : (meta.maxY < meta.origH * 0.4 
-        ? Number((meta.maxY / meta.origH).toFixed(4)) 
-        : (meta.origH > meta.origW * 0.8 ? 0.88 : 0.5))
-
     manifestItems.push({
       id: `sprite-${baseName}`,
       name: formattedName,
@@ -731,7 +559,7 @@ async function run() {
       trimWidth: meta.trimW,
       trimHeight: meta.trimH,
       anchorX: 0.5,
-      anchorY: standardAnchorY,
+      anchorY: 0.88,
       contentBounds: { minX: meta.minX, minY: meta.minY, maxX: meta.maxX, maxY: meta.maxY },
       spanX: 1,
       spanY: 1,

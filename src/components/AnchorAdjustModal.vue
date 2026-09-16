@@ -825,13 +825,16 @@ function applyTopSurfacePreset() {
 
 function applyAutoFeetPreset() {
   const b = props.asset.contentBounds
+  const halfDiamondH = (resolvedWidth.value * currentSpanY.value) / (4 * currentSpanX.value)
+  const maxY = b ? b.maxY : resolvedHeight.value
+  const centerY = maxY - halfDiamondH
   if (b) {
     const avgX = (b.minX + b.maxX) / 2
-    currentX.value = Number((avgX / resolvedWidth.value).toFixed(3))
-    currentY.value = Number((b.maxY / resolvedHeight.value).toFixed(3))
+    currentX.value = Number((avgX / resolvedWidth.value).toFixed(4))
   } else {
-    setPreset(0.5, 1.0)
+    currentX.value = 0.5
   }
+  currentY.value = Number(Math.max(0, Math.min(1, centerY / resolvedHeight.value)).toFixed(4))
 }
 
 function setSpan(x: number, y: number) {

@@ -110,26 +110,16 @@ export class UnitRenderer {
         const modelKey = String(effectiveModel).toLowerCase()
         const modelMeta = (characterManifest as any)?.[modelKey]
         const anchorX = modelMeta?.anchorX ?? 0.5
-        const anchorY = modelMeta?.anchorY ?? (modelKey === 'male' ? 0.898 : 0.67)
+        const anchorY = modelMeta?.anchorY ?? 0.898
         const cellW = modelMeta?.cellWidth || 256
 
         const baseScale = (tileWidth * 1.0) / cellW
-        const scaleMult =
-          modelMeta?.scale ??
-          (modelKey === 'warrior'
-            ? 1.48
-            : modelKey === 'demon'
-              ? 1.35
-              : modelKey === 'female'
-                ? 1.15
-                : modelKey === 'male'
-                  ? 0.95
-                  : 1.0)
+        const scaleMult = modelMeta?.scale ?? 1.0
         const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
         const rawUnitScale = (unit as any).unitScale ?? currentWaveCfg?.unitScale
         const customUnitScale = (Number(rawUnitScale) || 1.0) * globalScale
 
-        sprite.scale.set(baseScale * (modelKey === 'male' ? 0.95 : scaleMult) * customUnitScale)
+        sprite.scale.set(baseScale * scaleMult * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
 
         const variant = (unit.unitVariant || currentWaveCfg?.unitVariant || 'normal') as UnitVariantType

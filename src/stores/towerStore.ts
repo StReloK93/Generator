@@ -33,6 +33,11 @@ export interface TowerBlueprint extends TowerTraitsConfig {
   splashRadius: number // in grid tiles (e.g. 1.5 tiles)
   splashType: SplashType
   cost: number
+  scale?: number
+  spanX?: number
+  spanY?: number
+  anchorX?: number
+  anchorY?: number
   targetStrategy?: TargetStrategy
   levels?: TowerLevelConfig[]
 }

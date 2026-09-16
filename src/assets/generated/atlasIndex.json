@@ -10,22 +10,13 @@
     "props_atlas"
   ],
   "characters": [
-    "characters_barry_0",
-    "characters_barry_1",
-    "characters_barry_2",
+    "characters_barry",
     "characters_bird_0",
     "characters_bird_1",
     "characters_bird_2",
-    "characters_bird_3",
-    "characters_bird_4",
-    "characters_bird_5",
-    "characters_demon_0",
-    "characters_demon_1",
+    "characters_demon",
     "characters_female_0",
     "characters_female_1",
-    "characters_female_2",
-    "characters_female_3",
-    "characters_female_4",
     "characters_male",
     "characters_medusa_0",
     "characters_medusa_1",
@@ -33,7 +24,6 @@
     "characters_warrior_0",
     "characters_warrior_1",
     "characters_warrior_2",
-    "characters_warrior_3",
     "characters_zombi"
   ]
 }

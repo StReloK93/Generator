@@ -53,7 +53,48 @@ class AssetManagerService {
   }
 
   public getAssetItem(assetId: string): AssetItem | undefined {
-    return this.assetLookup.get(assetId) || this.assetLookup.get(assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, ''))
+    if (!assetId) return undefined
+    const clean = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+    return this.assetLookup.get(assetId) || this.assetLookup.get(clean) || this.assetLookup.get(`sprite-${clean}`)
+  }
+
+  public registerCustomAssetItem(asset: AssetItem): void {
+    if (!asset || !asset.id) return
+    this.assetLookup.set(asset.id, asset)
+    if (asset.name) this.assetLookup.set(asset.name, asset)
+    const clean = asset.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+    this.assetLookup.set(clean, asset)
+    this.assetLookup.set(`sprite-${clean}`, asset)
+    if (asset.fileRelativePath) {
+      this.assetLookup.set(asset.fileRelativePath, asset)
+    }
+  }
+
+  public updateAssetItem(assetId: string, updates: Partial<AssetItem>): void {
+    if (!assetId) return
+    const existing = this.getAssetItem(assetId)
+    if (existing) {
+      const updated = { ...existing, ...updates }
+      this.registerCustomAssetItem(updated)
+    } else {
+      const fallback: AssetItem = {
+        id: assetId,
+        name: assetId,
+        baseName: assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, ''),
+        src: '',
+        previewSrc: '',
+        category: 'Custom',
+        width: 128,
+        height: 128,
+        anchorX: 0.5,
+        anchorY: 0.5,
+        spanX: 1,
+        spanY: 1,
+        scale: 1.0,
+        ...updates
+      }
+      this.registerCustomAssetItem(fallback)
+    }
   }
 
   // Get base URL for static assets (compatible with Vite base e.g. /Generator/)

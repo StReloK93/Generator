@@ -470,7 +470,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const spanY = asset?.spanY || 1
     const scale = asset?.scale || 1.0
     const anchorX = asset?.anchorX ?? 0.5
-    const anchorY = asset?.anchorY ?? 0.5
+    const anchorY = asset?.anchorY ?? 0.88
 
     const initialZ = mode === 'stack' ? (existing.length > 0 ? Math.max(...existing.map(i => i.zIndex)) + 1 : 0) : 0
 
@@ -858,9 +858,40 @@ export const useMapStore = defineStore('mapStore', () => {
     const item = items.find(i => i.id === itemId)
     if (!item) return
 
-    item.anchorX = Number(Math.max(0, Math.min(1, anchorX)).toFixed(2))
-    item.anchorY = Number(Math.max(0, Math.min(1, anchorY)).toFixed(2))
+    item.anchorX = Number(Math.max(0, Math.min(1, anchorX)).toFixed(4))
+    item.anchorY = Number(Math.max(0, Math.min(1, anchorY)).toFixed(4))
     project.value.updatedAt = Date.now()
+  }
+
+  function updateAllItemsOfAsset(
+    assetId: string,
+    updates: { anchorX?: number; anchorY?: number; spanX?: number; spanY?: number; scale?: number }
+  ) {
+    if (!assetId) return
+    const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+    let updatedCount = 0
+
+    for (const layer of project.value.layers) {
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const itemArr = Array.isArray(items) ? items : [items]
+        for (const item of itemArr) {
+          if (!item || !item.assetId) continue
+          const itemClean = item.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+          if (item.assetId === assetId || itemClean === cleanId || item.assetId === `sprite-${cleanId}`) {
+            if (updates.anchorX !== undefined) item.anchorX = Number(Math.max(0, Math.min(1, updates.anchorX)).toFixed(4))
+            if (updates.anchorY !== undefined) item.anchorY = Number(Math.max(0, Math.min(1, updates.anchorY)).toFixed(4))
+            if (updates.scale !== undefined) item.scale = updates.scale
+            if (updates.spanX !== undefined) item.spanX = updates.spanX
+            if (updates.spanY !== undefined) item.spanY = updates.spanY
+            updatedCount++
+          }
+        }
+      }
+    }
+
+    if (updatedCount > 0) {
+      project.value.updatedAt = Date.now()
+    }
   }
 
   function updateItemSpan(col: number, row: number, itemId: string, spanX: number, spanY: number, layerId = activeLayerId.value) {
@@ -925,7 +956,7 @@ export const useMapStore = defineStore('mapStore', () => {
         const spanY = asset?.spanY || 1
         const scale = asset?.scale || 1.0
         const anchorX = asset?.anchorX ?? 0.5
-        const anchorY = asset?.anchorY ?? 0.5
+        const anchorY = asset?.anchorY ?? 0.88
 
         const cellZIndex: Record<string, number> = {}
         for (let cx = col; cx < col + spanX; cx++) {
@@ -979,7 +1010,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const spanY = asset.spanY || 1
     const scale = asset.scale || 1.0
     const anchorX = asset.anchorX ?? 0.5
-    const anchorY = asset.anchorY ?? 0.5
+    const anchorY = asset.anchorY ?? 0.88
 
     const { cols, rows } = project.value
     let filledCount = 0
@@ -1054,7 +1085,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const spanY = asset.spanY || 1
     const scale = asset.scale || 1.0
     const anchorX = asset.anchorX ?? 0.5
-    const anchorY = asset.anchorY ?? 0.5
+    const anchorY = asset.anchorY ?? 0.88
 
     const { cols, rows } = project.value
     let count = 0
@@ -1179,7 +1210,7 @@ export const useMapStore = defineStore('mapStore', () => {
     const spanY = asset.spanY || 1
     const scale = asset.scale || 1.0
     const anchorX = asset.anchorX ?? 0.5
-    const anchorY = asset.anchorY ?? 0.5
+    const anchorY = asset.anchorY ?? 0.88
 
     const minCol = Math.max(0, Math.min(col0, col1))
     const maxCol = Math.min(project.value.cols - 1, Math.max(col0, col1))
@@ -1989,6 +2020,7 @@ export const useMapStore = defineStore('mapStore', () => {
     batchUpdateItemsScale,
     batchAdjustItemsScale,
     updateItemAnchor,
+    updateAllItemsOfAsset,
     batchUpdateItemsAnchor,
     updateItemSpan,
     updateTileOffset,

@@ -2068,6 +2068,7 @@ function changeBlueprintAsset(bpId: string, asset: AssetItem) {
     assetId: asset.id,
     assetName: `${asset.name}.webp`,
     assetPath: preview || asset.previewSrc || asset.src || '',
+    scale: asset.scale ?? 1.0,
   })
 }
 
