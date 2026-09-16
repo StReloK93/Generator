@@ -19,7 +19,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { TowerBlueprint } from '../../stores/towerStore'
 import { useAssetStore } from '../../stores/assetStore'
-import { getProjectileTheme, renderCanvasProjectileHead } from '../../utils/projectileEffectRenderer'
+import { getProjectileTheme, renderCanvasProjectileHead, renderCanvasProjectileTrail } from '../../utils/projectileEffectRenderer'
 import { getProjectileDef } from '../../utils/projectileCatalog'
 
 const props = defineProps<{
@@ -362,48 +362,22 @@ function renderFrame(time: number) {
     const arcHeight = !theme.hasArc ? 0 : Math.sin(p.progress * Math.PI) * 22
     p.currentY = p.startY + (p.targetY - p.startY) * p.progress - arcHeight
 
+    const projDef = getProjectileDef(p.type)
+
     // Store Trail Points
-    p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: 3.5 })
-    if (p.trail.length > 8) p.trail.shift()
+    p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: projDef.trailWidth || 4 })
+    const maxTrailLen = Math.max(3, projDef.trailLength ?? 8)
+    if (p.trail.length > maxTrailLen) p.trail.shift()
 
-    // Render Trail
-    for (let t = 0; t < p.trail.length; t++) {
-      const pt = p.trail[t]
-      pt.alpha -= dt * 3.5
-      if (pt.alpha <= 0) continue
-
-      if (p.type === 'arrow') {
-        ctx.beginPath()
-        ctx.arc(pt.x, pt.y, 1.0, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(248, 250, 252, ${pt.alpha * 0.25})`
-        ctx.fill()
-      } else if (p.type === 'fire_splash') {
-        const trailRadius = (t / p.trail.length) * 12.0
-        // Outer roaring fire
-        ctx.beginPath()
-        ctx.arc(pt.x, pt.y, Math.max(3.0, trailRadius), 0, Math.PI * 2)
-        ctx.fillStyle = '#dc2626'
-        ctx.globalAlpha = pt.alpha * 0.6
-        ctx.fill()
-        // Inner molten gold
-        ctx.beginPath()
-        ctx.arc(pt.x, pt.y, Math.max(1.5, trailRadius * 0.55), 0, Math.PI * 2)
-        ctx.fillStyle = '#fbbf24'
-        ctx.globalAlpha = pt.alpha * 0.95
-        ctx.fill()
-        ctx.globalAlpha = 1.0
-      } else {
-        ctx.beginPath()
-        ctx.arc(pt.x, pt.y, (t / p.trail.length) * 3.5, 0, Math.PI * 2)
-        ctx.fillStyle = theme.trailColorCss
-        ctx.globalAlpha = pt.alpha
-        ctx.fill()
-        ctx.globalAlpha = 1.0
-      }
-    }
+    // Render Unified Trail
+    renderCanvasProjectileTrail(ctx, p.trail, projDef, time)
 
     // Render Projectile Head by Type via unified renderer
-    const angle = Math.atan2(p.targetY - p.startY, p.targetX - p.startX)
+    const dx = p.targetX - p.startX
+    const dy = p.targetY - p.startY
+    const vx = dx
+    const vy = dy - (theme.hasArc ? Math.cos(p.progress * Math.PI) * Math.PI * 22 : 0)
+    const angle = Math.atan2(vy, vx)
     renderCanvasProjectileHead(
       ctx,
       p.type,

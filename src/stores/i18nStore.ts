@@ -1215,9 +1215,28 @@ export const translations = {
     'projectiles.tabShape': '1. Shape & Formation',
     'projectiles.tabColors': '2. Colors & Trail',
     'projectiles.tabImpact': '3. Impact & VFX',
+    'projectiles.tabCode': '4. PixiJS Code',
     'projectiles.englishName': 'English Name',
     'projectiles.uzbekName': 'Uzbek Name',
     'projectiles.russianName': 'Russian Name',
+
+    // Trail Styles
+    'projectiles.trailStyle': 'Trail Style',
+    'projectiles.trailStyleParticles': 'Particle Dots',
+    'projectiles.trailStyleSolid': 'Smooth Solid Line',
+    'projectiles.trailStyleGlow': 'Glow Streak',
+    'projectiles.trailStyleNone': 'None (Clean / No Trail)',
+
+    // Aim Test Modes
+    'projectiles.aimModeSingle': 'Single Aim',
+    'projectiles.aimModeBurst8': '8-Way Burst',
+    'projectiles.aimModeNova16': '16-Way Nova',
+    'projectiles.aimModeTurretSpin': '360° Turret Spin',
+    'projectiles.aimModeMovingTarget': 'Moving Target',
+    'projectiles.copyPixiCode': 'Copy PixiJS Code',
+    'projectiles.codeCopied': 'Code Copied to Clipboard!',
+    'projectiles.createClean': 'New Clean Projectile',
+    'projectiles.fileLocation': 'PixiJS File Location',
 
     // Projectile Categories
     'projectiles.catFire': 'Fire / Inferno',
@@ -1239,7 +1258,7 @@ export const translations = {
     'projectiles.formLaserBeam': 'Continuous Laser Beam',
 
     // Shapes
-    'projectiles.shapeCircle': 'Plasma Sphere (Circle)',
+    'projectiles.shapeCircle': 'Concentric Rings (Circle)',
     'projectiles.shapeArrow': 'Arrow / Javelin',
     'projectiles.shapeDiamondShard': 'Diamond Crystal Shard',
     'projectiles.shapeStar': 'Radiant Star',
@@ -1249,6 +1268,12 @@ export const translations = {
     'projectiles.shapeHammer': 'Warhammer',
     'projectiles.shapeBoulder': 'Heavy Boulder / Bomb',
     'projectiles.shapeFeather': 'Radiant Feather',
+    'projectiles.shapeSpearLance': 'Spear / Energy Lance',
+    'projectiles.shapeFlameWisp': 'Teardrop Flame (Clean)',
+    'projectiles.shapeLightningBolt': 'Lightning Bolt Spear',
+    'projectiles.shapeShuriken': 'Ninja Shuriken',
+    'projectiles.shapeEnergyOrb': 'Clean Energy Orb',
+    'projectiles.shapeEnergyWave': 'Crescent Energy Wave',
 
     // Sparks
     'projectiles.sparkFireEmber': 'Fire Embers',
@@ -2464,9 +2489,28 @@ export const translations = {
     'projectiles.tabShape': '1. Shakl & Harakat',
     'projectiles.tabColors': '2. Ranglar & Dum',
     'projectiles.tabImpact': '3. Portlash VFX',
+    'projectiles.tabCode': '4. PixiJS Kodi',
     'projectiles.englishName': 'Inglizcha Nomi (Name)',
     'projectiles.uzbekName': "O'zbekcha Nomi (NameUz)",
     'projectiles.russianName': 'Ruscha Nomi (NameRu)',
+
+    // Trail Styles
+    'projectiles.trailStyle': 'Dum (Trail) Uslubi',
+    'projectiles.trailStyleParticles': 'Aylanacha Zarrachalar',
+    'projectiles.trailStyleSolid': 'Silliq Chiziqli Dum',
+    'projectiles.trailStyleGlow': 'Yaltiroq Nurli Iz',
+    'projectiles.trailStyleNone': 'Dumsiz (Toza)',
+
+    // Aim Test Modes
+    'projectiles.aimModeSingle': 'Yagona Nishon',
+    'projectiles.aimModeBurst8': "8 Yo'nalishli Zalv",
+    'projectiles.aimModeNova16': "16 Yo'nalishli Nova",
+    'projectiles.aimModeTurretSpin': '360° Aylanuvchi Minora',
+    'projectiles.aimModeMovingTarget': 'Harakatlanuvchi Maneken',
+    'projectiles.copyPixiCode': 'PixiJS Kodini Nusxalash',
+    'projectiles.codeCopied': 'Kod Nusxalandi!',
+    'projectiles.createClean': 'Yangi Toza Snaryad',
+    'projectiles.fileLocation': 'PixiJS Fayl Joylashuvi',
 
     // Projectile Categories
     'projectiles.catFire': 'Olov (Fire)',
@@ -2488,7 +2532,7 @@ export const translations = {
     'projectiles.formLaserBeam': 'Uzluksiz Lazer Nuri (Laser Beam)',
 
     // Shapes
-    'projectiles.shapeCircle': 'Plazma Shari (Circle)',
+    'projectiles.shapeCircle': 'Plazma Halqasi (Circle)',
     'projectiles.shapeArrow': "Kamon O'qi / Nayza (Arrow)",
     'projectiles.shapeDiamondShard': 'Muz Kristalli (Diamond Shard)',
     'projectiles.shapeStar': 'Yorqin Yulduz (Star)',
@@ -2498,6 +2542,12 @@ export const translations = {
     'projectiles.shapeHammer': "Jang Bolg'asi (Warhammer)",
     'projectiles.shapeBoulder': "Og'ir Tosh / Bomba (Boulder)",
     'projectiles.shapeFeather': 'Nurli Qanot Pati (Feather)',
+    'projectiles.shapeSpearLance': 'Nayza / Energiya Nayzasi',
+    'projectiles.shapeFlameWisp': 'Olov Tomchisi (Toza)',
+    'projectiles.shapeLightningBolt': 'Chaqmoq Nayzasi',
+    'projectiles.shapeShuriken': 'Ninja Syuriken',
+    'projectiles.shapeEnergyOrb': 'Silliq Energiya Shari',
+    'projectiles.shapeEnergyWave': "Yarim Oysimon To'lqin",
 
     // Sparks
     'projectiles.sparkFireEmber': "Olov cho'g'i (Fire Embers)",
@@ -3713,9 +3763,28 @@ export const translations = {
     'projectiles.tabShape': '1. Форма и движение',
     'projectiles.tabColors': '2. Цвета и шлейф',
     'projectiles.tabImpact': '3. Взрыв и VFX',
+    'projectiles.tabCode': '4. PixiJS Код',
     'projectiles.englishName': 'Название на английском',
     'projectiles.uzbekName': 'Название на узбекском',
     'projectiles.russianName': 'Название на русском',
+
+    // Trail Styles
+    'projectiles.trailStyle': 'Стиль следа (шлейфа)',
+    'projectiles.trailStyleParticles': 'Точечные частицы',
+    'projectiles.trailStyleSolid': 'Сплошная линия',
+    'projectiles.trailStyleGlow': 'Светящийся луч',
+    'projectiles.trailStyleNone': 'Без следа (чистый)',
+
+    // Aim Test Modes
+    'projectiles.aimModeSingle': 'Одиночная цель',
+    'projectiles.aimModeBurst8': '8-направленный залп',
+    'projectiles.aimModeNova16': '16-направленная нова',
+    'projectiles.aimModeTurretSpin': 'Вращение башни на 360°',
+    'projectiles.aimModeMovingTarget': 'Движущаяся мишень',
+    'projectiles.copyPixiCode': 'Копировать код PixiJS',
+    'projectiles.codeCopied': 'Скопировано в буфер!',
+    'projectiles.createClean': 'Новый чистый снаряд',
+    'projectiles.fileLocation': 'Расположение файла PixiJS',
 
     // Projectile Categories
     'projectiles.catFire': 'Огонь (Fire)',
@@ -3747,6 +3816,12 @@ export const translations = {
     'projectiles.shapeHammer': 'Боевой молот',
     'projectiles.shapeBoulder': 'Тяжелый валун / Бомба',
     'projectiles.shapeFeather': 'Светящееся перо',
+    'projectiles.shapeSpearLance': 'Копье / Энергетическая пика',
+    'projectiles.shapeFlameWisp': 'Капля пламени (Чистая)',
+    'projectiles.shapeLightningBolt': 'Молния',
+    'projectiles.shapeShuriken': 'Ниндзя сюрикен',
+    'projectiles.shapeEnergyOrb': 'Энергетическая сфера',
+    'projectiles.shapeEnergyWave': 'Серповидная волна',
 
     // Sparks
     'projectiles.sparkFireEmber': 'Огненные угли',

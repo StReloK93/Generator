@@ -232,7 +232,7 @@ import {
   ProjectileCategory, 
   getProjectileDef 
 } from '../../utils/projectileCatalog'
-import { getProjectileTheme, renderCanvasProjectileHead } from '../../utils/projectileEffectRenderer'
+import { getProjectileTheme, renderCanvasProjectileHead, renderCanvasProjectileTrail } from '../../utils/projectileEffectRenderer'
 import { useProjectileStore } from '../../stores/projectileStore'
 import { useI18n } from '../../stores/i18nStore'
 
@@ -623,21 +623,12 @@ function renderArenaFrame(time: number) {
     const dy = p.targetY - p.startY
     p.currentY = p.startY + dy * p.progress - (theme.hasArc ? Math.sin(p.progress * Math.PI) * arcHeight : 0)
 
-    p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: 3.5 })
-    if (p.trail.length > 8) p.trail.shift()
+    const pDef = getProjectileDef(p.type)
+    p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: pDef.trailWidth || 4 })
+    const maxTrailLen = Math.max(3, pDef.trailLength ?? 8)
+    if (p.trail.length > maxTrailLen) p.trail.shift()
 
-    for (let t = 0; t < p.trail.length; t++) {
-      const pt = p.trail[t]
-      pt.alpha = Math.max(0, pt.alpha - 0.05)
-      if (pt.alpha <= 0) continue
-
-      ctx.beginPath()
-      ctx.arc(pt.x, pt.y, Math.max(1, (t / p.trail.length) * 3.5), 0, Math.PI * 2)
-      ctx.fillStyle = theme.trailColorCss
-      ctx.globalAlpha = pt.alpha
-      ctx.fill()
-      ctx.globalAlpha = 1.0
-    }
+    renderCanvasProjectileTrail(ctx, p.trail, pDef, time)
 
     const vx = dx
     const vy = dy - (theme.hasArc ? Math.cos(p.progress * Math.PI) * Math.PI * arcHeight : 0)

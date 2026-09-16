@@ -113,10 +113,10 @@
           <UiButton
             variant="secondary"
             size="sm"
-            :leading-icon="characterStore.entrySource === 'editor' ? Layers : Home"
+            :leading-icon="characterStore.entrySource === 'editor' || route.name === 'editor-game' ? Layers : Home"
             @click="handleExit"
           >
-            {{ characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome') }}
+            {{ characterStore.entrySource === 'editor' || route.name === 'editor-game' ? $t('game.returnEditor') : $t('game.returnHome') }}
           </UiButton>
         </template>
       </div>
@@ -141,7 +141,7 @@ const multiplayerStore = useMultiplayerStore()
 
 function handleExit() {
   characterStore.exitPlayMode()
-  if (characterStore.entrySource === 'editor') {
+  if (characterStore.entrySource === 'editor' || route.name === 'editor-game') {
     const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
     router.push(`/editor/${cleanId}`)
   } else {

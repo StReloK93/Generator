@@ -20,6 +20,8 @@ export type ProjectileFormation =
   | 'satellites'
   | 'laser_beam'
 
+export type TrailStyle = 'particles' | 'solid_line' | 'glow_streak' | 'none'
+
 export type ProjectileShape =
   | 'circle'
   | 'arrow'
@@ -31,6 +33,12 @@ export type ProjectileShape =
   | 'hammer'
   | 'boulder'
   | 'feather'
+  | 'spear_lance'
+  | 'flame_wisp'
+  | 'lightning_bolt'
+  | 'shuriken'
+  | 'energy_orb'
+  | 'energy_wave'
 
 export type SparkParticleType =
   | 'fire_ember'
@@ -70,19 +78,25 @@ export interface ProjectileConfig {
   trailAlpha: number
   trailLength: number
   trailWidth: number
+  trailStyle?: TrailStyle
   sparkType: SparkParticleType
   sparkCount: number
   shockwaveRadius: number
   hasDoubleRing: boolean
 }
 
+import { BASE_PROJECTILE_CATALOG } from '../utils/projectileCatalog'
+
 const STORAGE_KEY = 'defensor_custom_projectiles'
 const BASE_JSON_URL = 'projectiles.json'
 
 export const useProjectileStore = defineStore('projectile', () => {
-  const baseProjectiles = ref<ProjectileConfig[]>([])
+  const baseProjectiles = ref<ProjectileConfig[]>([...BASE_PROJECTILE_CATALOG] as any)
   const customProjectiles = ref<ProjectileConfig[]>([])
   const isLoaded = ref(false)
+
+  const deletedBaseIds = ref<string[]>([])
+  const DELETED_STORAGE_KEY = 'defensor_deleted_projectile_ids'
 
   // Initialize from bundled fallback or public JSON
   async function loadProjectiles() {
@@ -111,25 +125,83 @@ export const useProjectileStore = defineStore('projectile', () => {
       // Ignore
     }
 
+    // Load deleted projectile IDs
+    try {
+      const delSaved = localStorage.getItem(DELETED_STORAGE_KEY)
+      if (delSaved) {
+        const parsedDel = JSON.parse(delSaved)
+        if (Array.isArray(parsedDel)) {
+          deletedBaseIds.value = parsedDel
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     isLoaded.value = true
   }
 
   function saveCustomProjectiles() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(customProjectiles.value))
+      localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(deletedBaseIds.value))
     } catch {
       // Ignore
     }
   }
 
   const allProjectiles = computed<ProjectileConfig[]>(() => {
+    const deletedSet = new Set(deletedBaseIds.value)
     const customIds = new Set(customProjectiles.value.map(p => p.id))
-    const filteredBase = baseProjectiles.value.filter(p => !customIds.has(p.id))
-    return [...filteredBase, ...customProjectiles.value]
+    const filteredBase = baseProjectiles.value.filter(p => !customIds.has(p.id) && !deletedSet.has(p.id))
+    const res = [...filteredBase, ...customProjectiles.value.filter(p => !deletedSet.has(p.id))]
+    if (res.length === 0) {
+      return [...BASE_PROJECTILE_CATALOG] as any
+    }
+    return res
   })
 
   function getProjectile(id: string): ProjectileConfig | undefined {
-    return allProjectiles.value.find(p => p.id === id) || baseProjectiles.value[0]
+    return allProjectiles.value.find(p => p.id === id) || allProjectiles.value[0] || (BASE_PROJECTILE_CATALOG[0] as any)
+  }
+
+  function createBlankProjectile(category: ProjectileCategory = 'fire'): ProjectileConfig {
+    const id = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    const blank: ProjectileConfig = {
+      id,
+      name: 'Custom Fireball',
+      nameUz: 'Maxsus Olovcha',
+      category,
+      description: 'Yangi toza maxsus snaryad',
+      isCustom: true,
+      formation: 'single',
+      shape: 'circle',
+      size: 6,
+      length: 24,
+      points: 4,
+      satelliteCount: 0,
+      hasArc: false,
+      isLaser: false,
+      colorHex: 0xf97316,
+      colorCss: '#f97316',
+      trailColorHex: 0xfbbf24,
+      trailColorCss: '#fbbf24',
+      sparkColorHex: 0xfef08a,
+      sparkColorCss: '#fef08a',
+      shockwaveColorHex: 0xf97316,
+      shockwaveColorCss: '#f97316',
+      trailAlpha: 0.7,
+      trailLength: 8,
+      trailWidth: 4,
+      trailStyle: 'solid_line',
+      sparkType: 'fire_ember',
+      sparkCount: 16,
+      shockwaveRadius: 22,
+      hasDoubleRing: false,
+    }
+    customProjectiles.value.push(blank)
+    saveCustomProjectiles()
+    return blank
   }
 
   function addCustomProjectile(proj: Omit<ProjectileConfig, 'isCustom'>): ProjectileConfig {
@@ -137,6 +209,7 @@ export const useProjectileStore = defineStore('projectile', () => {
       ...proj,
       id: proj.id.startsWith('custom_') ? proj.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       isCustom: true,
+      satelliteCount: proj.satelliteCount ?? 0,
     }
     customProjectiles.value.push(newProj)
     saveCustomProjectiles()
@@ -162,7 +235,6 @@ export const useProjectileStore = defineStore('projectile', () => {
         isCustom: true,
       }
       customProjectiles.value.push(overridden)
-      // remove from base list view
       baseProjectiles.value.splice(bIdx, 1)
       saveCustomProjectiles()
       return true
@@ -172,13 +244,19 @@ export const useProjectileStore = defineStore('projectile', () => {
   }
 
   function deleteProjectile(id: string): boolean {
+    // If in custom
     const cIdx = customProjectiles.value.findIndex(p => p.id === id)
     if (cIdx !== -1) {
       customProjectiles.value.splice(cIdx, 1)
-      saveCustomProjectiles()
-      return true
     }
-    return false
+
+    // Track as deleted so base doesn't reappear
+    if (!deletedBaseIds.value.includes(id)) {
+      deletedBaseIds.value.push(id)
+    }
+
+    saveCustomProjectiles()
+    return true
   }
 
   function duplicateProjectile(id: string): ProjectileConfig | null {
@@ -241,7 +319,9 @@ export const useProjectileStore = defineStore('projectile', () => {
 
   function resetToDefaults() {
     customProjectiles.value = []
+    deletedBaseIds.value = []
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(DELETED_STORAGE_KEY)
     loadProjectiles()
   }
 
@@ -251,10 +331,12 @@ export const useProjectileStore = defineStore('projectile', () => {
   return {
     baseProjectiles,
     customProjectiles,
+    deletedBaseIds,
     allProjectiles,
     isLoaded,
     loadProjectiles,
     getProjectile,
+    createBlankProjectile,
     addCustomProjectile,
     updateProjectile,
     deleteProjectile,

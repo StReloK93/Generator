@@ -32,6 +32,15 @@
       <!-- Action Buttons -->
       <div class="flex items-center gap-2">
         <UiButton
+          variant="game-green"
+          size="sm"
+          :leading-icon="Sparkles"
+          @click="handleCreateClean"
+        >
+          {{ t('projectiles.createClean') }}
+        </UiButton>
+
+        <UiButton
           variant="secondary"
           size="sm"
           :leading-icon="Download"
@@ -74,7 +83,7 @@
       <!-- 1. LEFT COLUMN: SQUARE 1:1 LIVE ISOMETRIC ARENA STAGE -->
       <div class="w-full lg:w-96 xl:w-115 shrink-0 flex flex-col justify-between p-3.5 bg-slate-950 border-b lg:border-b-0 lg:border-r border-slate-800/80 overflow-y-auto custom-scrollbar">
         <!-- Top HUD Badge -->
-        <div class="flex items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center justify-between gap-2 mb-2">
           <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg">
             <span 
               class="w-2.5 h-2.5 rounded-full animate-pulse shadow-sm"
@@ -96,8 +105,29 @@
           </span>
         </div>
 
+        <!-- Firing Direction Modes Selector -->
+        <div class="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-slate-800 mb-2 overflow-x-auto custom-scrollbar">
+          <button
+            v-for="mode in aimModes"
+            :key="mode.id"
+            type="button"
+            :class="[
+              'px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer shrink-0 border whitespace-nowrap',
+              aimMode === mode.id
+                ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm'
+                : 'bg-transparent border-transparent text-slate-400 hover:text-slate-200'
+            ]"
+            @click="aimMode = mode.id"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
+
         <!-- Dedicated Square 1:1 Live Arena Canvas Container -->
-        <div class="relative w-full aspect-square max-w-88 sm:max-w-96 xl:max-w-105 mx-auto rounded-3xl bg-slate-950 border border-slate-800/90 shadow-2xl overflow-hidden my-auto flex items-center justify-center group">
+        <div 
+          class="relative w-full aspect-square max-w-88 sm:max-w-96 xl:max-w-105 mx-auto rounded-3xl bg-slate-950 border border-slate-800/90 shadow-2xl overflow-hidden my-auto flex items-center justify-center group cursor-crosshair"
+          @click="handleArenaClick"
+        >
           <canvas ref="arenaCanvasRef" class="w-full h-full block"></canvas>
 
           <!-- Top-Right Mode Badge inside Canvas -->
@@ -108,11 +138,19 @@
             <span v-if="currentForm.hasArc" class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/90 px-2 py-0.5 rounded-md border border-amber-800/60 shadow-md">
               ARC (Ballistic)
             </span>
+            <span class="text-[9px] font-mono font-bold text-cyan-300 bg-cyan-950/90 px-2 py-0.5 rounded-md border border-cyan-800/60 shadow-md uppercase">
+              {{ aimMode }}
+            </span>
+          </div>
+
+          <!-- Bottom hint overlay -->
+          <div class="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700/80 text-[10px] text-slate-300 shadow-lg">
+            {{ aimMode === 'single' ? '🎯 Maydonga bosing — istalgan nuqtaga otadi' : '✨ Ko\'p yo\'nalishli otish sinovi faol' }}
           </div>
         </div>
 
         <!-- Bottom Live Arena Controls -->
-        <div class="flex flex-col gap-2 mt-3">
+        <div class="flex flex-col gap-2 mt-2.5">
           <div class="flex items-center justify-between gap-2">
             <UiButton
               variant="game-amber"
@@ -136,7 +174,7 @@
         </div>
       </div>
 
-      <!-- 2. CENTER COLUMN: PROPERTIES INSPECTOR TABS & FORMS -->
+      <!-- 2. CENTER COLUMN: PROPERTIES INSPECTOR TABS & FORMS & PIXIJS CODE -->
       <div class="flex-1 flex flex-col overflow-hidden bg-slate-900/40 border-b lg:border-b-0 min-w-0">
         <!-- Tab Navigation -->
         <div class="px-4 pt-3 border-b border-slate-800/80 bg-slate-900/60">
@@ -145,275 +183,384 @@
             :items="[
               { id: 'shape', label: t('projectiles.tabShape') },
               { id: 'colors', label: t('projectiles.tabColors') },
-              { id: 'impact', label: t('projectiles.tabImpact') }
+              { id: 'impact', label: t('projectiles.tabImpact') },
+              { id: 'code', label: t('projectiles.tabCode') }
             ]"
             variant="pills"
             size="sm"
           />
         </div>
 
-          <!-- Form Content -->
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
-            <!-- TAB 1: SHAPE & FORMATION -->
-            <div v-if="activeTab === 'shape'" class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <UiInput
-                  v-model="currentForm.name"
-                  :label="t('projectiles.englishName')"
-                  placeholder="e.g. Blazing Phoenix Bolt"
-                />
-                <UiInput
-                  v-model="currentForm.nameUz"
-                  :label="t('projectiles.uzbekName')"
-                  placeholder="e.g. Olovli Fenix Nayzasi"
-                />
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.category') }}</label>
-                  <select
-                    v-model="currentForm.category"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
-                  >
-                    <option value="fire">🔥 {{ t('projectiles.catFire') }}</option>
-                    <option value="frost">❄️ {{ t('projectiles.catFrost') }}</option>
-                    <option value="electro">⚡ {{ t('projectiles.catElectro') }}</option>
-                    <option value="poison">🧪 {{ t('projectiles.catPoison') }}</option>
-                    <option value="arcane">🔮 {{ t('projectiles.catArcane') }}</option>
-                    <option value="void">💀 {{ t('projectiles.catVoid') }}</option>
-                    <option value="siege">🏹 {{ t('projectiles.catSiege') }}</option>
-                    <option value="holy">✨ {{ t('projectiles.catHoly') }}</option>
-                    <option value="custom">🌟 {{ t('projectiles.catCustom') }}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.formation') }}</label>
-                  <select
-                    v-model="currentForm.formation"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
-                  >
-                    <option value="single">{{ t('projectiles.formSingle') }}</option>
-                    <option value="volley_3">{{ t('projectiles.formVolley3') }}</option>
-                    <option value="twin_helix">{{ t('projectiles.formTwinHelix') }}</option>
-                    <option value="satellites">{{ t('projectiles.formSatellites') }}</option>
-                    <option value="laser_beam">{{ t('projectiles.formLaserBeam') }}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.shape') }}</label>
-                  <select
-                    v-model="currentForm.shape"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
-                  >
-                    <option value="circle">{{ t('projectiles.shapeCircle') }}</option>
-                    <option value="arrow">{{ t('projectiles.shapeArrow') }}</option>
-                    <option value="diamond_shard">{{ t('projectiles.shapeDiamondShard') }}</option>
-                    <option value="star">{{ t('projectiles.shapeStar') }}</option>
-                    <option value="sawblade">{{ t('projectiles.shapeSawblade') }}</option>
-                    <option value="skull">{{ t('projectiles.shapeSkull') }}</option>
-                    <option value="greatsword">{{ t('projectiles.shapeGreatsword') }}</option>
-                    <option value="hammer">{{ t('projectiles.shapeHammer') }}</option>
-                    <option value="boulder">{{ t('projectiles.shapeBoulder') }}</option>
-                    <option value="feather">{{ t('projectiles.shapeFeather') }}</option>
-                  </select>
-                </div>
-
-                <div class="flex items-center gap-4 pt-4">
-                  <UiSwitch
-                    v-model="currentForm.hasArc"
-                    :label="t('projectiles.parabolicArc')"
-                    size="sm"
-                  />
-                  <UiSwitch
-                    v-model="currentForm.isLaser"
-                    :label="t('projectiles.laserMode')"
-                    size="sm"
-                  />
-                </div>
-              </div>
-
-              <!-- Sliders for Geometry -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
-                <UiSlider
-                  v-model="currentForm.size"
-                  :label="t('projectiles.size')"
-                  :min="4"
-                  :max="70"
-                  :step="1"
-                  unit="px"
-                />
-
-                <UiSlider
-                  v-if="currentForm.shape === 'arrow' || currentForm.shape === 'greatsword' || currentForm.shape === 'feather' || currentForm.shape === 'hammer'"
-                  v-model="lengthModel"
-                  :label="t('projectiles.length')"
-                  :min="10"
-                  :max="100"
-                  :step="1"
-                  unit="px"
-                />
-
-                <UiSlider
-                  v-if="currentForm.formation === 'satellites'"
-                  v-model="satellitesModel"
-                  :label="t('projectiles.satelliteCount')"
-                  :min="1"
-                  :max="8"
-                  :step="1"
-                />
-
-                <UiSlider
-                  v-if="currentForm.shape === 'star'"
-                  v-model="pointsModel"
-                  :label="t('projectiles.starPoints')"
-                  :min="4"
-                  :max="12"
-                  :step="2"
-                />
-              </div>
-
+        <!-- Form Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+          <!-- TAB 1: SHAPE & FORMATION -->
+          <div v-if="activeTab === 'shape'" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <UiInput
-                v-model="currentForm.description"
-                :label="t('projectiles.description')"
-                placeholder="..."
+                v-model="currentForm.name"
+                :label="t('projectiles.englishName')"
+                placeholder="e.g. Blazing Phoenix Bolt"
+              />
+              <UiInput
+                v-model="currentForm.nameUz"
+                :label="t('projectiles.uzbekName')"
+                placeholder="e.g. Olovli Fenix Nayzasi"
               />
             </div>
 
-            <!-- TAB 2: COLORS & TRAILS -->
-            <div v-if="activeTab === 'colors'" class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.headColor') }}</label>
-                  <UiColorPicker v-model="currentForm.colorCss" />
-                </div>
-
-                <div class="space-y-2">
-                  <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.trailColor') }}</label>
-                  <UiColorPicker v-model="currentForm.trailColorCss" />
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.category') }}</label>
+                <select
+                  v-model="currentForm.category"
+                  class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+                >
+                  <option value="fire">🔥 {{ t('projectiles.catFire') }}</option>
+                  <option value="frost">❄️ {{ t('projectiles.catFrost') }}</option>
+                  <option value="electro">⚡ {{ t('projectiles.catElectro') }}</option>
+                  <option value="poison">🧪 {{ t('projectiles.catPoison') }}</option>
+                  <option value="arcane">🔮 {{ t('projectiles.catArcane') }}</option>
+                  <option value="void">💀 {{ t('projectiles.catVoid') }}</option>
+                  <option value="siege">🏹 {{ t('projectiles.catSiege') }}</option>
+                  <option value="holy">✨ {{ t('projectiles.catHoly') }}</option>
+                  <option value="custom">🌟 {{ t('projectiles.catCustom') }}</option>
+                </select>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
-                <div class="space-y-2">
-                  <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.sparkColor') }}</label>
-                  <UiColorPicker v-model="currentForm.sparkColorCss" />
-                </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.formation') }}</label>
+                <select
+                  v-model="currentForm.formation"
+                  class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+                >
+                  <option value="single">{{ t('projectiles.formSingle') }}</option>
+                  <option value="volley_3">{{ t('projectiles.formVolley3') }}</option>
+                  <option value="twin_helix">{{ t('projectiles.formTwinHelix') }}</option>
+                  <option value="satellites">{{ t('projectiles.formSatellites') }}</option>
+                  <option value="laser_beam">{{ t('projectiles.formLaserBeam') }}</option>
+                </select>
+              </div>
+            </div>
 
-                <div class="space-y-2">
-                  <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.shockwaveColor') }}</label>
-                  <UiColorPicker v-model="currentForm.shockwaveColorCss" />
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.shape') }}</label>
+                <select
+                  v-model="currentForm.shape"
+                  class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+                >
+                  <option value="spear_lance">🗡️ {{ t('projectiles.shapeSpearLance') }}</option>
+                  <option value="flame_wisp">🔥 {{ t('projectiles.shapeFlameWisp') }}</option>
+                  <option value="lightning_bolt">⚡ {{ t('projectiles.shapeLightningBolt') }}</option>
+                  <option value="shuriken">🥷 {{ t('projectiles.shapeShuriken') }}</option>
+                  <option value="energy_orb">🔮 {{ t('projectiles.shapeEnergyOrb') }}</option>
+                  <option value="energy_wave">🌊 {{ t('projectiles.shapeEnergyWave') }}</option>
+                  <option value="arrow">🏹 {{ t('projectiles.shapeArrow') }}</option>
+                  <option value="diamond_shard">💎 {{ t('projectiles.shapeDiamondShard') }}</option>
+                  <option value="star">⭐ {{ t('projectiles.shapeStar') }}</option>
+                  <option value="sawblade">⚙️ {{ t('projectiles.shapeSawblade') }}</option>
+                  <option value="skull">💀 {{ t('projectiles.shapeSkull') }}</option>
+                  <option value="greatsword">⚔️ {{ t('projectiles.shapeGreatsword') }}</option>
+                  <option value="hammer">🔨 {{ t('projectiles.shapeHammer') }}</option>
+                  <option value="boulder">🪨 {{ t('projectiles.shapeBoulder') }}</option>
+                  <option value="feather">🪶 {{ t('projectiles.shapeFeather') }}</option>
+                  <option value="circle">⚪ {{ t('projectiles.shapeCircle') }}</option>
+                </select>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
-                <UiSlider
-                  v-model="currentForm.trailAlpha"
-                  :label="t('projectiles.trailAlpha')"
-                  :min="0.1"
-                  :max="1.0"
-                  :step="0.05"
+              <div class="flex items-center gap-4 pt-4">
+                <UiSwitch
+                  v-model="currentForm.hasArc"
+                  :label="t('projectiles.parabolicArc')"
+                  size="sm"
                 />
-                <UiSlider
-                  v-model="currentForm.trailWidth"
-                  :label="t('projectiles.trailWidth')"
-                  :min="1"
-                  :max="25"
-                  :step="1"
-                  unit="px"
-                />
-                <UiSlider
-                  v-model="currentForm.trailLength"
-                  :label="t('projectiles.trailLength')"
-                  :min="4"
-                  :max="35"
-                  :step="1"
+                <UiSwitch
+                  v-model="currentForm.isLaser"
+                  :label="t('projectiles.laserMode')"
+                  size="sm"
                 />
               </div>
             </div>
 
-            <!-- TAB 3: IMPACT & EXPLOSIONS -->
-            <div v-if="activeTab === 'impact'" class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.sparkType') }}</label>
-                  <select
-                    v-model="currentForm.sparkType"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
-                  >
-                    <option value="fire_ember">🔥 {{ t('projectiles.sparkFireEmber') }}</option>
-                    <option value="ice_shard">❄️ {{ t('projectiles.sparkIceShard') }}</option>
-                    <option value="snowflake">❄️ {{ t('projectiles.sparkSnowflake') }}</option>
-                    <option value="lightning_arc">⚡ {{ t('projectiles.sparkLightningArc') }}</option>
-                    <option value="acid_drop">🧪 {{ t('projectiles.sparkAcidDrop') }}</option>
-                    <option value="arcane_star">🔮 {{ t('projectiles.sparkArcaneStar') }}</option>
-                    <option value="void_blood">💀 {{ t('projectiles.sparkVoidBlood') }}</option>
-                    <option value="shrapnel">🏹 {{ t('projectiles.sparkShrapnel') }}</option>
-                    <option value="holy_cross">✨ {{ t('projectiles.sparkHolyCross') }}</option>
-                  </select>
-                </div>
+            <!-- Sliders for Geometry -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+              <UiSlider
+                v-model="currentForm.size"
+                :label="t('projectiles.size')"
+                :min="4"
+                :max="70"
+                :step="1"
+                unit="px"
+              />
 
-                <div class="flex items-center gap-4 pt-4">
-                  <UiSwitch
-                    v-model="currentForm.hasDoubleRing"
-                    :label="t('projectiles.doubleRing')"
-                    size="sm"
-                  />
-                </div>
+              <UiSlider
+                v-if="currentForm.shape === 'arrow' || currentForm.shape === 'greatsword' || currentForm.shape === 'feather' || currentForm.shape === 'hammer' || currentForm.shape === 'spear_lance' || currentForm.shape === 'lightning_bolt'"
+                v-model="lengthModel"
+                :label="t('projectiles.length')"
+                :min="10"
+                :max="100"
+                :step="1"
+                unit="px"
+              />
+
+              <UiSlider
+                v-model="satellitesModel"
+                :label="t('projectiles.satelliteCount') + ' (0 = Toza / No Orbit)'"
+                :min="0"
+                :max="6"
+                :step="1"
+              />
+
+              <UiSlider
+                v-if="currentForm.shape === 'star'"
+                v-model="pointsModel"
+                :label="t('projectiles.starPoints')"
+                :min="4"
+                :max="12"
+                :step="2"
+              />
+            </div>
+
+            <UiInput
+              v-model="currentForm.description"
+              :label="t('projectiles.description')"
+              placeholder="..."
+            />
+          </div>
+
+          <!-- TAB 2: COLORS & TRAILS -->
+          <div v-if="activeTab === 'colors'" class="space-y-4">
+            <!-- Trail Style Selector -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.trailStyle') }}</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  v-for="st in trailStyleOptions"
+                  :key="st.id"
+                  type="button"
+                  :class="[
+                    'p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1 text-center',
+                    (currentForm.trailStyle || 'solid_line') === st.id
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-1 ring-amber-400/40 shadow-md'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ]"
+                  @click="currentForm.trailStyle = st.id as any"
+                >
+                  <span>{{ st.icon }}</span>
+                  <span>{{ st.label }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.headColor') }}</label>
+                <UiColorPicker v-model="currentForm.colorCss" />
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
-                <UiSlider
-                  v-model="currentForm.sparkCount"
-                  :label="t('projectiles.sparkCount')"
-                  :min="6"
-                  :max="60"
-                  :step="2"
-                />
-                <UiSlider
-                  v-model="currentForm.shockwaveRadius"
-                  :label="t('projectiles.shockwaveRadius')"
-                  :min="10"
-                  :max="80"
-                  :step="1"
-                  unit="px"
-                />
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.trailColor') }}</label>
+                <UiColorPicker v-model="currentForm.trailColorCss" />
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.sparkColor') }}</label>
+                <UiColorPicker v-model="currentForm.sparkColorCss" />
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">{{ t('projectiles.shockwaveColor') }}</label>
+                <UiColorPicker v-model="currentForm.shockwaveColorCss" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
+              <UiSlider
+                v-model="currentForm.trailAlpha"
+                :label="t('projectiles.trailAlpha')"
+                :min="0.1"
+                :max="1.0"
+                :step="0.05"
+              />
+              <UiSlider
+                v-model="currentForm.trailWidth"
+                :label="t('projectiles.trailWidth')"
+                :min="1"
+                :max="25"
+                :step="1"
+                unit="px"
+              />
+              <UiSlider
+                v-model="currentForm.trailLength"
+                :label="t('projectiles.trailLength')"
+                :min="3"
+                :max="35"
+                :step="1"
+              />
             </div>
           </div>
 
-          <!-- Bottom Footer Action Bar -->
-          <div class="h-14 shrink-0 bg-slate-900/90 border-t border-slate-800 px-4 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-400">ID:</span>
-              <span class="text-xs font-mono font-bold text-amber-400">{{ currentForm.id }}</span>
+          <!-- TAB 3: IMPACT & EXPLOSIONS -->
+          <div v-if="activeTab === 'impact'" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">{{ t('projectiles.sparkType') }}</label>
+                <select
+                  v-model="currentForm.sparkType"
+                  class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+                >
+                  <option value="fire_ember">🔥 {{ t('projectiles.sparkFireEmber') }}</option>
+                  <option value="ice_shard">❄️ {{ t('projectiles.sparkIceShard') }}</option>
+                  <option value="snowflake">❄️ {{ t('projectiles.sparkSnowflake') }}</option>
+                  <option value="lightning_arc">⚡ {{ t('projectiles.sparkLightningArc') }}</option>
+                  <option value="acid_drop">🧪 {{ t('projectiles.sparkAcidDrop') }}</option>
+                  <option value="arcane_star">🔮 {{ t('projectiles.sparkArcaneStar') }}</option>
+                  <option value="void_blood">💀 {{ t('projectiles.sparkVoidBlood') }}</option>
+                  <option value="shrapnel">🏹 {{ t('projectiles.sparkShrapnel') }}</option>
+                  <option value="holy_cross">✨ {{ t('projectiles.sparkHolyCross') }}</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-4 pt-4">
+                <UiSwitch
+                  v-model="currentForm.hasDoubleRing"
+                  :label="t('projectiles.doubleRing')"
+                  size="sm"
+                />
+              </div>
             </div>
 
-            <div class="flex items-center gap-2">
-              <UiButton
-                variant="secondary"
-                size="sm"
-                :leading-icon="Copy"
-                @click="handleDuplicate"
-              >
-                {{ t('projectiles.duplicate') }}
-              </UiButton>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+              <UiSlider
+                v-model="currentForm.sparkCount"
+                :label="t('projectiles.sparkCount')"
+                :min="6"
+                :max="60"
+                :step="2"
+              />
+              <UiSlider
+                v-model="currentForm.shockwaveRadius"
+                :label="t('projectiles.shockwaveRadius')"
+                :min="10"
+                :max="80"
+                :step="1"
+                unit="px"
+              />
+            </div>
+          </div>
 
-              <UiButton
-                variant="game-amber"
-                size="sm"
-                :leading-icon="Save"
-                @click="handleSave"
-              >
-                {{ t('projectiles.save') }}
-              </UiButton>
+          <!-- TAB 4: PIXIJS CODE INSPECTOR (Real-time Code Generator) -->
+          <div v-if="activeTab === 'code'" class="space-y-4">
+            <!-- Header with Copy Button -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <FileCode class="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 class="text-xs font-bold text-slate-100">PixiJS 8 Rendering Routine</h3>
+                  <span class="text-[10px] text-slate-400 font-mono">{{ currentForm.id }}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span v-if="isCodeCopied" class="text-xs font-semibold text-emerald-400 flex items-center gap-1 animate-pulse">
+                  <Check class="w-3.5 h-3.5" />
+                  {{ t('projectiles.codeCopied') }}
+                </span>
+                <UiButton
+                  :variant="isCodeCopied ? 'game-green' : 'game-amber'"
+                  size="sm"
+                  :leading-icon="isCodeCopied ? Check : Copy"
+                  @click="copyPixiCode"
+                >
+                  {{ isCodeCopied ? t('projectiles.codeCopied') : t('projectiles.copyPixiCode') }}
+                </UiButton>
+              </div>
+            </div>
+
+            <!-- Syntax-Highlighted Code Container with Click to Select / Copy -->
+            <div class="relative rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-2xl group">
+              <div class="flex items-center justify-between px-3 py-1.5 bg-slate-900/90 border-b border-slate-800 text-[10px] font-mono text-slate-400">
+                <span>TypeScript / PixiJS 8</span>
+                <button
+                  type="button"
+                  class="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 cursor-pointer"
+                  @click="copyPixiCode"
+                >
+                  <Copy class="w-3 h-3" />
+                  <span>{{ t('projectiles.copyPixiCode') }}</span>
+                </button>
+              </div>
+              <textarea
+                ref="codeTextAreaRef"
+                readonly
+                :value="generatedPixiCode"
+                rows="14"
+                class="w-full p-3.5 text-[11px] font-mono text-slate-200 bg-slate-950 border-0 focus:outline-hidden resize-none select-text cursor-text leading-relaxed custom-scrollbar"
+                @focus="handleCodeFocus"
+                @click="handleCodeClick"
+              />
+            </div>
+
+            <!-- Repository Code Architecture Guide Card -->
+            <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-2.5">
+              <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <Sparkles class="w-3.5 h-3.5" />
+                {{ t('projectiles.fileLocation') }} (Loyihadagi Joylashuvi):
+              </h4>
+              <div class="space-y-1.5 text-[11px] text-slate-300 font-mono">
+                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span>🎨 <b>src/utils/projectileEffectRenderer.ts</b></span>
+                  <span class="text-[10px] text-slate-400">renderPixiProjectileHead()</span>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span>⚔️ <b>src/rendering/pixi/CombatRenderer.ts</b></span>
+                  <span class="text-[10px] text-slate-400">renderCombat() / Trails & Rings</span>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span>💾 <b>src/stores/projectileStore.ts</b></span>
+                  <span class="text-[10px] text-slate-400">Pinia Store & LocalStorage</span>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span>📚 <b>src/utils/projectileCatalog.ts</b></span>
+                  <span class="text-[10px] text-slate-400">Unified getProjectileDef()</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Bottom Footer Action Bar -->
+        <div class="h-14 shrink-0 bg-slate-900/90 border-t border-slate-800 px-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">ID:</span>
+            <span class="text-xs font-mono font-bold text-amber-400">{{ currentForm.id }}</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <UiButton
+              variant="secondary"
+              size="sm"
+              :leading-icon="Copy"
+              @click="handleDuplicate"
+            >
+              {{ t('projectiles.duplicate') }}
+            </UiButton>
+
+            <UiButton
+              variant="game-amber"
+              size="sm"
+              :leading-icon="Save"
+              @click="handleSave"
+            >
+              {{ t('projectiles.save') }}
+            </UiButton>
+          </div>
+        </div>
+      </div>
 
       <!-- RIGHT SIDEBAR: PROJECTILES EXPLORER LIST -->
       <div class="w-full lg:w-88 xl:w-96 flex flex-col bg-slate-900/80 border-l border-slate-800/80 overflow-hidden">
@@ -431,7 +578,7 @@
               variant="game-green"
               size="sm"
               :leading-icon="Plus"
-              @click="handleCreateNew"
+              @click="handleCreateClean"
             >
               {{ t('common.create') }}
             </UiButton>
@@ -521,7 +668,7 @@
                   {{ proj.category }}
                 </span>
                 <span class="text-[9px] font-mono text-slate-400">
-                  {{ proj.formation }}
+                  {{ proj.shape || proj.formation }}
                 </span>
               </div>
 
@@ -533,7 +680,6 @@
             <!-- Right Actions -->
             <div class="flex items-center gap-1">
               <UiIconButton
-                v-if="proj.isCustom"
                 variant="danger"
                 size="xs"
                 :icon="Trash2"
@@ -563,6 +709,9 @@ import {
   Plus,
   Trash2,
   Search,
+  FileCode,
+  Sparkles,
+  Check,
 } from 'lucide-vue-next'
 import {
   UiButton,
@@ -584,6 +733,8 @@ import { PROJECTILE_CATEGORIES } from '../utils/projectileCatalog'
 import {
   getProjectileTheme,
   renderCanvasProjectileHead,
+  renderCanvasProjectileTrail,
+  generatePixiCodeSnippet,
 } from '../utils/projectileEffectRenderer'
 import { useI18n } from '../stores/i18nStore'
 
@@ -610,6 +761,26 @@ const activeTab = ref('shape')
 const searchQuery = ref('')
 const selectedCategory = ref<ProjectileCategory | 'all'>('all')
 
+// Aiming & Direction test modes
+type AimMode = 'single' | 'burst_8' | 'nova_16' | 'turret_spin' | 'moving_target'
+const aimMode = ref<AimMode>('single')
+const isCodeCopied = ref(false)
+
+const aimModes = computed(() => [
+  { id: 'single' as AimMode, label: '🎯 ' + t('projectiles.aimModeSingle') },
+  { id: 'burst_8' as AimMode, label: '✨ ' + t('projectiles.aimModeBurst8') },
+  { id: 'nova_16' as AimMode, label: '💥 ' + t('projectiles.aimModeNova16') },
+  { id: 'turret_spin' as AimMode, label: '🔄 ' + t('projectiles.aimModeTurretSpin') },
+  { id: 'moving_target' as AimMode, label: '🏃 ' + t('projectiles.aimModeMovingTarget') },
+])
+
+const trailStyleOptions = computed(() => [
+  { id: 'solid_line', label: t('projectiles.trailStyleSolid'), icon: '➖' },
+  { id: 'glow_streak', label: t('projectiles.trailStyleGlow'), icon: '✨' },
+  { id: 'particles', label: t('projectiles.trailStyleParticles'), icon: '⚪' },
+  { id: 'none', label: t('projectiles.trailStyleNone'), icon: '🚫' },
+])
+
 const arenaCanvasRef = ref<HTMLCanvasElement | null>(null)
 const sidebarCanvasMap = new Map<string, HTMLCanvasElement>()
 
@@ -630,16 +801,16 @@ const currentForm = reactive<ProjectileConfig>({
   description: 'Yorqin olov shari va yonuvchi cho\'g\' dumi',
   formation: 'single',
   shape: 'circle',
-  size: 10,
+  size: 6,
   length: 24,
   points: 4,
-  satelliteCount: 3,
+  satelliteCount: 0,
   hasArc: true,
   isLaser: false,
   colorHex: 0xf97316,
   colorCss: '#f97316',
   trailColorHex: 0xf97316,
-  trailColorCss: 'rgba(249, 115, 22, 0.7)',
+  trailColorCss: '#f97316',
   sparkColorHex: 0xfbbf24,
   sparkColorCss: '#fbbf24',
   shockwaveColorHex: 0xef4444,
@@ -647,11 +818,24 @@ const currentForm = reactive<ProjectileConfig>({
   trailAlpha: 0.7,
   trailLength: 8,
   trailWidth: 4,
+  trailStyle: 'solid_line',
   sparkType: 'fire_ember',
   sparkCount: 16,
   shockwaveRadius: 22,
   hasDoubleRing: true,
 })
+
+const codeTextAreaRef = ref<HTMLTextAreaElement | null>(null)
+
+function handleCodeFocus(e: FocusEvent) {
+  const target = e.target as HTMLTextAreaElement
+  target?.select()
+}
+
+function handleCodeClick(e: MouseEvent) {
+  const target = e.target as HTMLTextAreaElement
+  target?.select()
+}
 
 const lengthModel = computed<number>({
   get: () => currentForm.length ?? 24,
@@ -659,7 +843,7 @@ const lengthModel = computed<number>({
 })
 
 const satellitesModel = computed<number>({
-  get: () => currentForm.satelliteCount ?? 3,
+  get: () => currentForm.satelliteCount ?? 0,
   set: (val: number) => { currentForm.satelliteCount = val }
 })
 
@@ -668,21 +852,77 @@ const pointsModel = computed<number>({
   set: (val: number) => { currentForm.points = val }
 })
 
+const generatedPixiCode = computed(() => {
+  return generatePixiCodeSnippet(currentForm)
+})
+
+async function copyPixiCode() {
+  const code = generatedPixiCode.value
+  let copied = false
+
+  // Method 1: Modern Clipboard API
+  if (navigator?.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(code)
+      copied = true
+    } catch (err) {
+      console.warn('Clipboard writeText failed, falling back:', err)
+    }
+  }
+
+  // Method 2: execCommand fallback with textarea
+  if (!copied) {
+    try {
+      if (codeTextAreaRef.value) {
+        codeTextAreaRef.value.focus()
+        codeTextAreaRef.value.select()
+        copied = document.execCommand('copy')
+      } else {
+        const textArea = document.createElement('textarea')
+        textArea.value = code
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-9999px'
+        textArea.style.top = '0'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        copied = document.execCommand('copy')
+        document.body.removeChild(textArea)
+      }
+    } catch (err) {
+      console.error('execCommand copy failed:', err)
+    }
+  }
+
+  isCodeCopied.value = true
+  setTimeout(() => {
+    isCodeCopied.value = false
+  }, 2500)
+}
+
 function selectProjectile(proj: ProjectileConfig) {
   Object.assign(currentForm, JSON.parse(JSON.stringify(proj)))
-  // Keep hex colors in sync with CSS
+  if (currentForm.satelliteCount === undefined) currentForm.satelliteCount = 0
+  if (!currentForm.trailStyle) currentForm.trailStyle = 'solid_line'
   syncHexColors()
 }
 
 function syncHexColors() {
   currentForm.colorHex = parseInt(currentForm.colorCss.replace('#', ''), 16) || 0xf97316
-  currentForm.sparkColorHex = parseInt(currentForm.sparkColorCss.replace('#', ''), 16) || 0xfbbf24
-  currentForm.shockwaveColorHex = parseInt(currentForm.shockwaveColorCss.replace('#', ''), 16) || 0xef4444
+  currentForm.trailColorHex = parseInt(currentForm.trailColorCss.replace('#', ''), 16) || 0xfbbf24
+  currentForm.sparkColorHex = parseInt(currentForm.sparkColorCss.replace('#', ''), 16) || 0xfef08a
+  currentForm.shockwaveColorHex = parseInt(currentForm.shockwaveColorCss.replace('#', ''), 16) || 0xf97316
 }
 
-watch(() => [currentForm.colorCss, currentForm.sparkColorCss, currentForm.shockwaveColorCss], () => {
+watch(() => [currentForm.colorCss, currentForm.trailColorCss, currentForm.sparkColorCss, currentForm.shockwaveColorCss], () => {
   syncHexColors()
 })
+
+// Auto-save any modification directly to store
+watch(() => ({ ...currentForm }), () => {
+  syncHexColors()
+  projectileStore.updateProjectile(currentForm.id, { ...currentForm })
+}, { deep: true })
 
 const filteredList = computed(() => {
   let list = projectileStore.allProjectiles
@@ -700,38 +940,9 @@ const filteredList = computed(() => {
   return list
 })
 
-function handleCreateNew() {
-  const newProj = projectileStore.addCustomProjectile({
-    id: `custom_${Date.now()}`,
-    name: 'New Custom Projectile',
-    nameUz: 'Yangi Maxsus Snaryad',
-    category: selectedCategory.value === 'all' ? 'fire' : selectedCategory.value,
-    description: 'Yangi yaratilgan maxsus snaryad',
-    formation: 'single',
-    shape: 'circle',
-    size: 10,
-    length: 22,
-    points: 4,
-    satelliteCount: 3,
-    hasArc: true,
-    isLaser: false,
-    colorHex: 0xf97316,
-    colorCss: '#f97316',
-    trailColorHex: 0xf97316,
-    trailColorCss: 'rgba(249, 115, 22, 0.75)',
-    sparkColorHex: 0xfbbf24,
-    sparkColorCss: '#fbbf24',
-    shockwaveColorHex: 0xef4444,
-    shockwaveColorCss: '#ef4444',
-    trailAlpha: 0.75,
-    trailLength: 8,
-    trailWidth: 4,
-    sparkType: 'fire_ember',
-    sparkCount: 16,
-    shockwaveRadius: 22,
-    hasDoubleRing: false,
-  })
-  selectProjectile(newProj)
+function handleCreateClean() {
+  const blank = projectileStore.createBlankProjectile(selectedCategory.value === 'all' ? 'fire' : selectedCategory.value)
+  selectProjectile(blank)
 }
 
 function handleSave() {
@@ -794,6 +1005,8 @@ function handleBack() {
 let animFrameId: number | null = null
 let lastTime = 0
 let shootTimer = 0
+let turretAngle = 0
+let movingTargetAngle = 0
 const shootIntervalSec = 0.65
 
 interface LiveArenaProj {
@@ -856,6 +1069,19 @@ const arenaDamageTexts: LiveFloatingText[] = []
 // Target dummy state
 let dummyHitTimer = 0
 let dummyHealth = 1.0
+let customTargetPos: { x: number; y: number } | null = null
+
+function handleArenaClick(e: MouseEvent) {
+  if (!arenaCanvasRef.value) return
+  const canvas = arenaCanvasRef.value
+  const rect = canvas.getBoundingClientRect()
+  const dpr = window.devicePixelRatio || 1
+  const clickX = ((e.clientX - rect.left) / rect.width) * (canvas.width / dpr)
+  const clickY = ((e.clientY - rect.top) / rect.height) * (canvas.height / dpr)
+  customTargetPos = { x: clickX, y: clickY }
+  aimMode.value = 'single'
+  spawnManualShot()
+}
 
 function spawnManualShot() {
   if (!arenaCanvasRef.value) return
@@ -864,72 +1090,69 @@ function spawnManualShot() {
   const w = canvas.width / dpr
   const h = canvas.height / dpr
 
-  // 2.5D Isometric Positions: Tower at lower-left, Target dummy at upper-right
-  const startX = w * 0.22
-  const startY = h * 0.74 - 18 // Muzzle height
-  const targetX = w * 0.78
-  const targetY = h * 0.26 - 12 // Dummy chest height
+  const towerCenterX = w * 0.5
+  const towerCenterY = h * 0.5 + 8
+  const startX = aimMode.value === 'single' ? w * 0.22 : towerCenterX
+  const startY = aimMode.value === 'single' ? h * 0.74 - 18 : towerCenterY - 18
 
   const dur = currentForm.isLaser ? 0.35 : 0.65
   const form = currentForm.formation || 'single'
 
-  if (form === 'volley_3') {
-    // 3 projectiles fired in a spread fan
-    const offsets = [-14, 0, 14]
-    offsets.forEach((off, idx) => {
+  if (aimMode.value === 'burst_8') {
+    // 8-Way Burst in 45° increments
+    for (let d = 0; d < 8; d++) {
+      const ang = (d * Math.PI * 2) / 8
+      const radius = w * 0.38
+      const tX = startX + Math.cos(ang) * radius
+      const tY = startY + Math.sin(ang) * radius * 0.5
       arenaProjectiles.push({
         id: ++projSeq,
         startX,
         startY,
-        targetX: targetX + off * 0.6,
-        targetY: targetY + off * 0.3,
+        targetX: tX,
+        targetY: tY,
         currentX: startX,
         currentY: startY,
         progress: 0,
         speed: 1 / dur,
-        offsetPerp: off,
-        phaseOffset: idx * 0.3,
+        offsetPerp: 0,
+        phaseOffset: 0,
         trail: [],
       })
-    })
-  } else if (form === 'twin_helix') {
-    // 2 intertwined swirling projectiles
+    }
+  } else if (aimMode.value === 'nova_16') {
+    // 16-Way Nova in 22.5° increments
+    for (let d = 0; d < 16; d++) {
+      const ang = (d * Math.PI * 2) / 16
+      const radius = w * 0.42
+      const tX = startX + Math.cos(ang) * radius
+      const tY = startY + Math.sin(ang) * radius * 0.5
+      arenaProjectiles.push({
+        id: ++projSeq,
+        startX,
+        startY,
+        targetX: tX,
+        targetY: tY,
+        currentX: startX,
+        currentY: startY,
+        progress: 0,
+        speed: 1 / dur,
+        offsetPerp: 0,
+        phaseOffset: 0,
+        trail: [],
+      })
+    }
+  } else if (aimMode.value === 'turret_spin') {
+    // Single shot in currently rotating turret angle
+    const radius = w * 0.4
+    const tX = startX + Math.cos(turretAngle) * radius
+    const tY = startY + Math.sin(turretAngle) * radius * 0.5
     arenaProjectiles.push({
       id: ++projSeq,
       startX,
       startY,
-      targetX,
-      targetY,
-      currentX: startX,
-      currentY: startY,
-      progress: 0,
-      speed: 1 / dur,
-      offsetPerp: 10,
-      phaseOffset: 0,
-      trail: [],
-    })
-    arenaProjectiles.push({
-      id: ++projSeq,
-      startX,
-      startY,
-      targetX,
-      targetY,
-      currentX: startX,
-      currentY: startY,
-      progress: 0,
-      speed: 1 / dur,
-      offsetPerp: -10,
-      phaseOffset: Math.PI,
-      trail: [],
-    })
-  } else {
-    // Single / Satellites / Laser
-    arenaProjectiles.push({
-      id: ++projSeq,
-      startX,
-      startY,
-      targetX,
-      targetY,
+      targetX: tX,
+      targetY: tY,
       currentX: startX,
       currentY: startY,
       progress: 0,
@@ -938,6 +1161,94 @@ function spawnManualShot() {
       phaseOffset: 0,
       trail: [],
     })
+  } else if (aimMode.value === 'moving_target') {
+    // Target moving dummy
+    const movX = towerCenterX + Math.cos(movingTargetAngle) * (w * 0.36)
+    const movY = towerCenterY + Math.sin(movingTargetAngle) * (w * 0.18) - 12
+    arenaProjectiles.push({
+      id: ++projSeq,
+      startX,
+      startY,
+      targetX: movX,
+      targetY: movY,
+      currentX: startX,
+      currentY: startY,
+      progress: 0,
+      speed: 1 / dur,
+      offsetPerp: 0,
+      phaseOffset: 0,
+      trail: [],
+    })
+  } else {
+    // Single / Click-to-Aim / Standard Dummy
+    const defaultTargetX = w * 0.78
+    const defaultTargetY = h * 0.26 - 12
+    const targetX = customTargetPos ? customTargetPos.x : defaultTargetX
+    const targetY = customTargetPos ? customTargetPos.y : defaultTargetY
+
+    if (form === 'volley_3') {
+      const offsets = [-14, 0, 14]
+      offsets.forEach((off, idx) => {
+        arenaProjectiles.push({
+          id: ++projSeq,
+          startX,
+          startY,
+          targetX: targetX + off * 0.6,
+          targetY: targetY + off * 0.3,
+          currentX: startX,
+          currentY: startY,
+          progress: 0,
+          speed: 1 / dur,
+          offsetPerp: off,
+          phaseOffset: idx * 0.3,
+          trail: [],
+        })
+      })
+    } else if (form === 'twin_helix') {
+      arenaProjectiles.push({
+        id: ++projSeq,
+        startX,
+        startY,
+        targetX,
+        targetY,
+        currentX: startX,
+        currentY: startY,
+        progress: 0,
+        speed: 1 / dur,
+        offsetPerp: 10,
+        phaseOffset: 0,
+        trail: [],
+      })
+      arenaProjectiles.push({
+        id: ++projSeq,
+        startX,
+        startY,
+        targetX,
+        targetY,
+        currentX: startX,
+        currentY: startY,
+        progress: 0,
+        speed: 1 / dur,
+        offsetPerp: -10,
+        phaseOffset: Math.PI,
+        trail: [],
+      })
+    } else {
+      arenaProjectiles.push({
+        id: ++projSeq,
+        startX,
+        startY,
+        targetX,
+        targetY,
+        currentX: startX,
+        currentY: startY,
+        progress: 0,
+        speed: 1 / dur,
+        offsetPerp: 0,
+        phaseOffset: 0,
+        trail: [],
+      })
+    }
   }
 }
 
@@ -948,7 +1259,7 @@ function handleArenaImpact(p: LiveArenaProj) {
   dummyHealth = Math.max(0.15, dummyHealth - 0.25)
 
   // 1. Shockwave
-  const shockR = currentForm.shockwaveRadius || 26
+  const shockR = currentForm.shockwaveRadius || 24
   arenaShockwaves.push({
     x: p.targetX,
     y: p.targetY,
@@ -1002,7 +1313,7 @@ function handleArenaImpact(p: LiveArenaProj) {
     x: p.targetX + (Math.random() - 0.5) * 20,
     y: p.targetY - 14,
     vy: -45,
-    text: isCrit ? '-240 CRIT!' : `-${110 + Math.floor(Math.random() * 40)}`,
+    text: isCrit ? '-380 CRIT!' : `-${120 + Math.floor(Math.random() * 50)}`,
     color: isCrit ? '#fbbf24' : '#ef4444',
     alpha: 1.0,
     life: 0.6,
@@ -1040,9 +1351,14 @@ function renderStudioArena(time: number) {
   const dt = Math.min(0.1, (time - lastTime) / 1000)
   lastTime = time
 
+  // Turret continuous rotation & moving target animation
+  turretAngle += dt * 1.8
+  movingTargetAngle += dt * 0.9
+
   // Auto Shooting Interval
   shootTimer += dt
-  if (shootTimer >= shootIntervalSec) {
+  const activeInterval = aimMode.value === 'turret_spin' ? 0.15 : shootIntervalSec
+  if (shootTimer >= activeInterval) {
     shootTimer = 0
     spawnManualShot()
   }
@@ -1092,25 +1408,23 @@ function renderStudioArena(time: number) {
     }
   }
 
-  // 3. Firing Trajectory Path (Dashed Isometric Diagonal Line)
-  const towerBaseX = w * 0.22
-  const towerBaseY = h * 0.74
+  // 3. Firing Positions
+  const isCenterTower = aimMode.value !== 'single'
+  const towerBaseX = isCenterTower ? w * 0.5 : w * 0.22
+  const towerBaseY = isCenterTower ? h * 0.5 + 8 : h * 0.74
   const muzzleX = towerBaseX
   const muzzleY = towerBaseY - 18
 
-  const dummyBaseX = w * 0.78
-  const dummyBaseY = h * 0.26
+  const defaultDummyX = w * 0.78
+  const defaultDummyY = h * 0.26
+  const dummyBaseX = aimMode.value === 'moving_target'
+    ? w * 0.5 + Math.cos(movingTargetAngle) * (w * 0.36)
+    : customTargetPos ? customTargetPos.x : defaultDummyX
+  const dummyBaseY = aimMode.value === 'moving_target'
+    ? h * 0.5 + Math.sin(movingTargetAngle) * (w * 0.18) + 12
+    : customTargetPos ? customTargetPos.y + 12 : defaultDummyY
   const dummyHitX = dummyBaseX
   const dummyHitY = dummyBaseY - 12
-
-  ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)'
-  ctx.lineWidth = 1
-  ctx.setLineDash([4, 4])
-  ctx.beginPath()
-  ctx.moveTo(muzzleX, muzzleY)
-  ctx.lineTo(dummyHitX, dummyHitY)
-  ctx.stroke()
-  ctx.setLineDash([])
 
   // Range Circle around Tower (Isometric Ellipse)
   ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)'
@@ -1121,16 +1435,13 @@ function renderStudioArena(time: number) {
   ctx.stroke()
   ctx.setLineDash([])
 
-  // 4. Draw Tower Base Pedestal (Lower-Left)
-  // Base shadow
+  // 4. Draw Tower Base Pedestal
   ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'
   ctx.beginPath()
   ctx.ellipse(towerBaseX, towerBaseY + 6, 26, 13, 0, 0, Math.PI * 2)
   ctx.fill()
 
-  // 2.5D Isometric stone pedestal
   drawIsoTile(ctx, towerBaseX, towerBaseY, 44, 22, '#1e293b', '#334155')
-  // Pedestal side thickness
   ctx.fillStyle = '#0f172a'
   ctx.beginPath()
   ctx.moveTo(towerBaseX - 22, towerBaseY)
@@ -1144,8 +1455,11 @@ function renderStudioArena(time: number) {
   ctx.strokeStyle = '#334155'
   ctx.stroke()
 
-  // Turret Cannon Mount & Barrel angled towards dummy
-  const aimAngle = Math.atan2(dummyHitY - muzzleY, dummyHitX - muzzleX)
+  // Turret Cannon Mount & Barrel angled
+  const targetAngle = aimMode.value === 'turret_spin'
+    ? turretAngle
+    : Math.atan2(dummyHitY - muzzleY, dummyHitX - muzzleX)
+
   ctx.save()
   ctx.translate(muzzleX, muzzleY)
 
@@ -1159,7 +1473,7 @@ function renderStudioArena(time: number) {
   ctx.stroke()
 
   // Cannon barrel
-  ctx.rotate(aimAngle)
+  ctx.rotate(targetAngle)
   ctx.fillStyle = '#0f172a'
   ctx.strokeStyle = '#334155'
   ctx.lineWidth = 1.8
@@ -1168,68 +1482,66 @@ function renderStudioArena(time: number) {
   ctx.fill()
   ctx.stroke()
 
-  // Neutral mechanical core
-  ctx.fillStyle = '#64748b'
+  // Mechanical energy core
+  ctx.fillStyle = currentForm.colorCss || '#f97316'
   ctx.beginPath()
   ctx.arc(0, 0, 3.5, 0, Math.PI * 2)
   ctx.fill()
   ctx.restore()
 
-  // 5. Draw Target Dummy (Upper-Right)
-  // Dummy shadow
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
-  ctx.beginPath()
-  ctx.ellipse(dummyBaseX, dummyBaseY + 4, 20, 10, 0, 0, Math.PI * 2)
-  ctx.fill()
+  // 5. Draw Target Dummy
+  if (aimMode.value === 'single' || aimMode.value === 'moving_target') {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
+    ctx.beginPath()
+    ctx.ellipse(dummyBaseX, dummyBaseY + 4, 20, 10, 0, 0, Math.PI * 2)
+    ctx.fill()
 
-  // Dummy base tile
-  drawIsoTile(ctx, dummyBaseX, dummyBaseY, 36, 18, '#1e293b', '#334155')
+    drawIsoTile(ctx, dummyBaseX, dummyBaseY, 36, 18, '#1e293b', '#334155')
 
-  // Dummy figure with shake when hit
-  const shakeX = dummyHitTimer > 0 ? (Math.random() - 0.5) * 5 : 0
-  const isDummyFlashing = dummyHitTimer > 0.08
-  const dummyDrawX = dummyBaseX + shakeX
+    const shakeX = dummyHitTimer > 0 ? (Math.random() - 0.5) * 5 : 0
+    const isDummyFlashing = dummyHitTimer > 0.08
+    const dummyDrawX = dummyBaseX + shakeX
 
-  ctx.save()
-  // Body post
-  ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#78350f'
-  ctx.fillRect(dummyDrawX - 2.5, dummyBaseY - 24, 5, 24)
+    ctx.save()
+    // Body post
+    ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#78350f'
+    ctx.fillRect(dummyDrawX - 2.5, dummyBaseY - 24, 5, 24)
 
-  // Crossarms
-  ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#92400e'
-  ctx.fillRect(dummyDrawX - 12, dummyBaseY - 18, 24, 5)
+    // Crossarms
+    ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#92400e'
+    ctx.fillRect(dummyDrawX - 12, dummyBaseY - 18, 24, 5)
 
-  // Target head/torso shield
-  ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#b45309'
-  ctx.strokeStyle = '#78350f'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.arc(dummyDrawX, dummyBaseY - 14, 9, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.stroke()
+    // Target head/torso shield
+    ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#b45309'
+    ctx.strokeStyle = '#78350f'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.arc(dummyDrawX, dummyBaseY - 14, 9, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
 
-  // Target bullseye
-  ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#78350f'
-  ctx.beginPath()
-  ctx.arc(dummyDrawX, dummyBaseY - 14, 4, 0, Math.PI * 2)
-  ctx.fill()
+    // Target bullseye
+    ctx.fillStyle = isDummyFlashing ? '#ffffff' : '#78350f'
+    ctx.beginPath()
+    ctx.arc(dummyDrawX, dummyBaseY - 14, 4, 0, Math.PI * 2)
+    ctx.fill()
 
-  // Floating Health Bar above Dummy
-  const barW = 32
-  const barH = 4.5
-  const barX = dummyDrawX - barW * 0.5
-  const barY = dummyBaseY - 32
+    // Floating Health Bar above Dummy
+    const barW = 32
+    const barH = 4.5
+    const barX = dummyDrawX - barW * 0.5
+    const barY = dummyBaseY - 32
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
-  ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2)
-  ctx.fillStyle = '#334155'
-  ctx.fillRect(barX, barY, barW, barH)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+    ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2)
+    ctx.fillStyle = '#334155'
+    ctx.fillRect(barX, barY, barW, barH)
 
-  // Fill HP
-  const hpFill = Math.max(0, Math.min(1, dummyHealth))
-  ctx.fillStyle = hpFill > 0.4 ? '#22c55e' : '#ef4444'
-  ctx.fillRect(barX, barY, barW * hpFill, barH)
-  ctx.restore()
+    const hpFill = Math.max(0, Math.min(1, dummyHealth))
+    ctx.fillStyle = hpFill > 0.4 ? '#22c55e' : '#ef4444'
+    ctx.fillRect(barX, barY, barW * hpFill, barH)
+    ctx.restore()
+  }
 
   // 6. Shockwaves
   for (let i = arenaShockwaves.length - 1; i >= 0; i--) {
@@ -1256,7 +1568,7 @@ function renderStudioArena(time: number) {
     if (sw.life <= 0) arenaShockwaves.splice(i, 1)
   }
 
-  // 7. Projectiles (True Ballistic Derivative Tangent)
+  // 7. Projectiles (True Ballistic Derivative Tangent & Trail styles)
   for (let i = arenaProjectiles.length - 1; i >= 0; i--) {
     const p = arenaProjectiles[i]
     p.progress += p.speed * dt
@@ -1265,14 +1577,10 @@ function renderStudioArena(time: number) {
     const dy = p.targetY - p.startY
     const arcHeight = !currentForm.hasArc ? 0 : w * 0.16
 
-    // Baseline isometric diagonal position
     const baseX = p.startX + dx * p.progress
     const baseY = p.startY + dy * p.progress
-
-    // Height offset from parabolic arc
     const arcY = currentForm.hasArc ? Math.sin(p.progress * Math.PI) * arcHeight : 0
 
-    // Lateral offset for twin helix / volley
     let lateralX = 0
     let lateralY = 0
     if (p.offsetPerp !== 0) {
@@ -1291,23 +1599,11 @@ function renderStudioArena(time: number) {
 
     // Record trail
     p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: currentForm.trailWidth || 4 })
-    if (p.trail.length > (currentForm.trailLength || 8)) p.trail.shift()
+    const maxTrailLen = Math.max(3, currentForm.trailLength || 10)
+    if (p.trail.length > maxTrailLen) p.trail.shift()
 
-    const theme = getProjectileTheme(currentForm.id, currentForm.colorHex)
-
-    // Render Trail
-    for (let t = 0; t < p.trail.length; t++) {
-      const pt = p.trail[t]
-      pt.alpha = Math.max(0, pt.alpha - 0.05)
-      if (pt.alpha <= 0) continue
-
-      ctx.beginPath()
-      ctx.arc(pt.x, pt.y, Math.max(1, (t / p.trail.length) * (currentForm.trailWidth || 4)), 0, Math.PI * 2)
-      ctx.fillStyle = currentForm.trailColorCss || theme.trailColorCss
-      ctx.globalAlpha = pt.alpha * (currentForm.trailAlpha || 0.75)
-      ctx.fill()
-      ctx.globalAlpha = 1.0
-    }
+    // Render Unified Trail
+    renderCanvasProjectileTrail(ctx, p.trail, currentForm, time)
 
     // Exact Ballistic Derivative Angle Calculation
     const vx = dx
@@ -1398,12 +1694,8 @@ function renderStudioArena(time: number) {
         ctx.moveTo(-sp.size * 1.3, 0)
         ctx.lineTo(sp.size * 1.3, 0)
         ctx.moveTo(0, -sp.size * 1.3)
-        ctx.lineTo(0, -sp.size * 1.3)
+        ctx.lineTo(0, sp.size * 1.3)
         ctx.stroke()
-        ctx.fillStyle = '#ffffff'
-        ctx.beginPath()
-        ctx.arc(0, 0, sp.size * 0.35, 0, Math.PI * 2)
-        ctx.fill()
       } else {
         ctx.beginPath()
         ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2)
@@ -1413,98 +1705,94 @@ function renderStudioArena(time: number) {
       ctx.restore()
     }
 
-    if (sp.life <= 0) arenaSparks.splice(i, 1)
+    if (sp.life <= 0) {
+      arenaSparks.splice(i, 1)
+    }
   }
 
-  // 9. Floating Combat Numbers
+  // 9. Floating Damage Numbers
   for (let i = arenaDamageTexts.length - 1; i >= 0; i--) {
-    const ft = arenaDamageTexts[i]
-    ft.y += ft.vy * dt
-    ft.life -= dt
-    ft.alpha = Math.max(0, ft.life / 0.6)
+    const dtItem = arenaDamageTexts[i]
+    dtItem.y += dtItem.vy * dt
+    dtItem.life -= dt
+    dtItem.alpha = Math.max(0, dtItem.life / 0.6)
 
     ctx.save()
+    ctx.globalAlpha = dtItem.alpha
     ctx.font = 'bold 12px monospace'
     ctx.textAlign = 'center'
-    ctx.globalAlpha = ft.alpha
-    ctx.strokeStyle = '#000000'
-    ctx.lineWidth = 3
-    ctx.strokeText(ft.text, ft.x, ft.y)
-    ctx.fillStyle = ft.color
-    ctx.fillText(ft.text, ft.x, ft.y)
+    ctx.fillStyle = '#000000'
+    ctx.fillText(dtItem.text, dtItem.x + 1, dtItem.y + 1)
+    ctx.fillStyle = dtItem.color
+    ctx.fillText(dtItem.text, dtItem.x, dtItem.y)
     ctx.restore()
 
-    if (ft.life <= 0) arenaDamageTexts.splice(i, 1)
-  }
-
-  // 10. Render Sidebar Miniature Canvases
-  for (const [projId, canvasEl] of sidebarCanvasMap.entries()) {
-    const cCtx = canvasEl.getContext('2d')
-    if (!cCtx) continue
-    const cw = canvasEl.width
-    const ch = canvasEl.height
-    cCtx.clearRect(0, 0, cw, ch)
-    cCtx.fillStyle = '#060a12'
-    cCtx.fillRect(0, 0, cw, ch)
-    renderCanvasProjectileHead(
-      cCtx,
-      projId,
-      cw * 0.5,
-      ch * 0.5,
-      -Math.PI * 0.25,
-      cw * 0.2,
-      ch * 0.8,
-      0.5,
-      time,
-      projId === currentForm.id ? currentForm : undefined
-    )
+    if (dtItem.life <= 0) {
+      arenaDamageTexts.splice(i, 1)
+    }
   }
 
   ctx.restore()
+
+  // Sidebar mini thumbnail renders
+  renderSidebarCanvases(time)
+
   animFrameId = requestAnimationFrame(renderStudioArena)
 }
 
-function handleResize() {
+function renderSidebarCanvases(time: number) {
+  for (const [id, sCanvas] of sidebarCanvasMap.entries()) {
+    const sCtx = sCanvas.getContext('2d')
+    if (!sCtx) continue
+
+    sCtx.clearRect(0, 0, 44, 44)
+    sCtx.save()
+
+    const proj = projectileStore.getProjectile(id)
+    if (proj) {
+      renderCanvasProjectileHead(
+        sCtx,
+        proj.id,
+        22,
+        22,
+        0,
+        22,
+        22,
+        1.0,
+        time,
+        proj
+      )
+    }
+    sCtx.restore()
+  }
+}
+
+function resizeArenaCanvas() {
   if (!arenaCanvasRef.value) return
-  const rect = arenaCanvasRef.value.getBoundingClientRect()
+  const canvas = arenaCanvasRef.value
   const dpr = window.devicePixelRatio || 1
-  const size = Math.max(180, Math.round(Math.min(rect.width, rect.height || rect.width)))
-  arenaCanvasRef.value.width = Math.round(size * dpr)
-  arenaCanvasRef.value.height = Math.round(size * dpr)
+  const rect = canvas.getBoundingClientRect()
+  if (rect.width > 0 && rect.height > 0) {
+    canvas.width = rect.width * dpr
+    canvas.height = rect.height * dpr
+  }
 }
 
 onMounted(() => {
-  handleResize()
-  window.addEventListener('resize', handleResize)
+  resizeArenaCanvas()
+  window.addEventListener('resize', resizeArenaCanvas)
+  animFrameId = requestAnimationFrame(renderStudioArena)
+
+  // Select initial projectile
   if (projectileStore.allProjectiles.length > 0) {
     selectProjectile(projectileStore.allProjectiles[0])
   }
-  animFrameId = requestAnimationFrame(renderStudioArena)
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', resizeArenaCanvas)
   if (animFrameId !== null) {
     cancelAnimationFrame(animFrameId)
-    animFrameId = null
   }
-  window.removeEventListener('resize', handleResize)
 })
 </script>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(245, 158, 11, 0.3);
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 158, 11, 0.6);
-}
-</style>

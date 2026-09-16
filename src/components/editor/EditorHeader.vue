@@ -281,6 +281,6 @@ function handleStartGame() {
     }
   ))
 
-  router.push(`/game/${cleanId}`)
+  router.push(`/editor-game/${cleanId}`)
 }
 </script>

@@ -272,7 +272,8 @@ export class CombatRenderer {
         const proj = isLocal ? towerStore.projectiles[i] : networkSyncBuffer.projectilesPool[i]
         if (!proj || (proj.active === false && !isLocal)) continue
         this.activeProjIds.add(proj.id)
-        const type = proj.projectileType || 'cannonball'
+        const type = proj.projectileType || 'fireball'
+        const projDef = getProjectileDef(type)
         const theme = getProjectileTheme(type, proj.color)
 
         const totalDist =
@@ -281,24 +282,35 @@ export class CombatRenderer {
           1
         const progress = Math.min(1.0, (proj.traveledDistance || 0) / totalDist)
 
-        const arcHeight =
+        const hasArc = theme.isLaser ? false : (projDef.hasArc === false || theme.hasArc === false ? false : Boolean(projDef.hasArc ?? theme.hasArc))
+        const arcMaxHeight =
           type === 'arrow'
-            ? Math.sin(progress * Math.PI) * Math.min(48, totalDist * 0.18)
-            : type === 'fire_splash'
-            ? Math.sin(progress * Math.PI) * Math.min(60, totalDist * 0.25)
-            : !theme.hasArc
-            ? 0
-            : Math.sin(progress * Math.PI) * Math.min(45, totalDist * 0.16)
-
-        const renderX = proj.currentX
-        const renderY = proj.currentY - arcHeight
-
-        const baseAngle = Math.atan2(proj.targetY - proj.currentY, proj.targetX - proj.currentX)
-        const arcSlope =
-          type === 'arrow'
-            ? -Math.cos(progress * Math.PI) * (arcHeight / Math.max(30, totalDist * 0.4)) * 1.2
+            ? Math.min(48, totalDist * 0.18)
+            : hasArc
+            ? Math.min(45, totalDist * 0.16)
             : 0
-        const angle = baseAngle + arcSlope
+
+        const arcHeight = arcMaxHeight > 0 ? Math.sin(progress * Math.PI) * arcMaxHeight : 0
+
+        const dx = proj.targetX - proj.startX
+        const dy = proj.targetY - proj.startY
+        let lateralX = 0
+        let lateralY = 0
+        if (projDef.formation === 'twin_helix') {
+          const len = Math.hypot(dx, dy) || 1
+          const perpX = -dy / len
+          const perpY = dx / len
+          const swirl = Math.sin(progress * Math.PI * 8) * 12
+          lateralX = perpX * swirl
+          lateralY = perpY * swirl * 0.5
+        }
+
+        const renderX = proj.currentX + lateralX
+        const renderY = proj.currentY - arcHeight + lateralY
+
+        const vx = dx
+        const vy = dy - (arcMaxHeight > 0 ? Math.cos(progress * Math.PI) * Math.PI * arcMaxHeight : 0)
+        const angle = Math.atan2(vy, vx)
 
         let trail = this.combatTrails.get(proj.id)
         if (!trail) {
@@ -306,26 +318,122 @@ export class CombatRenderer {
           this.combatTrails.set(proj.id, trail)
         }
         trail.push({ x: renderX, y: renderY, alpha: 1.0, size: 3.5 })
-        if (trail.length > 8) trail.shift()
+        const maxTrailLen = Math.max(3, projDef.trailLength ?? 8)
+        if (trail.length > maxTrailLen) trail.shift()
 
-        for (let t = 0; t < trail.length; t++) {
-          const pt = trail[t]
-          pt.alpha = Math.max(0, pt.alpha - 0.04)
-          if (pt.alpha <= 0) continue
+        const trailStyle = projDef.trailStyle || (projDef.shape === 'arrow' || projDef.shape === 'feather' ? 'particles' : 'solid_line')
+        const trailColor = projDef.trailColorHex ?? theme.trailColorHex ?? 0xfbbf24
+        const trailAlpha = projDef.trailAlpha ?? theme.trailAlpha ?? 0.8
+        const trailWidth = projDef.trailWidth ?? 4
+        const isFireProj = projDef.category === 'fire' || type.includes('flame') || type.includes('fire')
 
-          if (type === 'arrow') {
-            this.combatGraphics
-              .circle(pt.x, pt.y, 1.0)
-              .fill({ color: 0xf8fafc, alpha: pt.alpha * 0.25 })
-          } else {
-            const trailRadius = (t / trail.length) * 3.5
-            this.combatGraphics
-              .circle(pt.x, pt.y, Math.max(1, trailRadius))
-              .fill({ color: theme.trailColorHex, alpha: pt.alpha * theme.trailAlpha })
+        // Render Trail according to user preference (strictly respecting style)
+        if (trailStyle !== 'none' && !projDef.isLaser) {
+          if (trailStyle === 'particles') {
+            for (let t = 0; t < trail.length; t++) {
+              const pt = trail[t]
+              const frac = (t + 1) / trail.length
+              const trailRadius = frac * Math.max(1.0, trailWidth * 0.75)
+              this.combatGraphics
+                .circle(pt.x, pt.y, Math.max(0.8, trailRadius))
+                .fill({ color: trailColor, alpha: frac * trailAlpha })
+            }
+          } else if (trailStyle === 'glow_streak') {
+            if (trail.length >= 2) {
+              this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+              for (let t = 1; t < trail.length; t++) {
+                this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+              }
+              this.combatGraphics.stroke({
+                width: Math.max(1.5, trailWidth * 2.2),
+                color: trailColor,
+                alpha: trailAlpha * 0.35,
+                cap: 'round',
+                join: 'round',
+              })
+
+              this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+              for (let t = 1; t < trail.length; t++) {
+                this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+              }
+              this.combatGraphics.stroke({
+                width: Math.max(1.0, trailWidth),
+                color: trailColor,
+                alpha: trailAlpha * 0.95,
+                cap: 'round',
+                join: 'round',
+              })
+            }
+          } else if (trailStyle === 'solid_line') {
+            if (trail.length >= 2) {
+              if (isFireProj) {
+                // Layer 1: Outer Crimson Combustion Heat Shimmer
+                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+                for (let t = 1; t < trail.length; t++) {
+                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+                }
+                this.combatGraphics.stroke({
+                  width: Math.max(2.0, trailWidth * 2.8),
+                  color: 0xdc2626,
+                  alpha: trailAlpha * 0.35,
+                  cap: 'round',
+                  join: 'round',
+                })
+
+                // Layer 2: Mid Roaring Orange Flame Body
+                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+                for (let t = 1; t < trail.length; t++) {
+                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+                }
+                this.combatGraphics.stroke({
+                  width: Math.max(1.5, trailWidth * 1.6),
+                  color: 0xf97316,
+                  alpha: trailAlpha * 0.75,
+                  cap: 'round',
+                  join: 'round',
+                })
+
+                // Layer 3: Blazing Golden-Yellow Incandescent Core
+                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+                for (let t = 1; t < trail.length; t++) {
+                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+                }
+                this.combatGraphics.stroke({
+                  width: Math.max(1.0, trailWidth * 0.8),
+                  color: trailColor,
+                  alpha: trailAlpha * 0.95,
+                  cap: 'round',
+                  join: 'round',
+                })
+
+                // Layer 4: Floating Micro-Embers along trail path
+                for (let t = 0; t < trail.length - 1; t += 2) {
+                  const pt = trail[t]
+                  const eJitterX = Math.sin(nowTime * 0.01 + t * 4) * 2.0
+                  const eJitterY = Math.cos(nowTime * 0.01 + t * 4) * 2.0
+                  const eFrac = (t + 1) / trail.length
+                  this.combatGraphics
+                    .circle(pt.x + eJitterX, pt.y + eJitterY, Math.max(1.0, 2.0 * eFrac))
+                    .fill({ color: t % 4 === 0 ? 0xffffff : 0xfef08a, alpha: eFrac * 0.9 })
+                }
+              } else {
+                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
+                for (let t = 1; t < trail.length; t++) {
+                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
+                }
+                this.combatGraphics.stroke({
+                  width: Math.max(1.0, trailWidth),
+                  color: trailColor,
+                  alpha: trailAlpha,
+                  cap: 'round',
+                  join: 'round',
+                })
+              }
+            }
           }
         }
 
-        // Render projectile heads via unified renderer
+        // Render projectile heads via unified renderer with full custom parameters!
         renderPixiProjectileHead(
           this.combatGraphics,
           type,
@@ -334,7 +442,8 @@ export class CombatRenderer {
           angle,
           proj.startX,
           proj.startY,
-          nowTime
+          nowTime,
+          projDef
         )
       }
     }

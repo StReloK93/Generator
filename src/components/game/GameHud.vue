@@ -21,7 +21,7 @@
             variant="danger"
             size="sm"
             :leading-icon="ArrowLeft"
-            :title="characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome')"
+            :title="isEditorMode ? $t('game.returnEditor') : $t('game.returnHome')"
             @click="handleExitGame"
           />
 
@@ -165,10 +165,10 @@
           variant="secondary"
           size="md"
           class="w-full justify-center text-xs sm:text-sm font-bold"
-          :leading-icon="characterStore.entrySource === 'editor' ? Layers : Home"
+          :leading-icon="isEditorMode ? Layers : Home"
           @click="handleExitFromMenu"
         >
-          {{ characterStore.entrySource === 'editor' ? $t('game.returnEditor') : $t('game.returnHome') }}
+          {{ isEditorMode ? $t('game.returnEditor') : $t('game.returnHome') }}
         </UiButton>
 
         <!-- Language Switcher in Menu -->
@@ -233,7 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages, Footprints
@@ -298,8 +298,10 @@ function handleExitFromMenu() {
   handleExitGame()
 }
 
+const isEditorMode = computed(() => characterStore.entrySource === 'editor' || route.name === 'editor-game')
+
 async function handleExitGame() {
-  const isEditor = characterStore.entrySource === 'editor'
+  const isEditor = isEditorMode.value
   const isMulti = !!multiplayerStore.roomId
 
   const title = isMulti ? t('lobby.confirmLeaveTitle') : (isEditor ? t('game.returnEditor') : t('game.returnHome'))

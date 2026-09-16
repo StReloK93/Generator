@@ -2165,7 +2165,7 @@ function handleStartPlayModeFromModal() {
   characterStore.entrySource = 'editor'
   characterStore.startLoadingScreen(mapStore.project.name || 'Map')
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
-  router.push(`/game/${cleanId}`)
+  router.push(`/editor-game/${cleanId}`)
   requestAppFullscreen()
 }
 </script>

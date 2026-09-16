@@ -36,6 +36,11 @@ const routes = [
     name: 'game',
     component: () => import('../views/GameView.vue'),
   },
+  {
+    path: '/editor-game/:mapId?',
+    name: 'editor-game',
+    component: () => import('../views/EditorGameView.vue'),
+  },
   // Fallback for Telegram Mini App #tgWebAppData launch params or invalid routes
   {
     path: '/:pathMatch(.*)*',
