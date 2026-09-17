@@ -262,4 +262,5 @@ export interface BoxClearModalData {
   totalItems: number
   assets: BoxAssetSummary[]
   layerItems: Record<string, { totalItems: number; assets: BoxAssetSummary[] }>
+  cells?: GridCoord[]
 }

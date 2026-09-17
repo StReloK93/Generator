@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { MapProject, Layer, TileItem, ProjectHistoryItem, GridCoord, BoxClearModalData, BoxAssetSummary } from '../types/map'
+import { MapProject, Layer, TileItem, ProjectHistoryItem, GridCoord, BoxClearModalData, BoxAssetSummary, SelectedElementRef } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
 import { assetManager } from '../services/assetManager'
 import { MapQueries, TileMutations } from '../domain/map'
@@ -1065,131 +1065,6 @@ export const useMapStore = defineStore('mapStore', () => {
     return filledCount
   }
 
-  function fillLayerCells(
-    assetId: string,
-    layerId = activeLayerId.value,
-    mode: 'replace' | 'stack' | 'empty-only' = 'empty-only',
-    pushHist = true
-  ): number {
-    if (mode === 'empty-only') {
-      return fillEmptyCells(assetId, layerId, pushHist)
-    }
-
-    const layer = project.value.layers.find(l => l.id === layerId)
-    if (!layer || layer.locked) return 0
-
-    const asset = assetId ? assetManager.getAssetItem(assetId) : null
-    if (!asset) return 0
-
-    const spanX = asset.spanX || 1
-    const spanY = asset.spanY || 1
-    const scale = asset.scale || 1.0
-    const anchorX = asset.anchorX ?? 0.5
-    const anchorY = asset.anchorY ?? 0.88
-
-    const { cols, rows } = project.value
-    let count = 0
-
-    for (let c = 0; c < cols; c++) {
-      for (let r = 0; r < rows; r++) {
-        const key = cellKey(c, r)
-        const existing = getCellItems(c, r, layerId)
-
-        if (mode === 'replace') {
-          const cellZIndex: Record<string, number> = {}
-          for (let cx = c; cx < c + spanX; cx++) {
-            for (let cy = r; cy < r + spanY; cy++) {
-              cellZIndex[cellKey(cx, cy)] = 0
-            }
-          }
-
-          const newItem: TileItem = {
-            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
-            x: c,
-            y: r,
-            assetId,
-            zIndex: 0,
-            depthOffset: 0,
-            cellZIndex,
-            spanX,
-            spanY,
-            scale,
-            anchorX,
-            anchorY,
-            flipX: false,
-            rotation: 0,
-            offsetX: 0,
-            offsetY: 0,
-          }
-          layer.tiles[key] = [newItem]
-          count++
-        } else if (mode === 'stack') {
-          const alreadyHasSame = existing.some(item => item.assetId === assetId)
-          if (alreadyHasSame) continue
-
-          const initialZ = existing.length > 0 ? Math.max(...existing.map(i => i.zIndex)) + 1 : 0
-          const cellZIndex: Record<string, number> = {}
-          for (let cx = c; cx < c + spanX; cx++) {
-            for (let cy = r; cy < r + spanY; cy++) {
-              cellZIndex[cellKey(cx, cy)] = initialZ
-            }
-          }
-
-          const newItem: TileItem = {
-            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
-            x: c,
-            y: r,
-            assetId,
-            zIndex: initialZ,
-            depthOffset: 0,
-            cellZIndex,
-            spanX,
-            spanY,
-            scale,
-            anchorX,
-            anchorY,
-            flipX: false,
-            rotation: 0,
-            offsetX: 0,
-            offsetY: 0,
-          }
-          layer.tiles[key] = [...existing, newItem]
-          count++
-        }
-      }
-    }
-
-    if (count > 0) {
-      if (pushHist) {
-        pushHistory(`${mode === 'replace' ? 'Replaced' : 'Stacked'} ${count} cells on ${layer.name} with ${asset.name}`)
-      } else {
-        project.value.updatedAt = Date.now()
-      }
-    }
-
-    return count
-  }
-
-  function getLayerCellStats(layerId = activeLayerId.value): { total: number; empty: number; occupied: number } {
-    const layer = project.value.layers.find(l => l.id === layerId)
-    const total = project.value.cols * project.value.rows
-    if (!layer) return { total, empty: total, occupied: 0 }
-
-    let occupied = 0
-    for (let c = 0; c < project.value.cols; c++) {
-      for (let r = 0; r < project.value.rows; r++) {
-        const items = layer.tiles[cellKey(c, r)]
-        if (items && (Array.isArray(items) ? items.length > 0 : true)) {
-          occupied++
-        }
-      }
-    }
-    return {
-      total,
-      empty: Math.max(0, total - occupied),
-      occupied,
-    }
-  }
 
   function fillEmptyCellsInBox(
     col0: number,
@@ -1476,6 +1351,176 @@ export const useMapStore = defineStore('mapStore', () => {
     }
   }
 
+  function getCellsElementSummary(cells: GridCoord[]): BoxClearModalData {
+    if (cells.length === 0) {
+      return {
+        col0: 0,
+        row0: 0,
+        col1: 0,
+        row1: 0,
+        totalCells: 0,
+        totalItems: 0,
+        assets: [],
+        layerItems: {},
+        cells: [],
+      }
+    }
+
+    const minCol = Math.min(...cells.map(c => c.col))
+    const maxCol = Math.max(...cells.map(c => c.col))
+    const minRow = Math.min(...cells.map(c => c.row))
+    const maxRow = Math.max(...cells.map(c => c.row))
+    const cellSet = new Set(cells.map(c => cellKey(c.col, c.row)))
+
+    const assetMap = new Map<string, BoxAssetSummary>()
+    const layerItems: Record<string, { totalItems: number; assets: BoxAssetSummary[] }> = {}
+    let totalItems = 0
+
+    for (const layer of project.value.layers) {
+      if (layer.locked) continue
+      const layerAssetMap = new Map<string, BoxAssetSummary>()
+      let layerItemCount = 0
+
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item || !item.assetId) continue
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+
+          let overlaps = false
+          for (let cx = originCol; cx < originCol + spanX; cx++) {
+            for (let cy = originRow; cy < originRow + spanY; cy++) {
+              if (cellSet.has(cellKey(cx, cy))) {
+                overlaps = true
+                break
+              }
+            }
+            if (overlaps) break
+          }
+
+          if (overlaps) {
+            totalItems++
+            layerItemCount++
+
+            const asset = assetManager.getAssetItem(item.assetId)
+            const assetName = asset?.name || item.assetId
+            const category = asset?.category || 'General'
+            const previewSrc = assetManager.getPreviewDataUrl(item.assetId) || asset?.previewSrc || asset?.src || ''
+
+            if (!assetMap.has(item.assetId)) {
+              assetMap.set(item.assetId, {
+                assetId: item.assetId,
+                assetName,
+                category,
+                previewSrc,
+                totalCount: 0,
+                layerCounts: {},
+              })
+            }
+            const globalEntry = assetMap.get(item.assetId)!
+            globalEntry.totalCount++
+            globalEntry.layerCounts[layer.id] = (globalEntry.layerCounts[layer.id] || 0) + 1
+
+            if (!layerAssetMap.has(item.assetId)) {
+              layerAssetMap.set(item.assetId, {
+                assetId: item.assetId,
+                assetName,
+                category,
+                previewSrc,
+                totalCount: 0,
+                layerCounts: { [layer.id]: 0 },
+              })
+            }
+            const layerEntry = layerAssetMap.get(item.assetId)!
+            layerEntry.totalCount++
+            layerEntry.layerCounts[layer.id]++
+          }
+        }
+      }
+
+      layerItems[layer.id] = {
+        totalItems: layerItemCount,
+        assets: Array.from(layerAssetMap.values()).sort((a, b) => b.totalCount - a.totalCount),
+      }
+    }
+
+    return {
+      col0: minCol,
+      row0: minRow,
+      col1: maxCol,
+      row1: maxRow,
+      totalCells: cells.length,
+      totalItems,
+      assets: Array.from(assetMap.values()).sort((a, b) => b.totalCount - a.totalCount),
+      layerItems,
+      cells,
+    }
+  }
+
+  function getElementsInBox(
+    col0: number,
+    row0: number,
+    col1: number,
+    row1: number,
+    activeLayerOnly = false
+  ): SelectedElementRef[] {
+    const minCol = Math.max(0, Math.min(col0, col1))
+    const maxCol = Math.min(project.value.cols - 1, Math.max(col0, col1))
+    const minRow = Math.max(0, Math.min(row0, row1))
+    const maxRow = Math.min(project.value.rows - 1, Math.max(row0, row1))
+    const result: SelectedElementRef[] = []
+    const seenKeys = new Set<string>()
+
+    const layersToScan = activeLayerOnly
+      ? project.value.layers.filter(l => l.id === activeLayerId.value && !l.locked)
+      : [
+          ...project.value.layers.filter(l => l.id === activeLayerId.value && !l.locked),
+          ...project.value.layers.filter(l => l.id !== activeLayerId.value && l.visible && !l.locked),
+        ]
+
+    for (const layer of layersToScan) {
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        for (const item of itemArr) {
+          if (!item || !item.id) continue
+          const uniqueKey = `${layer.id}:${item.id}`
+          if (seenKeys.has(uniqueKey)) continue
+
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+          const itemMinCol = originCol
+          const itemMaxCol = originCol + spanX - 1
+          const itemMinRow = originRow
+          const itemMaxRow = originRow + spanY - 1
+
+          const overlaps = (
+            itemMinCol <= maxCol &&
+            itemMaxCol >= minCol &&
+            itemMinRow <= maxRow &&
+            itemMaxRow >= minRow
+          )
+
+          if (overlaps) {
+            seenKeys.add(uniqueKey)
+            result.push({
+              col: originCol,
+              row: originRow,
+              layerId: layer.id,
+              itemId: item.id,
+            })
+          }
+        }
+      }
+    }
+
+    return result
+  }
+
   function deleteElementsInBox(
     col0: number,
     row0: number,
@@ -1541,6 +1586,72 @@ export const useMapStore = defineStore('mapStore', () => {
     if (deletedCount > 0) {
       if (pushHist) {
         pushHistory(`Cleared ${deletedCount} elements in box [(${minCol}, ${minRow}) -> (${maxCol}, ${maxRow})]`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return deletedCount
+  }
+
+  function deleteElementsInCells(
+    cells: GridCoord[],
+    targetAssetIds: string[],
+    targetLayerIds?: string[],
+    pushHist = true
+  ): number {
+    if (cells.length === 0) return 0
+    const cellSet = new Set(cells.map(c => cellKey(c.col, c.row)))
+    const targetAssetSet = new Set(targetAssetIds)
+    const targetLayers = targetLayerIds && targetLayerIds.length > 0
+      ? project.value.layers.filter(l => targetLayerIds.includes(l.id))
+      : [project.value.layers.find(l => l.id === activeLayerId.value) || project.value.layers[0]]
+
+    let deletedCount = 0
+
+    for (const layer of targetLayers) {
+      if (!layer || layer.locked) continue
+
+      for (const [key, items] of Object.entries(layer.tiles)) {
+        const [originCol, originRow] = key.split(',').map(Number)
+        const itemArr = Array.isArray(items) ? items : [items]
+
+        const remainingItems: TileItem[] = []
+
+        for (const item of itemArr) {
+          if (!item || !item.assetId) continue
+          const spanX = item.spanX || 1
+          const spanY = item.spanY || 1
+
+          let overlaps = false
+          for (let cx = originCol; cx < originCol + spanX; cx++) {
+            for (let cy = originRow; cy < originRow + spanY; cy++) {
+              if (cellSet.has(cellKey(cx, cy))) {
+                overlaps = true
+                break
+              }
+            }
+            if (overlaps) break
+          }
+
+          if (overlaps && targetAssetSet.has(item.assetId)) {
+            deletedCount++
+          } else {
+            remainingItems.push(item)
+          }
+        }
+
+        if (remainingItems.length === 0) {
+          delete layer.tiles[key]
+        } else {
+          layer.tiles[key] = remainingItems
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      if (pushHist) {
+        pushHistory(`Cleared ${deletedCount} elements in area`)
       } else {
         project.value.updatedAt = Date.now()
       }
@@ -2079,7 +2190,6 @@ export const useMapStore = defineStore('mapStore', () => {
     getElementsAtOrCoveringCell,
     getAllElementsAtOrCoveringCell,
     getAllItemsByAssetId,
-    getLayerCellStats,
     pushHistory,
     undo,
     redo,
@@ -2131,9 +2241,11 @@ export const useMapStore = defineStore('mapStore', () => {
     fillEmptyCells,
     fillEmptyCellsInBox,
     scatterFillTiles,
-    fillLayerCells,
     getBoxElementSummary,
+    getCellsElementSummary,
+    getElementsInBox,
     deleteElementsInBox,
+    deleteElementsInCells,
     clearLayerTiles,
     clearAllTiles,
     isCellBuildable,

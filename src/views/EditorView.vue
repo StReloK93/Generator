@@ -23,7 +23,6 @@
     <!-- Modals & Overlays -->
     <GameConfigModal />
     <TowerCreateModal />
-    <FillGroundModal />
     <BoxClearModal />
     <KeyboardShortcutsModal />
 
@@ -43,7 +42,6 @@ import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import ExportModal from '../components/ExportModal.vue'
 import GameConfigModal from '../components/GameConfigModal.vue'
 import TowerCreateModal from '../components/TowerCreateModal.vue'
-import FillGroundModal from '../components/FillGroundModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'
 import { useMapStore } from '../stores/mapStore'

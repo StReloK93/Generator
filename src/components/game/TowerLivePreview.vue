@@ -354,15 +354,23 @@ function renderFrame(time: number) {
   for (let i = activeProjectiles.length - 1; i >= 0; i--) {
     const p = activeProjectiles[i]
     p.progress += p.speed * dt
-    p.currentX = p.startX + (p.targetX - p.startX) * p.progress
-
+    const dx = p.targetX - p.startX
+    const dy = p.targetY - p.startY
+    const projDef = getProjectileDef(p.type)
     const theme = getProjectileTheme(p.type, p.color)
+
+    const isTwinHelix = projDef.formation === 'twin_helix'
+    const len = Math.hypot(dx, dy) || 1
+    const perpX = -dy / len
+    const perpY = dx / len
+    const helixAmp = 14
+    const swirl = isTwinHelix ? Math.sin(p.progress * Math.PI * 6) * helixAmp : 0
+
+    p.currentX = p.startX + dx * p.progress + (isTwinHelix ? perpX * swirl : 0)
 
     // Parabolic Arc Height calculation
     const arcHeight = !theme.hasArc ? 0 : Math.sin(p.progress * Math.PI) * 22
-    p.currentY = p.startY + (p.targetY - p.startY) * p.progress - arcHeight
-
-    const projDef = getProjectileDef(p.type)
+    p.currentY = p.startY + dy * p.progress - arcHeight + (isTwinHelix ? perpY * swirl * 0.5 : 0)
 
     // Store Trail Points
     p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: projDef.trailWidth || 4 })
@@ -373,8 +381,6 @@ function renderFrame(time: number) {
     renderCanvasProjectileTrail(ctx, p.trail, projDef, time)
 
     // Render Projectile Head by Type via unified renderer
-    const dx = p.targetX - p.startX
-    const dy = p.targetY - p.startY
     const vx = dx
     const vy = dy - (theme.hasArc ? Math.cos(p.progress * Math.PI) * Math.PI * 22 : 0)
     const angle = Math.atan2(vy, vx)
@@ -387,7 +393,8 @@ function renderFrame(time: number) {
       p.startX,
       p.startY,
       p.progress,
-      time
+      time,
+      projDef
     )
 
     // Impact Check

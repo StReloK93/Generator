@@ -27,8 +27,6 @@ export const useToolStore = defineStore('toolStore', () => {
   const isExportModalOpen = ref<boolean>(false)
   const isShortcutsModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
-  const isFillGroundModalOpen = ref<boolean>(false)
-  const fillModalTargetLayerId = ref<string | null>(null)
   const isBoxClearModalOpen = ref<boolean>(false)
   const boxClearData = ref<BoxClearModalData | null>(null)
   const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'spawns'>('towers')
@@ -40,16 +38,6 @@ export const useToolStore = defineStore('toolStore', () => {
 
   function closeGameConfig() {
     isGameConfigModalOpen.value = false
-  }
-
-  function openFillGroundModal(layerId?: string) {
-    fillModalTargetLayerId.value = layerId || null
-    isFillGroundModalOpen.value = true
-  }
-
-  function closeFillGroundModal() {
-    isFillGroundModalOpen.value = false
-    fillModalTargetLayerId.value = null
   }
 
   function openBoxClearModal(data: BoxClearModalData) {
@@ -203,10 +191,6 @@ export const useToolStore = defineStore('toolStore', () => {
     isExportModalOpen,
     isShortcutsModalOpen,
     isGameConfigModalOpen,
-    isFillGroundModalOpen,
-    fillModalTargetLayerId,
-    openFillGroundModal,
-    closeFillGroundModal,
     isBoxClearModalOpen,
     boxClearData,
     openBoxClearModal,

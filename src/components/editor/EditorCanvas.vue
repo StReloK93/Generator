@@ -30,23 +30,23 @@
       @touchstart.stop
       @wheel.stop
     >
-      <!-- Select / Inspect (V) -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="MousePointer"
-        :active="toolStore.activeTool === 'select'"
-        :title="`${$t('shortcuts.selectInspect')} (V)`"
-        @click="toolStore.setTool('select')"
-      />
-      <!-- Brush (B) -->
+      <!-- Brush / Select (B) -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="Paintbrush"
-        :active="toolStore.activeTool === 'brush'"
-        :title="`${$t('shortcuts.brush')} (B)`"
+        :active="toolStore.activeTool === 'brush' || toolStore.activeTool === 'select'"
+        :title="`${$t('shortcuts.brushSelect')} (B)`"
         @click="toolStore.setTool('brush')"
+      />
+      <!-- Box: Select / Fill (F) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Scan"
+        :active="toolStore.activeTool === 'box-fill'"
+        :title="`${$t('shortcuts.boxTool')} (F)`"
+        @click="toggleBoxMode"
       />
       <!-- Eraser (E) -->
       <UiIconButton
@@ -84,24 +84,6 @@
         :title="`${$t('shortcuts.lineTool')} (L)`"
         @click="toolStore.setTool('line')"
       />
-      <!-- Box Fill (F / U) - Area Rectangle Fill -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Scan"
-        :active="toolStore.activeTool === 'box-fill' || isBoxFillActive"
-        :title="`${$t('editor.boxFill')} (F)`"
-        @click="toggleBoxFillMode"
-      />
-      <!-- Box Clear (C) - Area Selective Eraser -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Trash2"
-        :active="toolStore.activeTool === 'box-clear' || isBoxClearActive"
-        :title="`${$t('editor.boxClear')} (C)`"
-        @click="toggleBoxClearMode"
-      />
       <!-- Buildable Zones (Z) -->
       <UiIconButton
         variant="tool"
@@ -132,25 +114,7 @@
         @click="handleToggleScatterTool"
       />
 
-      <div class="h-px w-full bg-slate-800 my-0.5"></div>
 
-      <!-- Quick Fill All Empty (Shift+E) -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Sparkles"
-        :title="`${$t('editor.quickFillEmpty')} (Shift+E)`"
-        @click="handleQuickFillAllEmpty"
-      />
-
-      <!-- Fill Ground Modal (Shift+G) -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Layers"
-        :title="`${$t('editor.fillGroundModalTitle')} (Shift+G)`"
-        @click="toolStore.openFillGroundModal()"
-      />
     </div>
 
     <!-- Floating HUD when Setting Spawn Point -->
@@ -351,55 +315,96 @@
       </UiButton>
     </div>
 
-    <!-- Floating HUD when Box Fill Mode is Active -->
+    <!-- Floating HUD when Box Mode (Fill or Select) is Active -->
     <div 
-      v-if="isBoxFillActive"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2"
+      v-if="toolStore.activeTool === 'box-fill'"
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 animate-in fade-in slide-in-from-top-2"
+      :class="assetStore.selectedAssetId ? 'border-amber-500/60 text-amber-200' : 'border-purple-500/60 text-purple-200'"
     >
-      <Scan class="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
-      <span v-if="!boxFillStartPoint">
-        <strong>{{ $t('editor.boxFill') }}:</strong> {{ $t('editor.boxFillPrompt1') }}
-      </span>
-      <span v-else class="flex items-center gap-1.5">
-        <strong>{{ $t('editor.boxFillPrompt2', { col: boxFillStartPoint.col, row: boxFillStartPoint.row }) }}</strong>
-        <span v-if="toolStore.previewCells.length > 0" class="font-mono text-emerald-400 font-bold">
-          ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
+      <Scan class="w-4 h-4 animate-pulse shrink-0" :class="assetStore.selectedAssetId ? 'text-amber-400' : 'text-purple-400'" />
+      
+      <!-- Box Fill Mode (Asset Selected) -->
+      <template v-if="assetStore.selectedAssetId">
+        <span v-if="!editorController.boxTool.boxStartPoint">
+          <strong>{{ $t('editor.boxFill') }}:</strong> {{ $t('editor.boxFillPrompt1') }}
         </span>
-      </span>
+        <span v-else class="flex items-center gap-1.5">
+          <strong>{{ $t('editor.boxFillPrompt2', { col: editorController.boxTool.boxStartPoint.col, row: editorController.boxTool.boxStartPoint.row }) }}</strong>
+          <span v-if="toolStore.previewCells.length > 0" class="font-mono text-emerald-400 font-bold">
+            ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
+          </span>
+        </span>
+      </template>
+
+      <!-- Box Select Mode (No Asset Selected) -->
+      <template v-else>
+        <span v-if="!editorController.boxTool.boxStartPoint">
+          <strong>{{ $t('editor.boxSelect') }}:</strong> {{ $t('editor.boxSelectPrompt1') }}
+        </span>
+        <span v-else class="flex items-center gap-1.5">
+          <strong>{{ $t('editor.boxSelectPrompt2', { col: editorController.boxTool.boxStartPoint.col, row: editorController.boxTool.boxStartPoint.row }) }}</strong>
+          <span v-if="toolStore.previewCells.length > 0" class="font-mono text-purple-400 font-bold">
+            ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
+          </span>
+        </span>
+      </template>
 
       <UiButton
         variant="secondary"
         size="xs"
         :title="`${$t('common.cancel')} (Esc)`"
-        @click="cancelBoxFillMode"
+        @click="cancelBoxMode"
       >
         {{ $t('common.cancel') }}
       </UiButton>
     </div>
 
-    <!-- Floating HUD when Box Clear Mode is Active -->
+    <!-- Floating HUD when in Eraser Mode -->
     <div 
-      v-if="isBoxClearActive"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2 rounded-2xl border border-rose-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-rose-200 animate-in fade-in slide-in-from-top-2"
+      v-if="toolStore.activeTool === 'eraser'"
+      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-rose-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-rose-200 animate-in fade-in slide-in-from-top-2 select-none"
     >
-      <Eraser class="w-4 h-4 text-rose-400 animate-pulse shrink-0" />
-      <span v-if="!boxClearStartPoint">
-        <strong>{{ $t('editor.boxClear') }}:</strong> {{ $t('editor.boxClearPrompt1') }}
-      </span>
-      <span v-else class="flex items-center gap-1.5">
-        <strong>{{ $t('editor.boxClearPrompt2', { col: boxClearStartPoint.col, row: boxClearStartPoint.row }) }}</strong>
-        <span v-if="toolStore.previewCells.length > 0" class="font-mono text-rose-400 font-bold">
-          ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
-        </span>
-      </span>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <Eraser class="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
+        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('shortcuts.eraser') }}</span>
+      </div>
 
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Sub-tool selector (Simple / Line / Box) -->
+      <UiTabs
+        v-model="eraserSubTool"
+        variant="segmented"
+        size="xs"
+        :items="[
+          { id: 'simple', label: $t('editor.eraserSimple') || 'Oddiy', icon: Eraser },
+          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
+          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+        ]"
+      />
+
+      <!-- Prompt / Cell count info -->
+      <template v-if="eraserSubTool === 'simple'">
+        <span class="text-slate-400 text-[11px] hidden sm:inline">
+          {{ $t('editor.eraserHint') || 'Bosing yoki surib to\'g\'ridan-to\'g\'ri o\'chiring' }}
+        </span>
+      </template>
+      <template v-else-if="editorController.eraserTool.startPoint">
+        <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+        <span class="font-mono text-rose-300 text-[11px] font-semibold">
+          ({{ toolStore.previewCells.length }} {{ $t('common.cells') || 'cells' }})
+        </span>
+      </template>
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Done / Exit button -->
       <UiButton
         variant="secondary"
         size="xs"
-        :title="`${$t('common.cancel')} (Esc)`"
-        @click="cancelBoxClearMode"
+        @click="toolStore.setTool(toolStore.lastDrawingTool === 'eraser' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
       >
-        {{ $t('common.cancel') }}
+        {{ $t('common.done') || 'Tayyor' }}
       </UiButton>
     </div>
 
@@ -624,13 +629,8 @@ const characterStore = useCharacterStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
-// Box Fill (Select Area to fill empty cells) State
-const isBoxFillActive = ref(false)
-const boxFillStartPoint = ref<GridCoord | null>(null)
-
-// Box Clear (Select Area for selective element deletion) State
-const isBoxClearActive = ref(false)
-const boxClearStartPoint = ref<GridCoord | null>(null)
+// Eraser Sub-tool ('simple' | 'line' | 'box')
+const eraserSubTool = ref<'simple' | 'line' | 'box'>('simple')
 const hasDrawnInDrag = ref(false)
 
 // Buildable Zones Sub-tool ('brush' | 'line' | 'box') & Action Mode ('allow' | 'block')
@@ -653,6 +653,11 @@ const editorController = new EditorController({
   notify,
   t,
   engine,
+})
+
+watch(eraserSubTool, (val) => {
+  editorController.eraserTool.subTool = val
+  editorController.eraserTool.onCancel(editorController.ctx)
 })
 
 watch(buildableSubTool, (val) => {
@@ -871,24 +876,13 @@ watch(() => [
   }
 }, { deep: true })
 
-// Auto-cancel Box Fill if selected asset is cleared
-watch(() => assetStore.selectedAssetId, (newAssetId) => {
-  if (!newAssetId && (isBoxFillActive.value || toolStore.activeTool === 'box-fill')) {
-    cancelBoxFillMode()
-  }
-})
-
-// Sync Box Fill, Box Clear, and Buildable states if active tool changes elsewhere
+// Sync Box, Eraser, and Buildable states if active tool changes elsewhere
 watch(() => toolStore.activeTool, (newTool) => {
-  if (newTool !== 'box-fill' && isBoxFillActive.value) {
-    isBoxFillActive.value = false
-    boxFillStartPoint.value = null
-    toolStore.previewCells = []
+  if (newTool !== 'box-fill' && editorController.boxTool.boxStartPoint) {
+    editorController.boxTool.onCancel(editorController.ctx)
   }
-  if (newTool !== 'box-clear' && isBoxClearActive.value) {
-    isBoxClearActive.value = false
-    boxClearStartPoint.value = null
-    toolStore.previewCells = []
+  if (newTool !== 'eraser' && editorController.eraserTool.startPoint) {
+    editorController.eraserTool.onCancel(editorController.ctx)
   }
   if (newTool !== 'buildable' && buildableBoxStartPoint.value) {
     buildableBoxStartPoint.value = null
@@ -1048,10 +1042,6 @@ function handleKeyDown(e: KeyboardEvent) {
       toolStore.isGameConfigModalOpen = false
       return
     }
-    if (toolStore.isFillGroundModalOpen) {
-      toolStore.isFillGroundModalOpen = false
-      return
-    }
     if (toolStore.isBoxClearModalOpen) {
       toolStore.isBoxClearModalOpen = false
       return
@@ -1060,12 +1050,12 @@ function handleKeyDown(e: KeyboardEvent) {
       toolStore.isExportModalOpen = false
       return
     }
-    if (isBoxFillActive.value || toolStore.activeTool === 'box-fill') {
-      cancelBoxFillMode()
+    if (toolStore.activeTool === 'box-fill') {
+      cancelBoxMode()
       return
     }
-    if (isBoxClearActive.value || toolStore.activeTool === 'box-clear') {
-      cancelBoxClearMode()
+    if (toolStore.activeTool === 'eraser' && editorController.eraserTool.startPoint) {
+      editorController.eraserTool.onCancel(editorController.ctx)
       return
     }
     if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
@@ -1164,26 +1154,11 @@ function handleKeyDown(e: KeyboardEvent) {
   // 6. If any modal is open, prevent single-key tool switches
   if (
     toolStore.isGameConfigModalOpen ||
-    toolStore.isFillGroundModalOpen ||
     toolStore.isBoxClearModalOpen ||
     toolStore.isExportModalOpen ||
     toolStore.isShortcutsModalOpen
   ) {
     return
-  }
-
-  // 7. Shift combinations (without Ctrl/Alt)
-  if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-    if (code === 'KeyG' || key === 'g') {
-      e.preventDefault()
-      toolStore.openFillGroundModal()
-      return
-    }
-    if (code === 'KeyE' || key === 'e') {
-      e.preventDefault()
-      handleQuickFillAllEmpty()
-      return
-    }
   }
 
   // 8. Single key shortcuts (without Ctrl / Alt / Meta / Shift)
@@ -1227,29 +1202,31 @@ function handleKeyDown(e: KeyboardEvent) {
       return
     }
 
-    // Box Fill: F
-    if (code === 'KeyF' || key === 'f') {
+    // Box Tool (Select / Fill): F / U
+    if (code === 'KeyF' || key === 'f' || code === 'KeyU' || key === 'u') {
       e.preventDefault()
-      toggleBoxFillMode()
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'box'
+        return
+      }
+      toggleBoxMode()
       return
     }
 
-    // Box Clear: C
+    // Box Clear Shortcut (C): Switch to Eraser Box mode
     if (code === 'KeyC' || key === 'c') {
       e.preventDefault()
-      toggleBoxClearMode()
+      toolStore.setTool('eraser')
+      eraserSubTool.value = 'box'
       return
     }
 
-    // Tool switching: V, B, E, G, I, L, U
-    if (code === 'KeyV' || key === 'v') {
-      e.preventDefault()
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
-      toolStore.setTool('select')
-      return
-    }
-    if (code === 'KeyB' || key === 'b') {
+    // Tool switching: V, B, E, G, I, L
+    if (code === 'KeyV' || key === 'v' || code === 'KeyB' || key === 'b') {
       e.preventDefault()
       if (toolStore.activeTool === 'buildable') {
         buildableSubTool.value = 'brush'
@@ -1259,8 +1236,7 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'brush'
         return
       }
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
+      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('brush')
       return
     }
@@ -1274,22 +1250,19 @@ function handleKeyDown(e: KeyboardEvent) {
         waterAction.value = 'dry'
         return
       }
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
+      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('eraser')
       return
     }
     if (code === 'KeyG' || key === 'g') {
       e.preventDefault()
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
+      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('bucket')
       return
     }
     if (code === 'KeyI' || key === 'i') {
       e.preventDefault()
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
+      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('picker')
       return
     }
@@ -1303,22 +1276,8 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'line'
         return
       }
-      if (isBoxFillActive.value) cancelBoxFillMode()
-      if (isBoxClearActive.value) cancelBoxClearMode()
+      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('line')
-      return
-    }
-    if (code === 'KeyU' || key === 'u' || code === 'KeyF' || key === 'f') {
-      e.preventDefault()
-      if (toolStore.activeTool === 'buildable') {
-        buildableSubTool.value = 'box'
-        return
-      }
-      if (toolStore.activeTool === 'water') {
-        waterSubTool.value = 'box'
-        return
-      }
-      toggleBoxFillMode()
       return
     }
     if (code === 'KeyW' || key === 'w') {
@@ -1351,75 +1310,24 @@ function handleKeyUp(e: KeyboardEvent) {
   if (e.code === 'Space') camera.isSpacePressed.value = false
 }
 
-function toggleBoxFillMode() {
-  if (!assetStore.selectedAssetId) {
-    notify.warning(t('editor.selectAssetFirst'))
-    return
-  }
-  isBoxFillActive.value = !isBoxFillActive.value
-  boxFillStartPoint.value = null
-  toolStore.previewCells = []
-  if (isBoxFillActive.value) {
-    if (isBoxClearActive.value) {
-      isBoxClearActive.value = false
-      boxClearStartPoint.value = null
-    }
-    toolStore.setTool('box-fill')
-  } else {
+function toggleBoxMode() {
+  if (toolStore.activeTool === 'box-fill') {
     toolStore.setTool(toolStore.lastDrawingTool === 'box-fill' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+  } else {
+    toolStore.setTool('box-fill')
   }
 }
 
-function cancelBoxFillMode() {
-  isBoxFillActive.value = false
-  boxFillStartPoint.value = null
-  toolStore.previewCells = []
+function cancelBoxMode() {
+  editorController.boxTool.onCancel(editorController.ctx)
   if (toolStore.activeTool === 'box-fill') {
     toolStore.setTool(toolStore.lastDrawingTool === 'box-fill' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
   }
 }
 
-function toggleBoxClearMode() {
-  isBoxClearActive.value = !isBoxClearActive.value
-  boxClearStartPoint.value = null
-  toolStore.previewCells = []
-  if (isBoxClearActive.value) {
-    if (isBoxFillActive.value) {
-      isBoxFillActive.value = false
-      boxFillStartPoint.value = null
-    }
-    toolStore.setTool('box-clear')
-  } else {
-    toolStore.setTool(toolStore.lastDrawingTool || 'brush')
-  }
-}
-
-function cancelBoxClearMode() {
-  isBoxClearActive.value = false
-  boxClearStartPoint.value = null
-  toolStore.previewCells = []
-  if (toolStore.activeTool === 'box-clear') {
-    toolStore.setTool(toolStore.lastDrawingTool || 'brush')
-  }
-}
-
-function handleQuickFillAllEmpty() {
-  if (!assetStore.selectedAssetId) {
-    notify.warning(t('editor.selectAssetFirst'))
-    return
-  }
-  const layer = mapStore.activeLayer
-  const count = mapStore.fillEmptyCells(assetStore.selectedAssetId, mapStore.activeLayerId)
-  if (count > 0) {
-    notify.success(t('editor.filledEmptyCellsCount', { count, layer: layer.name }))
-  } else {
-    notify.info(t('editor.occupiedCellsCount'))
-  }
-}
 
 function handleToggleScatterTool() {
-  if (isBoxFillActive.value) cancelBoxFillMode()
-  if (isBoxClearActive.value) cancelBoxClearMode()
+  if (toolStore.activeTool === 'box-fill') cancelBoxMode()
 
   if (toolStore.activeTool === 'scatter') {
     toolStore.openScatterModal()

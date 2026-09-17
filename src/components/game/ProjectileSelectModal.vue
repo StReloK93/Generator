@@ -615,15 +615,23 @@ function renderArenaFrame(time: number) {
   for (let i = arenaProjectiles.length - 1; i >= 0; i--) {
     const p = arenaProjectiles[i]
     p.progress += p.speed * dt
-    p.currentX = p.startX + (p.targetX - p.startX) * p.progress
-
-    const theme = getProjectileTheme(p.type, p.color)
-    const arcHeight = !theme.hasArc ? 0 : 20
     const dx = p.targetX - p.startX
     const dy = p.targetY - p.startY
-    p.currentY = p.startY + dy * p.progress - (theme.hasArc ? Math.sin(p.progress * Math.PI) * arcHeight : 0)
-
     const pDef = getProjectileDef(p.type)
+    const theme = getProjectileTheme(p.type, p.color)
+
+    const isTwinHelix = pDef.formation === 'twin_helix'
+    const len = Math.hypot(dx, dy) || 1
+    const perpX = -dy / len
+    const perpY = dx / len
+    const helixAmp = 14
+    const swirl = isTwinHelix ? Math.sin(p.progress * Math.PI * 6) * helixAmp : 0
+
+    p.currentX = p.startX + dx * p.progress + (isTwinHelix ? perpX * swirl : 0)
+
+    const arcHeight = !theme.hasArc ? 0 : 20
+    p.currentY = p.startY + dy * p.progress - (theme.hasArc ? Math.sin(p.progress * Math.PI) * arcHeight : 0) + (isTwinHelix ? perpY * swirl * 0.5 : 0)
+
     p.trail.push({ x: p.currentX, y: p.currentY, alpha: 1.0, size: pDef.trailWidth || 4 })
     const maxTrailLen = Math.max(3, pDef.trailLength ?? 8)
     if (p.trail.length > maxTrailLen) p.trail.shift()
@@ -643,7 +651,8 @@ function renderArenaFrame(time: number) {
       p.startX,
       p.startY,
       p.progress,
-      time
+      time,
+      pDef
     )
 
     if (p.progress >= 1.0) {

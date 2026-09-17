@@ -53,7 +53,12 @@ export class EditorController {
     if (active === 'buildable') return this.buildableTool
     if (active === 'water') return this.waterTool
     if (active === 'scatter') return this.scatterTool
-    if (active === 'select' || !this.ctx.assetStore.selectedAssetId) return this.selectTool
+    if (active === 'select' || active === 'brush') {
+      if (this.ctx.assetStore.selectedAssetId) {
+        return this.brushTool
+      }
+      return this.selectTool
+    }
     return this.brushTool
   }
 

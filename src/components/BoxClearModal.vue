@@ -350,14 +350,23 @@ function handleConfirmDelete() {
     ? mapStore.project.layers.map(l => l.id)
     : [mapStore.activeLayerId]
 
-  const count = mapStore.deleteElementsInBox(
-    data.col0,
-    data.row0,
-    data.col1,
-    data.row1,
-    selectedAssetIds.value,
-    targetLayers
-  )
+  let count = 0
+  if (data.cells && data.cells.length > 0) {
+    count = mapStore.deleteElementsInCells(
+      data.cells,
+      selectedAssetIds.value,
+      targetLayers
+    )
+  } else {
+    count = mapStore.deleteElementsInBox(
+      data.col0,
+      data.row0,
+      data.col1,
+      data.row1,
+      selectedAssetIds.value,
+      targetLayers
+    )
+  }
 
   if (count > 0) {
     notify.success(t('editor.boxClearedCount', { count }))

@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { Keyboard, Paintbrush, Sparkles, Compass, Zap } from 'lucide-vue-next'
+import { Keyboard, Paintbrush, Compass, Zap } from 'lucide-vue-next'
 import { UiModal, UiButton } from './ui'
 import { useToolStore } from '../stores/toolStore'
 
@@ -108,24 +108,13 @@ const shortcutCategories: ShortcutCategory[] = [
     icon: Paintbrush,
     badgeClass: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
     items: [
-      { actionKey: 'shortcuts.selectInspect', keys: [['V']] },
-      { actionKey: 'shortcuts.brush', keys: [['B']] },
+      { actionKey: 'shortcuts.brushSelect', keys: [['B'], ['V']] },
+      { actionKey: 'shortcuts.boxTool', keys: [['F'], ['U']] },
       { actionKey: 'shortcuts.eraser', keys: [['E']] },
       { actionKey: 'shortcuts.bucketFill', keys: [['G']] },
       { actionKey: 'shortcuts.eyedropper', keys: [['I']] },
       { actionKey: 'shortcuts.lineTool', keys: [['L']] },
-      { actionKey: 'shortcuts.boxFill', keys: [['F'], ['U']] },
       { actionKey: 'shortcuts.boxClear', keys: [['C']] },
-    ]
-  },
-  {
-    id: 'mapFill',
-    titleKey: 'shortcuts.categoryMapFill',
-    icon: Sparkles,
-    badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    items: [
-      { actionKey: 'shortcuts.quickFillEmpty', keys: [['Shift', 'E']] },
-      { actionKey: 'shortcuts.fillGroundModal', keys: [['Shift', 'G']] },
     ]
   },
   {

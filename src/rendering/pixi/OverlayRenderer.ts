@@ -125,9 +125,14 @@ export class OverlayRenderer {
     } else if (activeTool === 'picker') {
       strokeColor = 0xf59e0b
       fillColor = 0xf59e0b
-    } else if (activeTool === 'box-fill') {
-      strokeColor = 0x38bdf8
-      fillColor = 0x0284c7
+    } else if (activeTool === 'box-fill' || activeTool === 'box') {
+      if (activeAsset) {
+        strokeColor = 0x38bdf8
+        fillColor = 0x0284c7
+      } else {
+        strokeColor = 0xc084fc
+        fillColor = 0x9333ea
+      }
     } else if (activeTool === 'water') {
       strokeColor = 0x38bdf8
       fillColor = 0x0284c7
@@ -242,7 +247,9 @@ export class OverlayRenderer {
     const { tileWidth, tileHeight } = project
     const isEraser = activeTool === 'eraser' || activeTool === 'buildable-block'
     const isBoxClear = activeTool === 'box-clear'
-    const isBoxFill = activeTool === 'box-fill'
+    const isBoxFill = (activeTool === 'box-fill' || activeTool === 'box') && !!activeAsset
+    const isBoxSelect = (activeTool === 'box-fill' || activeTool === 'box') && !activeAsset
+    const isBox = isBoxFill || isBoxSelect || isBoxClear
     const isWater = activeTool === 'water'
     const isScatter = activeTool === 'scatter'
     const isBuildable = activeTool === 'buildable' || activeTool.startsWith('buildable')
@@ -251,7 +258,7 @@ export class OverlayRenderer {
         ? 0xef4444
         : isBoxFill || isWater
           ? 0x0284c7
-          : isScatter
+          : isBoxSelect || isScatter
             ? 0x9333ea
             : isBuildable
               ? 0x10b981
@@ -261,7 +268,7 @@ export class OverlayRenderer {
         ? 0xf87171
         : isBoxFill || isWater
           ? 0x38bdf8
-          : isScatter
+          : isBoxSelect || isScatter
             ? 0xc084fc
             : isBuildable
               ? 0x34d399
@@ -272,14 +279,14 @@ export class OverlayRenderer {
       const poly = getCellPolygon(cell.col, cell.row, tileWidth, tileHeight)
       this.hoverGraphics
         .poly(poly)
-        .fill({ color, alpha: isBoxFill || isBoxClear || isBuildable || isScatter ? 0.38 : 0.35 })
+        .fill({ color, alpha: isBox || isBuildable || isScatter ? 0.38 : 0.35 })
         .stroke({
-          width: isBoxFill || isBoxClear || isBuildable || isScatter ? 2.0 : 1.5,
+          width: isBox || isBuildable || isScatter ? 2.0 : 1.5,
           color: strokeColor,
           alpha: 0.95,
         })
 
-      if (!isEraser && !isBoxClear && !isBoxFill && !isBuildable && activeAsset && this.getTexture) {
+      if (!isEraser && !isBox && !isBuildable && activeAsset && this.getTexture) {
         const texture = this.getTexture(activeAsset)
         if (texture) {
           const ghost = new Sprite(texture)

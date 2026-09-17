@@ -827,7 +827,7 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   function restoreEditorTowersSnapshot() {
     if (editorTowersSnapshot.value !== null) {
-      placedTowers.value = editorTowersSnapshot.value.map(t => ({ 
+      placedTowers.value = editorTowersSnapshot.value.map(t => ({
         ...t,
         totalDamageDealt: 0,
         killsCount: 0,
@@ -881,9 +881,9 @@ export const useTowerStore = defineStore('towerStore', () => {
    */
   function syncToProject() {
     if (!mapStore.project) return
-    ;(mapStore.project as any).clans = clans.value.map(c => ({ ...c }))
-    ;(mapStore.project as any).placedTowers = placedTowers.value.map(t => ({ ...t }))
-    ;(mapStore.project as any).towerBlueprints = blueprints.value.map(b => ({ ...b }))
+      ; (mapStore.project as any).clans = clans.value.map(c => ({ ...c }))
+      ; (mapStore.project as any).placedTowers = placedTowers.value.map(t => ({ ...t }))
+      ; (mapStore.project as any).towerBlueprints = blueprints.value.map(b => ({ ...b }))
   }
 
   function resetForNewProject() {
@@ -1026,7 +1026,8 @@ export const useTowerStore = defineStore('towerStore', () => {
           const targetY = bestTarget.screenY - tileHeight * 0.5 // Target center of body
 
           const totalDist = Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1
-          const projSpeedPx = tower.projectileSpeed * tileWidth // e.g. 10 tiles/sec * 128px
+          // Smooth cinematic projectile flight speed matching editor preview
+          const projSpeedPx = (tower.projectileSpeed || 8.0) * (tileWidth * 0.45)
           const projId = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 
           projectiles.value.push({

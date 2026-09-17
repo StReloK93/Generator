@@ -294,38 +294,36 @@ export class CombatRenderer {
 
         const dx = proj.targetX - proj.startX
         const dy = proj.targetY - proj.startY
-        let lateralX = 0
-        let lateralY = 0
-        if (projDef.formation === 'twin_helix') {
-          const len = Math.hypot(dx, dy) || 1
-          const perpX = -dy / len
-          const perpY = dx / len
-          const swirl = Math.sin(progress * Math.PI * 8) * 12
-          lateralX = perpX * swirl
-          lateralY = perpY * swirl * 0.5
-        }
+        const isZigZag = projDef.formation === 'twin_helix'
+        const len = Math.hypot(dx, dy) || 1
+        const perpX = -dy / len
+        const perpY = dx / len
+        const helixAmp = 14
+        const swirl = isZigZag ? Math.sin(progress * Math.PI * 6) * helixAmp : 0
 
-        const renderX = proj.currentX + lateralX
-        const renderY = proj.currentY - arcHeight + lateralY
+        const renderX = proj.currentX + (isZigZag ? perpX * swirl : 0)
+        const renderY = proj.currentY - arcHeight + (isZigZag ? perpY * swirl * 0.5 : 0)
 
         const vx = dx
         const vy = dy - (arcMaxHeight > 0 ? Math.cos(progress * Math.PI) * Math.PI * arcMaxHeight : 0)
         const angle = Math.atan2(vy, vx)
-
-        let trail = this.combatTrails.get(proj.id)
-        if (!trail) {
-          trail = []
-          this.combatTrails.set(proj.id, trail)
-        }
-        trail.push({ x: renderX, y: renderY, alpha: 1.0, size: 3.5 })
-        const maxTrailLen = Math.max(3, projDef.trailLength ?? 8)
-        if (trail.length > maxTrailLen) trail.shift()
 
         const trailStyle = projDef.trailStyle || (projDef.shape === 'arrow' || projDef.shape === 'feather' ? 'particles' : 'solid_line')
         const trailColor = projDef.trailColorHex ?? theme.trailColorHex ?? 0xfbbf24
         const trailAlpha = projDef.trailAlpha ?? theme.trailAlpha ?? 0.8
         const trailWidth = projDef.trailWidth ?? 4
         const isFireProj = projDef.category === 'fire' || type.includes('flame') || type.includes('fire')
+
+        this.activeProjIds.add(proj.id)
+
+        let trail = this.combatTrails.get(proj.id)
+        if (!trail) {
+          trail = []
+          this.combatTrails.set(proj.id, trail)
+        }
+        trail.push({ x: renderX, y: renderY, alpha: 1.0, size: trailWidth })
+        const maxTrailLen = Math.max(3, projDef.trailLength ?? 8)
+        if (trail.length > maxTrailLen) trail.shift()
 
         // Render Trail according to user preference (strictly respecting style)
         if (trailStyle !== 'none' && !projDef.isLaser) {
@@ -433,7 +431,7 @@ export class CombatRenderer {
           }
         }
 
-        // Render projectile heads via unified renderer with full custom parameters!
+        // Render projectile head
         renderPixiProjectileHead(
           this.combatGraphics,
           type,

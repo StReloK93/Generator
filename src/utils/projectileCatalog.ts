@@ -1,18 +1,18 @@
-import { 
-  Flame, Snowflake, Zap, Skull, Wand2, Ghost, Crosshair, Sun, 
+import {
+  Flame, Snowflake, Zap, Skull, Wand2, Ghost, Crosshair, Sun,
   Sparkles, Rocket, ZapIcon
 } from 'lucide-vue-next'
 import { ProjectileType } from '../types/map'
 import { ProjectileFormation, ProjectileShape, SparkParticleType, TrailStyle } from '../stores/projectileStore'
 
-export type ProjectileCategory = 
-  | 'fire' 
-  | 'frost' 
-  | 'electro' 
-  | 'poison' 
-  | 'arcane' 
-  | 'void' 
-  | 'siege' 
+export type ProjectileCategory =
+  | 'fire'
+  | 'frost'
+  | 'electro'
+  | 'poison'
+  | 'arcane'
+  | 'void'
+  | 'siege'
   | 'holy'
   | 'custom'
 
@@ -176,7 +176,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkColorCss: '#fbbf24',
     shockwaveColorHex: 15680580,
     shockwaveColorCss: '#ef4444',
-    hasArc: true,
+    hasArc: false,
     isLaser: false,
     trailAlpha: 0.2,
     trailLength: 4,
@@ -185,7 +185,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     description: 'Klassik oddiy olov shari (scale: 1.00)',
     formation: 'single',
     shape: 'circle',
-    size: 4,
+    size: 8,
     length: 24,
     points: 4,
     satelliteCount: 0,
@@ -223,7 +223,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     description: "O'rtacha kattalikdagi olov shari (scale: 1.30)",
     formation: 'single',
     shape: 'circle',
-    size: 6,
+    size: 12,
     length: 24,
     points: 4,
     satelliteCount: 0,
@@ -261,7 +261,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     description: 'Katta va kuchli olov shari (scale: 2.20)',
     formation: 'single',
     shape: 'circle',
-    size: 8,
+    size: 12,
     length: 24,
     points: 4,
     satelliteCount: 0,
@@ -299,7 +299,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     description: 'Aerodinamik olovli reaktiv raketa (Teardrop Flame Rocket, scale: 0.80)',
     formation: 'single',
     shape: 'flame_wisp',
-    size: 4,
+    size: 6,
     length: 28,
     points: 4,
     satelliteCount: 0,
@@ -331,16 +331,16 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     hasArc: false,
     isLaser: false,
     trailAlpha: 0.2,
-    trailLength: 4,
-    trailWidth: 3,
+    trailLength: 10,
+    trailWidth: 10,
     trailStyle: 'particles',
     description: 'Zig-zag / spiral egizak to\'lqinli olovli snaryad',
     formation: 'twin_helix',
     shape: 'circle',
-    size: 5,
+    size: 10,
     length: 24,
     points: 4,
-    satelliteCount: 1,
+    satelliteCount: 0,
     sparkType: 'fire_ember',
     sparkCount: 16,
     shockwaveRadius: 22,
@@ -444,54 +444,19 @@ const ID_ALIASES: Record<string, string> = {
 }
 
 export function getAllProjectilesUnified(): ProjectileDef[] {
-  let list = [...BASE_PROJECTILE_CATALOG]
-  if (typeof window !== 'undefined') {
-    try {
-      // Check custom list
-      const saved = localStorage.getItem('defensor_custom_projectiles')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const customIds = new Set(parsed.map(p => p.id))
-          list = list.filter(p => !customIds.has(p.id))
-          const mappedCustom = parsed.map(c => ({
-            ...c,
-            categoryName: (c.category || 'fire').toUpperCase(),
-            icon: Sparkles,
-            iconName: 'Sparkles',
-          }))
-          list = [...list, ...mappedCustom]
-        }
-      }
-
-      // Check deleted list
-      const delSaved = localStorage.getItem('defensor_deleted_projectile_ids')
-      const deletedIds = delSaved ? JSON.parse(delSaved) : []
-      const deletedSet = new Set(Array.isArray(deletedIds) ? deletedIds : [])
-      if (deletedSet.size > 0) {
-        list = list.filter(p => !deletedSet.has(p.id))
-      }
-    } catch {
-      // Ignore
-    }
-  }
-  // If all were deleted, fallback to base catalog
-  if (list.length === 0) {
-    list = [...BASE_PROJECTILE_CATALOG]
-  }
-  return list
+  return BASE_PROJECTILE_CATALOG
 }
 
 export const PROJECTILE_CATALOG: ProjectileDef[] = BASE_PROJECTILE_CATALOG
 
 export function getProjectileDef(id: string): ProjectileDef {
   const resolvedId = ID_ALIASES[id] || id
-  const all = getAllProjectilesUnified()
-  const found = all.find(p => p.id === resolvedId || p.id === id)
+  const found = BASE_PROJECTILE_CATALOG.find(p => p.id === resolvedId || p.id === id)
   if (found) return found
   return BASE_PROJECTILE_CATALOG[0]
 }
 
 export function getProjectilesByCategory(category: ProjectileCategory): ProjectileDef[] {
-  return getAllProjectilesUnified().filter(p => p.category === category)
+  return BASE_PROJECTILE_CATALOG.filter(p => p.category === category)
 }
+
