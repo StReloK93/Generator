@@ -1270,6 +1270,107 @@ export const useMapStore = defineStore('mapStore', () => {
     return filledCount
   }
 
+  function scatterFillTiles(
+    cells: GridCoord[],
+    assetIds: string[],
+    layerId = activeLayerId.value,
+    options: {
+      density?: number
+      randomRotation?: boolean
+      randomFlip?: boolean
+      placementMode?: 'replace' | 'stack' | 'empty-only'
+    } = {},
+    pushHist = true
+  ): number {
+    const layer = project.value.layers.find(l => l.id === layerId)
+    if (!layer || layer.locked || !assetIds || assetIds.length === 0 || !cells || cells.length === 0) return 0
+
+    const density = options.density ?? 1.0
+    const randomRot = !!options.randomRotation
+    const randomFlip = !!options.randomFlip
+    const placementMode = options.placementMode ?? 'replace'
+
+    const rotChoices = [0, 90, 180, 270]
+    let placedCount = 0
+
+    for (const { col: c, row: r } of cells) {
+      if (c < 0 || c >= project.value.cols || r < 0 || r >= project.value.rows) continue
+
+      if (density < 1.0 && Math.random() > density) {
+        continue
+      }
+
+      const key = cellKey(c, r)
+      const existing = layer.tiles[key]
+      const isOccupied = existing && (Array.isArray(existing) ? existing.length > 0 : true)
+
+      if (placementMode === 'empty-only' && isOccupied) {
+        continue
+      }
+
+      const randomAssetId = assetIds[Math.floor(Math.random() * assetIds.length)]
+      const asset = assetManager.getAssetItem(randomAssetId)
+      if (!asset) continue
+
+      const spanX = asset.spanX || 1
+      const spanY = asset.spanY || 1
+      const scale = asset.scale || 1.0
+      const anchorX = asset.anchorX ?? 0.5
+      const anchorY = asset.anchorY ?? 0.88
+
+      const rotation = randomRot ? rotChoices[Math.floor(Math.random() * rotChoices.length)] : 0
+      const flipX = randomFlip ? Math.random() < 0.5 : false
+
+      const cellZIndex: Record<string, number> = {}
+      for (let cx = c; cx < c + spanX; cx++) {
+        for (let cy = r; cy < r + spanY; cy++) {
+          cellZIndex[cellKey(cx, cy)] = 0
+        }
+      }
+
+      const newItem: TileItem = {
+        id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
+        x: c,
+        y: r,
+        assetId: randomAssetId,
+        zIndex: 0,
+        depthOffset: 0,
+        cellZIndex,
+        spanX,
+        spanY,
+        scale,
+        anchorX,
+        anchorY,
+        flipX,
+        rotation,
+        offsetX: 0,
+        offsetY: 0,
+      }
+
+      if (placementMode === 'replace' || !existing) {
+        layer.tiles[key] = [newItem]
+      } else {
+        if (Array.isArray(existing)) {
+          existing.push(newItem)
+        } else {
+          layer.tiles[key] = [existing as any, newItem]
+        }
+      }
+
+      placedCount++
+    }
+
+    if (placedCount > 0) {
+      if (pushHist) {
+        pushHistory(`Scatter placed ${placedCount} random tiles across ${cells.length} cells on ${layer.name}`)
+      } else {
+        project.value.updatedAt = Date.now()
+      }
+    }
+
+    return placedCount
+  }
+
   function getBoxElementSummary(
     col0: number,
     row0: number,
@@ -2029,6 +2130,7 @@ export const useMapStore = defineStore('mapStore', () => {
     fillTiles,
     fillEmptyCells,
     fillEmptyCellsInBox,
+    scatterFillTiles,
     fillLayerCells,
     getBoxElementSummary,
     deleteElementsInBox,

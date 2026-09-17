@@ -152,6 +152,9 @@
 
     </div>
 
+    <!-- Image Crop Modal -->
+    <AssetCropModal />
+
     <!-- Notification Toast / Modal -->
     <div 
       v-if="toastMessage" 
@@ -185,6 +188,7 @@ import AssetCanvas from '../components/asset-editor/AssetCanvas.vue'
 import AssetGallerySidebar from '../components/asset-editor/AssetGallerySidebar.vue'
 import AssetLayersPanel from '../components/asset-editor/AssetLayersPanel.vue'
 import AssetNudgeControls from '../components/asset-editor/AssetNudgeControls.vue'
+import AssetCropModal from '../components/asset-editor/AssetCropModal.vue'
 import { useAssetEditorStore } from '../stores/assetEditorStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useI18n } from '../stores/i18nStore'

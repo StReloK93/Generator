@@ -106,16 +106,6 @@
 
     <!-- Right: TD Hub Modal, Start Game, Export -->
     <div class="flex items-center gap-1.5 sm:gap-2">
-      <!-- Projectile Studio Button -->
-      <UiButton
-        variant="secondary"
-        size="sm"
-        :leading-icon="Crosshair"
-        :title="$t('towers.projectileStudio')"
-        @click="router.push('/projectile-editor')"
-      >
-        <span class="hidden xl:inline">{{ $t('towers.projectileStudio') }}</span>
-      </UiButton>
 
       <!-- TD & Movement Settings Modal Button -->
       <UiButton
@@ -169,7 +159,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, Crosshair
+  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'

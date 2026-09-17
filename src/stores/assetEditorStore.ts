@@ -391,6 +391,72 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
     panY.value = 0
   }
 
+  // Cropping modal state
+  const isCropModalOpen = ref(false)
+  const cropTarget = ref<{
+    partId?: string
+    src: string
+    name: string
+  } | null>(null)
+
+  function openCropModal(partId?: string, imageSrc?: string, imageName?: string) {
+    if (partId) {
+      const part = parts.value.find(p => p.id === partId)
+      if (part) {
+        cropTarget.value = {
+          partId: part.id,
+          src: part.src,
+          name: part.assetName,
+        }
+        isCropModalOpen.value = true
+        return
+      }
+    }
+    if (imageSrc) {
+      cropTarget.value = {
+        partId: undefined,
+        src: imageSrc,
+        name: imageName || 'Cropped_Sprite',
+      }
+      isCropModalOpen.value = true
+      return
+    }
+    if (selectedPart.value) {
+      cropTarget.value = {
+        partId: selectedPart.value.id,
+        src: selectedPart.value.src,
+        name: selectedPart.value.assetName,
+      }
+      isCropModalOpen.value = true
+    }
+  }
+
+  function closeCropModal() {
+    isCropModalOpen.value = false
+    cropTarget.value = null
+  }
+
+  function updatePartImage(partId: string, newSrc: string) {
+    const part = parts.value.find(p => p.id === partId)
+    if (part) {
+      part.src = newSrc
+      recordHistory()
+    }
+  }
+
+  async function autoTrimPart(partId: string) {
+    const part = parts.value.find(p => p.id === partId)
+    if (!part || !part.src) return
+    try {
+      const { autoTrimImage } = await import('../utils/imageCropper')
+      const { dataUrl } = await autoTrimImage(part.src)
+      part.src = dataUrl
+      recordHistory()
+    } catch (err) {
+      console.error('Failed to auto-trim part:', err)
+    }
+  }
+
   return {
     assetName,
     parts,
@@ -410,6 +476,12 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
     nudgeStep,
     history,
     historyIndex,
+    isCropModalOpen,
+    cropTarget,
+    openCropModal,
+    closeCropModal,
+    updatePartImage,
+    autoTrimPart,
     recordHistory,
     undo,
     redo,

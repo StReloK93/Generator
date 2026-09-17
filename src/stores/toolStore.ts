@@ -62,6 +62,40 @@ export const useToolStore = defineStore('toolStore', () => {
     boxClearData.value = null
   }
 
+  // Scatter / Random Multi-Asset Tool State
+  const isScatterModalOpen = ref<boolean>(false)
+  const scatterSelectedAssetIds = ref<string[]>([])
+  const scatterShape = ref<'box' | 'line' | 'brush'>('box')
+  const scatterDensity = ref<number>(100) // 10% to 100%
+  const scatterRandomRotation = ref<boolean>(false)
+  const scatterRandomFlip = ref<boolean>(false)
+  const scatterPlacementMode = ref<'replace' | 'stack' | 'empty-only'>('replace')
+
+  function openScatterModal() {
+    isScatterModalOpen.value = true
+  }
+
+  function closeScatterModal() {
+    isScatterModalOpen.value = false
+  }
+
+  function toggleScatterAsset(assetId: string) {
+    const idx = scatterSelectedAssetIds.value.indexOf(assetId)
+    if (idx !== -1) {
+      scatterSelectedAssetIds.value.splice(idx, 1)
+    } else {
+      scatterSelectedAssetIds.value.push(assetId)
+    }
+  }
+
+  function setScatterAssets(assetIds: string[]) {
+    scatterSelectedAssetIds.value = [...assetIds]
+  }
+
+  function clearScatterAssets() {
+    scatterSelectedAssetIds.value = []
+  }
+
   // Editor Display Settings
   const showGrid = ref<boolean>(true)
   const showCoordinates = ref<boolean>(false)
@@ -177,6 +211,18 @@ export const useToolStore = defineStore('toolStore', () => {
     boxClearData,
     openBoxClearModal,
     closeBoxClearModal,
+    isScatterModalOpen,
+    scatterSelectedAssetIds,
+    scatterShape,
+    scatterDensity,
+    scatterRandomRotation,
+    scatterRandomFlip,
+    scatterPlacementMode,
+    openScatterModal,
+    closeScatterModal,
+    toggleScatterAsset,
+    setScatterAssets,
+    clearScatterAssets,
     gameConfigActiveTab,
     openGameConfig,
     closeGameConfig,

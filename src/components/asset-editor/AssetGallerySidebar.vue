@@ -80,9 +80,22 @@
           loading="lazy"
         />
 
-        <!-- Hover Mini-plus Icon -->
-        <div class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-lg bg-cyan-500 text-slate-950 flex items-center justify-center text-[10px] font-bold shadow">
-          <Plus class="w-3 h-3" />
+        <!-- Hover Action Buttons (Plus & Crop) -->
+        <div class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <!-- Crop Button -->
+          <button 
+            type="button" 
+            class="w-5 h-5 rounded-lg bg-slate-900/90 text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-400/50 flex items-center justify-center text-[10px] font-bold shadow cursor-pointer transition-colors"
+            :title="$t('assetEditor.crop')"
+            @click.stop="openCropForAsset(asset)"
+          >
+            <Crop class="w-3 h-3" />
+          </button>
+
+          <!-- Add to Canvas Button -->
+          <div class="w-5 h-5 rounded-lg bg-cyan-500 text-slate-950 flex items-center justify-center text-[10px] font-bold shadow pointer-events-none">
+            <Plus class="w-3 h-3" />
+          </div>
         </div>
       </div>
     </div>
@@ -97,7 +110,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Boxes, Search, Plus, Sparkles, Upload } from 'lucide-vue-next'
+import { Boxes, Search, Plus, Sparkles, Upload, Crop } from 'lucide-vue-next'
 import { UiInput, UiBadge, UiButton, UiTabs, TabItem } from '../ui'
 import { useAssetStore } from '../../stores/assetStore'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
@@ -197,6 +210,11 @@ function handleAdd(asset: AssetItem) {
     src: preview || asset.src || '',
     previewSrc: preview,
   })
+}
+
+function openCropForAsset(asset: AssetItem) {
+  const preview = assetStore.getAssetPreview(asset) || asset.src || ''
+  editorStore.openCropModal(undefined, preview, asset.name)
 }
 </script>
 

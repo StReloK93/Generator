@@ -131,6 +131,9 @@ export class OverlayRenderer {
     } else if (activeTool === 'water') {
       strokeColor = 0x38bdf8
       fillColor = 0x0284c7
+    } else if (activeTool === 'scatter') {
+      strokeColor = 0xc084fc
+      fillColor = 0x9333ea
     } else if (!activeAsset) {
       strokeColor = 0xa855f7
       fillColor = 0xa855f7
@@ -144,6 +147,7 @@ export class OverlayRenderer {
           activeTool === 'box-fill' ||
           activeTool === 'box-clear' ||
           activeTool === 'water' ||
+          activeTool === 'scatter' ||
           activeTool.startsWith('buildable')
             ? 0.35
             : 0.28,
@@ -158,6 +162,7 @@ export class OverlayRenderer {
       activeTool !== 'eraser' &&
       activeTool !== 'picker' &&
       activeTool !== 'water' &&
+      activeTool !== 'scatter' &&
       !activeTool.startsWith('buildable') &&
       this.getTexture
     ) {
@@ -239,32 +244,37 @@ export class OverlayRenderer {
     const isBoxClear = activeTool === 'box-clear'
     const isBoxFill = activeTool === 'box-fill'
     const isWater = activeTool === 'water'
+    const isScatter = activeTool === 'scatter'
     const isBuildable = activeTool === 'buildable' || activeTool.startsWith('buildable')
     const color =
       isEraser || isBoxClear
         ? 0xef4444
         : isBoxFill || isWater
           ? 0x0284c7
-          : isBuildable
-            ? 0x10b981
-            : 0x6366f1
+          : isScatter
+            ? 0x9333ea
+            : isBuildable
+              ? 0x10b981
+              : 0x6366f1
     const strokeColor =
       isEraser || isBoxClear
         ? 0xf87171
         : isBoxFill || isWater
           ? 0x38bdf8
-          : isBuildable
-            ? 0x34d399
-            : 0x818cf8
+          : isScatter
+            ? 0xc084fc
+            : isBuildable
+              ? 0x34d399
+              : 0x818cf8
 
     for (const cell of cells) {
       if (!isInsideGrid(cell.col, cell.row, project.cols, project.rows)) continue
       const poly = getCellPolygon(cell.col, cell.row, tileWidth, tileHeight)
       this.hoverGraphics
         .poly(poly)
-        .fill({ color, alpha: isBoxFill || isBoxClear || isBuildable ? 0.38 : 0.35 })
+        .fill({ color, alpha: isBoxFill || isBoxClear || isBuildable || isScatter ? 0.38 : 0.35 })
         .stroke({
-          width: isBoxFill || isBoxClear || isBuildable ? 2.0 : 1.5,
+          width: isBoxFill || isBoxClear || isBuildable || isScatter ? 2.0 : 1.5,
           color: strokeColor,
           alpha: 0.95,
         })

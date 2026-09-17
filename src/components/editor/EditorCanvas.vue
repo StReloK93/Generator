@@ -20,6 +20,9 @@
     <!-- Placement Conflict Decision Modal -->
     <PlacementPromptModal />
 
+    <!-- Multi-Asset Random Scatter Modal -->
+    <MultiAssetScatterModal />
+
     <!-- Floating Vertical Tools Toolbar Palette (Left Side of Map) -->
     <div 
       class="absolute left-3 top-3 z-20 flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl border border-slate-800/90 rounded-2xl shadow-2xl select-none pointer-events-auto"
@@ -117,6 +120,16 @@
         :active="toolStore.activeTool === 'water'"
         :title="`${$t('editor.waterTool') || 'Suv qatlami'} (W)`"
         @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
+      />
+
+      <!-- Scatter / Random Multi-Asset Tool (R) -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="Dices"
+        :active="toolStore.activeTool === 'scatter'"
+        :title="`${$t('editor.scatterTool') || 'Tasodifiy asset to\'ldirish (Scatter)'} (R)`"
+        @click="handleToggleScatterTool"
       />
 
       <div class="h-px w-full bg-slate-800 my-0.5"></div>
@@ -287,6 +300,55 @@
           {{ $t('common.done') || 'Tayyor' }}
         </UiButton>
       </div>
+    </div>
+
+    <!-- Floating HUD when in Scatter / Random Multi-Asset Mode -->
+    <div 
+      v-if="toolStore.activeTool === 'scatter'"
+      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-purple-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-purple-200 animate-in fade-in slide-in-from-top-2 select-none"
+    >
+      <div class="flex items-center gap-1.5 shrink-0">
+        <Dices class="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />
+        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.scatterTool') || 'Tasodifiy To\'ldirish' }}</span>
+        <span class="font-mono text-[11px] text-purple-300 font-bold">
+          ({{ toolStore.scatterSelectedAssetIds.length }} ta asset)
+        </span>
+      </div>
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Shape Toggle: Box / Line / Brush -->
+      <UiTabs
+        v-model="toolStore.scatterShape"
+        variant="brand"
+        size="xs"
+        :items="[
+          { id: 'box', label: $t('editor.scatterBox') || 'To\'rtburchak', icon: Square },
+          { id: 'line', label: $t('editor.scatterLine') || 'Chiziq', icon: Spline },
+          { id: 'brush', label: $t('editor.scatterBrush') || 'Cho\'tka', icon: Paintbrush },
+        ]"
+      />
+
+      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+
+      <!-- Settings / Re-open Modal Button -->
+      <UiButton
+        variant="secondary"
+        size="xs"
+        :leading-icon="Settings2"
+        @click="toolStore.openScatterModal"
+      >
+        <span>{{ $t('common.settings') || 'Assetlar' }}</span>
+      </UiButton>
+
+      <!-- Done Button -->
+      <UiButton
+        variant="game-green"
+        size="xs"
+        @click="toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+      >
+        {{ $t('common.done') || 'Tayyor' }}
+      </UiButton>
     </div>
 
     <!-- Floating HUD when Box Fill Mode is Active -->
@@ -535,11 +597,13 @@
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
-  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves 
+  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves,
+  Dices, Settings2, Square
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
 import PlacementPromptModal from '../PlacementPromptModal.vue'
+import MultiAssetScatterModal from './MultiAssetScatterModal.vue'
 import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useAssetStore } from '../../stores/assetStore'
@@ -1264,6 +1328,13 @@ function handleKeyDown(e: KeyboardEvent) {
         return
       }
     }
+    if (code === 'KeyR' || key === 'r') {
+      if (!e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
+        handleToggleScatterTool()
+        return
+      }
+    }
     if (code === 'KeyZ' || key === 'z') {
       if (!e.ctrlKey && !e.metaKey) {
         e.preventDefault()
@@ -1343,6 +1414,20 @@ function handleQuickFillAllEmpty() {
     notify.success(t('editor.filledEmptyCellsCount', { count, layer: layer.name }))
   } else {
     notify.info(t('editor.occupiedCellsCount'))
+  }
+}
+
+function handleToggleScatterTool() {
+  if (isBoxFillActive.value) cancelBoxFillMode()
+  if (isBoxClearActive.value) cancelBoxClearMode()
+
+  if (toolStore.activeTool === 'scatter') {
+    toolStore.openScatterModal()
+  } else {
+    toolStore.setTool('scatter')
+    if (toolStore.scatterSelectedAssetIds.length === 0) {
+      toolStore.openScatterModal()
+    }
   }
 }
 

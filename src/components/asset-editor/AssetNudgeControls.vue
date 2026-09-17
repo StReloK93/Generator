@@ -108,7 +108,37 @@
         </div>
       </UiCard>
 
-      <!-- 2. Copy & Paste Quick Action Bar -->
+      <!-- 2. Crop & Auto-Trim Image Tools (Single Selection) -->
+      <UiCard v-if="store.selectedPart" variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
+        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+          <Crop class="w-3.5 h-3.5 text-cyan-400" />
+          <span>{{ $t('assetEditor.cropSection') || 'Qirqish va Qirralar' }}</span>
+        </span>
+
+        <div class="grid grid-cols-2 gap-2">
+          <UiButton 
+            variant="secondary" 
+            size="xs" 
+            :leading-icon="Crop"
+            :title="$t('assetEditor.cropDesc') || 'Rasmni interaktiv qirqib olish'"
+            @click="store.openCropModal(store.selectedPart!.id)"
+          >
+            {{ $t('assetEditor.crop') || 'Qirqish' }}
+          </UiButton>
+
+          <UiButton 
+            variant="game-amber" 
+            size="xs" 
+            :leading-icon="Sparkles"
+            :title="$t('assetEditor.autoTrimDesc') || 'Shaffof chegaralarni avtomatik tozalash'"
+            @click="store.autoTrimPart(store.selectedPart!.id)"
+          >
+            {{ $t('assetEditor.autoTrim') || 'Avto-qirqish' }}
+          </UiButton>
+        </div>
+      </UiCard>
+
+      <!-- 3. Copy & Paste Quick Action Bar -->
       <div class="grid grid-cols-2 gap-2">
         <UiButton 
           variant="secondary" 
@@ -132,7 +162,7 @@
         </UiButton>
       </div>
 
-      <!-- 3. Flip & Rotation Controls -->
+      <!-- 4. Flip & Rotation Controls -->
       <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2.5">
         <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
           <RotateCw class="w-3.5 h-3.5 text-amber-400" />
@@ -258,7 +288,9 @@ import {
   FlipVertical, 
   Scaling,
   Copy,
-  ClipboardPaste
+  ClipboardPaste,
+  Crop,
+  Sparkles
 } from 'lucide-vue-next'
 import { UiCard, UiBadge, UiButton, UiNumberInput, UiSlider, UiTabs } from '../ui'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'

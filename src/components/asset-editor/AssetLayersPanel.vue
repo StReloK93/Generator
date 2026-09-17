@@ -11,8 +11,27 @@
         </UiBadge>
       </div>
 
-      <!-- Z-Index Reorder Toolbar for Selected Items -->
+      <!-- Z-Index Reorder Toolbar & Crop for Selected Items -->
       <div v-if="store.selectedParts.length > 0" class="flex items-center gap-1">
+        <UiIconButton 
+          v-if="store.selectedParts.length === 1"
+          :icon="Crop" 
+          size="sm" 
+          variant="ghost" 
+          :title="$t('assetEditor.crop')" 
+          custom-class="text-cyan-400 hover:text-cyan-300"
+          @click="store.openCropModal(store.selectedParts[0].id)" 
+        />
+        <UiIconButton 
+          v-if="store.selectedParts.length === 1"
+          :icon="Sparkles" 
+          size="sm" 
+          variant="ghost" 
+          :title="$t('assetEditor.autoTrim')" 
+          custom-class="text-amber-400 hover:text-amber-300"
+          @click="store.autoTrimPart(store.selectedParts[0].id)" 
+        />
+        <div class="h-4 w-px bg-slate-800 mx-0.5"></div>
         <UiIconButton 
           :icon="ChevronsUp" 
           size="sm" 
@@ -111,8 +130,18 @@
           </div>
         </div>
 
-        <!-- Right: Actions (Visibility, Lock, Duplicate, Delete) -->
+        <!-- Right: Actions (Crop, Visibility, Lock, Duplicate, Delete) -->
         <div class="flex items-center gap-0.5 shrink-0" @click.stop>
+          <!-- Crop Button -->
+          <UiIconButton 
+            :icon="Crop"
+            size="xs"
+            variant="ghost"
+            :title="$t('assetEditor.crop')"
+            custom-class="text-slate-400 hover:text-cyan-400"
+            @click="store.openCropModal(part.id)"
+          />
+
           <!-- Eye Visibility Toggle -->
           <UiIconButton 
             :icon="part.visible ? Eye : EyeOff"
@@ -206,7 +235,9 @@ import {
   Copy, 
   Trash2, 
   ClipboardPaste,
-  CheckSquare
+  CheckSquare,
+  Crop,
+  Sparkles
 } from 'lucide-vue-next'
 import { UiBadge, UiIconButton, UiButton } from '../ui'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'

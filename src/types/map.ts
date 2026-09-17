@@ -214,7 +214,7 @@ export interface AssetItem {
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'water' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'water' | 'scatter' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 

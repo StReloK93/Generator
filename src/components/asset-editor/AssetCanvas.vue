@@ -112,6 +112,7 @@
           transform: `translate(-50%, -50%) scaleX(${part.scaleX}) scaleY(${part.scaleY}) rotate(${part.rotation}deg)`,
         }"
         @mousedown.stop="handlePartMouseDown($event, part.id)"
+        @dblclick.stop="store.openCropModal(part.id)"
       >
         <img 
           :src="part.src || assetStore.getAssetPreview(part.assetId || part.assetName)" 
@@ -125,11 +126,21 @@
           v-if="store.isSelected(part.id)"
           class="absolute inset-0 border-2 border-brand-400 rounded-lg pointer-events-none ring-4 ring-brand-500/25 shadow-[0_0_15px_rgba(99,102,241,0.6)]"
         >
-          <!-- 1. Top Info Badge (Name & Z-Index & Scale) -->
-          <div class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg bg-brand-600/95 text-white font-mono text-[9px] font-bold whitespace-nowrap shadow-lg flex items-center gap-1.5 pointer-events-none border border-brand-400/30">
+          <!-- 1. Top Info Badge (Name & Z-Index & Scale & Quick Crop) -->
+          <div class="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg bg-brand-600/95 text-white font-mono text-[9px] font-bold whitespace-nowrap shadow-lg flex items-center gap-1.5 pointer-events-auto border border-brand-400/30">
             <span>{{ part.assetName }}</span>
             <span class="bg-brand-950/80 px-1 rounded text-amber-300">Z: {{ part.zIndex }}</span>
             <span class="bg-emerald-950/80 text-emerald-300 px-1 rounded font-black">{{ Math.abs(part.scaleX).toFixed(2) }}x</span>
+            <button 
+              type="button"
+              class="ml-0.5 px-1.5 py-0.2 rounded bg-cyan-500/30 text-cyan-200 hover:bg-cyan-500 hover:text-slate-950 border border-cyan-400/50 flex items-center gap-1 cursor-pointer transition-all font-bold"
+              :title="$t('assetEditor.cropDesc') || 'Rasmni qirqish (Double-click)'"
+              @mousedown.stop
+              @click.stop="store.openCropModal(part.id)"
+            >
+              <Crop class="w-2.5 h-2.5" />
+              <span>{{ $t('assetEditor.crop') || 'Crop' }}</span>
+            </button>
           </div>
 
           <!-- 2. Bottom Permanent Scale Badge (Click to type scale or press S) -->
@@ -343,7 +354,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
-import { ZoomIn, ZoomOut, RotateCcw, Grid, Scaling, X, UploadCloud } from 'lucide-vue-next'
+import { ZoomIn, ZoomOut, RotateCcw, Grid, Scaling, X, UploadCloud, Crop } from 'lucide-vue-next'
 import { UiIconButton, UiButton } from '../ui'
 import { useAssetEditorStore, type CompositePart } from '../../stores/assetEditorStore'
 import { useAssetStore } from '../../stores/assetStore'
