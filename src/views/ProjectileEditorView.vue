@@ -41,6 +41,15 @@
         </UiButton>
 
         <UiButton
+          :variant="isCodeCopied ? 'game-green' : 'game-amber'"
+          size="sm"
+          :leading-icon="isCodeCopied ? Check : Copy"
+          @click="copyPixiCode"
+        >
+          {{ isCodeCopied ? t('projectiles.catalogCodeCopied') : t('projectiles.copyCatalogCode') }}
+        </UiButton>
+
+        <UiButton
           variant="secondary"
           size="sm"
           :leading-icon="Download"
@@ -49,21 +58,8 @@
           {{ t('projectiles.exportJson') }}
         </UiButton>
 
-        <label class="cursor-pointer">
-          <input
-            type="file"
-            accept=".json"
-            class="hidden"
-            @change="handleImportJson"
-          />
-          <span class="inline-flex items-center justify-center font-semibold rounded-xl text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer">
-            <Upload class="w-3.5 h-3.5 mr-1.5" />
-            {{ t('projectiles.importJson') }}
-          </span>
-        </label>
-
         <UiButton
-          variant="danger"
+          variant="secondary"
           size="sm"
           :leading-icon="RotateCcw"
           @click="confirmResetDefaults"
@@ -249,22 +245,21 @@
                   v-model="currentForm.shape"
                   class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
                 >
-                  <option value="spear_lance">🗡️ {{ t('projectiles.shapeSpearLance') }}</option>
-                  <option value="flame_wisp">🔥 {{ t('projectiles.shapeFlameWisp') }}</option>
-                  <option value="lightning_bolt">⚡ {{ t('projectiles.shapeLightningBolt') }}</option>
-                  <option value="shuriken">🥷 {{ t('projectiles.shapeShuriken') }}</option>
+                  <option value="circle">⚪ {{ t('projectiles.shapeCircle') }}</option>
+                  <option value="sand_cluster">🌪️ {{ t('projectiles.shapeSandCluster') }}</option>
+                  <option value="line_streak">⚡ {{ t('projectiles.shapeLineStreak') }}</option>
+                  <option value="instant_strike">💥 {{ t('projectiles.shapeInstantStrike') }}</option>
                   <option value="energy_orb">🔮 {{ t('projectiles.shapeEnergyOrb') }}</option>
                   <option value="energy_wave">🌊 {{ t('projectiles.shapeEnergyWave') }}</option>
-                  <option value="arrow">🏹 {{ t('projectiles.shapeArrow') }}</option>
+                  <option value="flame_wisp">🔥 {{ t('projectiles.shapeFlameWisp') }}</option>
                   <option value="diamond_shard">💎 {{ t('projectiles.shapeDiamondShard') }}</option>
                   <option value="star">⭐ {{ t('projectiles.shapeStar') }}</option>
+                  <option value="arrow">🏹 {{ t('projectiles.shapeArrow') }}</option>
+                  <option value="spear_lance">🗡️ {{ t('projectiles.shapeSpearLance') }}</option>
+                  <option value="lightning_bolt">⚡ {{ t('projectiles.shapeLightningBolt') }}</option>
+                  <option value="shuriken">🥷 {{ t('projectiles.shapeShuriken') }}</option>
                   <option value="sawblade">⚙️ {{ t('projectiles.shapeSawblade') }}</option>
                   <option value="skull">💀 {{ t('projectiles.shapeSkull') }}</option>
-                  <option value="greatsword">⚔️ {{ t('projectiles.shapeGreatsword') }}</option>
-                  <option value="hammer">🔨 {{ t('projectiles.shapeHammer') }}</option>
-                  <option value="boulder">🪨 {{ t('projectiles.shapeBoulder') }}</option>
-                  <option value="feather">🪶 {{ t('projectiles.shapeFeather') }}</option>
-                  <option value="circle">⚪ {{ t('projectiles.shapeCircle') }}</option>
                 </select>
               </div>
 
@@ -280,6 +275,22 @@
                   size="sm"
                 />
               </div>
+            </div>
+
+            <!-- Instant Strike Subtype Selector -->
+            <div v-if="currentForm.shape === 'instant_strike' || currentForm.isInstant" class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+              <label class="block text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+                <Sparkles class="w-3.5 h-3.5" />
+                {{ t('projectiles.instantType') }} (To'g'ridan-to'g'ri Unit Ustida):
+              </label>
+              <select
+                v-model="currentForm.instantType"
+                class="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+              >
+                <option value="sky_strike">⚡ {{ t('projectiles.instantSkyStrike') }}</option>
+                <option value="ground_burst">🌋 {{ t('projectiles.instantGroundBurst') }}</option>
+                <option value="unit_aura">🔮 {{ t('projectiles.instantUnitAura') }}</option>
+              </select>
             </div>
 
             <!-- Sliders for Geometry -->
@@ -412,6 +423,8 @@
                   class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
                 >
                   <option value="fire_ember">🔥 {{ t('projectiles.sparkFireEmber') }}</option>
+                  <option value="sand_dust">🌪️ {{ t('projectiles.sparkSandDust') }}</option>
+                  <option value="spark_line">✨ {{ t('projectiles.sparkSparkLine') }}</option>
                   <option value="ice_shard">❄️ {{ t('projectiles.sparkIceShard') }}</option>
                   <option value="snowflake">❄️ {{ t('projectiles.sparkSnowflake') }}</option>
                   <option value="lightning_arc">⚡ {{ t('projectiles.sparkLightningArc') }}</option>
@@ -451,24 +464,24 @@
             </div>
           </div>
 
-          <!-- TAB 4: PIXIJS CODE INSPECTOR (Real-time Code Generator) -->
+          <!-- TAB 4: CODE INSPECTOR (Real-time TypeScript Object Generator for BASE_PROJECTILE_CATALOG) -->
           <div v-if="activeTab === 'code'" class="space-y-4">
             <!-- Header with Copy Button -->
             <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
               <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
                   <FileCode class="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 class="text-xs font-bold text-slate-100">PixiJS 8 Rendering Routine</h3>
-                  <span class="text-[10px] text-slate-400 font-mono">{{ currentForm.id }}</span>
+                  <h3 class="text-xs font-bold text-slate-100">BASE_PROJECTILE_CATALOG TypeScript Config</h3>
+                  <span class="text-[10px] text-slate-400 font-mono">src/utils/projectileCatalog.ts</span>
                 </div>
               </div>
 
               <div class="flex items-center gap-2">
                 <span v-if="isCodeCopied" class="text-xs font-semibold text-emerald-400 flex items-center gap-1 animate-pulse">
                   <Check class="w-3.5 h-3.5" />
-                  {{ t('projectiles.codeCopied') }}
+                  {{ t('projectiles.catalogCodeCopied') }}
                 </span>
                 <UiButton
                   :variant="isCodeCopied ? 'game-green' : 'game-amber'"
@@ -476,7 +489,7 @@
                   :leading-icon="isCodeCopied ? Check : Copy"
                   @click="copyPixiCode"
                 >
-                  {{ isCodeCopied ? t('projectiles.codeCopied') : t('projectiles.copyPixiCode') }}
+                  {{ isCodeCopied ? t('projectiles.catalogCodeCopied') : t('projectiles.copyCatalogCode') }}
                 </UiButton>
               </div>
             </div>
@@ -484,51 +497,36 @@
             <!-- Syntax-Highlighted Code Container with Click to Select / Copy -->
             <div class="relative rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-2xl group">
               <div class="flex items-center justify-between px-3 py-1.5 bg-slate-900/90 border-b border-slate-800 text-[10px] font-mono text-slate-400">
-                <span>TypeScript / PixiJS 8</span>
+                <span>TypeScript Object Literal</span>
                 <button
                   type="button"
                   class="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 cursor-pointer"
                   @click="copyPixiCode"
                 >
                   <Copy class="w-3 h-3" />
-                  <span>{{ t('projectiles.copyPixiCode') }}</span>
+                  <span>{{ t('projectiles.copyCatalogCode') }}</span>
                 </button>
               </div>
               <textarea
                 ref="codeTextAreaRef"
                 readonly
                 :value="generatedPixiCode"
-                rows="14"
-                class="w-full p-3.5 text-[11px] font-mono text-slate-200 bg-slate-950 border-0 focus:outline-hidden resize-none select-text cursor-text leading-relaxed custom-scrollbar"
+                rows="16"
+                class="w-full p-3.5 text-[11px] font-mono text-amber-200/90 bg-slate-950 border-0 focus:outline-hidden resize-none select-text cursor-text leading-relaxed custom-scrollbar"
                 @focus="handleCodeFocus"
                 @click="handleCodeClick"
               />
             </div>
 
-            <!-- Repository Code Architecture Guide Card -->
-            <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-2.5">
+            <!-- Copy-Paste Guide Card -->
+            <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
               <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
                 <Sparkles class="w-3.5 h-3.5" />
-                {{ t('projectiles.fileLocation') }} (Loyihadagi Joylashuvi):
+                {{ t('projectiles.catalogCodeHint') }}
               </h4>
-              <div class="space-y-1.5 text-[11px] text-slate-300 font-mono">
-                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
-                  <span>🎨 <b>src/utils/projectileEffectRenderer.ts</b></span>
-                  <span class="text-[10px] text-slate-400">renderPixiProjectileHead()</span>
-                </div>
-                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
-                  <span>⚔️ <b>src/rendering/pixi/CombatRenderer.ts</b></span>
-                  <span class="text-[10px] text-slate-400">renderCombat() / Trails & Rings</span>
-                </div>
-                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
-                  <span>💾 <b>src/stores/projectileStore.ts</b></span>
-                  <span class="text-[10px] text-slate-400">Pinia Store & LocalStorage</span>
-                </div>
-                <div class="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
-                  <span>📚 <b>src/utils/projectileCatalog.ts</b></span>
-                  <span class="text-[10px] text-slate-400">Unified getProjectileDef()</span>
-                </div>
-              </div>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Tepadagi kodni nusxalab, <code class="text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">src/utils/projectileCatalog.ts</code> faylidagi <code class="text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">BASE_PROJECTILE_CATALOG</code> massiviga qo'yishingiz mumkin. Shunda ushbu snaryad o'yinda ham, barcha joylarda ham aynan siz ko'rgan shaklda ishlaydi!
+              </p>
             </div>
           </div>
         </div>
@@ -542,21 +540,21 @@
 
           <div class="flex items-center gap-2">
             <UiButton
+              :variant="isCodeCopied ? 'game-green' : 'game-amber'"
+              size="sm"
+              :leading-icon="isCodeCopied ? Check : Copy"
+              @click="copyPixiCode"
+            >
+              {{ isCodeCopied ? t('projectiles.catalogCodeCopied') : t('projectiles.copyCatalogCode') }}
+            </UiButton>
+
+            <UiButton
               variant="secondary"
               size="sm"
               :leading-icon="Copy"
               @click="handleDuplicate"
             >
               {{ t('projectiles.duplicate') }}
-            </UiButton>
-
-            <UiButton
-              variant="game-amber"
-              size="sm"
-              :leading-icon="Save"
-              @click="handleSave"
-            >
-              {{ t('projectiles.save') }}
             </UiButton>
           </div>
         </div>
@@ -1186,49 +1184,54 @@ function spawnManualShot() {
     const targetX = customTargetPos ? customTargetPos.x : defaultTargetX
     const targetY = customTargetPos ? customTargetPos.y : defaultTargetY
 
+    const isInstant = Boolean(currentForm.isInstant || currentForm.shape === 'instant_strike')
+    const effStartX = isInstant ? targetX : startX
+    const effStartY = isInstant ? targetY - (currentForm.instantType === 'sky_strike' ? 120 : 0) : startY
+    const effDur = isInstant ? 0.3 : dur
+
     if (form === 'volley_3') {
       const offsets = [-14, 0, 14]
       offsets.forEach((off, idx) => {
         arenaProjectiles.push({
           id: ++projSeq,
-          startX,
-          startY,
-          targetX: targetX + off * 0.6,
-          targetY: targetY + off * 0.3,
-          currentX: startX,
-          currentY: startY,
+          startX: effStartX,
+          startY: effStartY,
+          targetX,
+          targetY,
+          currentX: effStartX,
+          currentY: effStartY,
           progress: 0,
-          speed: 1 / dur,
+          speed: 1 / effDur,
           offsetPerp: off,
-          phaseOffset: idx * 0.3,
+          phaseOffset: 0,
           trail: [],
         })
       })
     } else if (form === 'twin_helix') {
       arenaProjectiles.push({
         id: ++projSeq,
-        startX,
-        startY,
+        startX: effStartX,
+        startY: effStartY,
         targetX,
         targetY,
-        currentX: startX,
-        currentY: startY,
+        currentX: effStartX,
+        currentY: effStartY,
         progress: 0,
-        speed: 1 / dur,
+        speed: 1 / effDur,
         offsetPerp: 10,
         phaseOffset: 0,
         trail: [],
       })
       arenaProjectiles.push({
         id: ++projSeq,
-        startX,
-        startY,
+        startX: effStartX,
+        startY: effStartY,
         targetX,
         targetY,
-        currentX: startX,
-        currentY: startY,
+        currentX: effStartX,
+        currentY: effStartY,
         progress: 0,
-        speed: 1 / dur,
+        speed: 1 / effDur,
         offsetPerp: -10,
         phaseOffset: Math.PI,
         trail: [],
@@ -1236,14 +1239,14 @@ function spawnManualShot() {
     } else {
       arenaProjectiles.push({
         id: ++projSeq,
-        startX,
-        startY,
+        startX: effStartX,
+        startY: effStartY,
         targetX,
         targetY,
-        currentX: startX,
-        currentY: startY,
+        currentX: effStartX,
+        currentY: effStartY,
         progress: 0,
-        speed: 1 / dur,
+        speed: 1 / effDur,
         offsetPerp: 0,
         phaseOffset: 0,
         trail: [],

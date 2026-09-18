@@ -26,7 +26,7 @@
         <!-- Modal Dialog Box -->
         <div 
           :class="[
-            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl overflow-hidden flex flex-col max-h-[88dvh] animate-in zoom-in-95 duration-200 z-10',
+            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] animate-in zoom-in-95 duration-200 z-10',
             sizeClasses,
             customClass
           ]"
@@ -73,7 +73,7 @@
           </div>
 
           <!-- Modal Body (Scrollable) -->
-          <div :class="['overflow-y-auto custom-scrollbar flex-1 p-4 sm:p-6 space-y-4 sm:space-y-5', bodyClass]">
+          <div :class="['overflow-y-auto overflow-x-hidden custom-scrollbar flex-1 p-4 sm:p-6 space-y-4 sm:space-y-5', bodyClass]">
             <slot />
           </div>
 

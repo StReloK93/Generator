@@ -1,4 +1,5 @@
 import { MapProject, AssetItem } from '../types/map'
+import { registerCustomProjectiles, getAllProjectilesUnified } from './projectileCatalog'
 
 /**
  * Downloads a data URI or blob as a file
@@ -267,13 +268,14 @@ export function buildFullProjectJsonPayload(
       placedTowers: resolvedPlacedTowers,
       towerBlueprints: resolvedTowerBlueprints,
       waveConfigs: resolvedWaveConfigs,
-      currentWaveIndex: resolvedCurrentWaveIndex,
       buildableCells: project.buildableCells || [],
       waterCells: project.waterCells || [],
       buildMode: project.buildMode || 'all',
+      customProjectiles: getAllProjectilesUnified().filter(p => p.isCustom),
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
     },
+    customProjectiles: getAllProjectilesUnified().filter(p => p.isCustom),
     assets: customAssetsOnly,
     savedAt: new Date().toISOString(),
   }
@@ -311,10 +313,24 @@ export function exportProjectJson(
 }
 
 /**
- * Imports project and assets from JSON file
+ * Yields execution to the main browser thread to allow UI rendering & smooth animations
  */
-export function importProjectFromJson(
-  file: File
+export function yieldToMain(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => resolve())
+    } else {
+      setTimeout(resolve, 0)
+    }
+  })
+}
+
+/**
+ * Imports project and assets from JSON file asynchronously without blocking the browser thread
+ */
+export async function importProjectFromJson(
+  file: File,
+  onProgress?: (progress: number, stageKey: string) => void
 ): Promise<{ 
   project: MapProject
   assets: AssetItem[]
@@ -327,76 +343,100 @@ export function importProjectFromJson(
   towerData?: {
     placedTowers?: any[]
     towerBlueprints?: any[]
+    clans?: any[]
   }
   waveData?: {
     waveConfigs?: any[]
     currentWaveIndex?: number
   }
 }> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const rawData = JSON.parse(reader.result as string)
-        const data = rawData.payload || rawData
-        const project = data.project || data
-        if (!project || !project.cols || !project.rows) {
-          throw new Error('No valid map project found in file!')
-        }
+  onProgress?.(15, 'import.readingFile')
+  await yieldToMain()
 
-        // Normalize all layers & tiles
-        if (project.layers) {
-          for (const layer of project.layers) {
-            if (layer.tiles) {
-              for (const [key, items] of Object.entries(layer.tiles)) {
-                const [col, row] = key.split(',').map(Number)
-                const itemArr = Array.isArray(items) ? items : [items]
-                layer.tiles[key] = itemArr.map(item => normalizeTileItem(item, col, row))
-              }
-            }
+  const text = await file.text()
+  onProgress?.(35, 'import.readingFile')
+  await yieldToMain()
+
+  const rawData = JSON.parse(text)
+  const data = rawData.payload || rawData
+  const project = data.project || data
+  if (!project || !project.cols || !project.rows) {
+    throw new Error('No valid map project found in file!')
+  }
+
+  onProgress?.(50, 'import.syncingAssets')
+  await yieldToMain()
+
+  // Normalize all layers & tiles in non-blocking batches
+  if (project.layers && Array.isArray(project.layers)) {
+    const totalLayers = project.layers.length
+    for (let lIdx = 0; lIdx < totalLayers; lIdx++) {
+      const layer = project.layers[lIdx]
+      if (layer.tiles) {
+        const entries = Object.entries(layer.tiles)
+        const batchSize = 1000
+        for (let i = 0; i < entries.length; i += batchSize) {
+          const chunk = entries.slice(i, i + batchSize)
+          for (const [key, items] of chunk) {
+            const [col, row] = key.split(',').map(Number)
+            const itemArr = Array.isArray(items) ? items : [items]
+            layer.tiles[key] = itemArr.map(item => normalizeTileItem(item, col, row))
+          }
+          if (entries.length > batchSize) {
+            await yieldToMain()
           }
         }
-        
-        project.waterCells = Array.isArray(project.waterCells) ? project.waterCells : []
-        project.buildableCells = Array.isArray(project.buildableCells) ? project.buildableCells : []
-        
-        const characterData = data.characterData || {
-          customRoutes: project.customRoutes || {},
-          customWaypoints: project.customWaypoints || (data.characterData as any)?.customWaypoints || {},
-          spawnPoints: project.spawnPoints || [],
-          characterConfig: project.characterConfig || {},
-        }
-
-        const towerData = data.towerData || {
-          clans: project.clans || data.clans || [],
-          placedTowers: project.placedTowers || [],
-          towerBlueprints: project.towerBlueprints || [],
-        }
-
-        const waveData = data.waveData || {
-          waveConfigs: project.waveConfigs || [],
-          currentWaveIndex: project.currentWaveIndex ?? 0,
-        }
-
-        const gameSettings = project.gameSettings || data.gameSettings || {
-          startingGold: 150,
-          startingLives: 20,
-          wavePrepTime: 10,
-        }
-
-        resolve({
-          project,
-          assets: data.assets || [],
-          gameSettings,
-          characterData,
-          towerData,
-          waveData,
-        })
-      } catch (err) {
-        reject(err)
       }
     }
-    reader.onerror = reject
-    reader.readAsText(file)
-  })
+  }
+  
+  project.waterCells = Array.isArray(project.waterCells) ? project.waterCells : []
+  project.buildableCells = Array.isArray(project.buildableCells) ? project.buildableCells : []
+  
+  onProgress?.(75, 'import.restoringLayers')
+  await yieldToMain()
+
+  onProgress?.(90, 'import.hydratingTD')
+  await yieldToMain()
+
+  const characterData = data.characterData || {
+    customRoutes: project.customRoutes || {},
+    customWaypoints: project.customWaypoints || (data.characterData as any)?.customWaypoints || {},
+    spawnPoints: project.spawnPoints || [],
+    characterConfig: project.characterConfig || {},
+  }
+
+  const towerData = data.towerData || {
+    clans: project.clans || data.clans || [],
+    placedTowers: project.placedTowers || [],
+    towerBlueprints: project.towerBlueprints || [],
+  }
+
+  const waveData = data.waveData || {
+    waveConfigs: project.waveConfigs || [],
+    currentWaveIndex: project.currentWaveIndex ?? 0,
+  }
+
+  const gameSettings = project.gameSettings || data.gameSettings || {
+    startingGold: 150,
+    startingLives: 20,
+    wavePrepTime: 10,
+  }
+
+  const incomingCustomProj = data.customProjectiles || project.customProjectiles
+  if (Array.isArray(incomingCustomProj) && incomingCustomProj.length > 0) {
+    registerCustomProjectiles(incomingCustomProj)
+  }
+
+  onProgress?.(100, 'import.mapReady')
+  await yieldToMain()
+
+  return {
+    project,
+    assets: data.assets || [],
+    gameSettings,
+    characterData,
+    towerData,
+    waveData,
+  }
 }

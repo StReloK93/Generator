@@ -16,7 +16,50 @@
 
       <!-- Main Isometric Canvas Viewport -->
       <div class="flex-1 flex flex-col h-full relative overflow-hidden">
-        <EditorCanvas ref="viewportRef" class="flex-1" />
+        <EditorCanvas 
+          ref="viewportRef" 
+          class="flex-1" 
+          @ready="handleEditorReady"
+          @progress="handleEditorProgress"
+        />
+
+        <!-- Seamless Editor Readiness Preloader (Covers until PixiJS canvas & assets are 100% loaded) -->
+        <Transition name="preloader-fade">
+          <div 
+            v-if="!isEditorReady" 
+            class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
+          >
+            <!-- Ambient Background Glows -->
+            <div class="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none"></div>
+            <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-87.5 bg-amber-500/10 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
+
+            <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-2xl shadow-amber-500/20 mb-4 animate-bounce">
+                <Layers class="w-8 h-8 sm:w-10 sm:h-10 text-amber-400" />
+              </div>
+
+              <!-- Prominent Map / Studio Title -->
+              <h2 class="text-xl sm:text-2xl font-black tracking-wider text-white uppercase mb-1 drop-shadow-md truncate max-w-full">
+                {{ mapStore.project.name || $t('editor.loadingTitle') }}
+              </h2>
+              <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                <span>{{ editorStageMessage || $t('editor.loadingSubtitle') }}</span>
+              </p>
+
+              <!-- Minimal Linear Progress Bar -->
+              <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
+                <div 
+                  class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-300 ease-out rounded-full shadow-sm shadow-amber-500/50"
+                  :style="{ width: `${editorProgress}%` }"
+                ></div>
+              </div>
+              <span class="font-mono text-xs text-slate-500 font-bold">
+                {{ Math.round(editorProgress) }}%
+              </span>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -35,6 +78,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Layers } from 'lucide-vue-next'
 import EditorHeader from '../components/editor/EditorHeader.vue'
 import EditorCanvas from '../components/editor/EditorCanvas.vue'
 import RightSidebar from '../components/RightSidebar.vue'
@@ -68,6 +112,22 @@ const towerStore = useTowerStore()
 const viewportRef = ref<any>(null)
 const welcomeModalRef = ref<any>(null)
 const isExportModalOpen = ref(false)
+
+const isEditorReady = ref(false)
+const editorProgress = ref(0)
+const editorStageMessage = ref('')
+
+function handleEditorProgress(data: { percent: number; message: string }) {
+  editorProgress.value = data.percent
+  editorStageMessage.value = data.message
+}
+
+function handleEditorReady() {
+  editorProgress.value = 100
+  setTimeout(() => {
+    isEditorReady.value = true
+  }, 120)
+}
 
 function handleFocusCell(pos: { col: number; row: number }) {
   if (viewportRef.value && viewportRef.value.focusOnCell) {
@@ -234,3 +294,13 @@ onUnmounted(() => {
   autoSaveCurrentState()
 })
 </script>
+
+<style scoped>
+.preloader-fade-leave-active {
+  transition: opacity 0.35s ease-out;
+}
+.preloader-fade-leave-to {
+  opacity: 0;
+  pointer-events: none;
+}
+</style>

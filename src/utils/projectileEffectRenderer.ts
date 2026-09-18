@@ -1,6 +1,6 @@
 import { Graphics } from 'pixi.js'
 import { ProjectileType } from '../types/map'
-import { PROJECTILE_CATALOG, getProjectileDef, ProjectileDef } from './projectileCatalog'
+import { PROJECTILE_CATALOG, getProjectileDef, ProjectileDef, generateProjectileCatalogSnippet } from './projectileCatalog'
 import type { ProjectileConfig } from '../stores/projectileStore'
 
 export interface ProjectileVisualTheme {
@@ -17,6 +17,345 @@ export interface ProjectileVisualTheme {
 }
 
 export const PROJECTILE_THEMES: Record<string, ProjectileVisualTheme> = {}
+
+function drawPixiSandCluster(
+  g: Graphics,
+  cx: number,
+  cy: number,
+  cosA: number,
+  sinA: number,
+  perpX: number,
+  perpY: number,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const len = (def.length ?? 34) * scale
+  const rBase = Math.max(5, (def.size ?? 12) * scale * 0.85)
+  const grainCount = 58
+  const colors = [
+    def.colorHex || 0xd97706,
+    def.trailColorHex || 0xf59e0b,
+    def.sparkColorHex || 0xfbbf24,
+    0xca8a04,
+    0xeab308,
+    0xd97706,
+    0xb45309,
+    0xfef08a,
+    0x78350f,
+  ]
+
+  // Swirling individual chaotic parabolic sand grains (No static center ball!)
+  for (let i = 0; i < grainCount; i++) {
+    const frac = (i / grainCount) - 0.5 // -0.5 to 0.5 along cluster
+    const speedMult = 0.8 + ((i % 5) * 0.1)
+    const theta = time * 0.04 * speedMult + i * 1.618
+    
+    // Each grain has an individual 3D vortex radius & micro-parabolic arc
+    const grainRadial = rBase * (0.35 + 0.65 * Math.abs(Math.sin(i * 3.71 + time * 0.015)))
+    const microArc = Math.sin((frac + 0.5) * Math.PI) * (rBase * 0.5) // individual parabolic billow
+    
+    // 3D rotation projection
+    const swirlCos = Math.cos(theta)
+    const swirlSin = Math.sin(theta)
+    
+    // Wind turbulence flutter
+    const turbX = Math.cos(i * 7.1 + time * 0.025) * 2.2 * scale
+    const turbY = Math.sin(i * 5.3 + time * 0.025) * 2.2 * scale
+    
+    const posX = cx + cosA * (frac * len + turbX) + perpX * (swirlCos * grainRadial)
+    const posY = cy + sinA * (frac * len + turbY) + perpY * (swirlSin * grainRadial * 0.65 - microArc)
+    
+    const pSize = Math.max(0.8, (1.1 + ((i % 4) * 0.35)) * scale)
+    const pAlpha = 0.45 + 0.55 * (0.5 + 0.5 * swirlSin) // depth-shading alpha
+    const pColor = colors[i % colors.length]
+    
+    g.circle(posX, posY, pSize).fill({ color: pColor, alpha: pAlpha })
+  }
+}
+
+function drawCanvasSandCluster(
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const len = (def.length ?? 34)
+  const rBase = Math.max(5, (def.size ?? 12) * 0.85)
+  const grainCount = 58
+  const colors = [
+    def.colorCss || '#d97706',
+    def.trailColorCss || '#f59e0b',
+    def.sparkColorCss || '#fbbf24',
+    '#ca8a04',
+    '#eab308',
+    '#d97706',
+    '#b45309',
+    '#fef08a',
+    '#78350f',
+  ]
+
+  // Swirling individual chaotic parabolic sand grains (No static center ball!)
+  for (let i = 0; i < grainCount; i++) {
+    const frac = (i / grainCount) - 0.5 // -0.5 to 0.5 along cluster
+    const speedMult = 0.8 + ((i % 5) * 0.1)
+    const theta = time * 0.04 * speedMult + i * 1.618
+    
+    // Each grain has an individual 3D vortex radius & micro-parabolic arc
+    const grainRadial = rBase * (0.35 + 0.65 * Math.abs(Math.sin(i * 3.71 + time * 0.015)))
+    const microArc = Math.sin((frac + 0.5) * Math.PI) * (rBase * 0.5)
+    
+    // 3D rotation projection
+    const swirlCos = Math.cos(theta)
+    const swirlSin = Math.sin(theta)
+    
+    // Wind turbulence flutter
+    const turbX = Math.cos(i * 7.1 + time * 0.025) * 2.2
+    const turbY = Math.sin(i * 5.3 + time * 0.025) * 2.2
+    
+    const posX = frac * len + turbX
+    const posY = swirlCos * grainRadial * 0.65 - microArc + turbY
+    
+    const pSize = Math.max(0.8, 1.1 + ((i % 4) * 0.35))
+    const pAlpha = 0.45 + 0.55 * (0.5 + 0.5 * swirlSin)
+    
+    ctx.beginPath()
+    ctx.arc(posX, posY, pSize, 0, Math.PI * 2)
+    ctx.fillStyle = colors[i % colors.length]
+    ctx.globalAlpha = pAlpha
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1.0
+}
+
+function drawPixiLineStreak(
+  g: Graphics,
+  cx: number,
+  cy: number,
+  cosA: number,
+  sinA: number,
+  perpX: number,
+  perpY: number,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const len = (def.length ?? 34) * scale
+  const w = Math.max(2.0, (def.size ?? 6) * scale * 0.6)
+  const tipX = cx + cosA * (len * 0.5)
+  const tipY = cy + sinA * (len * 0.5)
+  const tailX = cx - cosA * (len * 0.5)
+  const tailY = cy - sinA * (len * 0.5)
+
+  // 1. Outer Soft Glow Halo
+  g.moveTo(tailX, tailY).lineTo(tipX, tipY).stroke({ width: w * 3.5, color: def.trailColorHex, alpha: 0.3, cap: 'round' })
+  // 2. Main High-Energy Streak Body
+  g.moveTo(tailX, tailY).lineTo(tipX, tipY).stroke({ width: w * 1.8, color: def.colorHex, alpha: 0.9, cap: 'round' })
+  // 3. Ultra-White Laser Needle Core
+  g.moveTo(tailX + cosA * 4 * scale, tailY + sinA * 4 * scale).lineTo(tipX, tipY).stroke({ width: Math.max(1.2, w * 0.6), color: def.sparkColorHex || 0xffffff, alpha: 1.0, cap: 'round' })
+  
+  // 4. Surrounding Orbiting/Trailing Spark Particles
+  const sparkCount = 6
+  for (let s = 0; s < sparkCount; s++) {
+    const sFrac = (s / sparkCount - 0.5) * len * 0.8
+    const sAng = time * 0.04 + s * 1.5
+    const sOff = Math.sin(sAng) * (w * 2.2 + 2 * scale)
+    const sx = cx + cosA * sFrac + perpX * sOff
+    const sy = cy + sinA * sFrac + perpY * sOff
+    g.circle(sx, sy, 1.8 * scale).fill({ color: def.sparkColorHex, alpha: 0.9 })
+    g.circle(sx, sy, 0.9 * scale).fill({ color: 0xffffff, alpha: 1.0 })
+  }
+}
+
+function drawCanvasLineStreak(
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const len = def.length ?? 34
+  const w = Math.max(2.0, (def.size ?? 6) * 0.6)
+  const halfLen = len * 0.5
+
+  // 1. Outer Soft Glow Halo
+  ctx.beginPath()
+  ctx.moveTo(-halfLen, 0)
+  ctx.lineTo(halfLen, 0)
+  ctx.strokeStyle = def.trailColorCss || '#60a5fa'
+  ctx.lineWidth = w * 3.5
+  ctx.lineCap = 'round'
+  ctx.globalAlpha = 0.3
+  ctx.stroke()
+
+  // 2. Main High-Energy Streak Body
+  ctx.beginPath()
+  ctx.moveTo(-halfLen, 0)
+  ctx.lineTo(halfLen, 0)
+  ctx.strokeStyle = def.colorCss || '#3b82f6'
+  ctx.lineWidth = w * 1.8
+  ctx.globalAlpha = 0.9
+  ctx.stroke()
+
+  // 3. Ultra-White Laser Needle Core
+  ctx.beginPath()
+  ctx.moveTo(-halfLen + 4, 0)
+  ctx.lineTo(halfLen, 0)
+  ctx.strokeStyle = def.sparkColorCss || '#ffffff'
+  ctx.lineWidth = Math.max(1.2, w * 0.6)
+  ctx.globalAlpha = 1.0
+  ctx.stroke()
+  ctx.globalAlpha = 1.0
+
+  // 4. Orbiting Sparks
+  const sparkCount = 6
+  for (let s = 0; s < sparkCount; s++) {
+    const sFrac = (s / sparkCount - 0.5) * len * 0.8
+    const sAng = time * 0.04 + s * 1.5
+    const sOff = Math.sin(sAng) * (w * 2.2 + 2)
+    ctx.beginPath()
+    ctx.arc(sFrac, sOff, 1.8, 0, Math.PI * 2)
+    ctx.fillStyle = def.sparkColorCss || '#93c5fd'
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(sFrac, sOff, 0.9, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  }
+}
+
+function drawPixiInstantStrike(
+  g: Graphics,
+  cx: number,
+  cy: number,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const iType = def.instantType || 'sky_strike'
+  const r = (def.size ?? 16) * scale
+
+  if (iType === 'sky_strike') {
+    // 1. Heavenly Beam from Sky
+    const beamTop = cy - 140 * scale
+    g.moveTo(cx, beamTop).lineTo(cx, cy).stroke({ width: r * 1.6, color: def.trailColorHex, alpha: 0.3, cap: 'round' })
+    g.moveTo(cx, beamTop).lineTo(cx, cy).stroke({ width: r * 0.8, color: def.colorHex, alpha: 0.85, cap: 'round' })
+    g.moveTo(cx, beamTop).lineTo(cx, cy).stroke({ width: r * 0.35, color: 0xffffff, alpha: 1.0, cap: 'round' })
+
+    // 2. Ground Magic Glyph Ellipse at feet
+    const pulse = Math.sin(time * 0.02) * 2 * scale
+    g.ellipse(cx, cy, (r * 1.8) + pulse, (r * 0.9) + pulse * 0.5).stroke({ width: 2.0 * scale, color: def.sparkColorHex, alpha: 0.95 })
+    g.circle(cx, cy, r * 0.6).fill({ color: 0xffffff, alpha: 0.95 })
+  } else if (iType === 'ground_burst') {
+    // Erupting magic ground fissures & upward spikes
+    const pulse = Math.sin(time * 0.03) * 3 * scale
+    g.ellipse(cx, cy, (r * 2.2) + pulse, (r * 1.1) + pulse * 0.5).stroke({ width: 2.5 * scale, color: def.colorHex, alpha: 0.85 })
+    g.ellipse(cx, cy, r * 1.2, r * 0.6).fill({ color: def.trailColorHex, alpha: 0.4 })
+    
+    // Spikes rising up
+    for (let i = 0; i < 6; i++) {
+      const ang = (i * Math.PI) / 3 + time * 0.01
+      const sx = cx + Math.cos(ang) * (r * 1.4)
+      const sy = cy + Math.sin(ang) * (r * 0.7)
+      g.moveTo(sx, sy).lineTo(sx, sy - 18 * scale).stroke({ width: 2.0 * scale, color: def.sparkColorHex, alpha: 0.95 })
+    }
+  } else {
+    // Unit Singularity Aura
+    const rot = time * 0.03
+    drawPixiStar(g, cx, cy, 6, r * 1.6, r * 0.8, rot, def.trailColorHex, 0.5)
+    g.circle(cx, cy, r * 0.9).fill({ color: def.colorHex, alpha: 0.9 }).stroke({ width: 2.0 * scale, color: 0xffffff, alpha: 1.0 })
+    g.circle(cx, cy, r * 0.4).fill({ color: 0xffffff, alpha: 1.0 })
+  }
+}
+
+function drawCanvasInstantStrike(
+  ctx: CanvasRenderingContext2D,
+  scale: number,
+  time: number,
+  def: ProjectileDef
+) {
+  const iType = def.instantType || 'sky_strike'
+  const r = (def.size ?? 16)
+
+  if (iType === 'sky_strike') {
+    // Vertical beam
+    ctx.beginPath()
+    ctx.moveTo(0, -140)
+    ctx.lineTo(0, 0)
+    ctx.strokeStyle = def.trailColorCss || '#fef08a'
+    ctx.lineWidth = r * 1.6
+    ctx.globalAlpha = 0.3
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(0, -140)
+    ctx.lineTo(0, 0)
+    ctx.strokeStyle = def.colorCss || '#eab308'
+    ctx.lineWidth = r * 0.8
+    ctx.globalAlpha = 0.85
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(0, -140)
+    ctx.lineTo(0, 0)
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = r * 0.35
+    ctx.globalAlpha = 1.0
+    ctx.stroke()
+
+    // Ground rune
+    const pulse = Math.sin(time * 0.02) * 2
+    ctx.beginPath()
+    ctx.ellipse(0, 0, (r * 1.8) + pulse, (r * 0.9) + pulse * 0.5, 0, 0, Math.PI * 2)
+    ctx.strokeStyle = def.sparkColorCss || '#ffffff'
+    ctx.lineWidth = 2.0
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  } else if (iType === 'ground_burst') {
+    const pulse = Math.sin(time * 0.03) * 3
+    ctx.beginPath()
+    ctx.ellipse(0, 0, (r * 2.2) + pulse, (r * 1.1) + pulse * 0.5, 0, 0, Math.PI * 2)
+    ctx.strokeStyle = def.colorCss || '#22c55e'
+    ctx.lineWidth = 2.5
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.ellipse(0, 0, r * 1.2, r * 0.6, 0, 0, Math.PI * 2)
+    ctx.fillStyle = def.trailColorCss || '#86efac'
+    ctx.globalAlpha = 0.4
+    ctx.fill()
+    ctx.globalAlpha = 1.0
+
+    for (let i = 0; i < 6; i++) {
+      const ang = (i * Math.PI) / 3 + time * 0.01
+      const sx = Math.cos(ang) * (r * 1.4)
+      const sy = Math.sin(ang) * (r * 0.7)
+      ctx.beginPath()
+      ctx.moveTo(sx, sy)
+      ctx.lineTo(sx, sy - 18)
+      ctx.strokeStyle = def.sparkColorCss || '#4ade80'
+      ctx.lineWidth = 2.0
+      ctx.stroke()
+    }
+  } else {
+    drawCanvasStar(ctx, 0, 0, 6, r * 1.6, r * 0.8, time * 0.03, def.trailColorCss || '#a855f7')
+    ctx.beginPath()
+    ctx.arc(0, 0, r * 0.9, 0, Math.PI * 2)
+    ctx.fillStyle = def.colorCss || '#a855f7'
+    ctx.fill()
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 2.0
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  }
+}
 
 // Auto-populate from catalog
 for (const p of PROJECTILE_CATALOG) {
@@ -546,7 +885,19 @@ export function renderPixiProjectileHead(
     ]).fill({ color: def.colorHex, alpha: 0.95 }).stroke({ width: 1.5 * scale, color: 0xffffff, alpha: 1.0 })
     g.moveTo(tipX - perpX * (wLen * 0.7), tipY - perpY * (wLen * 0.7)).lineTo(tipX + perpX * (wLen * 0.7), tipY + perpY * (wLen * 0.7)).stroke({ width: 2.0 * scale, color: def.sparkColorHex, alpha: 1.0 })
   }
-  // 17. ORGANIC FIREBALL / DEFAULT (Real procedural burning flame)
+  // 17. SAND CLUSTER (Dense Swirling Cylindrical Sand Vortex)
+  else if (shape === 'sand_cluster') {
+    drawPixiSandCluster(g, renderX, renderY, cosA, sinA, perpX, perpY, scale, time, def as ProjectileDef)
+  }
+  // 18. LINE STREAK (Laser / High-Energy Direct Line Beam)
+  else if (shape === 'line_streak') {
+    drawPixiLineStreak(g, renderX, renderY, cosA, sinA, perpX, perpY, scale, time, def as ProjectileDef)
+  }
+  // 19. INSTANT TARGET STRIKE (Sky Lightning Beam / Ground Burst / Unit Aura)
+  else if (shape === 'instant_strike' || def.isInstant) {
+    drawPixiInstantStrike(g, renderX, renderY, scale, time, def as ProjectileDef)
+  }
+  // 20. ORGANIC FIREBALL / DEFAULT (Real procedural burning flame)
   else {
     const outerCol = def.shockwaveColorHex || 0xdc2626
     const midCol = def.colorHex || 0xf97316
@@ -896,6 +1247,7 @@ export function renderCanvasProjectileTrail(
   def: ProjectileDef | ProjectileConfig | any,
   nowTime: number = performance.now()
 ): void {
+  if (def.shape === 'instant_strike' || def.isInstant || def.isLaser) return
   if (!trail || trail.length < 2) return
   if (def.isLaser || def.formation === 'laser_beam') return
 
@@ -1050,6 +1402,17 @@ export function renderCanvasProjectileHead(
   // 1. LASERS / BEAMS (AAA Multi-Layer Plasma Laser Cannon Beam)
   if (def.isLaser || type.includes('laser') || def.formation === 'laser_beam' || type === 'holy_ray' || type === 'fire_flamethrower' || type === 'poison_acid_spray') {
     drawCanvasProceduralLaser(ctx, startX, startY, renderX, renderY, scale, time, def)
+    return
+  }
+
+  // 2. INSTANT TARGET STRIKE (Sky Lightning Beam / Ground Burst / Unit Aura)
+  // Must NOT be rotated by trajectory angle! It is an unrotated vertical strike onto the unit!
+  if (shape === 'instant_strike' || def.isInstant) {
+    ctx.save()
+    ctx.translate(renderX, renderY)
+    ctx.scale(scale, scale)
+    drawCanvasInstantStrike(ctx, scale, time, def as ProjectileDef)
+    ctx.restore()
     return
   }
 
@@ -1399,7 +1762,15 @@ export function renderCanvasProjectileHead(
     ctx.lineWidth = 2.0
     ctx.stroke()
   }
-  // 17. ORGANIC FIREBALL / DEFAULT (Real procedural burning flame)
+  // 17. SAND CLUSTER (Dense Swirling Cylindrical Sand Vortex)
+  else if (shape === 'sand_cluster') {
+    drawCanvasSandCluster(ctx, scale, time, def as ProjectileDef)
+  }
+  // 18. LINE STREAK (Laser / High-Energy Direct Line Beam)
+  else if (shape === 'line_streak') {
+    drawCanvasLineStreak(ctx, scale, time, def as ProjectileDef)
+  }
+  // 19. ORGANIC FIREBALL / DEFAULT (Real procedural burning flame)
   else {
     const outerCss = def.shockwaveColorCss || '#dc2626'
     const midCss = def.colorCss || '#f97316'
@@ -1450,213 +1821,9 @@ export function renderCanvasProjectileHead(
 }
 
 /**
- * Generates ready-to-copy, clean PixiJS 8 Rendering Code for the given Projectile configuration
+ * Generates ready-to-copy, clean TypeScript ProjectileDef configuration object for BASE_PROJECTILE_CATALOG
  */
 export function generatePixiCodeSnippet(def: Partial<ProjectileConfig>): string {
-  const shape = def.shape || 'circle'
-  const colHex = '0x' + (def.colorHex || 0xf97316).toString(16).padStart(6, '0')
-  const trailHex = '0x' + (def.trailColorHex || 0xfbbf24).toString(16).padStart(6, '0')
-  const sparkHex = '0x' + (def.sparkColorHex || 0xfef08a).toString(16).padStart(6, '0')
-  const size = def.size ?? 12
-  const length = def.length ?? 28
-  const satCount = def.satelliteCount ?? 0
-  const scaleVal = Math.max(0.3, size / 10).toFixed(2)
-
-  let shapeCode = ''
-  if (def.isLaser) {
-    shapeCode = `  // AAA Multi-Layer Plasma Laser Beam
-  const baseW = Math.max(3.5, ${(def.trailWidth ?? 5)} * scale)
-  // Layer 1: Wide Outer Atmospheric Energy Bloom (Glow)
-  g.moveTo(startX, startY).lineTo(renderX, renderY).stroke({ width: baseW * 3.8, color: 0xef4444, alpha: 0.22, cap: 'round' })
-  // Layer 2: Radiant Searing Plasma Flame Stream
-  g.moveTo(startX, startY).lineTo(renderX, renderY).stroke({ width: baseW * 2.0, color: ${trailHex}, alpha: 0.75, cap: 'round' })
-  // Layer 3: Focused Orange Plasma Beam
-  g.moveTo(startX, startY).lineTo(renderX, renderY).stroke({ width: baseW * 1.2, color: ${colHex}, alpha: 0.9, cap: 'round' })
-  // Layer 4: Blazing White-Hot Core Laser Needle
-  g.moveTo(startX, startY).lineTo(renderX, renderY).stroke({ width: Math.max(1.8, baseW * 0.5), color: ${sparkHex}, alpha: 1.0, cap: 'round' })
-  // Muzzle Pulse Flare
-  g.circle(startX, startY, baseW * 2.2).fill({ color: ${trailHex}, alpha: 0.5 })
-  g.circle(startX, startY, baseW * 1.2).fill({ color: 0xffffff, alpha: 0.95 })
-  // Target Impact Plasma Orb & Radiant Spark Ring
-  g.circle(renderX, renderY, baseW * 2.8).fill({ color: 0xef4444, alpha: 0.35 })
-  g.circle(renderX, renderY, baseW * 1.8).fill({ color: ${trailHex}, alpha: 0.85 })
-  g.circle(renderX, renderY, baseW * 0.9).fill({ color: 0xffffff, alpha: 1.0 })`
-  } else if (shape === 'flame_wisp' || (shape as string) === 'rocket' || (shape as string) === 'missile') {
-    shapeCode = `  // Aerodynamic Missile Hull & Thruster Jet Flame
-  const fLen = ${(length || 28)} * scale
-  const wingW = Math.max(5, ${size} * 1.1) * scale
-  const tipX = renderX + cosA * (fLen * 0.75)
-  const tipY = renderY + sinA * (fLen * 0.75)
-  const tailX = renderX - cosA * (fLen * 0.45)
-  const tailY = renderY - sinA * (fLen * 0.45)
-  const midX = renderX - cosA * (fLen * 0.05)
-  const midY = renderY - sinA * (fLen * 0.05)
-
-  // 1. Afterburner Jet Thruster Exhaust
-  const jetLen = fLen * 0.75 * (Math.sin(time * 0.035) * 0.15 + 1.0)
-  g.poly([
-    { x: tailX + perpX * (wingW * 0.55), y: tailY + perpY * (wingW * 0.55) },
-    { x: tailX - cosA * jetLen, y: tailY - sinA * jetLen },
-    { x: tailX - perpX * (wingW * 0.55), y: tailY - perpY * (wingW * 0.55) },
-  ]).fill({ color: ${trailHex}, alpha: 0.9 })
-  g.poly([
-    { x: tailX + perpX * (wingW * 0.28), y: tailY + perpY * (wingW * 0.28) },
-    { x: tailX - cosA * (jetLen * 0.55), y: tailY - sinA * (jetLen * 0.55) },
-    { x: tailX - perpX * (wingW * 0.28), y: tailY - perpY * (wingW * 0.28) },
-  ]).fill({ color: 0xffffff, alpha: 1.0 })
-
-  // 2. Outer Aerodynamic Missile Hull
-  g.poly([
-    { x: tipX, y: tipY },
-    { x: midX + perpX * wingW, y: midY + perpY * wingW },
-    { x: tailX + perpX * (wingW * 0.6), y: tailY + perpY * (wingW * 0.6) },
-    { x: tailX, y: tailY },
-    { x: tailX - perpX * (wingW * 0.6), y: tailY - perpY * (wingW * 0.6) },
-    { x: midX - perpX * wingW, y: midY - perpY * wingW },
-  ]).fill({ color: ${colHex}, alpha: 0.95 }).stroke({ width: 1.2 * scale, color: ${trailHex}, alpha: 0.9 })
-
-  // 3. Inner Molten Hot Core
-  g.poly([
-    { x: tipX - cosA * 4 * scale, y: tipY - sinA * 4 * scale },
-    { x: midX + perpX * (wingW * 0.45), y: midY + perpY * (wingW * 0.45) },
-    { x: tailX + cosA * 3 * scale, y: tailY + sinA * 3 * scale },
-    { x: midX - perpX * (wingW * 0.45), y: midY - perpY * (wingW * 0.45) },
-  ]).fill({ color: ${sparkHex}, alpha: 1.0 })
-
-  // 4. Blazing White Tip & Core Spark
-  g.circle(tipX, tipY, 2.0 * scale).fill({ color: 0xffffff, alpha: 1.0 })
-  g.circle(midX, midY, 2.5 * scale).fill({ color: 0xffffff, alpha: 0.95 })`
-  } else if (shape === 'spear_lance') {
-    shapeCode = `  // 1. Spear / Energy Lance Shaft & Guard
-  const tipX = renderX + cosA * ${length} * scale
-  const tipY = renderY + sinA * ${length} * scale
-  const tailX = renderX - cosA * ${Math.round(length * 0.5)} * scale
-  const tailY = renderY - sinA * ${Math.round(length * 0.5)} * scale
-  g.moveTo(tailX, tailY).lineTo(tipX - cosA * 8 * scale, tipY - sinA * 8 * scale).stroke({ width: 2.2 * scale, color: 0x94a3b8, alpha: 1.0 })
-  const guardX = tipX - cosA * 10 * scale
-  const guardY = tipY - sinA * 10 * scale
-  g.moveTo(guardX - perpX * 5 * scale, guardY - perpY * 5 * scale).lineTo(guardX + perpX * 5 * scale, guardY + perpY * 5 * scale).stroke({ width: 2.0 * scale, color: ${trailHex}, alpha: 1.0 })
-  // 2. Spearhead Blade
-  g.poly([
-    { x: tipX, y: tipY },
-    { x: guardX + perpX * 3.5 * scale, y: guardY + perpY * 3.5 * scale },
-    { x: guardX - cosA * 2 * scale, y: guardY - sinA * 2 * scale },
-    { x: guardX - perpX * 3.5 * scale, y: guardY - perpY * 3.5 * scale },
-  ]).fill({ color: ${colHex}, alpha: 1.0 }).stroke({ width: 1.0 * scale, color: 0xffffff, alpha: 1.0 })
-  g.circle(tipX, tipY, 1.8 * scale).fill({ color: 0xffffff, alpha: 1.0 })`
-  } else if (shape === 'energy_orb') {
-    shapeCode = `  // Clean Glowing Energy Orb
-  const r = 8.0 * scale
-  g.circle(renderX, renderY, r * 1.35).fill({ color: ${trailHex}, alpha: 0.35 })
-  g.circle(renderX, renderY, r).fill({ color: ${colHex}, alpha: 0.95 }).stroke({ width: 1.5 * scale, color: 0xffffff, alpha: 0.9 })
-  g.circle(renderX, renderY, r * 0.45).fill({ color: ${sparkHex}, alpha: 1.0 })
-  g.circle(renderX, renderY, r * 0.2).fill({ color: 0xffffff, alpha: 1.0 })`
-  } else if (shape === 'arrow') {
-    shapeCode = `  // Hunting Broadhead Arrow
-  const arrowLen = ${length}
-  const tipX = renderX + cosA * 4 * scale
-  const tipY = renderY + sinA * 4 * scale
-  const tailX = tipX - cosA * arrowLen * scale
-  const tailY = tipY - sinA * arrowLen * scale
-  g.moveTo(tailX, tailY).lineTo(tipX - cosA * 3 * scale, tipY - sinA * 3 * scale).stroke({ width: 1.8 * scale, color: 0x92400e, alpha: 1.0 })
-  const headBaseX = tipX - cosA * 6 * scale
-  const headBaseY = tipY - sinA * 6 * scale
-  g.poly([
-    { x: tipX, y: tipY },
-    { x: headBaseX - perpX * 2.8 * scale, y: headBaseY - perpY * 2.8 * scale },
-    { x: headBaseX - cosA * 1.5 * scale, y: headBaseY - sinA * 1.5 * scale },
-    { x: headBaseX + perpX * 2.8 * scale, y: headBaseY + perpY * 2.8 * scale },
-  ]).fill({ color: ${colHex}, alpha: 1.0 }).stroke({ width: 0.8 * scale, color: 0x475569, alpha: 1.0 })`
-  } else if (shape === 'diamond_shard') {
-    shapeCode = `  // Faceted Crystal Lance
-  const polyTop = [
-    { x: renderX + cosA * 20 * scale, y: renderY + sinA * 20 * scale },
-    { x: renderX - cosA * 2 * scale - perpX * 8 * scale, y: renderY - sinA * 2 * scale - perpY * 8 * scale },
-    { x: renderX - cosA * 16 * scale, y: renderY - sinA * 16 * scale },
-  ]
-  const polyBot = [
-    { x: renderX + cosA * 20 * scale, y: renderY + sinA * 20 * scale },
-    { x: renderX - cosA * 2 * scale + perpX * 8 * scale, y: renderY - sinA * 2 * scale + perpY * 8 * scale },
-    { x: renderX - cosA * 16 * scale, y: renderY - sinA * 16 * scale },
-  ]
-  g.poly(polyTop).fill({ color: ${colHex}, alpha: 0.95 }).stroke({ width: 1.2 * scale, color: 0xffffff, alpha: 1.0 })
-  g.poly(polyBot).fill({ color: ${sparkHex}, alpha: 0.85 }).stroke({ width: 1.2 * scale, color: 0xffffff, alpha: 1.0 })
-  g.moveTo(renderX - cosA * 16 * scale, renderY - sinA * 16 * scale).lineTo(renderX + cosA * 20 * scale, renderY + sinA * 20 * scale).stroke({ width: 2.0 * scale, color: 0xffffff, alpha: 1.0 })`
-  } else if (shape === 'lightning_bolt') {
-    shapeCode = `  // Zigzag Lightning Arc Spear
-  const len = ${length} * scale
-  const p1 = { x: renderX + cosA * len, y: renderY + sinA * len }
-  const p2 = { x: renderX + cosA * 4 * scale + perpX * 6 * scale, y: renderY + sinA * 4 * scale + perpY * 6 * scale }
-  const p3 = { x: renderX + cosA * 6 * scale, y: renderY + sinA * 6 * scale }
-  const p4 = { x: renderX - cosA * 8 * scale + perpX * 7 * scale, y: renderY - sinA * 8 * scale + perpY * 7 * scale }
-  const p5 = { x: renderX - cosA * (len * 0.6), y: renderY - sinA * (len * 0.6) }
-  g.poly([p1, p2, p3, p4, p5]).stroke({ width: 3.0 * scale, color: ${trailHex}, alpha: 0.7 })
-  g.poly([p1, p2, p3, p4, p5]).stroke({ width: 1.8 * scale, color: ${colHex}, alpha: 1.0 })
-  g.circle(p1.x, p1.y, 2.0 * scale).fill({ color: 0xffffff, alpha: 1.0 })`
-  } else {
-    shapeCode = `  // Procedural Burning Comet Fireball with Flickering Flame Tongues
-  const headR = 8.0 * scale
-  const tailLen = 18.0 * scale
-  // Outer Heat Corona
-  g.circle(renderX - cosA * 2 * scale, renderY - sinA * 2 * scale, headR * 1.55).fill({ color: 0xdc2626, alpha: 0.28 })
-  // Dancing Flame Tongues
-  for (let i = 0; i < 4; i++) {
-    const frac = (i / 3) - 0.5
-    const phase = i * 2.1 + (time * 0.001) * (15 + i * 3)
-    const tLen = tailLen * (0.65 + Math.sin(phase) * 0.35)
-    const tSpread = (headR * 0.85 * frac) + Math.cos(phase * 0.8) * 2.5 * scale
-    g.poly([
-      { x: renderX + perpX * (tSpread + headR * 0.5), y: renderY + perpY * (tSpread + headR * 0.5) },
-      { x: renderX - cosA * tLen + perpX * tSpread, y: renderY - sinA * tLen + perpY * tSpread },
-      { x: renderX + perpX * (tSpread - headR * 0.5), y: renderY + perpY * (tSpread - headR * 0.5) },
-      { x: renderX + cosA * (headR * 0.4), y: renderY + sinA * (headR * 0.4) }
-    ]).fill({ color: ${colHex}, alpha: 0.85 })
-  }
-  // Fireball Body & Core
-  g.circle(renderX, renderY, headR).fill({ color: ${colHex}, alpha: 0.95 })
-  g.circle(renderX + cosA * (headR * 0.15), renderY + sinA * (headR * 0.15), headR * 0.65).fill({ color: ${trailHex}, alpha: 1.0 })
-  g.circle(renderX + cosA * (headR * 0.3), renderY + sinA * (headR * 0.3), headR * 0.32).fill({ color: 0xffffff, alpha: 1.0 })`
-  }
-
-  const satCode = satCount > 0
-    ? `  // Orbiting Satellites (${satCount} items)
-  const satCount = ${satCount}
-  const orbitR = ${(13.0 + size * 0.9).toFixed(1)} * scale
-  const satPulse = Math.sin(time * 0.035) * 1.5 * scale
-  for (let s = 0; s < satCount; s++) {
-    const sAng = time * 0.035 + (s * Math.PI * 2) / satCount
-    const sx = renderX + Math.cos(sAng) * (orbitR + satPulse)
-    const sy = renderY + Math.sin(sAng) * (orbitR + satPulse) * 0.65
-    g.circle(sx, sy, 4.5 * scale).fill({ color: ${trailHex}, alpha: 0.5 })
-    g.circle(sx, sy, 2.8 * scale).fill({ color: ${sparkHex}, alpha: 0.95 })
-    g.circle(sx, sy, 1.2 * scale).fill({ color: 0xffffff, alpha: 1.0 })
-  }`
-    : `  // (Orbiting satellites disabled for clean visuals)`
-
-  return `/**
- * PixiJS 8 Projectile Head Renderer
- * File: src/utils/projectileEffectRenderer.ts -> renderPixiProjectileHead()
- * ID: "${def.id || 'custom_projectile'}" (${def.name || 'Custom Bolt'})
- */
-import { Graphics } from 'pixi.js'
-
-export function drawProjectilePixi(
-  g: Graphics,
-  renderX: number,
-  renderY: number,
-  angle: number,
-  time: number
-): void {
-  const cosA = Math.cos(angle)
-  const sinA = Math.sin(angle)
-  const perpX = -sinA
-  const perpY = cosA
-  const scale = ${scaleVal}
-
-  // --- 1. Projectile Head ---
-${shapeCode}
-
-  // --- 2. Satellites / Orbiters ---
-${satCode}
-}`
+  return generateProjectileCatalogSnippet(def as any)
 }
+

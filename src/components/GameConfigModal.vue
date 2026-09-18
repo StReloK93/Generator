@@ -5,7 +5,7 @@
     :subtitle="$t('config.modalTitle')"
     :icon="Gamepad2"
     icon-color="amber"
-    size="5xl"
+    size="7xl"
     @close="toolStore.closeGameConfig()"
   >
     <!-- Header Extra Slot for Gold -->
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Clans Chips Row -->
-        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-0.5">
+        <div class="flex flex-wrap items-center gap-2 py-0.5">
           <button
             v-for="clan in towerStore.clans"
             :key="clan.id"
@@ -118,10 +118,10 @@
 
       <!-- 2. TOWERS IN ACTIVE CLAN -->
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
-        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+        <div class="flex flex-wrap items-center gap-1.5 py-0.5">
           <span class="text-xs font-bold text-slate-300 mr-1 flex items-center gap-1">
             <Shield class="w-3.5 h-3.5 text-amber-400" />
-            <span>{{ activeEditorClan ? `${activeEditorClan.name} Towers:` : 'Towers:' }}</span>
+            <span>{{ activeEditorClan ? $t('clans.clanTowers', { clan: activeEditorClan.name }) : 'Towers:' }}</span>
           </span>
 
           <UiButton 
@@ -143,7 +143,7 @@
           custom-class="ml-auto"
           @click="openCreateTowerModal"
         >
-          {{ activeEditorClan ? `+ Add Tower to ${activeEditorClan.name}` : $t('config.createTower') }}
+          {{ activeEditorClan ? $t('clans.addTowerToClan', { clan: activeEditorClan.name }) : $t('config.createTower') }}
         </UiButton>
       </div>
 
@@ -166,10 +166,10 @@
         </div>
         <div class="flex flex-col gap-1 max-w-md">
           <span class="font-bold text-sm text-amber-300">
-            {{ activeEditorClan ? `No defense towers in ${activeEditorClan.name} yet` : $t('config.noTowers') }}
+            {{ activeEditorClan ? $t('clans.noTowersInClan', { clan: activeEditorClan.name }) : $t('config.noTowers') }}
           </span>
           <span class="text-xs text-slate-400">
-            {{ activeEditorClan ? `Towers are exclusive to their Clan. Add unique defense towers for ${activeEditorClan.name}!` : $t('config.noTowersDesc') }}
+            {{ activeEditorClan ? $t('clans.noTowersInClanDesc', { clan: activeEditorClan.name }) : $t('config.noTowersDesc') }}
           </span>
         </div>
         <UiButton 
@@ -178,7 +178,7 @@
           :leading-icon="Plus"
           @click="openCreateTowerModal"
         >
-          {{ activeEditorClan ? `Create First Tower for ${activeEditorClan.name}` : $t('config.createFirstTower') }}
+          {{ activeEditorClan ? $t('clans.createFirstTowerForClan', { clan: activeEditorClan.name }) : $t('config.createFirstTower') }}
         </UiButton>
       </UiCard>
 
@@ -234,7 +234,7 @@
             <!-- Clan Assignment Selector -->
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-semibold text-slate-300">{{ $t('clans.belongsToClan') }}</label>
-              <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+              <div class="flex flex-wrap items-center gap-1.5 py-0.5">
                 <button
                   v-for="clan in towerStore.clans"
                   :key="clan.id"
@@ -287,7 +287,7 @@
             </div>
 
             <!-- Level Pills Row -->
-            <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-0.5">
+            <div class="flex flex-wrap items-center gap-1.5 py-0.5">
               <button
                 v-for="(lvl, idx) in currentBlueprintLevels"
                 :key="idx"
@@ -425,7 +425,7 @@
             </div>
 
             <!-- Quick Selector for this Element Category -->
-            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-1">
+            <div class="flex flex-wrap items-center gap-1 pt-1">
               <button
                 v-for="quickP in currentCategoryProjectiles"
                 :key="quickP.id"
@@ -760,7 +760,7 @@
       
       <!-- Top Wave Tabs Row + Add Wave Button -->
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
-        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+        <div class="flex flex-wrap items-center gap-1.5 py-0.5">
           <UiButton 
             v-for="(w, idx) in characterStore.waveConfigs" 
             :key="w.waveNumber"

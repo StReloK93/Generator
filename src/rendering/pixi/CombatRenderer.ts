@@ -17,7 +17,7 @@ export interface CombatSparkParticle {
   size: number
   life: number
   maxLife: number
-  type: 'ice_shard' | 'snowflake' | 'fire_ember' | 'lightning_arc' | 'acid_drop' | 'arcane_star' | 'void_blood' | 'shrapnel' | 'holy_cross' | 'default'
+  type: 'ice_shard' | 'snowflake' | 'fire_ember' | 'lightning_arc' | 'acid_drop' | 'arcane_star' | 'void_blood' | 'shrapnel' | 'holy_cross' | 'sand_dust' | 'spark_line' | 'default'
   rot: number
   vRot: number
 }
@@ -38,65 +38,69 @@ export class CombatRenderer {
     // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
       const projDef = evt.projectileType ? getProjectileDef(evt.projectileType) : null
+      const sparkType = projDef?.sparkType || 'default'
       const cat = projDef?.category || (evt.isSplash ? 'fire' : 'siege')
-      const count = evt.count || (evt.isSplash ? 20 : 10)
+      const count = evt.count || projDef?.sparkCount || (evt.isSplash ? 20 : 10)
+      const baseColor = evt.color ?? projDef?.sparkColorHex ?? 0xfbbf24
 
       for (let s = 0; s < count; s++) {
         const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.6
         const speed = (cat === 'electro' ? 80 : 35) + Math.random() * (cat === 'fire' || cat === 'frost' ? 95 : 75)
         
-        let sparkType: CombatSparkParticle['type'] = 'default'
-        let pColor = evt.color ?? 0xfbbf24
+        let pType: CombatSparkParticle['type'] = sparkType !== 'default' ? (sparkType as any) : 'default'
+        let pColor = baseColor
         let pSize = 1.8 + Math.random() * 2.5
         let pLife = 0.32 + Math.random() * 0.22
 
-        if (cat === 'frost') {
-          sparkType = s % 3 === 0 ? 'snowflake' : 'ice_shard'
-          pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0x67e8f9 : 0x38bdf8)
-          pSize = 2.2 + Math.random() * 2.8
-          pLife = 0.38 + Math.random() * 0.2
-        } else if (cat === 'fire') {
-          sparkType = 'fire_ember'
-          pColor = s % 4 === 0 ? 0xfef08a : (s % 3 === 0 ? 0xfbbf24 : (s % 2 === 0 ? 0xf97316 : 0xef4444))
-          pSize = 2.0 + Math.random() * 3.2
-        } else if (cat === 'electro') {
-          sparkType = 'lightning_arc'
-          pColor = s % 2 === 0 ? 0x38bdf8 : (s % 3 === 0 ? 0xffffff : 0x60a5fa)
-          pSize = 1.5 + Math.random() * 2.0
-          pLife = 0.2 + Math.random() * 0.15
-        } else if (cat === 'poison') {
-          sparkType = 'acid_drop'
-          pColor = s % 3 === 0 ? 0xd9f99d : (s % 2 === 0 ? 0x84cc16 : 0x22c55e)
-          pSize = 2.4 + Math.random() * 2.6
-        } else if (cat === 'arcane') {
-          sparkType = 'arcane_star'
-          pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0xc084fc : 0xa855f7)
-          pSize = 2.5 + Math.random() * 3.0
-        } else if (cat === 'void') {
-          sparkType = 'void_blood'
-          pColor = s % 3 === 0 ? 0x881337 : (s % 2 === 0 ? 0xf43f5e : 0x7c3aed)
-          pSize = 2.2 + Math.random() * 2.5
-        } else if (cat === 'holy') {
-          sparkType = 'holy_cross'
-          pColor = s % 2 === 0 ? 0xffffff : 0xfde047
-          pSize = 2.8 + Math.random() * 3.0
-        } else if (cat === 'siege') {
-          sparkType = 'shrapnel'
-          pColor = s % 3 === 0 ? 0xf59e0b : (s % 2 === 0 ? 0x94a3b8 : 0x64748b)
-          pSize = 2.0 + Math.random() * 2.4
+        if (pType === 'default') {
+          if (cat === 'frost') {
+            pType = s % 3 === 0 ? 'snowflake' : 'ice_shard'
+            pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0x67e8f9 : 0x38bdf8)
+            pSize = 2.2 + Math.random() * 2.8
+            pLife = 0.38 + Math.random() * 0.2
+          } else if (cat === 'fire') {
+            pType = 'fire_ember'
+            pColor = s % 4 === 0 ? 0xfef08a : (s % 3 === 0 ? 0xfbbf24 : (s % 2 === 0 ? 0xf97316 : 0xef4444))
+            pSize = 2.0 + Math.random() * 3.2
+          } else if (cat === 'electro') {
+            pType = 'lightning_arc'
+            pColor = s % 2 === 0 ? 0x38bdf8 : (s % 3 === 0 ? 0xffffff : 0x60a5fa)
+            pSize = 1.5 + Math.random() * 2.0
+            pLife = 0.2 + Math.random() * 0.15
+          } else if (cat === 'poison') {
+            pType = 'acid_drop'
+            pColor = s % 3 === 0 ? 0xd9f99d : (s % 2 === 0 ? 0x84cc16 : 0x22c55e)
+            pSize = 2.4 + Math.random() * 2.6
+          } else if (cat === 'arcane') {
+            pType = 'arcane_star'
+            pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0xc084fc : 0xa855f7)
+            pSize = 2.5 + Math.random() * 3.0
+          } else if (cat === 'void') {
+            pType = 'void_blood'
+            pColor = s % 3 === 0 ? 0x881337 : (s % 2 === 0 ? 0xf43f5e : 0x7c3aed)
+            pSize = 2.2 + Math.random() * 2.5
+          } else if (cat === 'holy') {
+            pType = 'holy_cross'
+            pColor = s % 2 === 0 ? 0xffffff : 0xfde047
+            pSize = 2.8 + Math.random() * 3.0
+          } else if (cat === 'siege') {
+            pType = 'shrapnel'
+            pColor = s % 3 === 0 ? 0xf59e0b : (s % 2 === 0 ? 0x94a3b8 : 0x64748b)
+            pSize = 2.0 + Math.random() * 2.4
+          }
         }
 
         this.combatSparks.push({
           x: evt.x,
           y: evt.y,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
+          vy: Math.sin(angle) * speed * 0.75,
           color: pColor,
           alpha: 1.0,
           size: pSize,
           life: pLife,
           maxLife: pLife,
-          type: sparkType,
+          type: pType,
           rot: Math.random() * Math.PI * 2,
           vRot: (Math.random() - 0.5) * 12,
         })
@@ -294,15 +298,26 @@ export class CombatRenderer {
 
         const dx = proj.targetX - proj.startX
         const dy = proj.targetY - proj.startY
-        const isZigZag = projDef.formation === 'twin_helix'
         const len = Math.hypot(dx, dy) || 1
         const perpX = -dy / len
         const perpY = dx / len
-        const helixAmp = 14
-        const swirl = isZigZag ? Math.sin(progress * Math.PI * 6) * helixAmp : 0
+        
+        let lateralX = 0
+        let lateralY = 0
+        const projOffsetPerp = (proj as any).offsetPerp ?? 0
+        const projPhaseOffset = (proj as any).phaseOffset ?? 0
+        const isHelix = projDef.formation === 'twin_helix'
 
-        const renderX = proj.currentX + (isZigZag ? perpX * swirl : 0)
-        const renderY = proj.currentY - arcHeight + (isZigZag ? perpY * swirl * 0.5 : 0)
+        if (projOffsetPerp !== 0) {
+          const swirl = isHelix
+            ? Math.sin(progress * Math.PI * 6 + projPhaseOffset) * projOffsetPerp
+            : projOffsetPerp
+          lateralX = perpX * swirl
+          lateralY = perpY * swirl * 0.5
+        }
+
+        const renderX = proj.currentX + lateralX
+        const renderY = proj.currentY - arcHeight + lateralY
 
         const vx = dx
         const vy = dy - (arcMaxHeight > 0 ? Math.cos(progress * Math.PI) * Math.PI * arcMaxHeight : 0)
@@ -326,7 +341,7 @@ export class CombatRenderer {
         if (trail.length > maxTrailLen) trail.shift()
 
         // Render Trail according to user preference (strictly respecting style)
-        if (trailStyle !== 'none' && !projDef.isLaser) {
+        if (trailStyle !== 'none' && !projDef.isLaser && !projDef.isInstant && projDef.shape !== 'instant_strike') {
           if (trailStyle === 'particles') {
             for (let t = 0; t < trail.length; t++) {
               const pt = trail[t]
@@ -521,6 +536,15 @@ export class CombatRenderer {
             this.combatGraphics.moveTo(sp.x - cosR * s, sp.y - sinR * s).lineTo(sp.x + cosR * s, sp.y + sinR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
             this.combatGraphics.moveTo(sp.x + sinR * s, sp.y - cosR * s).lineTo(sp.x - sinR * s, sp.y + cosR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
             this.combatGraphics.circle(sp.x, sp.y, s * 0.35).fill({ color: 0xffffff, alpha: sp.alpha })
+          } else if (sp.type === 'sand_dust') {
+            sp.vy += 35 * dt
+            this.combatGraphics.circle(sp.x, sp.y, Math.max(0.8, sp.size * 0.8)).fill({ color: sp.color, alpha: sp.alpha * 0.9 })
+          } else if (sp.type === 'spark_line') {
+            const s = sp.size * 1.5
+            const cosR = Math.cos(sp.rot)
+            const sinR = Math.sin(sp.rot)
+            this.combatGraphics.moveTo(sp.x - cosR * s, sp.y - sinR * s).lineTo(sp.x + cosR * s, sp.y + sinR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
+            this.combatGraphics.circle(sp.x, sp.y, 1.0).fill({ color: 0xffffff, alpha: sp.alpha })
           } else {
             this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha })
           }

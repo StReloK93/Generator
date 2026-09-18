@@ -10,6 +10,7 @@ import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig, Project
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
 import { getProjectileTheme } from '../utils/projectileEffectRenderer'
+import { getProjectileDef } from '../utils/projectileCatalog'
 
 export type { ProjectileType }
 export type SplashType = 'constant' | 'falloff'
@@ -89,6 +90,8 @@ export interface Projectile {
   speed: number // pixels per second
   totalDistance: number
   traveledDistance: number
+  offsetPerp?: number
+  phaseOffset?: number
 }
 
 export interface DamageFloater {
@@ -1020,38 +1023,130 @@ export const useTowerStore = defineStore('towerStore', () => {
 
           // Calculate tower muzzle spawn position (top of stone column)
           const muzzleX = tower.screenX
-          const muzzleY = tower.screenY - tileHeight * 1.35 // Muzzle at top of 512px column
+          const muzzleY = tower.screenY - tileHeight * 1.35 // Muzzle at top of column
 
           const targetX = bestTarget.screenX
           const targetY = bestTarget.screenY - tileHeight * 0.5 // Target center of body
 
-          const totalDist = Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1
+          const projDef = getProjectileDef(tower.projectileType)
+          const isInstant = Boolean(projDef.isInstant || projDef.shape === 'instant_strike')
+          const effStartX = isInstant ? targetX : muzzleX
+          const effStartY = isInstant ? targetY - (projDef.instantType === 'sky_strike' ? 120 : 0) : muzzleY
+          const totalDist = isInstant ? 120 : (Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1)
           // Smooth cinematic projectile flight speed matching editor preview
-          const projSpeedPx = (tower.projectileSpeed || 8.0) * (tileWidth * 0.45)
-          const projId = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+          const projSpeedPx = isInstant ? (tileWidth * 2.8) : ((tower.projectileSpeed || 8.0) * (tileWidth * 0.45))
+          const formation = projDef.formation || 'single'
 
-          projectiles.value.push({
-            id: projId,
-            towerId: tower.id,
-            startX: muzzleX,
-            startY: muzzleY,
-            currentX: muzzleX,
-            currentY: muzzleY,
-            targetUnitId: bestTarget.id,
-            targetX,
-            targetY,
-            damage: tower.damage,
-            isSplash: tower.isSplash,
-            splashRadius: tower.splashRadius,
-            splashType: tower.splashType,
-            projectileType: tower.projectileType,
-            color: tower.projectileColor,
-            speed: projSpeedPx,
-            totalDistance: totalDist,
-            traveledDistance: 0,
-          })
+          if (formation === 'volley_3') {
+            const offsets = [-14, 0, 14]
+            offsets.forEach((off, idx) => {
+              const pId = `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`
+              projectiles.value.push({
+                id: pId,
+                towerId: tower.id,
+                startX: effStartX,
+                startY: effStartY,
+                currentX: effStartX,
+                currentY: effStartY,
+                targetUnitId: bestTarget.id,
+                targetX,
+                targetY,
+                damage: tower.damage / 3,
+                isSplash: tower.isSplash,
+                splashRadius: tower.splashRadius,
+                splashType: tower.splashType,
+                projectileType: tower.projectileType,
+                color: tower.projectileColor,
+                speed: projSpeedPx,
+                totalDistance: totalDist,
+                traveledDistance: 0,
+                offsetPerp: off,
+                phaseOffset: 0,
+              })
+            })
+          } else if (formation === 'volley_5') {
+            const offsets = [-20, -10, 0, 10, 20]
+            offsets.forEach((off, idx) => {
+              const pId = `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`
+              projectiles.value.push({
+                id: pId,
+                towerId: tower.id,
+                startX: effStartX,
+                startY: effStartY,
+                currentX: effStartX,
+                currentY: effStartY,
+                targetUnitId: bestTarget.id,
+                targetX,
+                targetY,
+                damage: tower.damage / 5,
+                isSplash: tower.isSplash,
+                splashRadius: tower.splashRadius,
+                splashType: tower.splashType,
+                projectileType: tower.projectileType,
+                color: tower.projectileColor,
+                speed: projSpeedPx,
+                totalDistance: totalDist,
+                traveledDistance: 0,
+                offsetPerp: off,
+                phaseOffset: 0,
+              })
+            })
+          } else if (formation === 'twin_helix') {
+            const helixOffsets = [10, -10]
+            const helixPhases = [0, Math.PI]
+            helixOffsets.forEach((off, idx) => {
+              const pId = `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`
+              projectiles.value.push({
+                id: pId,
+                towerId: tower.id,
+                startX: effStartX,
+                startY: effStartY,
+                currentX: effStartX,
+                currentY: effStartY,
+                targetUnitId: bestTarget.id,
+                targetX,
+                targetY,
+                damage: tower.damage / 2,
+                isSplash: tower.isSplash,
+                splashRadius: tower.splashRadius,
+                splashType: tower.splashType,
+                projectileType: tower.projectileType,
+                color: tower.projectileColor,
+                speed: projSpeedPx,
+                totalDistance: totalDist,
+                traveledDistance: 0,
+                offsetPerp: off,
+                phaseOffset: helixPhases[idx],
+              })
+            })
+          } else {
+            const projId = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+            projectiles.value.push({
+              id: projId,
+              towerId: tower.id,
+              startX: effStartX,
+              startY: effStartY,
+              currentX: effStartX,
+              currentY: effStartY,
+              targetUnitId: bestTarget.id,
+              targetX,
+              targetY,
+              damage: tower.damage,
+              isSplash: tower.isSplash,
+              splashRadius: tower.splashRadius,
+              splashType: tower.splashType,
+              projectileType: tower.projectileType,
+              color: tower.projectileColor,
+              speed: projSpeedPx,
+              totalDistance: totalDist,
+              traveledDistance: 0,
+              offsetPerp: 0,
+              phaseOffset: 0,
+            })
+          }
 
           if (multiplayerStore.roomId && multiplayerStore.isHost) {
+            const projId = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
             multiplayerStore.queueCombatEvent({
               id: projId,
               type: 'TOWER_FIRE',
@@ -1088,28 +1183,31 @@ export const useTowerStore = defineStore('towerStore', () => {
   function handleProjectileImpact(proj: Projectile, unitsPool: any[]) {
     const { tileWidth, tileHeight } = mapStore.project
     const tower = placedTowers.value.find(t => t.id === proj.towerId)
+    const projDef = getProjectileDef(proj.projectileType)
     const theme = getProjectileTheme(proj.projectileType, proj.color)
     const isArrow = proj.projectileType === 'arrow'
     const isFireSplash = proj.projectileType === 'fire_splash'
     const isSplashHit = Boolean(proj.isSplash && (proj.splashRadius || 0) > 0)
     const effectiveSplashRadius = proj.splashRadius || 1.5
     const splashRadiusPx = effectiveSplashRadius * tileWidth * 0.65
-    const hitRingRadius = isSplashHit ? splashRadiusPx : (isArrow ? 14 : 18)
+    const hitRingRadius = isSplashHit 
+      ? splashRadiusPx 
+      : (projDef.shockwaveRadius || (isArrow ? 14 : 22))
 
-    // 1. Spawn Impact Shockwave Ring VFX for ALL hits (matching TowerLivePreview!)
+    // 1. Spawn Impact Shockwave Ring VFX for ALL hits (matching Projectile Studio!)
     explosionRings.value.push({
       id: `ring-${Date.now()}-${Math.random()}`,
       x: proj.targetX,
       y: proj.targetY,
       radius: 3,
       maxRadius: hitRingRadius,
-      color: theme.shockwaveColorHex,
+      color: projDef.shockwaveColorHex ?? theme.shockwaveColorHex,
       alpha: isFireSplash ? 0.96 : 0.92,
       lifeTimer: 0,
     })
 
-    if (isFireSplash) {
-      // Extra inner plasma flame ring for mega fire splash
+    if (isFireSplash || projDef.hasDoubleRing) {
+      // Extra inner plasma flame ring for double shockwave ring
       explosionRings.value.push({
         id: `ring-inner-${Date.now()}-${Math.random()}`,
         x: proj.targetX,
@@ -1158,13 +1256,13 @@ export const useTowerStore = defineStore('towerStore', () => {
       }
     }
 
-    // 3. Spawn Impact Spark Particles via combatEvents
-    const sparkCount = isFireSplash ? 24 : (isArrow ? 8 : (isSplashHit ? 16 : 10))
+    // 3. Spawn Impact Spark Particles via combatEvents (matching exact spark count and type)
+    const sparkCount = projDef.sparkCount || (isFireSplash ? 24 : (isArrow ? 8 : (isSplashHit ? 16 : 10)))
 
     combatEvents.emitImpact({
       x: proj.targetX,
       y: proj.targetY,
-      color: isFireSplash ? 0xf97316 : theme.sparkColorHex,
+      color: projDef.sparkColorHex ?? (isFireSplash ? 0xf97316 : theme.sparkColorHex),
       count: sparkCount,
       projectileType: proj.projectileType,
     })

@@ -232,7 +232,7 @@
         </div>
 
         <!-- Quick Selector for this Element Category -->
-        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-1">
+        <div class="flex flex-wrap items-center gap-1 pt-1">
           <button
             v-for="quickP in currentCategoryProjectiles"
             :key="quickP.id"

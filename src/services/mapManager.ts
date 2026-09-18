@@ -268,9 +268,9 @@ export function applyMapPayloadToStores(rawPayload: any): void {
     characterStore.wavePrepDuration = 10
   }
 
-  // 6. Assets
+  // 6. Assets Reconciliation
   if (data.assets && Array.isArray(data.assets) && data.assets.length > 0) {
-    assetStore.assets = data.assets.map((a: any) => ({ ...a }))
+    assetStore.reconcileImportedAssets(data.assets)
   }
 
   // 7. Store internal restore hooks

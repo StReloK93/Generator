@@ -622,6 +622,11 @@ import { GridCoord, AssetItem, SelectedElementRef } from '../../types/map'
 import { cellKey, isInsideGrid, getBresenhamLine, getRectangleCells, floodFill } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
 
+const emit = defineEmits<{
+  (e: 'ready'): void
+  (e: 'progress', data: { percent: number; message: string }): void
+}>()
+
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
@@ -712,11 +717,16 @@ onMounted(async () => {
   if (!viewportContainerRef.value) return
   camera.updateViewportRect(viewportContainerRef.value)
   const rect = camera.getViewportRect(viewportContainerRef.value)
+
+  emit('progress', { percent: 15, message: t('loader.initShaders') })
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
+  await new Promise(resolve => setTimeout(resolve, 60))
 
   // Load editor assets & structures bundle via central AssetManager
+  emit('progress', { percent: 45, message: t('loader.loadTexturesModels') })
   await assetManager.loadEditor()
   await assetStore.loadBuiltinSprites()
+  await new Promise(resolve => setTimeout(resolve, 60))
 
   // Texture load listener for custom dynamic uploads
   let syncTimer: any = null
@@ -732,7 +742,24 @@ onMounted(async () => {
   if (!characterStore.detectedDoors || characterStore.detectedDoors.length === 0) {
     characterStore.detectDoors()
   }
+
+  emit('progress', { percent: 75, message: t('loader.syncLayersGrid') })
   updateEngineState()
+  await new Promise(resolve => setTimeout(resolve, 60))
+
+  // Render initial frame to eliminate initial WebGL pipeline compile hiccups
+  if (engine.app?.renderer) {
+    try {
+      engine.app.renderer.render(engine.app.stage)
+    } catch (e) {
+      console.warn('Initial editor render frame:', e)
+    }
+  }
+
+  emit('progress', { percent: 100, message: t('editor.editorReady') })
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  await new Promise(resolve => setTimeout(resolve, 150))
+  emit('ready')
 
   if (typeof ResizeObserver !== 'undefined' && viewportContainerRef.value) {
     resizeObserver = new ResizeObserver((entries) => {

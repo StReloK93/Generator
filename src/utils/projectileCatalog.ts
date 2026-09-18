@@ -1,6 +1,6 @@
 import {
   Flame, Snowflake, Zap, Skull, Wand2, Ghost, Crosshair, Sun,
-  Sparkles, Rocket, ZapIcon
+  Sparkles, Rocket, Wind, Mountain
 } from 'lucide-vue-next'
 import { ProjectileType } from '../types/map'
 import { ProjectileFormation, ProjectileShape, SparkParticleType, TrailStyle } from '../stores/projectileStore'
@@ -22,8 +22,8 @@ export interface ProjectileDef {
   nameUz: string
   category: ProjectileCategory
   categoryName: string
-  icon: any
-  iconName: string
+  icon?: any
+  iconName?: string
   colorHex: number
   colorCss: string
   trailColorHex: number
@@ -34,6 +34,8 @@ export interface ProjectileDef {
   shockwaveColorCss: string
   hasArc: boolean
   isLaser: boolean
+  isInstant?: boolean
+  instantType?: 'sky_strike' | 'ground_burst' | 'unit_aura'
   trailAlpha: number
   trailLength?: number
   trailWidth?: number
@@ -168,13 +170,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Fire',
     icon: Flame,
     iconName: 'Flame',
-    colorHex: 16347926,
+    colorHex: 0xf97316,
     colorCss: '#f97316',
-    trailColorHex: 16498468,
+    trailColorHex: 0xfbbf24,
     trailColorCss: '#fbbf24',
-    sparkColorHex: 16498468,
+    sparkColorHex: 0xfbbf24,
     sparkColorCss: '#fbbf24',
-    shockwaveColorHex: 15680580,
+    shockwaveColorHex: 0xef4444,
     shockwaveColorCss: '#ef4444',
     hasArc: false,
     isLaser: false,
@@ -193,7 +195,6 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 16,
     shockwaveRadius: 22,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
   // 2. MIDDLE FLAME (Scale: 0.60)
@@ -206,13 +207,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Fire',
     icon: Flame,
     iconName: 'Flame',
-    colorHex: 16347926,
+    colorHex: 0xf97316,
     colorCss: '#f97316',
-    trailColorHex: 16498468,
+    trailColorHex: 0xfbbf24,
     trailColorCss: '#fbbf24',
-    sparkColorHex: 16498468,
+    sparkColorHex: 0xfbbf24,
     sparkColorCss: '#fbbf24',
-    shockwaveColorHex: 15680580,
+    shockwaveColorHex: 0xef4444,
     shockwaveColorCss: '#ef4444',
     hasArc: true,
     isLaser: false,
@@ -231,7 +232,6 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 18,
     shockwaveRadius: 26,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
   // 3. STRONG FLAME (Scale: 0.80)
@@ -244,13 +244,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Fire',
     icon: Flame,
     iconName: 'Flame',
-    colorHex: 16347926,
+    colorHex: 0xf97316,
     colorCss: '#f97316',
-    trailColorHex: 16498468,
+    trailColorHex: 0xfbbf24,
     trailColorCss: '#fbbf24',
-    sparkColorHex: 16498468,
+    sparkColorHex: 0xfbbf24,
     sparkColorCss: '#fbbf24',
-    shockwaveColorHex: 15680580,
+    shockwaveColorHex: 0xef4444,
     shockwaveColorCss: '#ef4444',
     hasArc: true,
     isLaser: false,
@@ -269,7 +269,6 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 6,
     shockwaveRadius: 44,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
   // 4. FLAME ROCKET (Scale: 0.40)
@@ -282,13 +281,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Fire',
     icon: Rocket,
     iconName: 'Rocket',
-    colorHex: 16347926,
+    colorHex: 0xf97316,
     colorCss: '#f97316',
-    trailColorHex: 16498468,
+    trailColorHex: 0xfbbf24,
     trailColorCss: '#fbbf24',
-    sparkColorHex: 16707722,
+    sparkColorHex: 0xfef08a,
     sparkColorCss: '#fef08a',
-    shockwaveColorHex: 15680580,
+    shockwaveColorHex: 0xef4444,
     shockwaveColorCss: '#ef4444',
     hasArc: false,
     isLaser: false,
@@ -307,10 +306,9 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 18,
     shockwaveRadius: 26,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
-  // 5. ZIG ZAG FLAME (Twin Helix, Satellite: 1)
+  // 5. ZIG ZAG FLAME (Twin Helix)
   // ==========================================
   {
     id: 'custom_1789581747615_gpm0',
@@ -320,13 +318,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Fire',
     icon: Sparkles,
     iconName: 'Flame',
-    colorHex: 16347926,
+    colorHex: 0xf97316,
     colorCss: '#f97316',
-    trailColorHex: 16498468,
+    trailColorHex: 0xfbbf24,
     trailColorCss: '#fbbf24',
-    sparkColorHex: 16498468,
+    sparkColorHex: 0xfbbf24,
     sparkColorCss: '#fbbf24',
-    shockwaveColorHex: 15680580,
+    shockwaveColorHex: 0xef4444,
     shockwaveColorCss: '#ef4444',
     hasArc: false,
     isLaser: false,
@@ -334,7 +332,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     trailLength: 10,
     trailWidth: 10,
     trailStyle: 'particles',
-    description: 'Zig-zag / spiral egizak to\'lqinli olovli snaryad',
+    description: "Zig-zag / spiral egizak to'lqinli olovli snaryad",
     formation: 'twin_helix',
     shape: 'circle',
     size: 10,
@@ -345,7 +343,6 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 16,
     shockwaveRadius: 22,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
   // 6. SIMPLE FROST (Diamond Shard)
@@ -358,13 +355,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Frost',
     icon: Snowflake,
     iconName: 'Snowflake',
-    colorHex: 440020,
+    colorHex: 0x06b6d4,
     colorCss: '#06b6d4',
-    trailColorHex: 3900150,
+    trailColorHex: 0x3b82f6,
     trailColorCss: '#3b82f6',
-    sparkColorHex: 440020,
+    sparkColorHex: 0x06b6d4,
     sparkColorCss: '#06b6d4',
-    shockwaveColorHex: 440020,
+    shockwaveColorHex: 0x06b6d4,
     shockwaveColorCss: '#06b6d4',
     hasArc: true,
     isLaser: false,
@@ -372,7 +369,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     trailLength: 4,
     trailWidth: 3,
     trailStyle: 'particles',
-    description: 'O\'tkir qirrali olmos kristall muz snaryadi',
+    description: "O'tkir qirrali olmos kristall muz snaryadi",
     formation: 'single',
     shape: 'diamond_shard',
     size: 4,
@@ -383,7 +380,6 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 16,
     shockwaveRadius: 22,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
   // 7. MIDDLE FROST (Ice Orb)
@@ -391,18 +387,18 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
   {
     id: 'custom_1789582622693_n5g8',
     name: 'Middle frost',
-    nameUz: 'O\'rta Muz',
+    nameUz: "O'rta Muz",
     category: 'frost',
     categoryName: 'Frost',
     icon: Snowflake,
     iconName: 'Snowflake',
-    colorHex: 440020,
+    colorHex: 0x06b6d4,
     colorCss: '#06b6d4',
-    trailColorHex: 3900150,
+    trailColorHex: 0x3b82f6,
     trailColorCss: '#3b82f6',
-    sparkColorHex: 440020,
+    sparkColorHex: 0x06b6d4,
     sparkColorCss: '#06b6d4',
-    shockwaveColorHex: 440020,
+    shockwaveColorHex: 0x06b6d4,
     shockwaveColorCss: '#06b6d4',
     hasArc: false,
     isLaser: false,
@@ -410,7 +406,7 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     trailLength: 4,
     trailWidth: 3,
     trailStyle: 'particles',
-    description: 'To\'g\'ri chiziqli moviy muz shari',
+    description: "To'g'ri chiziqli moviy muz shari",
     formation: 'single',
     shape: 'circle',
     size: 6,
@@ -421,10 +417,9 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 16,
     shockwaveRadius: 22,
     hasDoubleRing: true,
-    isCustom: true
   },
   // ==========================================
-  // 8. STRONG ICE (Clean Glowing Energy Orb)
+  // 8. STRONG ICE (Glowing Energy Orb)
   // ==========================================
   {
     id: 'custom_1789735101659_yf3q',
@@ -434,13 +429,13 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     categoryName: 'Frost',
     icon: Snowflake,
     iconName: 'Snowflake',
-    colorHex: 1096065,
+    colorHex: 0x1079b9,
     colorCss: '#1079b9',
-    trailColorHex: 3900150,
+    trailColorHex: 0x3b82f6,
     trailColorCss: '#3b82f6',
-    sparkColorHex: 440020,
+    sparkColorHex: 0x06b6d4,
     sparkColorCss: '#06b6d4',
-    shockwaveColorHex: 440020,
+    shockwaveColorHex: 0x06b6d4,
     shockwaveColorCss: '#06b6d4',
     hasArc: true,
     isLaser: false,
@@ -459,7 +454,158 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     sparkCount: 8,
     shockwaveRadius: 40,
     hasDoubleRing: true,
-    isCustom: true
+  },
+  // ==========================================
+  // 9. SAND CYCLONE (Cylindrical Swarm Arcing)
+  // ==========================================
+  {
+    id: 'sand_cyclone',
+    name: 'Sand Cyclone',
+    nameUz: "Qum To'foni",
+    category: 'siege',
+    categoryName: 'Siege',
+    icon: Wind,
+    iconName: 'Wind',
+    colorHex: 0xd97706,
+    colorCss: '#d97706',
+    trailColorHex: 0xf59e0b,
+    trailColorCss: '#f59e0b',
+    sparkColorHex: 0xfbbf24,
+    sparkColorCss: '#fbbf24',
+    shockwaveColorHex: 0xb45309,
+    shockwaveColorCss: '#b45309',
+    hasArc: true,
+    isLaser: false,
+    trailAlpha: 0.6,
+    trailLength: 10,
+    trailWidth: 6,
+    trailStyle: 'particles',
+    description: "Silindr simon arca bilan otiluvchi aylanma qum zarralari to'dasi",
+    formation: 'single',
+    shape: 'sand_cluster',
+    size: 14,
+    length: 30,
+    points: 4,
+    satelliteCount: 0,
+    sparkType: 'sand_dust',
+    sparkCount: 22,
+    shockwaveRadius: 30,
+    hasDoubleRing: true,
+  },
+  // ==========================================
+  // 10. DYNAMIC LINE BEAM (Laser Streak with Sparks)
+  // ==========================================
+  {
+    id: 'line_streak_beam',
+    name: 'Dynamic Line Beam',
+    nameUz: "Dinamik Nur Chizig'i",
+    category: 'electro',
+    categoryName: 'Electro',
+    icon: Zap,
+    iconName: 'Zap',
+    colorHex: 0x3b82f6,
+    colorCss: '#3b82f6',
+    trailColorHex: 0x60a5fa,
+    trailColorCss: '#60a5fa',
+    sparkColorHex: 0x93c5fd,
+    sparkColorCss: '#93c5fd',
+    shockwaveColorHex: 0x2563eb,
+    shockwaveColorCss: '#2563eb',
+    hasArc: false,
+    isLaser: false,
+    trailAlpha: 0.75,
+    trailLength: 8,
+    trailWidth: 4,
+    trailStyle: 'glow_streak',
+    description: "Atrofida yorqin zarrachalar aylanuvchi to'g'ri chiziqli energiya nuri",
+    formation: 'single',
+    shape: 'line_streak',
+    size: 5,
+    length: 34,
+    points: 4,
+    satelliteCount: 0,
+    sparkType: 'spark_line',
+    sparkCount: 16,
+    shockwaveRadius: 24,
+    hasDoubleRing: true,
+  },
+  // ==========================================
+  // 11. SKY THUNDER STRIKE (Instant Target Strike)
+  // ==========================================
+  {
+    id: 'sky_thunder_strike',
+    name: 'Sky Thunder Strike',
+    nameUz: 'Osmondan Tushuvchi Nur',
+    category: 'holy',
+    categoryName: 'Holy',
+    icon: Sun,
+    iconName: 'Sun',
+    colorHex: 0xeab308,
+    colorCss: '#eab308',
+    trailColorHex: 0xfef08a,
+    trailColorCss: '#fef08a',
+    sparkColorHex: 0xffffff,
+    sparkColorCss: '#ffffff',
+    shockwaveColorHex: 0xca8a04,
+    shockwaveColorCss: '#ca8a04',
+    hasArc: false,
+    isLaser: false,
+    isInstant: true,
+    instantType: 'sky_strike',
+    trailAlpha: 0.8,
+    trailLength: 6,
+    trailWidth: 8,
+    trailStyle: 'glow_streak',
+    description: "Towerdan chiqmasdan, to'g'ridan-to'g'ri unit ustiga osmondan tushuvchi nur",
+    formation: 'single',
+    shape: 'instant_strike',
+    size: 16,
+    length: 60,
+    points: 4,
+    satelliteCount: 0,
+    sparkType: 'holy_cross',
+    sparkCount: 24,
+    shockwaveRadius: 36,
+    hasDoubleRing: true,
+  },
+  // ==========================================
+  // 12. EARTH GROUND BURST (Instant Ground Eruption)
+  // ==========================================
+  {
+    id: 'earth_ground_burst',
+    name: 'Earth Ground Burst',
+    nameUz: "Yerdan Chiqadigan Razlom",
+    category: 'poison',
+    categoryName: 'Poison',
+    icon: Mountain,
+    iconName: 'Mountain',
+    colorHex: 0x22c55e,
+    colorCss: '#22c55e',
+    trailColorHex: 0x86efac,
+    trailColorCss: '#86efac',
+    sparkColorHex: 0x4ade80,
+    sparkColorCss: '#4ade80',
+    shockwaveColorHex: 0x15803d,
+    shockwaveColorCss: '#15803d',
+    hasArc: false,
+    isLaser: false,
+    isInstant: true,
+    instantType: 'ground_burst',
+    trailAlpha: 0.6,
+    trailLength: 6,
+    trailWidth: 6,
+    trailStyle: 'particles',
+    description: "To'g'ridan-to'g'ri unit ostidan otilib chiqadigan sehrli yer to'lqini",
+    formation: 'single',
+    shape: 'instant_strike',
+    size: 18,
+    length: 30,
+    points: 4,
+    satelliteCount: 0,
+    sparkType: 'acid_drop',
+    sparkCount: 20,
+    shockwaveRadius: 34,
+    hasDoubleRing: true,
   }
 ]
 
@@ -467,36 +613,190 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
 const ID_ALIASES: Record<string, string> = {
   'custom_1789575550500_byln': 'middle_flame',
   'custom_1789575627700_s9vz': 'strong_flame',
-  'custom_1789575798300_nncw': 'flame_laser',
+  'custom_1789575798300_nncw': 'line_streak_beam',
   'custom_1789576200524_ur0p': 'flame_rocket',
   'strong_ice': 'custom_1789735101659_yf3q',
   'strong_frost': 'custom_1789735101659_yf3q',
   'simple_flame': 'fireball',
-  'fire_laser': 'flame_laser',
-  'laser': 'flame_laser',
-  'laser_beam': 'flame_laser',
+  'fire_laser': 'line_streak_beam',
+  'laser': 'line_streak_beam',
+  'laser_beam': 'line_streak_beam',
   'fire_rocket': 'flame_rocket',
   'rocket': 'flame_rocket',
   'fire': 'fireball',
   'fire_splash': 'strong_flame',
-  'frost_snowflake': 'flame_laser',
-  'electro_chain': 'flame_laser',
+}
+
+// Global In-Memory Runtime Custom Projectiles Registry for studio testing sessions
+const runtimeCustomProjectilesMap = new Map<string, ProjectileDef>()
+
+export function normalizeProjectileDef(raw: any): ProjectileDef {
+  if (!raw) return BASE_PROJECTILE_CATALOG[0]
+  
+  const parseHex = (val: any, fallback: number): number => {
+    if (typeof val === 'number' && !isNaN(val)) return val
+    if (typeof val === 'string' && val.startsWith('#')) {
+      const parsed = parseInt(val.slice(1), 16)
+      return isNaN(parsed) ? fallback : parsed
+    }
+    return fallback
+  }
+
+  const colorHex = parseHex(raw.colorHex, 0xf97316)
+  const colorCss = raw.colorCss || '#' + colorHex.toString(16).padStart(6, '0')
+  const trailColorHex = parseHex(raw.trailColorHex, colorHex)
+  const trailColorCss = raw.trailColorCss || '#' + trailColorHex.toString(16).padStart(6, '0')
+  const sparkColorHex = parseHex(raw.sparkColorHex, colorHex)
+  const sparkColorCss = raw.sparkColorCss || '#' + sparkColorHex.toString(16).padStart(6, '0')
+  const shockwaveColorHex = parseHex(raw.shockwaveColorHex, colorHex)
+  const shockwaveColorCss = raw.shockwaveColorCss || '#' + shockwaveColorHex.toString(16).padStart(6, '0')
+
+  const category = (raw.category as ProjectileCategory) || 'fire'
+  const isLaser = Boolean(raw.isLaser || raw.formation === 'laser_beam' || String(raw.id || '').includes('laser'))
+  const isInstant = Boolean(raw.isInstant || raw.shape === 'instant_strike')
+
+  let icon = Flame
+  if (category === 'frost') icon = Snowflake
+  else if (category === 'electro') icon = Zap
+  else if (category === 'poison') icon = Skull
+  else if (category === 'arcane') icon = Wand2
+  else if (category === 'void') icon = Ghost
+  else if (category === 'siege') icon = Crosshair
+  else if (category === 'holy') icon = Sun
+  else if (category === 'custom') icon = Sparkles
+
+  return {
+    id: raw.id || `custom_${Date.now()}`,
+    name: raw.name || raw.id,
+    nameUz: raw.nameUz || raw.name || raw.id,
+    category,
+    categoryName: category.charAt(0).toUpperCase() + category.slice(1),
+    icon: raw.icon || icon,
+    iconName: raw.iconName || 'Flame',
+    colorHex,
+    colorCss,
+    trailColorHex,
+    trailColorCss,
+    sparkColorHex,
+    sparkColorCss,
+    shockwaveColorHex,
+    shockwaveColorCss,
+    hasArc: isLaser ? false : (raw.hasArc !== undefined ? Boolean(raw.hasArc) : false),
+    isLaser,
+    isInstant,
+    instantType: raw.instantType || 'sky_strike',
+    trailAlpha: typeof raw.trailAlpha === 'number' ? raw.trailAlpha : 0.7,
+    trailLength: typeof raw.trailLength === 'number' ? raw.trailLength : 8,
+    trailWidth: typeof raw.trailWidth === 'number' ? raw.trailWidth : 4,
+    trailStyle: raw.trailStyle || 'solid_line',
+    description: raw.description || '',
+    formation: raw.formation || 'single',
+    shape: raw.shape || 'circle',
+    size: typeof raw.size === 'number' ? raw.size : 10,
+    length: typeof raw.length === 'number' ? raw.length : 24,
+    points: typeof raw.points === 'number' ? raw.points : 4,
+    satelliteCount: typeof raw.satelliteCount === 'number' ? raw.satelliteCount : (raw.formation === 'satellites' ? 3 : 0),
+    sparkType: raw.sparkType || 'fire_ember',
+    sparkCount: typeof raw.sparkCount === 'number' ? raw.sparkCount : 16,
+    shockwaveRadius: typeof raw.shockwaveRadius === 'number' ? raw.shockwaveRadius : 24,
+    hasDoubleRing: Boolean(raw.hasDoubleRing),
+    isCustom: Boolean(raw.isCustom ?? false)
+  }
+}
+
+export function registerCustomProjectile(proj: any): void {
+  if (!proj || !proj.id) return
+  runtimeCustomProjectilesMap.set(proj.id, normalizeProjectileDef(proj))
+}
+
+export function registerCustomProjectiles(list: any[]): void {
+  if (!Array.isArray(list)) return
+  for (const p of list) {
+    if (p && p.id) {
+      runtimeCustomProjectilesMap.set(p.id, normalizeProjectileDef(p))
+    }
+  }
 }
 
 export function getAllProjectilesUnified(): ProjectileDef[] {
-  return BASE_PROJECTILE_CATALOG
+  const map = new Map<string, ProjectileDef>()
+  for (const p of BASE_PROJECTILE_CATALOG) {
+    map.set(p.id, p)
+  }
+  for (const [id, p] of runtimeCustomProjectilesMap.entries()) {
+    map.set(id, p)
+  }
+  return Array.from(map.values())
 }
 
 export const PROJECTILE_CATALOG: ProjectileDef[] = BASE_PROJECTILE_CATALOG
 
 export function getProjectileDef(id: string): ProjectileDef {
+  if (!id) return BASE_PROJECTILE_CATALOG[0]
+
   const resolvedId = ID_ALIASES[id] || id
-  const found = BASE_PROJECTILE_CATALOG.find(p => p.id === resolvedId || p.id === id)
-  if (found) return found
+
+  // 1. Check in-memory runtime custom map
+  if (runtimeCustomProjectilesMap.has(resolvedId)) {
+    return runtimeCustomProjectilesMap.get(resolvedId)!
+  }
+  if (runtimeCustomProjectilesMap.has(id)) {
+    return runtimeCustomProjectilesMap.get(id)!
+  }
+
+  // 2. Check base catalog
+  const foundBase = BASE_PROJECTILE_CATALOG.find(p => p.id === resolvedId || p.id === id)
+  if (foundBase) return foundBase
+
+  // 3. Fallback to default base item
   return BASE_PROJECTILE_CATALOG[0]
 }
 
 export function getProjectilesByCategory(category: ProjectileCategory): ProjectileDef[] {
-  return BASE_PROJECTILE_CATALOG.filter(p => p.category === category)
+  return getAllProjectilesUnified().filter(p => p.category === category)
 }
 
+/**
+ * Generates clean, ready-to-paste TypeScript Object Literal code for BASE_PROJECTILE_CATALOG
+ */
+export function generateProjectileCatalogSnippet(def: Partial<ProjectileDef>): string {
+  const colorHexStr = '0x' + (def.colorHex || 0xf97316).toString(16).padStart(6, '0')
+  const trailHexStr = '0x' + (def.trailColorHex || 0xfbbf24).toString(16).padStart(6, '0')
+  const sparkHexStr = '0x' + (def.sparkColorHex || 0xfef08a).toString(16).padStart(6, '0')
+  const shockwaveHexStr = '0x' + (def.shockwaveColorHex || 0xef4444).toString(16).padStart(6, '0')
+  const cat = def.category || 'fire'
+  const catName = cat.charAt(0).toUpperCase() + cat.slice(1)
+
+  return `  {
+    id: '${def.id || 'custom_' + Date.now()}',
+    name: '${(def.name || 'Custom Bolt').replace(/'/g, "\\'")}',
+    nameUz: '${(def.nameUz || def.name || 'Maxsus Snaryad').replace(/'/g, "\\'")}',
+    category: '${cat}',
+    categoryName: '${catName}',
+    colorHex: ${colorHexStr},
+    colorCss: '${def.colorCss || '#f97316'}',
+    trailColorHex: ${trailHexStr},
+    trailColorCss: '${def.trailColorCss || '#fbbf24'}',
+    sparkColorHex: ${sparkHexStr},
+    sparkColorCss: '${def.sparkColorCss || '#fef08a'}',
+    shockwaveColorHex: ${shockwaveHexStr},
+    shockwaveColorCss: '${def.shockwaveColorCss || '#ef4444'}',
+    hasArc: ${Boolean(def.hasArc)},
+    isLaser: ${Boolean(def.isLaser)},${def.isInstant ? `\n    isInstant: true,\n    instantType: '${def.instantType || 'sky_strike'}',` : ''}
+    trailAlpha: ${def.trailAlpha ?? 0.7},
+    trailLength: ${def.trailLength ?? 8},
+    trailWidth: ${def.trailWidth ?? 4},
+    trailStyle: '${def.trailStyle || 'solid_line'}',
+    description: '${(def.description || '').replace(/'/g, "\\'")}',
+    formation: '${def.formation || 'single'}',
+    shape: '${def.shape || 'circle'}',
+    size: ${def.size ?? 10},
+    length: ${def.length ?? 24},
+    points: ${def.points ?? 4},
+    satelliteCount: ${def.satelliteCount ?? 0},
+    sparkType: '${def.sparkType || 'fire_ember'}',
+    sparkCount: ${def.sparkCount ?? 16},
+    shockwaveRadius: ${def.shockwaveRadius ?? 24},
+    hasDoubleRing: ${Boolean(def.hasDoubleRing)},
+  },`
+}
