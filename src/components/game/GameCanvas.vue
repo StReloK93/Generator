@@ -186,20 +186,26 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (cleanListeners) {
-    cleanListeners()
-    cleanListeners = null
-  }
+  try {
+    if (cleanListeners) {
+      cleanListeners()
+      cleanListeners = null
+    }
 
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+      resizeObserver = null
+    }
+    gameController.destroy()
+    engine.clearCombatVisuals()
+    engine.clearCharacterVisuals()
+    if (engine.buildableOverlayGraphics && !engine.buildableOverlayGraphics.destroyed) {
+      engine.buildableOverlayGraphics.clear()
+    }
+    engine.destroy()
+  } catch (err) {
+    console.warn('[GameCanvas] onUnmounted caught error:', err)
   }
-  gameController.destroy()
-  engine.clearCombatVisuals()
-  engine.clearCharacterVisuals()
-  engine.buildableOverlayGraphics.clear()
-  engine.destroy()
 })
 
 // --- Game Cell Tap / Click Handling via GameController ---
@@ -228,6 +234,7 @@ function handleMouseDown(e: MouseEvent) {
     return
   }
 
+  if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   gameController.handleCellClick(gridCoord)
@@ -238,6 +245,7 @@ function handleMouseMove(e: MouseEvent) {
     camera.updatePan(e.clientX, e.clientY)
     return
   }
+  if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
   gameController.handlePointerMove(gridCoord)

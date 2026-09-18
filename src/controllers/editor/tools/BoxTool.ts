@@ -64,29 +64,36 @@ export class BoxTool implements IEditorTool {
     if (this.mode === 'clear') {
       this.executeBoxClear(p0, p1, ctx)
     } else if (ctx.assetStore.selectedAssetId) {
-      this.executeBoxFill(p0, p1, ctx)
+      this.executeBoxFill(p0, p1, ctx, e)
     } else {
       this.executeBoxSelect(p0, p1, ctx, e)
     }
   }
 
-  private executeBoxFill(p0: GridCoord, p1: GridCoord, ctx: EditorToolContext): void {
+  private executeBoxFill(
+    p0: GridCoord,
+    p1: GridCoord,
+    ctx: EditorToolContext,
+    e?: MouseEvent | TouchEvent
+  ): void {
     const { assetStore, mapStore, notify, t, toolStore } = ctx
     if (!assetStore.selectedAssetId) return
 
-    const count = mapStore.fillEmptyCellsInBox(
-      p0.col,
-      p0.row,
-      p1.col,
-      p1.row,
-      assetStore.selectedAssetId,
-      mapStore.activeLayerId
-    )
+    const assetId = assetStore.selectedAssetId
+    const cells = getRectangleCells(p0.col, p0.row, p1.col, p1.row)
+
+    const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
+    const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+
+    const mode: 'replace' | 'stack' = (isCtrl || toolStore.placementMode === 'replace') ? 'replace' : 'stack'
+    const count = mapStore.fillTiles(cells, assetId, mapStore.activeLayerId, mode)
 
     if (count > 0) {
-      notify.success(t('editor.boxFilledEmptyCount', { count }))
-    } else {
-      notify.info(t('editor.occupiedCellsCount'))
+      if (mode === 'replace') {
+        notify.success(t('editor.boxFilledCount', { count }) || `${count} ta katak almashtirildi`)
+      } else {
+        notify.success(t('editor.boxFilledCount', { count }) || `${count} ta katakka chizildi`)
+      }
     }
 
     this.boxStartPoint = null

@@ -751,14 +751,18 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
+  try {
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+      resizeObserver = null
+    }
+    window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('keyup', handleKeyUp)
+    editorController.destroy()
+    engine.destroy()
+  } catch (err) {
+    console.warn('[EditorCanvas] onUnmounted caught error:', err)
   }
-  window.removeEventListener('keydown', handleKeyDown)
-  window.removeEventListener('keyup', handleKeyUp)
-  editorController.destroy()
-  engine.destroy()
 })
 
 // Batch syncLayers via requestAnimationFrame to avoid CPU spikes during fast mouse drags
@@ -907,6 +911,7 @@ function handleMouseDown(e: MouseEvent) {
     editorController.handleContextMenu()
     return
   }
+  if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   if (e.button === 1 || camera.isSpacePressed.value || toolStore.activeTool === 'pan') {
     camera.startPan(e.clientX, e.clientY)
     return
@@ -918,6 +923,7 @@ function handleMouseDown(e: MouseEvent) {
 }
 
 function handleMouseMove(e: MouseEvent) {
+  if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
   editorController.isCtrlPressed = isCtrlPressed.value
@@ -933,6 +939,9 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function handleMouseUp(e?: MouseEvent) {
+  if (e && e.button === 2) {
+    return
+  }
   if (e) {
     isCtrlPressed.value = e.ctrlKey || e.metaKey
     isShiftPressed.value = e.shiftKey
@@ -940,6 +949,7 @@ function handleMouseUp(e?: MouseEvent) {
     editorController.isShiftPressed = isShiftPressed.value
   }
   if (camera.isPanning.value) camera.endPan()
+  if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const clientX = e ? e.clientX : 0
   const clientY = e ? e.clientY : 0
@@ -1307,6 +1317,8 @@ function handleKeyDown(e: KeyboardEvent) {
 function handleKeyUp(e: KeyboardEvent) {
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
+  editorController.isCtrlPressed = isCtrlPressed.value
+  editorController.isShiftPressed = isShiftPressed.value
   if (e.code === 'Space') camera.isSpacePressed.value = false
 }
 

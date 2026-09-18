@@ -134,8 +134,8 @@ export class OverlayRenderer {
         fillColor = 0x9333ea
       }
     } else if (activeTool === 'water') {
-      strokeColor = 0x38bdf8
-      fillColor = 0x0284c7
+      strokeColor = 0x5eead4
+      fillColor = 0x155e75
     } else if (activeTool === 'scatter') {
       strokeColor = 0xc084fc
       fillColor = 0x9333ea
@@ -647,20 +647,30 @@ export class OverlayRenderer {
   }
 
   public clear(): void {
-    this.hoverGraphics.clear()
-    this.selectionGraphics.clear()
-    this.previewContainer.removeChildren()
-    this.buildGhostSprite.visible = false
-    this.buildableOverlayGraphics.clear()
-    this.pathTrailGraphics.clear()
-    this.spawnOverlayGraphics.clear()
-    this.spawnMarkersContainer.removeChildren()
-    this.lastBuildableSignature = ''
-    this.lastTrailSignature = ''
+    try {
+      if (this.hoverGraphics && !this.hoverGraphics.destroyed) this.hoverGraphics.clear()
+      if (this.selectionGraphics && !this.selectionGraphics.destroyed) this.selectionGraphics.clear()
+      if (this.previewContainer && !this.previewContainer.destroyed) this.previewContainer.removeChildren()
+      if (this.buildGhostSprite && !this.buildGhostSprite.destroyed) this.buildGhostSprite.visible = false
+      if (this.buildableOverlayGraphics && !this.buildableOverlayGraphics.destroyed) this.buildableOverlayGraphics.clear()
+      if (this.pathTrailGraphics && !this.pathTrailGraphics.destroyed) this.pathTrailGraphics.clear()
+      if (this.spawnOverlayGraphics && !this.spawnOverlayGraphics.destroyed) this.spawnOverlayGraphics.clear()
+      if (this.spawnMarkersContainer && !this.spawnMarkersContainer.destroyed) this.spawnMarkersContainer.removeChildren()
+      this.lastBuildableSignature = ''
+      this.lastTrailSignature = ''
+    } catch (e) {
+      console.warn('[OverlayRenderer] clear caught:', e)
+    }
   }
 
   public destroy(): void {
-    this.clear()
-    this.overlayContainer.destroy({ children: true })
+    try {
+      this.clear()
+      if (this.overlayContainer && !this.overlayContainer.destroyed) {
+        this.overlayContainer.destroy({ children: true })
+      }
+    } catch (e) {
+      console.warn('[OverlayRenderer] destroy caught:', e)
+    }
   }
 }

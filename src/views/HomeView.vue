@@ -360,10 +360,10 @@ const isStartingGame = ref(false)
 const mapSearchQuery = ref('')
 const selectedMapId = ref<string>('')
 
-// Preloader State
-const isPreloading = ref(true)
-const preloadProgress = ref(0)
-const preloadStageKey = ref('loader.initEngine')
+// Preloader State (only show on very first initial app load)
+const isPreloading = ref(!assetManager.isBundleLoaded('core'))
+const preloadProgress = ref(assetManager.isBundleLoaded('core') ? 100 : 0)
+const preloadStageKey = ref(assetManager.isBundleLoaded('core') ? 'loader.ready' : 'loader.initEngine')
 
 // Auto-load available maps
 const rawAvailableMaps = getBuiltinMaps()
@@ -406,8 +406,12 @@ onMounted(async () => {
     selectedMapId.value = availableMaps.value[0].id
   }
 
-  // Start initial asset preloader
-  await runPreloadSequence()
+  // Start initial asset preloader ONLY if not yet loaded
+  if (!assetManager.isBundleLoaded('core')) {
+    await runPreloadSequence()
+  } else {
+    isPreloading.value = false
+  }
 })
 
 onUnmounted(() => {

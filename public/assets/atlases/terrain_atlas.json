@@ -1899,6 +1899,66 @@
         "w": 256,
         "h": 512
       }
+    },
+    "stone": {
+      "frame": {
+        "x": 194,
+        "y": 2007,
+        "w": 64,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 401,
+        "w": 64,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stone_middle": {
+      "frame": {
+        "x": 260,
+        "y": 2007,
+        "w": 54,
+        "h": 47
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 96,
+        "y": 415,
+        "w": 54,
+        "h": 47
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stone_small": {
+      "frame": {
+        "x": 316,
+        "y": 2007,
+        "w": 27,
+        "h": 22
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 114,
+        "y": 430,
+        "w": 27,
+        "h": 22
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
     }
   },
   "meta": {

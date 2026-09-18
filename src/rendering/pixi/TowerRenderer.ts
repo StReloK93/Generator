@@ -89,17 +89,12 @@ export class TowerRenderer {
         container = new Container()
         container.sortableChildren = true
 
-        const shadow = new Graphics()
-        shadow.zIndex = 0
-        shadow.visible = false
-
         const sprite = new Sprite()
         sprite.zIndex = 1
 
         const selection = new Graphics()
         selection.zIndex = 2
 
-        container.addChild(shadow)
         container.addChild(sprite)
         container.addChild(selection)
 
@@ -108,8 +103,8 @@ export class TowerRenderer {
       }
 
       container.visible = true
-      const sprite = container.getChildAt(1) as Sprite
-      const selection = container.getChildAt(2) as Graphics
+      const sprite = container.getChildAt(0) as Sprite
+      const selection = container.getChildAt(1) as Graphics
 
       const bp = blueprints?.find((b: any) => b.id === tower.blueprintId)
       const texture = this.getBlueprintTexture(bp)
@@ -173,13 +168,19 @@ export class TowerRenderer {
   }
 
   public clear(parentLayersContainer?: Container): void {
-    for (const container of this.towerContainerMap.values()) {
-      if (parentLayersContainer) {
-        parentLayersContainer.removeChild(container)
+    try {
+      for (const container of this.towerContainerMap.values()) {
+        if (parentLayersContainer && !parentLayersContainer.destroyed && container.parent === parentLayersContainer) {
+          parentLayersContainer.removeChild(container)
+        }
+        if (container && !container.destroyed) {
+          container.destroy({ children: true })
+        }
       }
-      container.destroy({ children: true })
+      this.towerContainerMap.clear()
+    } catch (e) {
+      console.warn('[TowerRenderer] clear caught:', e)
     }
-    this.towerContainerMap.clear()
   }
 
   public destroy(parentLayersContainer?: Container): void {

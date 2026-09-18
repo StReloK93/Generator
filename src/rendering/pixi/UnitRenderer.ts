@@ -31,21 +31,12 @@ export class UnitRenderer {
       const container = new Container()
       container.sortableChildren = true
 
-      const shadow = new Graphics()
-      shadow.zIndex = 0
-      const shadowRadiusX = tileWidth * 0.1
-      const shadowRadiusY = tileHeight * 0.1
-      shadow
-        .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-        .fill({ color: 0x000000, alpha: 0.14 })
-
       const sprite = new Sprite()
       sprite.zIndex = 1
 
       const marker = new Graphics()
       marker.zIndex = 2
 
-      container.addChild(shadow)
       container.addChild(sprite)
       container.addChild(marker)
 
@@ -79,9 +70,8 @@ export class UnitRenderer {
 
       container.visible = true
 
-      const shadow = container.getChildAt(0) as Graphics
-      const sprite = container.getChildAt(1) as Sprite
-      const marker = container.getChildAt(2) as Graphics
+      const sprite = container.getChildAt(0) as Sprite
+      const marker = container.getChildAt(1) as Graphics
 
       const actionPrefix = unit.action || 'Idle'
       const frame = actionPrefix === 'Idle' ? '0' : unit.frameIndex || 0
@@ -129,7 +119,6 @@ export class UnitRenderer {
         if (!unit.isDead) {
           renderPixiUnitEffect({
             marker,
-            shadow,
             variant,
             tileWidth,
             tileHeight,
@@ -139,11 +128,9 @@ export class UnitRenderer {
             animTime: performance.now() * 0.001,
           })
         } else {
-          shadow.visible = false
           marker.visible = false
         }
       } else {
-        shadow.visible = false
         marker.visible = false
       }
 
@@ -153,8 +140,6 @@ export class UnitRenderer {
       container.position.set(unit.screenX, unit.screenY)
       sprite.position.set(0, -unitOffsetY)
       marker.position.set(0, -unitOffsetY)
-      shadow.position.set(0, 0)
-      shadow.scale.set(Math.max(0.4, 1.0 - unitOffsetY / 250))
 
       const charDepth =
         100000 + Math.round((unit.currentCol + unit.currentRow) * 1000) + 300 + (i % 10)
@@ -171,15 +156,21 @@ export class UnitRenderer {
   }
 
   public clear(parentLayersContainer?: Container): void {
-    for (const c of this.unitContainers) {
-      c.visible = false
-      if (parentLayersContainer) {
-        parentLayersContainer.removeChild(c)
+    try {
+      for (const c of this.unitContainers) {
+        c.visible = false
+        if (parentLayersContainer && !parentLayersContainer.destroyed && c.parent === parentLayersContainer) {
+          parentLayersContainer.removeChild(c)
+        }
+        if (c && !c.destroyed) {
+          c.destroy({ children: true })
+        }
       }
-      c.destroy({ children: true })
+      this.unitContainers = []
+      this.unitLastDepths = []
+    } catch (e) {
+      console.warn('[UnitRenderer] clear caught:', e)
     }
-    this.unitContainers = []
-    this.unitLastDepths = []
   }
 
   public destroy(parentLayersContainer?: Container): void {

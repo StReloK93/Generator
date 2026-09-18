@@ -563,16 +563,28 @@ export class CombatRenderer {
   }
 
   public clear(): void {
-    this.combatGraphics.clear()
-    this.combatTrails.clear()
-    this.combatSparks = []
+    try {
+      if (this.combatGraphics && !this.combatGraphics.destroyed) {
+        this.combatGraphics.clear()
+      }
+      this.combatTrails.clear()
+      this.combatSparks = []
+    } catch (e) {
+      console.warn('[CombatRenderer] clear caught:', e)
+    }
   }
 
   public destroy(): void {
-    if (this.unsubscribeImpact) {
-      this.unsubscribeImpact()
+    try {
+      if (this.unsubscribeImpact) {
+        this.unsubscribeImpact()
+      }
+      this.clear()
+      if (this.combatGraphics && !this.combatGraphics.destroyed) {
+        this.combatGraphics.destroy()
+      }
+    } catch (e) {
+      console.warn('[CombatRenderer] destroy caught:', e)
     }
-    this.clear()
-    this.combatGraphics.destroy()
   }
 }

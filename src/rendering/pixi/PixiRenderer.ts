@@ -174,17 +174,34 @@ export class PixiRenderer {
   screenPointToGrid(
     clientX: number,
     clientY: number,
-    canvasRect: DOMRect,
-    project: MapProject
+    canvasRect: DOMRect | null | undefined,
+    project: MapProject | null | undefined
   ): { worldX: number; worldY: number; gridCoord: GridCoord } {
-    const rawX = clientX - canvasRect.left
-    const rawY = clientY - canvasRect.top
+    if (
+      !this.isInitialized ||
+      !this.context ||
+      !this.context.worldContainer ||
+      !canvasRect ||
+      !project
+    ) {
+      return { worldX: 0, worldY: 0, gridCoord: { col: 0, row: 0 } }
+    }
+
+    const rawX = clientX - (canvasRect.left ?? 0)
+    const rawY = clientY - (canvasRect.top ?? 0)
 
     const worldContainer = this.context.worldContainer
-    const worldX = (rawX - worldContainer.position.x) / worldContainer.scale.x
-    const worldY = (rawY - worldContainer.position.y) / worldContainer.scale.y
+    const posX = worldContainer.position?.x ?? 0
+    const posY = worldContainer.position?.y ?? 0
+    const scaleX = worldContainer.scale?.x || 1
+    const scaleY = worldContainer.scale?.y || 1
 
-    const gridCoord = screenToGrid(worldX, worldY, project.tileWidth, project.tileHeight)
+    const worldX = (rawX - posX) / scaleX
+    const worldY = (rawY - posY) / scaleY
+
+    const tileW = project.tileWidth || 128
+    const tileH = project.tileHeight || 64
+    const gridCoord = screenToGrid(worldX, worldY, tileW, tileH)
 
     return { worldX, worldY, gridCoord }
   }
@@ -216,23 +233,42 @@ export class PixiRenderer {
   }
 
   clearVisuals(): void {
-    this.grid.clear()
-    this.combat.clear()
-    this.overlay.clear()
-    this.units.clear(this.map.layersContainer)
-    this.towers.clear(this.map.layersContainer)
+    try {
+      this.grid?.clear()
+      this.combat?.clear()
+      this.overlay?.clear()
+      if (this.map?.layersContainer && !this.map.layersContainer.destroyed) {
+        this.units?.clear(this.map.layersContainer)
+        this.towers?.clear(this.map.layersContainer)
+      } else {
+        this.units?.clear()
+        this.towers?.clear()
+      }
+    } catch (e) {
+      console.warn('[PixiRenderer] clearVisuals caught:', e)
+    }
   }
 
   destroy(): void {
-    this.clearVisuals()
-    this.grid.destroy()
-    this.water.destroy()
-    this.map.destroy()
-    this.overlay.destroy()
-    this.towers.destroy(this.map.layersContainer)
-    this.combat.destroy()
-    this.units.destroy(this.map.layersContainer)
-    this.context.destroy()
-    this.isInitialized = false
+    try {
+      this.clearVisuals()
+
+      if (this.context?.worldContainer && !this.context.worldContainer.destroyed) {
+        this.context.worldContainer.removeChildren()
+      }
+
+      this.grid?.destroy()
+      this.water?.destroy()
+      this.towers?.destroy()
+      this.units?.destroy()
+      this.overlay?.destroy()
+      this.map?.destroy()
+      this.combat?.destroy()
+      this.context?.destroy()
+    } catch (err) {
+      console.warn('[PixiRenderer] destroy caught:', err)
+    } finally {
+      this.isInitialized = false
+    }
   }
 }

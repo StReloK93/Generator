@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAssetStore } from './assetStore'
+import { autoTrimImage } from '../utils/imageCropper'
 
 export interface CompositePart {
   id: string
@@ -251,7 +252,16 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
   function setScaleForSelectedParts(
     ratio: number,
     initialScales: Map<string, { scaleX: number; scaleY: number }>,
-    step = 0.05
+    step = 0.001
+  ) {
+    setAxisScaleForSelectedParts(ratio, ratio, initialScales, step)
+  }
+
+  function setAxisScaleForSelectedParts(
+    ratioX: number,
+    ratioY: number,
+    initialScales: Map<string, { scaleX: number; scaleY: number }>,
+    step = 0.001
   ) {
     for (const part of selectedParts.value) {
       if (part.locked) continue
@@ -259,17 +269,17 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
       if (initial) {
         const signX = Math.sign(initial.scaleX) || 1
         const signY = Math.sign(initial.scaleY) || 1
-        const rawMagX = Math.abs(initial.scaleX) * ratio
-        const rawMagY = Math.abs(initial.scaleY) * ratio
+        const rawMagX = Math.abs(initial.scaleX) * ratioX
+        const rawMagY = Math.abs(initial.scaleY) * ratioY
 
         let snappedMagX = Math.round(rawMagX / step) * step
         let snappedMagY = Math.round(rawMagY / step) * step
 
-        snappedMagX = Math.max(0.1, Math.min(5.0, snappedMagX))
-        snappedMagY = Math.max(0.1, Math.min(5.0, snappedMagY))
+        snappedMagX = Math.max(0.001, Math.min(10.0, snappedMagX))
+        snappedMagY = Math.max(0.001, Math.min(10.0, snappedMagY))
 
-        part.scaleX = Number((signX * snappedMagX).toFixed(2))
-        part.scaleY = Number((signY * snappedMagY).toFixed(2))
+        part.scaleX = Number((signX * snappedMagX).toFixed(3))
+        part.scaleY = Number((signY * snappedMagY).toFixed(3))
       }
     }
   }
@@ -448,7 +458,6 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
     const part = parts.value.find(p => p.id === partId)
     if (!part || !part.src) return
     try {
-      const { autoTrimImage } = await import('../utils/imageCropper')
       const { dataUrl } = await autoTrimImage(part.src)
       part.src = dataUrl
       recordHistory()
@@ -497,6 +506,7 @@ export const useAssetEditorStore = defineStore('assetEditor', () => {
     nudgeSelected,
     moveSelectedPartsBy,
     setScaleForSelectedParts,
+    setAxisScaleForSelectedParts,
     setPartPosition,
     updatePartProperties,
     updateAllSelectedProperties,

@@ -1,128 +1,8 @@
 {
   "frames": {
-    "stoneWallTop_W": {
-      "frame": {
-        "x": 2,
-        "y": 2,
-        "w": 161,
-        "h": 153
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 93,
-        "y": 358,
-        "w": 161,
-        "h": 153
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "woodWallRoofLeft_S": {
-      "frame": {
-        "x": 165,
-        "y": 2,
-        "w": 136,
-        "h": 152
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 120,
-        "y": 303,
-        "w": 136,
-        "h": 152
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "woodWallRoofRight_E": {
-      "frame": {
-        "x": 303,
-        "y": 2,
-        "w": 136,
-        "h": 152
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 303,
-        "w": 136,
-        "h": 152
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "stoneWallTop_S": {
-      "frame": {
-        "x": 441,
-        "y": 2,
-        "w": 161,
-        "h": 151
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 93,
-        "y": 312,
-        "w": 161,
-        "h": 151
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "woodWallRoofLeft_W": {
-      "frame": {
-        "x": 604,
-        "y": 2,
-        "w": 141,
-        "h": 151
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 115,
-        "y": 361,
-        "w": 141,
-        "h": 151
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "woodWallRoofRight_N": {
-      "frame": {
-        "x": 747,
-        "y": 2,
-        "w": 141,
-        "h": 151
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 361,
-        "w": 141,
-        "h": 151
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
     "tower_ice5": {
       "frame": {
-        "x": 890,
+        "x": 2,
         "y": 2,
         "w": 116,
         "h": 151
@@ -142,7 +22,7 @@
     },
     "tower_ice4": {
       "frame": {
-        "x": 1008,
+        "x": 120,
         "y": 2,
         "w": 146,
         "h": 143
@@ -162,7 +42,7 @@
     },
     "tower_ice3": {
       "frame": {
-        "x": 1156,
+        "x": 268,
         "y": 2,
         "w": 109,
         "h": 142
@@ -182,7 +62,7 @@
     },
     "stoneWallTop_N": {
       "frame": {
-        "x": 1267,
+        "x": 379,
         "y": 2,
         "w": 161,
         "h": 137
@@ -202,7 +82,7 @@
     },
     "stoneWallTop_E": {
       "frame": {
-        "x": 1430,
+        "x": 542,
         "y": 2,
         "w": 161,
         "h": 135
@@ -225,7 +105,7 @@
     "image": "structures_atlas_1.webp",
     "format": "RGBA8888",
     "size": {
-      "w": 2048,
+      "w": 1024,
       "h": 256
     },
     "scale": "1"

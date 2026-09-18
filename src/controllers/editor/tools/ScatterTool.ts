@@ -7,7 +7,11 @@ export class ScatterTool implements IEditorTool {
   public boxStartPoint: GridCoord | null = null
   public isDragging = false
 
-  onPointerDown(coord: GridCoord, ctx: EditorToolContext): void {
+  onPointerDown(coord: GridCoord, ctx: EditorToolContext, e?: MouseEvent | TouchEvent): void {
+    if (e && 'button' in e && e.button === 2) {
+      this.onCancel(ctx)
+      return
+    }
     const { toolStore, notify, t } = ctx
     if (!toolStore.scatterSelectedAssetIds || toolStore.scatterSelectedAssetIds.length === 0) {
       toolStore.openScatterModal()
@@ -93,7 +97,11 @@ export class ScatterTool implements IEditorTool {
     }
   }
 
-  onPointerUp(coord: GridCoord, ctx: EditorToolContext, _e: MouseEvent | TouchEvent): void {
+  onPointerUp(coord: GridCoord, ctx: EditorToolContext, e?: MouseEvent | TouchEvent): void {
+    if (e && 'button' in e && e.button === 2) {
+      this.onCancel(ctx)
+      return
+    }
     const { toolStore } = ctx
 
     if (toolStore.scatterShape === 'box') {
@@ -148,9 +156,15 @@ export class ScatterTool implements IEditorTool {
       mapStore.activeLayerId,
       {
         density: toolStore.scatterDensity / 100,
-        randomRotation: toolStore.scatterRandomRotation,
         randomFlip: toolStore.scatterRandomFlip,
         placementMode: toolStore.scatterPlacementMode,
+        randomScale: toolStore.scatterRandomScale,
+        minScale: toolStore.scatterMinScale,
+        maxScale: toolStore.scatterMaxScale,
+        randomOffset: toolStore.scatterRandomOffset,
+        maxOffsetX: toolStore.scatterMaxOffsetX,
+        maxOffsetY: toolStore.scatterMaxOffsetY,
+        assetWeights: toolStore.scatterAssetWeights,
       }
     )
     if (count > 0) {

@@ -94,7 +94,7 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full'
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | 'full'
 export type IconColor = 'amber' | 'brand' | 'emerald' | 'rose' | 'danger' | 'cyan' | 'slate'
 export type IconVariant = IconColor
 
@@ -179,8 +179,12 @@ const sizeClasses = computed(() => {
       return 'max-w-4xl'
     case '5xl':
       return 'max-w-5xl'
-    case 'full':
+    case '6xl':
       return 'max-w-6xl'
+    case '7xl':
+      return 'max-w-7xl'
+    case 'full':
+      return 'w-[92vw] max-w-[92vw]'
     default:
       return 'max-w-md'
   }

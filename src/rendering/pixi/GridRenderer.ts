@@ -186,13 +186,23 @@ export class GridRenderer {
   }
 
   clear(): void {
-    this.gridGraphics.clear()
-    this.borderGraphics.clear()
-    this.coordsContainer.removeChildren()
+    try {
+      if (this.gridGraphics && !this.gridGraphics.destroyed) this.gridGraphics.clear()
+      if (this.borderGraphics && !this.borderGraphics.destroyed) this.borderGraphics.clear()
+      if (this.coordsContainer && !this.coordsContainer.destroyed) this.coordsContainer.removeChildren()
+    } catch (e) {
+      console.warn('[GridRenderer] clear caught:', e)
+    }
   }
 
   destroy(): void {
-    this.clear()
-    this.container.destroy({ children: true })
+    try {
+      this.clear()
+      if (this.container && !this.container.destroyed) {
+        this.container.destroy({ children: true })
+      }
+    } catch (e) {
+      console.warn('[GridRenderer] destroy caught:', e)
+    }
   }
 }

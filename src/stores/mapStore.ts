@@ -937,19 +937,35 @@ export const useMapStore = defineStore('mapStore', () => {
     assetId: string | null, 
     layerId = activeLayerId.value,
     mode: 'replace' | 'stack' = 'replace'
-  ) {
+  ): number {
     const layer = project.value.layers.find(l => l.id === layerId)
-    if (!layer || layer.locked || cells.length === 0) return
+    if (!layer || layer.locked || cells.length === 0) return 0
 
     const asset = assetId ? assetManager.getAssetItem(assetId) : null
+    let placedCount = 0
 
     for (const { col, row } of cells) {
       if (!isInsideGrid(col, row, project.value.cols, project.value.rows)) continue
       const key = cellKey(col, row)
       if (assetId === null) {
-        delete layer.tiles[key]
+        if (layer.tiles[key]) {
+          delete layer.tiles[key]
+          placedCount++
+        }
       } else {
         const existing = getCellItems(col, row, layerId)
+
+        // Prevent duplicate stacking of the exact same asset on the same cell
+        const alreadyHasSame = existing.some(item => item.assetId === assetId)
+        if (alreadyHasSame) {
+          if (mode === 'replace' && existing.length === 1 && existing[0].assetId === assetId) {
+            continue
+          }
+          if (mode === 'stack') {
+            continue
+          }
+        }
+
         const initialZ = mode === 'stack' ? (existing.length > 0 ? Math.max(...existing.map(i => i.zIndex)) + 1 : 0) : 0
 
         const spanX = asset?.spanX || 1
@@ -989,10 +1005,14 @@ export const useMapStore = defineStore('mapStore', () => {
         } else {
           layer.tiles[key] = [...existing, newItem]
         }
+        placedCount++
       }
     }
 
-    pushHistory(mode === 'stack' ? `Stacked ${cells.length} tiles` : `Placed ${cells.length} tiles`)
+    if (placedCount > 0) {
+      pushHistory(mode === 'stack' ? `Stacked ${placedCount} tiles` : `Placed ${placedCount} tiles`)
+    }
+    return placedCount
   }
 
   function fillEmptyCells(
@@ -1151,9 +1171,15 @@ export const useMapStore = defineStore('mapStore', () => {
     layerId = activeLayerId.value,
     options: {
       density?: number
-      randomRotation?: boolean
       randomFlip?: boolean
       placementMode?: 'replace' | 'stack' | 'empty-only'
+      randomScale?: boolean
+      minScale?: number
+      maxScale?: number
+      randomOffset?: boolean
+      maxOffsetX?: number
+      maxOffsetY?: number
+      assetWeights?: Record<string, number>
     } = {},
     pushHist = true
   ): number {
@@ -1161,11 +1187,27 @@ export const useMapStore = defineStore('mapStore', () => {
     if (!layer || layer.locked || !assetIds || assetIds.length === 0 || !cells || cells.length === 0) return 0
 
     const density = options.density ?? 1.0
-    const randomRot = !!options.randomRotation
     const randomFlip = !!options.randomFlip
-    const placementMode = options.placementMode ?? 'replace'
+    const placementMode = options.placementMode ?? 'stack'
+    const weights = options.assetWeights
 
-    const rotChoices = [0, 90, 180, 270]
+    function pickWeighted(candidates: string[]): string {
+      if (!weights || candidates.length === 1) {
+        return candidates[Math.floor(Math.random() * candidates.length)]
+      }
+      let totalWeight = 0
+      for (const id of candidates) {
+        totalWeight += Math.max(1, weights[id] ?? 100)
+      }
+      let rand = Math.random() * totalWeight
+      for (const id of candidates) {
+        const w = Math.max(1, weights[id] ?? 100)
+        if (rand < w) return id
+        rand -= w
+      }
+      return candidates[candidates.length - 1]
+    }
+
     let placedCount = 0
 
     for (const { col: c, row: r } of cells) {
@@ -1177,23 +1219,47 @@ export const useMapStore = defineStore('mapStore', () => {
 
       const key = cellKey(c, r)
       const existing = layer.tiles[key]
-      const isOccupied = existing && (Array.isArray(existing) ? existing.length > 0 : true)
+      const existingList: TileItem[] = Array.isArray(existing) ? existing : (existing ? [existing as any] : [])
+      const isOccupied = existingList.length > 0
 
       if (placementMode === 'empty-only' && isOccupied) {
         continue
       }
 
-      const randomAssetId = assetIds[Math.floor(Math.random() * assetIds.length)]
-      const asset = assetManager.getAssetItem(randomAssetId)
+      // Prevent duplicate copies of the same asset on the same cell
+      const existingAssetIds = new Set(existingList.map(item => item.assetId))
+      const availableAssetIds = assetIds.filter(id => !existingAssetIds.has(id))
+
+      if (availableAssetIds.length === 0) {
+        // All selected assets already placed on this cell, skip to avoid duplicate
+        continue
+      }
+
+      const chosenAssetId = pickWeighted(availableAssetIds)
+      const asset = assetManager.getAssetItem(chosenAssetId)
       if (!asset) continue
 
       const spanX = asset.spanX || 1
       const spanY = asset.spanY || 1
-      const scale = asset.scale || 1.0
+      
+      let scale = asset.scale || 1.0
+      if (options.randomScale) {
+        const minS = Math.max(0.1, Math.min(options.minScale ?? 0.85, options.maxScale ?? 1.15))
+        const maxS = Math.max(minS, Math.max(options.minScale ?? 0.85, options.maxScale ?? 1.15))
+        scale = Number((minS + Math.random() * (maxS - minS)).toFixed(2))
+      }
+
+      let offsetX = 0
+      let offsetY = 0
+      if (options.randomOffset) {
+        const maxOX = Math.max(0, Math.min(32, options.maxOffsetX ?? 4))
+        const maxOY = Math.max(0, Math.min(32, options.maxOffsetY ?? 4))
+        offsetX = maxOX > 0 ? Math.round((Math.random() * 2 - 1) * maxOX) : 0
+        offsetY = maxOY > 0 ? Math.round((Math.random() * 2 - 1) * maxOY) : 0
+      }
+
       const anchorX = asset.anchorX ?? 0.5
       const anchorY = asset.anchorY ?? 0.88
-
-      const rotation = randomRot ? rotChoices[Math.floor(Math.random() * rotChoices.length)] : 0
       const flipX = randomFlip ? Math.random() < 0.5 : false
 
       const cellZIndex: Record<string, number> = {}
@@ -1207,7 +1273,7 @@ export const useMapStore = defineStore('mapStore', () => {
         id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 7)}-${c}-${r}`,
         x: c,
         y: r,
-        assetId: randomAssetId,
+        assetId: chosenAssetId,
         zIndex: 0,
         depthOffset: 0,
         cellZIndex,
@@ -1217,19 +1283,16 @@ export const useMapStore = defineStore('mapStore', () => {
         anchorX,
         anchorY,
         flipX,
-        rotation,
-        offsetX: 0,
-        offsetY: 0,
+        rotation: 0,
+        offsetX,
+        offsetY,
       }
 
-      if (placementMode === 'replace' || !existing) {
+      if (placementMode === 'replace' || !isOccupied) {
         layer.tiles[key] = [newItem]
       } else {
-        if (Array.isArray(existing)) {
-          existing.push(newItem)
-        } else {
-          layer.tiles[key] = [existing as any, newItem]
-        }
+        existingList.push(newItem)
+        layer.tiles[key] = existingList
       }
 
       placedCount++

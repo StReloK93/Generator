@@ -41,113 +41,99 @@ export class MapRenderer {
       return
     }
 
-    // Parallel preload in batches of 16
-    const batchSize = 16
-    for (let i = 0; i < total; i += batchSize) {
-      const chunk = uniqueAssets.slice(i, i + batchSize)
-      await Promise.all(
-        chunk.map(async (asset) => {
-          await this.preloadAsset(asset)
-          loaded++
-          if (onProgress) onProgress(loaded, total)
-        })
-      )
+    for (const asset of uniqueAssets) {
+      if (this.textureCache.has(asset.id)) {
+        loaded++
+        if (onProgress) onProgress(loaded, total)
+        continue
+      }
+
+      await this.preloadAsset(asset)
+      loaded++
+      if (onProgress) onProgress(loaded, total)
     }
   }
 
   public async preloadAsset(asset: AssetItem): Promise<Texture | null> {
-    if (!asset) return null
+    if (!asset || !asset.src) return null
 
-    // 1. Fast check in AssetManager
-    const managed =
-      assetManager.getTexture(asset.id) ||
-      assetManager.getTexture(asset.fileRelativePath || '') ||
-      assetManager.getTexture(asset.name)
-    if (managed) {
-      this.textureCache.set(asset.id, managed)
-      return managed
-    }
-
-    if (!asset.src) return null
     if (this.textureCache.has(asset.id)) {
       return this.textureCache.get(asset.id)!
+    }
+
+    const clean = asset.id.replace(/^sprite-/, '')
+    if (this.textureCache.has(clean)) {
+      return this.textureCache.get(clean)!
+    }
+
+    const atlasTex = assetManager.getTexture(asset.id) || assetManager.getTexture(clean)
+    if (atlasTex) {
+      this.textureCache.set(asset.id, atlasTex)
+      this.textureCache.set(clean, atlasTex)
+      return atlasTex
     }
 
     if (this.loadingPromises.has(asset.id)) {
       return this.loadingPromises.get(asset.id)!
     }
 
-    const promise = new Promise<Texture | null>((resolve) => {
-      const img = new window.Image()
+    const loadPromise = new Promise<Texture | null>((resolve) => {
+      const img = new Image()
       img.crossOrigin = 'anonymous'
+
       img.onload = () => {
         try {
           const source = new ImageSource({ resource: img })
           const texture = new Texture({ source })
           this.textureCache.set(asset.id, texture)
-          this.textureCache.set(asset.src, texture)
-          const cleanId = asset.id.replace(/^sprite-/, '')
-          this.textureCache.set(cleanId, texture)
-          this.textureCache.set(`sprite-${cleanId}`, texture)
-          assetManager.registerCustomTexture(asset.id, texture)
+          this.textureCache.set(clean, texture)
 
-          if (asset.fileRelativePath) {
-            this.textureCache.set(asset.fileRelativePath, texture)
-            const baseNoExt = asset.fileRelativePath.replace(/\.[^/.]+$/, '')
-            this.textureCache.set(baseNoExt, texture)
-            this.textureCache.set(`sprite-${baseNoExt}`, texture)
-            assetManager.registerCustomTexture(baseNoExt, texture)
-          }
           if (this.onTextureLoaded) {
             this.onTextureLoaded(asset.id, texture)
           }
+
           resolve(texture)
-        } catch (e) {
-          console.error('Texture creation error:', asset.name, e)
+        } catch (err) {
+          console.error(`[MapRenderer] Error creating texture for asset ${asset.id}:`, err)
           resolve(null)
         }
       }
-      img.onerror = (e) => {
-        console.error('Image load error for asset:', asset.name, e)
+
+      img.onerror = (err) => {
+        console.warn(`[MapRenderer] Failed to load asset image: ${asset.id} (${asset.name})`, err)
         resolve(null)
       }
+
       img.src = asset.src
     })
 
-    this.loadingPromises.set(asset.id, promise)
-    return await promise
+    this.loadingPromises.set(asset.id, loadPromise)
+    return loadPromise
   }
 
   public getTexture(asset: AssetItem): Texture | null {
     if (!asset) return null
 
-    // 1. Prioritize Central AssetManager (instant O(1) spritesheet sub-texture)
-    const managed =
-      assetManager.getTexture(asset.id) ||
-      assetManager.getTexture(asset.fileRelativePath || '') ||
-      assetManager.getTexture(asset.name)
-    if (managed) {
-      return managed
-    }
-
-    // 2. Check local fallback cache
     if (this.textureCache.has(asset.id)) {
       return this.textureCache.get(asset.id)!
     }
-    const cleanId = asset.id.replace(/^sprite-/, '')
-    if (this.textureCache.has(cleanId)) {
-      return this.textureCache.get(cleanId)!
+
+    const clean = asset.id.replace(/^sprite-/, '')
+    if (this.textureCache.has(clean)) {
+      return this.textureCache.get(clean)!
     }
-    if (this.textureCache.has(`sprite-${cleanId}`)) {
-      return this.textureCache.get(`sprite-${cleanId}`)!
-    }
-    if (asset.src && this.textureCache.has(asset.src)) {
-      return this.textureCache.get(asset.src)!
+
+    const atlasTex = assetManager.getTexture(asset.id) || assetManager.getTexture(clean)
+    if (atlasTex) {
+      this.textureCache.set(asset.id, atlasTex)
+      this.textureCache.set(clean, atlasTex)
+      return atlasTex
     }
 
     if (asset.src) {
       this.preloadAsset(asset)
     }
+
     return null
   }
 
@@ -192,6 +178,7 @@ export class MapRenderer {
         }
       }
 
+      // Remove orphaned sprites
       for (const [itemId, sprite] of spriteMap.entries()) {
         if (!currentItemIds.has(itemId)) {
           this.layersContainer.removeChild(sprite)
@@ -199,6 +186,12 @@ export class MapRenderer {
           spriteMap.delete(itemId)
         }
       }
+
+      const isGround =
+        layer.id === 'layer-ground' ||
+        layerIdx === 0 ||
+        layer.name.toLowerCase().includes('ground') ||
+        layer.name.toLowerCase().includes('yer')
 
       for (const [cellKeyStr, items] of Object.entries(layer.tiles)) {
         const [col, row] = cellKeyStr.split(',').map(Number)
@@ -252,11 +245,6 @@ export class MapRenderer {
           // Precise Depth Sorting across ALL covered cells using layer priority, relative depth offset and per-cell Z-index
           let maxDepthScore = 0
           const depthOffset = item.depthOffset || 0
-          const isGround =
-            layer.id === 'layer-ground' ||
-            layerIdx === 0 ||
-            layer.name.toLowerCase().includes('ground') ||
-            layer.name.toLowerCase().includes('yer')
 
           for (let cx = posX; cx < posX + spanX; cx++) {
             for (let cy = posY; cy < posY + spanY; cy++) {
@@ -286,20 +274,35 @@ export class MapRenderer {
   }
 
   public clear(): void {
-    for (const spriteMap of this.layerSpriteMaps.values()) {
-      for (const sprite of spriteMap.values()) {
-        sprite.destroy()
+    try {
+      for (const spriteMap of this.layerSpriteMaps.values()) {
+        for (const sprite of spriteMap.values()) {
+          if (sprite && !sprite.destroyed) {
+            sprite.destroy()
+          }
+        }
+        spriteMap.clear()
       }
-      spriteMap.clear()
+      this.layerSpriteMaps.clear()
+
+      if (this.layersContainer && !this.layersContainer.destroyed) {
+        this.layersContainer.removeChildren()
+      }
+    } catch (e) {
+      console.warn('[MapRenderer] clear caught:', e)
     }
-    this.layerSpriteMaps.clear()
-    this.layersContainer.removeChildren()
   }
 
   public destroy(): void {
-    this.clear()
-    this.textureCache.clear()
-    this.loadingPromises.clear()
-    this.layersContainer.destroy({ children: true })
+    try {
+      this.clear()
+      this.textureCache.clear()
+      this.loadingPromises.clear()
+      if (this.layersContainer && !this.layersContainer.destroyed) {
+        this.layersContainer.destroy({ children: true })
+      }
+    } catch (e) {
+      console.warn('[MapRenderer] destroy caught:', e)
+    }
   }
 }

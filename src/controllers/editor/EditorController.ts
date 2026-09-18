@@ -183,6 +183,10 @@ export class EditorController {
   public handleContextMenu(): void {
     const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
 
+    if (toolStore.activeTool === 'scatter') {
+      this.scatterTool.onCancel(this.ctx)
+      return
+    }
     if (toolStore.activeTool === 'box-fill' || toolStore.activeTool === 'box-clear') {
       this.boxTool.onCancel(this.ctx)
       toolStore.setTool('brush')

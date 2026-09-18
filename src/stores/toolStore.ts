@@ -16,7 +16,7 @@ export const useToolStore = defineStore('toolStore', () => {
   const isMovingElement = ref<boolean>(false)
 
   // Placement Conflict prompt (when placing on existing occupied cell)
-  const placementConflict = ref<{ col: number; row: number; assetId: string } | null>(null)
+  const placementConflict = ref<{ col: number; row: number; assetId: string; cells?: GridCoord[] } | null>(null)
   const placementMode = ref<PlacementMode>('ask') // 'ask' | 'stack' | 'replace'
 
   // Viewport camera
@@ -53,11 +53,17 @@ export const useToolStore = defineStore('toolStore', () => {
   // Scatter / Random Multi-Asset Tool State
   const isScatterModalOpen = ref<boolean>(false)
   const scatterSelectedAssetIds = ref<string[]>([])
+  const scatterAssetWeights = ref<Record<string, number>>({})
   const scatterShape = ref<'box' | 'line' | 'brush'>('box')
   const scatterDensity = ref<number>(100) // 10% to 100%
-  const scatterRandomRotation = ref<boolean>(false)
+  const scatterRandomScale = ref<boolean>(false)
+  const scatterMinScale = ref<number>(0.85)
+  const scatterMaxScale = ref<number>(1.15)
+  const scatterRandomOffset = ref<boolean>(false)
+  const scatterMaxOffsetX = ref<number>(4)
+  const scatterMaxOffsetY = ref<number>(4)
   const scatterRandomFlip = ref<boolean>(false)
-  const scatterPlacementMode = ref<'replace' | 'stack' | 'empty-only'>('replace')
+  const scatterPlacementMode = ref<'replace' | 'stack' | 'empty-only'>('stack')
 
   function openScatterModal() {
     isScatterModalOpen.value = true
@@ -71,17 +77,31 @@ export const useToolStore = defineStore('toolStore', () => {
     const idx = scatterSelectedAssetIds.value.indexOf(assetId)
     if (idx !== -1) {
       scatterSelectedAssetIds.value.splice(idx, 1)
+      delete scatterAssetWeights.value[assetId]
     } else {
       scatterSelectedAssetIds.value.push(assetId)
+      if (!scatterAssetWeights.value[assetId]) {
+        scatterAssetWeights.value[assetId] = 100
+      }
     }
+  }
+
+  function setScatterAssetWeight(assetId: string, weight: number) {
+    scatterAssetWeights.value[assetId] = Math.max(1, Math.min(1000, Math.round(weight)))
   }
 
   function setScatterAssets(assetIds: string[]) {
     scatterSelectedAssetIds.value = [...assetIds]
+    for (const id of assetIds) {
+      if (!scatterAssetWeights.value[id]) {
+        scatterAssetWeights.value[id] = 100
+      }
+    }
   }
 
   function clearScatterAssets() {
     scatterSelectedAssetIds.value = []
+    scatterAssetWeights.value = {}
   }
 
   // Editor Display Settings
@@ -197,14 +217,21 @@ export const useToolStore = defineStore('toolStore', () => {
     closeBoxClearModal,
     isScatterModalOpen,
     scatterSelectedAssetIds,
+    scatterAssetWeights,
     scatterShape,
     scatterDensity,
-    scatterRandomRotation,
+    scatterRandomScale,
+    scatterMinScale,
+    scatterMaxScale,
+    scatterRandomOffset,
+    scatterMaxOffsetX,
+    scatterMaxOffsetY,
     scatterRandomFlip,
     scatterPlacementMode,
     openScatterModal,
     closeScatterModal,
     toggleScatterAsset,
+    setScatterAssetWeight,
     setScatterAssets,
     clearScatterAssets,
     gameConfigActiveTab,

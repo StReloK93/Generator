@@ -16,7 +16,6 @@ export class IsoEngine {
 
   // Legacy character element references
   public characterContainer: Container
-  public characterShadow: Graphics
   public characterSprite: Sprite
   public characterMarker: Graphics
 
@@ -25,7 +24,6 @@ export class IsoEngine {
     this.renderer = new PixiRenderer()
 
     this.characterContainer = new Container()
-    this.characterShadow = new Graphics()
     this.characterSprite = new Sprite()
     this.characterMarker = new Graphics()
   }
@@ -258,9 +256,12 @@ export class IsoEngine {
   screenPointToGrid(
     clientX: number,
     clientY: number,
-    canvasRect: DOMRect,
-    project: MapProject
+    canvasRect: DOMRect | null | undefined,
+    project: MapProject | null | undefined
   ): { worldX: number; worldY: number; gridCoord: GridCoord } {
+    if (!this.renderer || !this.renderer.isInitialized) {
+      return { worldX: 0, worldY: 0, gridCoord: { col: 0, row: 0 } }
+    }
     return this.renderer.screenPointToGrid(clientX, clientY, canvasRect, project)
   }
 

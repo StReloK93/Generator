@@ -422,6 +422,44 @@ export const BASE_PROJECTILE_CATALOG: ProjectileDef[] = [
     shockwaveRadius: 22,
     hasDoubleRing: true,
     isCustom: true
+  },
+  // ==========================================
+  // 8. STRONG ICE (Clean Glowing Energy Orb)
+  // ==========================================
+  {
+    id: 'custom_1789735101659_yf3q',
+    name: 'Strong Ice',
+    nameUz: 'Kuchli Muz',
+    category: 'frost',
+    categoryName: 'Frost',
+    icon: Snowflake,
+    iconName: 'Snowflake',
+    colorHex: 1096065,
+    colorCss: '#1079b9',
+    trailColorHex: 3900150,
+    trailColorCss: '#3b82f6',
+    sparkColorHex: 440020,
+    sparkColorCss: '#06b6d4',
+    shockwaveColorHex: 440020,
+    shockwaveColorCss: '#06b6d4',
+    hasArc: true,
+    isLaser: false,
+    trailAlpha: 0.5,
+    trailLength: 20,
+    trailWidth: 4,
+    trailStyle: 'particles',
+    description: 'Yorqin zumrad-moviy plazmali kuchli muz energiyasi shari (scale: 0.90)',
+    formation: 'single',
+    shape: 'energy_orb',
+    size: 12,
+    length: 24,
+    points: 4,
+    satelliteCount: 0,
+    sparkType: 'ice_shard',
+    sparkCount: 8,
+    shockwaveRadius: 40,
+    hasDoubleRing: true,
+    isCustom: true
   }
 ]
 
@@ -431,6 +469,8 @@ const ID_ALIASES: Record<string, string> = {
   'custom_1789575627700_s9vz': 'strong_flame',
   'custom_1789575798300_nncw': 'flame_laser',
   'custom_1789576200524_ur0p': 'flame_rocket',
+  'strong_ice': 'custom_1789735101659_yf3q',
+  'strong_frost': 'custom_1789735101659_yf3q',
   'simple_flame': 'fireball',
   'fire_laser': 'flame_laser',
   'laser': 'flame_laser',

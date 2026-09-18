@@ -7,7 +7,7 @@
       <!-- Seamless Canvas Readiness Preloader (Covers everything until PixiJS canvas is 100% rendered) -->
       <Transition name="preloader-fade">
         <div 
-          v-if="!isCanvasReady" 
+          v-if="!isCanvasReady && !isLeavingRoute" 
           class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
         >
           <!-- Ambient Background Glows -->
@@ -128,6 +128,7 @@ const { t } = useI18n()
 
 const canvasRef = ref<any>(null)
 const isCanvasReady = ref(false)
+const isLeavingRoute = ref(false)
 const isChatOpen = ref(false)
 const unreadCount = ref(0)
 
@@ -234,6 +235,7 @@ function cleanupGameSession() {
 }
 
 onBeforeRouteLeave((_to, _from, next) => {
+  isLeavingRoute.value = true
   cleanupGameSession()
   next()
 })

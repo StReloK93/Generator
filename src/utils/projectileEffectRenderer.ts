@@ -527,7 +527,7 @@ export function renderPixiProjectileHead(
   }
   // 15. ENERGY ORB (Clean, no satellite circles)
   else if (shape === 'energy_orb') {
-    const r = (def.size ?? 10) * 0.6 * scale
+    const r = 8.0 * scale
     g.circle(renderX, renderY, r * 1.35).fill({ color: def.trailColorHex, alpha: 0.35 })
     g.circle(renderX, renderY, r).fill({ color: def.colorHex, alpha: 0.95 }).stroke({ width: 1.5 * scale, color: 0xffffff, alpha: 0.9 })
     g.circle(renderX, renderY, r * 0.45).fill({ color: def.sparkColorHex || 0xffffff, alpha: 1.0 })
@@ -1352,7 +1352,7 @@ export function renderCanvasProjectileHead(
   }
   // 15. ENERGY ORB (Clean, no satellite circles)
   else if (shape === 'energy_orb') {
-    const r = (def.size ?? 10) * 0.6
+    const r = 8.0
     ctx.beginPath()
     ctx.arc(0, 0, r * 1.35, 0, Math.PI * 2)
     ctx.fillStyle = def.trailColorCss

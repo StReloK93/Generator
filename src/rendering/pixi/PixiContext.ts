@@ -104,11 +104,20 @@ export class PixiContext {
     this.stopTicker()
     if (this.isInitialized) {
       try {
-        this.app.destroy(true, { children: true, texture: false })
+        if (this.stageContainer && !this.stageContainer.destroyed) {
+          this.stageContainer.removeChildren()
+        }
+        if (this.worldContainer && !this.worldContainer.destroyed) {
+          this.worldContainer.removeChildren()
+        }
+        if (this.app?.renderer) {
+          this.app.destroy(true, { children: false, texture: false })
+        }
       } catch (e) {
         console.warn('PixiContext destroy error:', e)
+      } finally {
+        this.isInitialized = false
       }
-      this.isInitialized = false
     }
   }
 }

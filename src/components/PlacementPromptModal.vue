@@ -148,13 +148,17 @@ function chooseStack() {
   const targetCol = conflict.value.col
   const targetRow = conflict.value.row
   const targetAssetId = conflict.value.assetId
+  const cells = conflict.value.cells
 
   if (rememberChoice.value) {
     toolStore.placementMode = 'stack'
   }
-  mapStore.setTile(targetCol, targetRow, targetAssetId, 'stack')
+  if (cells && cells.length > 0) {
+    mapStore.fillTiles(cells, targetAssetId, mapStore.activeLayerId, 'stack')
+  } else {
+    mapStore.setTile(targetCol, targetRow, targetAssetId, 'stack')
+  }
   toolStore.placementConflict = null
-  assetStore.selectAsset(null)
 }
 
 function chooseReplace() {
@@ -162,17 +166,20 @@ function chooseReplace() {
   const targetCol = conflict.value.col
   const targetRow = conflict.value.row
   const targetAssetId = conflict.value.assetId
+  const cells = conflict.value.cells
 
   if (rememberChoice.value) {
     toolStore.placementMode = 'replace'
   }
-  mapStore.setTile(targetCol, targetRow, targetAssetId, 'replace')
+  if (cells && cells.length > 0) {
+    mapStore.fillTiles(cells, targetAssetId, mapStore.activeLayerId, 'replace')
+  } else {
+    mapStore.setTile(targetCol, targetRow, targetAssetId, 'replace')
+  }
   toolStore.placementConflict = null
-  assetStore.selectAsset(null)
 }
 
 function cancel() {
   toolStore.placementConflict = null
-  assetStore.selectAsset(null)
 }
 </script>

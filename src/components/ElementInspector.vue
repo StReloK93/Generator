@@ -218,33 +218,33 @@
               variant="secondary"
               size="xs"
               :leading-icon="ArrowLeft"
-              @click="handleBatchNudge(-2, 0)"
+              @click="handleBatchNudge(-1, 0)"
             >
-              2px
+              1px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ArrowUp"
-              @click="handleBatchNudge(0, -2)"
+              @click="handleBatchNudge(0, -1)"
             >
-              2px
+              1px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ArrowDown"
-              @click="handleBatchNudge(0, 2)"
+              @click="handleBatchNudge(0, 1)"
             >
-              2px
+              1px
             </UiButton>
             <UiButton 
               variant="secondary"
               size="xs"
               :leading-icon="ArrowRight"
-              @click="handleBatchNudge(2, 0)"
+              @click="handleBatchNudge(1, 0)"
             >
-              2px
+              1px
             </UiButton>
             <UiButton 
               variant="secondary"
@@ -686,36 +686,36 @@
                 size="xs"
                 :leading-icon="ArrowLeft"
                 :title="$t('inspector.nudgeLeftDesc')"
-                @click="nudge(-2, 0)"
+                @click="nudge(-1, 0)"
               >
-                2px
+                1px
               </UiButton>
               <UiButton 
                 variant="secondary"
                 size="xs"
                 :leading-icon="ArrowUp"
                 :title="$t('inspector.nudgeUpDesc')"
-                @click="nudge(0, -2)"
+                @click="nudge(0, -1)"
               >
-                2px
+                1px
               </UiButton>
               <UiButton 
                 variant="secondary"
                 size="xs"
                 :leading-icon="ArrowDown"
                 :title="$t('inspector.nudgeDownDesc')"
-                @click="nudge(0, 2)"
+                @click="nudge(0, 1)"
               >
-                2px
+                1px
               </UiButton>
               <UiButton 
                 variant="secondary"
                 size="xs"
                 :leading-icon="ArrowRight"
                 :title="$t('inspector.nudgeRightDesc')"
-                @click="nudge(2, 0)"
+                @click="nudge(1, 0)"
               >
-                2px
+                1px
               </UiButton>
               <UiButton 
                 variant="secondary"

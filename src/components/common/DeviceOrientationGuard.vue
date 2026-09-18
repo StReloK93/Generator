@@ -109,6 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   Smartphone,
   RotateCcw,
@@ -125,10 +126,17 @@ import {
   promptPwaInstall,
 } from '@/utils/pwaOrientation'
 
+const route = useRoute()
 const isDismissed = ref(false)
 
+const isGameRoute = computed(() => {
+  const name = String(route?.name || '')
+  const path = String(route?.path || '')
+  return name === 'game' || name === 'editor-game' || path.startsWith('/game') || path.startsWith('/editor-game')
+})
+
 const shouldShowGuard = computed(() => {
-  return isPortrait.value && isMobileDevice.value && !isDismissed.value
+  return isGameRoute.value && isPortrait.value && isMobileDevice.value && !isDismissed.value
 })
 
 async function handleForceLandscape() {

@@ -3740,90 +3740,10 @@
         "h": 512
       }
     },
-    "roofSingleWall_E": {
+    "stoneWallRoundBroken_W": {
       "frame": {
         "x": 1536,
         "y": 3397,
-        "w": 256,
-        "h": 199
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 313,
-        "w": 256,
-        "h": 199
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "roofSingleWall_N": {
-      "frame": {
-        "x": 2,
-        "y": 3614,
-        "w": 256,
-        "h": 199
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 313,
-        "w": 256,
-        "h": 199
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "roofSingleWall_S": {
-      "frame": {
-        "x": 260,
-        "y": 3614,
-        "w": 256,
-        "h": 199
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 313,
-        "w": 256,
-        "h": 199
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "roofSingleWall_W": {
-      "frame": {
-        "x": 518,
-        "y": 3614,
-        "w": 256,
-        "h": 199
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 313,
-        "w": 256,
-        "h": 199
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 512
-      }
-    },
-    "stoneWallRoundBroken_W": {
-      "frame": {
-        "x": 776,
-        "y": 3614,
         "w": 256,
         "h": 199
       },
@@ -3842,7 +3762,7 @@
     },
     "stoneWallRound_E": {
       "frame": {
-        "x": 1034,
+        "x": 2,
         "y": 3614,
         "w": 256,
         "h": 199
@@ -3862,7 +3782,7 @@
     },
     "stoneWallRound_W": {
       "frame": {
-        "x": 1292,
+        "x": 260,
         "y": 3614,
         "w": 256,
         "h": 199
@@ -3882,7 +3802,7 @@
     },
     "stoneWallAgedLeft_W": {
       "frame": {
-        "x": 1550,
+        "x": 518,
         "y": 3614,
         "w": 161,
         "h": 195
@@ -3902,7 +3822,7 @@
     },
     "stoneColumnWood_E": {
       "frame": {
-        "x": 1713,
+        "x": 681,
         "y": 3614,
         "w": 64,
         "h": 188
@@ -3922,7 +3842,7 @@
     },
     "stoneColumn_E": {
       "frame": {
-        "x": 1779,
+        "x": 747,
         "y": 3614,
         "w": 64,
         "h": 188
@@ -3942,7 +3862,7 @@
     },
     "tower_ice2": {
       "frame": {
-        "x": 1845,
+        "x": 813,
         "y": 3614,
         "w": 140,
         "h": 188
@@ -3962,8 +3882,8 @@
     },
     "stoneWallBrokenLeft_S": {
       "frame": {
-        "x": 2,
-        "y": 3815,
+        "x": 955,
+        "y": 3614,
         "w": 161,
         "h": 187
       },
@@ -3982,8 +3902,8 @@
     },
     "stoneWallBrokenRight_E": {
       "frame": {
-        "x": 165,
-        "y": 3815,
+        "x": 1118,
+        "y": 3614,
         "w": 161,
         "h": 187
       },
@@ -4002,8 +3922,8 @@
     },
     "stoneWallColumn_E": {
       "frame": {
-        "x": 328,
-        "y": 3815,
+        "x": 1281,
+        "y": 3614,
         "w": 64,
         "h": 187
       },
@@ -4022,8 +3942,8 @@
     },
     "stoneWallColumn_N": {
       "frame": {
-        "x": 394,
-        "y": 3815,
+        "x": 1347,
+        "y": 3614,
         "w": 66,
         "h": 187
       },
@@ -4042,8 +3962,8 @@
     },
     "stoneWallColumn_S": {
       "frame": {
-        "x": 462,
-        "y": 3815,
+        "x": 1415,
+        "y": 3614,
         "w": 66,
         "h": 187
       },
@@ -4062,8 +3982,8 @@
     },
     "stoneWallColumn_W": {
       "frame": {
-        "x": 530,
-        "y": 3815,
+        "x": 1483,
+        "y": 3614,
         "w": 64,
         "h": 187
       },
@@ -4082,8 +4002,8 @@
     },
     "stoneWallBrokenRight_N": {
       "frame": {
-        "x": 596,
-        "y": 3815,
+        "x": 1549,
+        "y": 3614,
         "w": 161,
         "h": 186
       },
@@ -4102,8 +4022,8 @@
     },
     "custom_tower_piece": {
       "frame": {
-        "x": 759,
-        "y": 3815,
+        "x": 1712,
+        "y": 3614,
         "w": 179,
         "h": 185
       },
@@ -4122,7 +4042,7 @@
     },
     "stoneWallBrokenLeft_W": {
       "frame": {
-        "x": 940,
+        "x": 2,
         "y": 3815,
         "w": 161,
         "h": 183
@@ -4142,7 +4062,7 @@
     },
     "tower_ice1": {
       "frame": {
-        "x": 1103,
+        "x": 165,
         "y": 3815,
         "w": 134,
         "h": 177
@@ -4162,7 +4082,7 @@
     },
     "woodWallCorner_E": {
       "frame": {
-        "x": 1239,
+        "x": 301,
         "y": 3815,
         "w": 24,
         "h": 176
@@ -4182,7 +4102,7 @@
     },
     "woodWallCorner_N": {
       "frame": {
-        "x": 1265,
+        "x": 327,
         "y": 3815,
         "w": 24,
         "h": 176
@@ -4202,7 +4122,7 @@
     },
     "woodWallCorner_S": {
       "frame": {
-        "x": 1291,
+        "x": 353,
         "y": 3815,
         "w": 24,
         "h": 176
@@ -4222,7 +4142,7 @@
     },
     "woodWallCorner_W": {
       "frame": {
-        "x": 1317,
+        "x": 379,
         "y": 3815,
         "w": 24,
         "h": 176
@@ -4242,7 +4162,7 @@
     },
     "stoneWallHalf_E": {
       "frame": {
-        "x": 1343,
+        "x": 405,
         "y": 3815,
         "w": 161,
         "h": 158
@@ -4262,7 +4182,7 @@
     },
     "stoneWallHalf_N": {
       "frame": {
-        "x": 1506,
+        "x": 568,
         "y": 3815,
         "w": 161,
         "h": 158
@@ -4282,7 +4202,7 @@
     },
     "stoneWallHalf_S": {
       "frame": {
-        "x": 1669,
+        "x": 731,
         "y": 3815,
         "w": 161,
         "h": 158
@@ -4302,7 +4222,7 @@
     },
     "stoneWallHalf_W": {
       "frame": {
-        "x": 1832,
+        "x": 894,
         "y": 3815,
         "w": 161,
         "h": 158
@@ -4314,6 +4234,126 @@
         "y": 354,
         "w": 161,
         "h": 158
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_W": {
+      "frame": {
+        "x": 1057,
+        "y": 3815,
+        "w": 161,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 358,
+        "w": 161,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofLeft_S": {
+      "frame": {
+        "x": 1220,
+        "y": 3815,
+        "w": 136,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 120,
+        "y": 303,
+        "w": 136,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofRight_E": {
+      "frame": {
+        "x": 1358,
+        "y": 3815,
+        "w": 136,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 303,
+        "w": 136,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_S": {
+      "frame": {
+        "x": 1496,
+        "y": 3815,
+        "w": 161,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 312,
+        "w": 161,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofLeft_W": {
+      "frame": {
+        "x": 1659,
+        "y": 3815,
+        "w": 141,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 115,
+        "y": 361,
+        "w": 141,
+        "h": 151
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "woodWallRoofRight_N": {
+      "frame": {
+        "x": 1802,
+        "y": 3815,
+        "w": 141,
+        "h": 151
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 361,
+        "w": 141,
+        "h": 151
       },
       "sourceSize": {
         "w": 256,

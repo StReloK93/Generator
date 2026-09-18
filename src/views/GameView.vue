@@ -1,6 +1,7 @@
 <template>
-  <!-- Pure Official Game Mode -->
-  <GameStage :is-editor-mode="false" />
+  <div class="relative w-full h-full">
+    <GameStage :is-editor-mode="false" />
+  </div>
 </template>
 
 <script setup lang="ts">

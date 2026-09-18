@@ -6,8 +6,9 @@ import { getCellPolygon } from '../../utils/isometric'
  * WaterRenderer - High performance, mobile-optimized Isometric Water Engine.
  *
  * Utilizes a single common UV-scrolling TilingSprite masked to the isometric water cells.
+ * Features realistic, atmospheric medieval/rustic water tones (dark slate teal, mossy depth,
+ * soft natural caustics, and organic damp shoreline foam borders).
  * Runs in 1-2 Draw Calls total on GPU with 0% CPU footprint during game simulation.
- * Automatically computes shoreline foam along boundaries where water meets land.
  */
 export class WaterRenderer {
   public container: Container
@@ -19,8 +20,8 @@ export class WaterRenderer {
 
   private lastWaterSignature = ''
   private elapsedTime = 0
-  private scrollSpeedX = 22 // Pixels per second along isometric axis
-  private scrollSpeedY = 11
+  private scrollSpeedX = 0 // Clean, uniform, calm static surface
+  private scrollSpeedY = 0
 
   constructor() {
     this.container = new Container()
@@ -39,8 +40,8 @@ export class WaterRenderer {
   }
 
   /**
-   * Generates a 256x256 seamless looping water caustic texture on an offscreen HTML5 canvas.
-   * Uses sinusoidal periodic formulas so tiling is 100% seamless in all directions.
+   * Generates a 256x256 100% mathematically seamless water texture with very low contrast,
+   * subtle ambient depth and a calm, muted, non-distracting aquatic background palette.
    */
   private getOrCreateWaterTexture(): Texture {
     if (this.waterTexture) return this.waterTexture
@@ -61,67 +62,48 @@ export class WaterRenderer {
       return this.waterTexture
     }
 
-    // 1. Deep ocean base gradient
-    const grad = ctx.createLinearGradient(0, 0, size, size)
-    grad.addColorStop(0, '#0284c7') // Sky 600
-    grad.addColorStop(0.5, '#0369a1') // Sky 700
-    grad.addColorStop(1, '#0c4a6e') // Sky 900
-    ctx.fillStyle = grad
-    ctx.fillRect(0, 0, size, size)
+    const imgData = ctx.createImageData(size, size)
+    const data = imgData.data
 
-    // 2. Wave ripple pass 1: Soft cyan wave bands
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)' // Sky 400
-    ctx.lineWidth = 3
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
+    let ptr = 0
+    for (let y = 0; y < size; y++) {
+      const v = (y / size) * Math.PI * 2
+      for (let x = 0; x < size; x++) {
+        const u = (x / size) * Math.PI * 2
 
-    for (let y = 0; y < size; y += 20) {
-      ctx.beginPath()
-      for (let x = 0; x <= size; x += 4) {
-        const a1 = (x / size) * Math.PI * 4
-        const a2 = (y / size) * Math.PI * 4
-        const dy = Math.sin(a1) * 4 + Math.cos(a2 + a1) * 3
-        if (x === 0) ctx.moveTo(x, y + dy)
-        else ctx.lineTo(x, y + dy)
+        // Very gentle, calm, wide harmonic waves (low contrast)
+        const wave1 = Math.sin(2 * u + v)
+        const wave2 = Math.cos(u - 2 * v)
+        const wave3 = Math.sin(3 * u + 2 * v) * 0.5
+        const combined = (wave1 * 0.45 + wave2 * 0.45 + wave3 * 0.1) * 0.5 + 0.5
+
+        // Subtle, gentle wave modulation [0..1]
+        const waveIntensity = Math.pow(combined, 1.4)
+
+        // Muted, non-distracting, pleasant dark aquatic slate palette
+        // Base: rgb(26, 68, 84) - #1a4454
+        // Highlight: rgb(38, 88, 106) - #26586a (only ~10-15% subtle difference)
+        const r = Math.min(255, Math.floor(26 + waveIntensity * 16))
+        const g = Math.min(255, Math.floor(68 + waveIntensity * 22))
+        const b = Math.min(255, Math.floor(84 + waveIntensity * 24))
+
+        data[ptr++] = r
+        data[ptr++] = g
+        data[ptr++] = b
+        data[ptr++] = 255
       }
-      ctx.stroke()
     }
 
-    // 3. Wave ripple pass 2: Crisp white-cyan caustics
-    ctx.strokeStyle = 'rgba(224, 242, 254, 0.55)' // Sky 100
-    ctx.lineWidth = 1.8
-    for (let y = 10; y < size; y += 28) {
-      ctx.beginPath()
-      for (let x = 0; x <= size; x += 4) {
-        const a1 = (x / size) * Math.PI * 6
-        const a2 = (y / size) * Math.PI * 6
-        const dy = Math.cos(a1) * 3 + Math.sin(a2) * 2.5
-        if (x === 0) ctx.moveTo(x, y + dy)
-        else ctx.lineTo(x, y + dy)
-      }
-      ctx.stroke()
-    }
-
-    // 4. Subtle diagonal shimmer
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
-    ctx.lineWidth = 1.2
-    for (let k = -size; k < size * 2; k += 40) {
-      ctx.beginPath()
-      for (let x = 0; x <= size; x += 6) {
-        const y = k + x * 0.5 + Math.sin((x / size) * Math.PI * 4) * 3
-        if (y >= -10 && y <= size + 10) {
-          if (x === 0) ctx.moveTo(x, y)
-          else ctx.lineTo(x, y)
-        }
-      }
-      ctx.stroke()
-    }
+    ctx.putImageData(imgData, 0, 0)
 
     try {
-      const source = new CanvasSource({ resource: canvas })
+      const source = new CanvasSource({ resource: canvas, addressMode: 'repeat' })
       this.waterTexture = new Texture({ source })
     } catch {
       this.waterTexture = Texture.from(canvas)
+      if (this.waterTexture.source) {
+        this.waterTexture.source.addressMode = 'repeat'
+      }
     }
 
     return this.waterTexture
@@ -163,7 +145,7 @@ export class WaterRenderer {
         height: 100,
       })
       this.tilingSprite.zIndex = 2
-      this.tilingSprite.alpha = 0.88
+      this.tilingSprite.alpha = 0.94
       this.tilingSprite.mask = this.maskGraphics
       this.container.addChild(this.tilingSprite)
       this.container.addChild(this.maskGraphics)
@@ -197,19 +179,17 @@ export class WaterRenderer {
 
       const poly = getCellPolygon(col, row, tileWidth, tileHeight)
 
-      // 1. Base aquatic tint
+      // 1. Muted aquatic base tint
       this.baseGraphics
         .poly(poly)
-        .fill({ color: 0x0369a1, alpha: 0.92 })
+        .fill({ color: 0x1a4454, alpha: 0.96 })
 
       // 2. Add to mask for TilingSprite
       this.maskGraphics
         .poly(poly)
         .fill({ color: 0xffffff, alpha: 1.0 })
 
-      // 3. Compute shore foam along diamond edges that touch non-water cells
-      // Order of vertices from getCellPolygon:
-      // poly[0,1]: Top, poly[2,3]: Right, poly[4,5]: Bottom, poly[6,7]: Left
+      // 3. Compute subtle shore outlines along diamond edges that touch non-water cells
       const top = { x: poly[0], y: poly[1] }
       const right = { x: poly[2], y: poly[3] }
       const bottom = { x: poly[4], y: poly[5] }
@@ -235,49 +215,52 @@ export class WaterRenderer {
   }
 
   private drawFoamEdge(p1: { x: number; y: number }, p2: { x: number; y: number }): void {
-    // Outer soft cyan foam glow
+    // Subtle, soft, natural edge outline (no distracting bright white lines)
     this.foamGraphics
       .moveTo(p1.x, p1.y)
       .lineTo(p2.x, p2.y)
-      .stroke({ width: 3.5, color: 0x38bdf8, alpha: 0.5 })
+      .stroke({ width: 2.0, color: 0x122e38, alpha: 0.5 })
 
-    // Inner bright white foam crest
     this.foamGraphics
       .moveTo(p1.x, p1.y)
       .lineTo(p2.x, p2.y)
-      .stroke({ width: 1.8, color: 0xf0f9ff, alpha: 0.95 })
+      .stroke({ width: 1.0, color: 0x2a5d70, alpha: 0.55 })
   }
 
   /**
-   * Called on every frame ticker tick to scroll the UV coordinates smoothly
-   * along the 2:1 isometric axis and animate shore foam pulsation.
-   * Extremely lightweight: only 2 additions and 1 trigonometric calculation.
+   * Called on every frame ticker tick.
    */
-  public update(deltaSec: number): void {
+  public update(_deltaSec: number): void {
     if (!this.container.visible || !this.tilingSprite) return
-
-    this.elapsedTime += deltaSec
-
-    // UV scroll along 2:1 isometric axis
-    this.tilingSprite.tilePosition.x = (this.tilingSprite.tilePosition.x + deltaSec * this.scrollSpeedX) % 256
-    this.tilingSprite.tilePosition.y = (this.tilingSprite.tilePosition.y + deltaSec * this.scrollSpeedY) % 256
-
-    // Shore foam wave pulsation
-    this.foamGraphics.alpha = 0.8 + Math.sin(this.elapsedTime * 3.5) * 0.18
+    // Static clean surface without jitter
+    this.foamGraphics.alpha = 0.88
   }
 
   public destroy(): void {
-    this.baseGraphics.destroy()
-    this.maskGraphics.destroy()
-    this.foamGraphics.destroy()
-    if (this.tilingSprite) {
-      this.tilingSprite.destroy()
-      this.tilingSprite = null
+    try {
+      if (this.baseGraphics && !this.baseGraphics.destroyed) {
+        this.baseGraphics.destroy()
+      }
+      if (this.maskGraphics && !this.maskGraphics.destroyed) {
+        this.maskGraphics.destroy()
+      }
+      if (this.foamGraphics && !this.foamGraphics.destroyed) {
+        this.foamGraphics.destroy()
+      }
+      if (this.tilingSprite && !this.tilingSprite.destroyed) {
+        this.tilingSprite.destroy()
+        this.tilingSprite = null
+      }
+      if (this.waterTexture && !this.waterTexture.destroyed) {
+        this.waterTexture.destroy(true)
+        this.waterTexture = null
+      }
+      if (this.container && !this.container.destroyed) {
+        this.container.destroy({ children: true })
+      }
+    } catch (e) {
+      console.warn('[WaterRenderer] destroy caught:', e)
     }
-    if (this.waterTexture) {
-      this.waterTexture.destroy(true)
-      this.waterTexture = null
-    }
-    this.container.destroy({ children: true })
   }
 }
+

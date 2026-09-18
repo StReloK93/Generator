@@ -218,42 +218,153 @@
         />
       </UiCard>
 
-      <!-- 4. Scale & Opacity Sliders -->
+      <!-- 4. Scale & Proportions (Independent Axis X / Y and Fine Step Scaling) -->
       <UiCard variant="subtle" padding="sm" custom-class="flex flex-col gap-2.5">
-        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
-          <Scaling class="w-3.5 h-3.5 text-emerald-400" />
-          <span>{{ $t('assetEditor.scaleOpacity') }}</span>
-        </span>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+            <Scaling class="w-3.5 h-3.5 text-emerald-400" />
+            <span>{{ $t('assetEditor.scaleDimensions') || 'O\'lcham va Masshtab (Scale)' }}</span>
+          </span>
 
-        <!-- Scale Slider -->
-        <UiSlider 
-          v-if="store.selectedPart"
-          :model-value="Number(Math.abs(store.selectedPart.scaleX).toFixed(2))"
-          :label="$t('assetEditor.scaleMultiplier')"
-          :min="0.1"
-          :max="4.0"
-          :step="0.05"
-          unit="x"
-          @update:model-value="handleScaleChange"
-        />
+          <!-- Aspect Ratio Lock / Unlock Toggle -->
+          <UiButton
+            variant="ghost"
+            size="xs"
+            :leading-icon="isAspectLocked ? Link2 : Unlink2"
+            :title="isAspectLocked ? ($t('assetEditor.aspectRatioLocked') || 'Proporsiya bog\'langan (Bir xil o\'zgaradi)') : ($t('assetEditor.aspectRatioUnlocked') || 'O\'qlar alohida (X va Y mustaqil)')"
+            :custom-class="isAspectLocked ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2!' : 'text-amber-400 bg-amber-950/60 border border-amber-800/80 px-2!'"
+            @click="isAspectLocked = !isAspectLocked"
+          >
+            {{ isAspectLocked ? ($t('assetEditor.locked') || 'Bog\'langan') : ($t('assetEditor.unlocked') || 'Alohida') }}
+          </UiButton>
+        </div>
 
-        <!-- Quick Scale Presets -->
-        <div v-if="store.selectedPart">
+        <!-- Fine Step Multiplier Selector (Slow / Precise vs Normal) -->
+        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+          <span>{{ $t('assetEditor.stepPrecision') || 'Sekin masshtablash qadami' }}:</span>
           <UiTabs
-            :model-value="Number(Math.abs(store.selectedPart.scaleX).toFixed(2))"
+            v-model="fineStep"
             :items="[
-              { id: 0.5, label: '0.5x' },
-              { id: 0.75, label: '0.75x' },
-              { id: 1.0, label: '1x' },
-              { id: 1.25, label: '1.25x' },
-              { id: 1.5, label: '1.5x' },
-              { id: 2.0, label: '2x' }
+              { id: 0.01, label: '0.01 (Sekin)' },
+              { id: 0.05, label: '0.05' },
+              { id: 0.1, label: '0.1' },
             ]"
             variant="emerald"
             size="xs"
-            fill
-            @update:model-value="(sc) => handleScaleChange(Number(sc))"
           />
+        </div>
+
+        <!-- Scale X (Width / Gorizontal o'q) -->
+        <div v-if="store.selectedPart" class="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-300 flex items-center gap-1">
+              <MoveHorizontal class="w-3.5 h-3.5 text-emerald-400" />
+              <span>Scale X (Kenglik):</span>
+            </span>
+            <div class="flex items-center gap-1">
+              <!-- Slow Minus Stepper Button -->
+              <UiButton
+                variant="secondary"
+                size="xs"
+                custom-class="w-6 h-6 p-0! justify-center font-mono text-[11px]! font-bold text-emerald-300"
+                :title="`Scale X -${fineStep}`"
+                @click="stepScaleX(-fineStep)"
+              >
+                -
+              </UiButton>
+              <span class="font-mono text-xs font-black text-white w-12 text-center">
+                {{ currentScaleX.toFixed(2) }}x
+              </span>
+              <!-- Slow Plus Stepper Button -->
+              <UiButton
+                variant="secondary"
+                size="xs"
+                custom-class="w-6 h-6 p-0! justify-center font-mono text-[11px]! font-bold text-emerald-300"
+                :title="`Scale X +${fineStep}`"
+                @click="stepScaleX(fineStep)"
+              >
+                +
+              </UiButton>
+            </div>
+          </div>
+
+          <UiSlider
+            :model-value="currentScaleX"
+            :min="0.05"
+            :max="4.0"
+            :step="fineStep"
+            unit="x"
+            @update:model-value="onScaleXSliderChange"
+          />
+        </div>
+
+        <!-- Scale Y (Height / Vertikal o'q) -->
+        <div v-if="store.selectedPart" class="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800/80">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-300 flex items-center gap-1">
+              <MoveVertical class="w-3.5 h-3.5 text-cyan-400" />
+              <span>Scale Y (Balandlik):</span>
+            </span>
+            <div class="flex items-center gap-1">
+              <!-- Slow Minus Stepper Button -->
+              <UiButton
+                variant="secondary"
+                size="xs"
+                custom-class="w-6 h-6 p-0! justify-center font-mono text-[11px]! font-bold text-cyan-300"
+                :title="`Scale Y -${fineStep}`"
+                @click="stepScaleY(-fineStep)"
+              >
+                -
+              </UiButton>
+              <span class="font-mono text-xs font-black text-white w-12 text-center">
+                {{ currentScaleY.toFixed(2) }}x
+              </span>
+              <!-- Slow Plus Stepper Button -->
+              <UiButton
+                variant="secondary"
+                size="xs"
+                custom-class="w-6 h-6 p-0! justify-center font-mono text-[11px]! font-bold text-cyan-300"
+                :title="`Scale Y +${fineStep}`"
+                @click="stepScaleY(fineStep)"
+              >
+                +
+              </UiButton>
+            </div>
+          </div>
+
+          <UiSlider
+            :model-value="currentScaleY"
+            :min="0.05"
+            :max="4.0"
+            :step="fineStep"
+            unit="x"
+            @update:model-value="onScaleYSliderChange"
+          />
+        </div>
+
+        <!-- Quick Scale Presets & Reset Row -->
+        <div v-if="store.selectedPart" class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80 flex-wrap">
+          <span class="text-[10px] text-slate-400 font-mono">{{ $t('assetEditor.quickPresets') || 'Andozalar' }}:</span>
+          <div class="flex items-center gap-1 flex-wrap">
+            <UiButton
+              v-for="p in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]"
+              :key="p"
+              variant="secondary"
+              size="xs"
+              custom-class="px-1.5! py-0.5! text-[10px]! font-mono"
+              @click="applyUniformScale(p)"
+            >
+              {{ p }}x
+            </UiButton>
+            <UiButton
+              variant="ghost"
+              size="xs"
+              custom-class="px-1.5! py-0.5! text-[10px]! text-amber-400 hover:text-white"
+              @click="resetBothScales"
+            >
+              1.0x Reset
+            </UiButton>
+          </div>
         </div>
 
         <!-- Opacity Slider -->
@@ -275,6 +386,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { 
   Move, 
   MousePointerClick, 
@@ -290,12 +402,28 @@ import {
   Copy,
   ClipboardPaste,
   Crop,
-  Sparkles
+  Sparkles,
+  Link2,
+  Unlink2,
+  MoveHorizontal,
+  MoveVertical
 } from 'lucide-vue-next'
 import { UiCard, UiBadge, UiButton, UiNumberInput, UiSlider, UiTabs } from '../ui'
 import { useAssetEditorStore } from '../../stores/assetEditorStore'
 
 const store = useAssetEditorStore()
+
+// State for Aspect Ratio Locking & Fine Stepper precision
+const isAspectLocked = ref(true)
+const fineStep = ref(0.01)
+
+const currentScaleX = computed(() => {
+  return Math.abs(store.selectedPart?.scaleX ?? 1.0)
+})
+
+const currentScaleY = computed(() => {
+  return Math.abs(store.selectedPart?.scaleY ?? 1.0)
+})
 
 function toggleFlipX() {
   for (const part of store.selectedParts) {
@@ -313,15 +441,71 @@ function toggleFlipY() {
   }
 }
 
-function handleScaleChange(newMag: number) {
+function onScaleXSliderChange(newMagX: number) {
+  const clampedX = Math.max(0.05, Math.min(4.0, Number(newMagX.toFixed(3))))
+  for (const part of store.selectedParts) {
+    const signX = Math.sign(part.scaleX) || 1
+    const signY = Math.sign(part.scaleY) || 1
+    if (isAspectLocked.value) {
+      const oldMagX = Math.abs(part.scaleX) || 1.0
+      const ratio = clampedX / oldMagX
+      const newMagY = Math.max(0.05, Math.min(4.0, Math.abs(part.scaleY) * ratio))
+      store.updatePartProperties(part.id, {
+        scaleX: signX * clampedX,
+        scaleY: signY * newMagY,
+      })
+    } else {
+      store.updatePartProperties(part.id, {
+        scaleX: signX * clampedX,
+      })
+    }
+  }
+}
+
+function onScaleYSliderChange(newMagY: number) {
+  const clampedY = Math.max(0.05, Math.min(4.0, Number(newMagY.toFixed(3))))
+  for (const part of store.selectedParts) {
+    const signX = Math.sign(part.scaleX) || 1
+    const signY = Math.sign(part.scaleY) || 1
+    if (isAspectLocked.value) {
+      const oldMagY = Math.abs(part.scaleY) || 1.0
+      const ratio = clampedY / oldMagY
+      const newMagX = Math.max(0.05, Math.min(4.0, Math.abs(part.scaleX) * ratio))
+      store.updatePartProperties(part.id, {
+        scaleX: signX * newMagX,
+        scaleY: signY * clampedY,
+      })
+    } else {
+      store.updatePartProperties(part.id, {
+        scaleY: signY * clampedY,
+      })
+    }
+  }
+}
+
+function stepScaleX(delta: number) {
+  const target = Math.max(0.05, Math.min(4.0, currentScaleX.value + delta))
+  onScaleXSliderChange(target)
+}
+
+function stepScaleY(delta: number) {
+  const target = Math.max(0.05, Math.min(4.0, currentScaleY.value + delta))
+  onScaleYSliderChange(target)
+}
+
+function applyUniformScale(val: number) {
   for (const part of store.selectedParts) {
     const signX = Math.sign(part.scaleX) || 1
     const signY = Math.sign(part.scaleY) || 1
     store.updatePartProperties(part.id, {
-      scaleX: signX * newMag,
-      scaleY: signY * newMag,
+      scaleX: signX * val,
+      scaleY: signY * val,
     })
   }
+}
+
+function resetBothScales() {
+  applyUniformScale(1.0)
 }
 </script>
 

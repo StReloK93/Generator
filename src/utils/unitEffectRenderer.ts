@@ -16,7 +16,7 @@ export interface CanvasUnitEffectOptions {
 
 export interface PixiUnitEffectOptions {
   marker: Graphics
-  shadow: Graphics
+  shadow?: Graphics
   variant: UnitVariantType | string
   tileWidth: number
   tileHeight: number
@@ -410,7 +410,6 @@ export function renderCanvasUnitEffect(opts: CanvasUnitEffectOptions): void {
 export function renderPixiUnitEffect(opts: PixiUnitEffectOptions): void {
   const {
     marker,
-    shadow,
     variant,
     tileWidth,
     tileHeight,
@@ -420,17 +419,11 @@ export function renderPixiUnitEffect(opts: PixiUnitEffectOptions): void {
     animTime
   } = opts
 
-  shadow.clear()
+  if (opts.shadow && !opts.shadow.destroyed) {
+    opts.shadow.clear()
+    opts.shadow.visible = false
+  }
   marker.clear()
-
-  // Standard Natural Unit Drop Shadow (No colored disks!)
-  shadow.visible = true
-  shadow.alpha = fadeAlpha
-  const shadowRadiusX = tileWidth * 0.18 * customUnitScale
-  const shadowRadiusY = tileHeight * 0.18 * customUnitScale
-  shadow
-    .ellipse(0, 0, shadowRadiusX, shadowRadiusY)
-    .fill({ color: 0x000000, alpha: 0.45 * fadeAlpha })
 
   if (!variant || variant === 'normal') {
     marker.visible = false

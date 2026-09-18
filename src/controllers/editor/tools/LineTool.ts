@@ -32,22 +32,12 @@ export class LineTool implements IEditorTool {
     const { assetStore, mapStore, toolStore } = ctx
     if (toolStore.isMouseDown && toolStore.dragStartCell && assetStore.selectedAssetId) {
       if (toolStore.previewCells.length > 0) {
-        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey))
-        const isShift = !!(e && 'shiftKey' in e && e.shiftKey)
-        const mode = isCtrl
-          ? 'replace'
-          : isShift
-            ? 'stack'
-            : toolStore.placementMode === 'replace'
-              ? 'replace'
-              : 'stack'
+        const assetId = assetStore.selectedAssetId
+        const cells = [...toolStore.previewCells]
 
-        mapStore.fillTiles(
-          toolStore.previewCells,
-          assetStore.selectedAssetId,
-          mapStore.activeLayerId,
-          mode
-        )
+        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
+        const mode: 'replace' | 'stack' = (isCtrl || toolStore.placementMode === 'replace') ? 'replace' : 'stack'
+        mapStore.fillTiles(cells, assetId, mapStore.activeLayerId, mode)
         toolStore.previewCells = []
       }
     }
