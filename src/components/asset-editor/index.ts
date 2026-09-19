@@ -1,0 +1,6 @@
+export { default as AssetCanvas } from './AssetCanvas.vue'
+export { default as AssetCropModal } from './AssetCropModal.vue'
+export { default as AssetGallerySidebar } from './AssetGallerySidebar.vue'
+export { default as AssetLayersPanel } from './AssetLayersPanel.vue'
+export { default as AssetNudgeControls } from './AssetNudgeControls.vue'
+export { AssetDiamondGuideSvg, AssetTransformGuideSvg } from '../svg'

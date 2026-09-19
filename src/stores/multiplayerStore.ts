@@ -134,6 +134,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         doorName: door?.name || defaultName,
         spawnCol: door?.spawnCol ?? door?.col ?? 2,
         spawnRow: door?.spawnRow ?? door?.row ?? 2,
+        playerCol: door?.playerCol,
+        playerRow: door?.playerRow,
         quadrantName: quadrant,
         player: null,
       })

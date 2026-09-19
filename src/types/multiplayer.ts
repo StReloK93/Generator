@@ -23,6 +23,8 @@ export interface PlayerSlot {
   doorName: string
   spawnCol: number
   spawnRow: number
+  playerCol?: number
+  playerRow?: number
   quadrantName?: string
   player: PlayerInfo | null
 }

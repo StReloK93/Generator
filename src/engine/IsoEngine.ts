@@ -200,12 +200,12 @@ export class IsoEngine {
   }
 
   // Overlays & Editing
-  public syncWater(project: MapProject): void {
-    this.renderer.syncWater(project)
+  public syncWater(project: MapProject, force = false): void {
+    this.renderer.syncWater(project, force)
   }
 
-  renderBuildableOverlay(project: MapProject, isVisible: boolean, activeTool?: string): void {
-    this.renderer.renderBuildableOverlay(project, isVisible, activeTool)
+  renderBuildableOverlay(project: MapProject, isVisible: boolean, activeTool?: string, force = false): void {
+    this.renderer.renderBuildableOverlay(project, isVisible, activeTool, force)
   }
 
   renderHoverCell(

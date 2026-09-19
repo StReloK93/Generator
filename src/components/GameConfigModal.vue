@@ -1300,31 +1300,60 @@
           <!-- Selected Door Action Toolbar -->
           <div 
             v-if="characterStore.selectedDoor" 
-            class="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 flex-wrap"
+            class="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800"
           >
-            <div class="flex items-center gap-2 text-xs">
-              <UiBadge variant="amber" size="xs">{{ $t('config.activeDoor', { name: characterStore.selectedDoor.name }) }}</UiBadge>
-              <span class="text-slate-400 font-mono text-[11px]">Cell: [{{ characterStore.selectedDoor.col }}, {{ characterStore.selectedDoor.row }}]</span>
-            </div>
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2 text-xs flex-wrap">
+                <UiBadge variant="amber" size="xs">{{ $t('config.activeDoor', { name: characterStore.selectedDoor.name }) }}</UiBadge>
+                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedDoor.spawnCol ?? characterStore.selectedDoor.col }}, {{ characterStore.selectedDoor.spawnRow ?? characterStore.selectedDoor.row }}]</span>
+                <span v-if="characterStore.selectedDoor.playerCol !== undefined" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
+                  Base: [{{ characterStore.selectedDoor.playerCol }}, {{ characterStore.selectedDoor.playerRow }}]
+                </span>
+              </div>
 
-            <div class="flex items-center gap-1.5">
-              <UiButton 
-                variant="secondary"
-                size="xs"
-                :leading-icon="MapPin"
-                @click="handleTriggerRelocateSpawnPoint"
-              >
-                {{ $t('config.relocateDoor') }}
-              </UiButton>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <!-- Relocate Spawn -->
+                <UiButton 
+                  variant="secondary"
+                  size="xs"
+                  :leading-icon="MapPin"
+                  @click="handleTriggerRelocateSpawnPoint"
+                >
+                  {{ $t('config.relocateDoor') }}
+                </UiButton>
 
-              <UiButton 
-                variant="danger"
-                size="xs"
-                :leading-icon="Trash2"
-                @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex ?? 0)"
-              >
-                {{ $t('config.deleteDoor') }}
-              </UiButton>
+                <!-- Set / Relocate Player Base Point -->
+                <UiButton 
+                  variant="secondary"
+                  size="xs"
+                  :leading-icon="Castle"
+                  custom-class="text-sky-300 hover:text-sky-200 border-sky-500/40 hover:bg-sky-500/20"
+                  @click="handleTriggerSetPlayerStartPoint"
+                >
+                  {{ characterStore.selectedDoor.playerCol !== undefined ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
+                </UiButton>
+
+                <!-- Clear Player Base Point -->
+                <UiButton 
+                  v-if="characterStore.selectedDoor.playerCol !== undefined"
+                  variant="ghost"
+                  size="xs"
+                  custom-class="text-slate-400 hover:text-slate-200 text-[11px]"
+                  @click="characterStore.clearPlayerStartPoint(characterStore.selectedDoorIndex ?? 0)"
+                >
+                  {{ $t('common.clear') }}
+                </UiButton>
+
+                <!-- Delete Door -->
+                <UiButton 
+                  variant="danger"
+                  size="xs"
+                  :leading-icon="Trash2"
+                  @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex ?? 0)"
+                >
+                  {{ $t('config.deleteDoor') }}
+                </UiButton>
+              </div>
             </div>
           </div>
         </UiCard>
@@ -1728,7 +1757,7 @@ import {
   MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
   Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
   ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, Ghost, Droplet, Crown,
-  TrendingDown, TrendingUp, Equal, Bird, Bomb
+  TrendingDown, TrendingUp, Equal, Bird, Bomb, Castle
 } from 'lucide-vue-next'
 import { 
   UiModal, 
@@ -2153,6 +2182,11 @@ function handleTriggerRelocateSpawnPoint() {
   toolStore.closeGameConfig()
   characterStore.isSettingSpawnPoint = true
   characterStore.spawnPointPlacementMode = 'relocate'
+}
+
+function handleTriggerSetPlayerStartPoint() {
+  toolStore.closeGameConfig()
+  characterStore.isSettingPlayerStartPoint = true
 }
 
 function handleStartDrawingRoute() {

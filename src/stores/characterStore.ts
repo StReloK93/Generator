@@ -27,6 +27,8 @@ export interface DoorInfo {
   cornerName?: string
   spawnCol: number
   spawnRow: number
+  playerCol?: number
+  playerRow?: number
 }
 
 export interface UnitStatusEffect {
@@ -282,6 +284,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
    */
   const isSettingSpawnPoint = ref(false)
   const spawnPointPlacementMode = ref<'add' | 'relocate'>('add')
+  const isSettingPlayerStartPoint = ref(false)
 
   function detectDoors(): DoorInfo[] {
     const p = mapStore.project as any
@@ -297,6 +300,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
           row: r,
           spawnCol: c,
           spawnRow: r,
+          playerCol: s.playerCol,
+          playerRow: s.playerRow,
           assetId: s.assetId || '',
           name: s.name ? s.name.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() : `Route ${s.id ? s.id : '1'}`,
           layerId: s.layerId || 'layer-ground',
@@ -310,6 +315,41 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
       if (p.customRoutes) {
         customRoutes.value = { ...p.customRoutes }
+      }
+      if (p.customWaypoints) {
+        customWaypoints.value = { ...p.customWaypoints }
+      }
+      doorRoutesCache.value = {}
+      if (detectedDoors.value.length > 0) {
+        spawnAtDoor(selectedDoorIndex.value)
+      }
+      return detectedDoors.value
+    }
+
+    // 1.1 If project has customRoutes but no spawnPoints array, construct doors from customRoutes
+    if (p.customRoutes && Object.keys(p.customRoutes).length > 0) {
+      const keys = Object.keys(p.customRoutes)
+      detectedDoors.value = keys.map((k, idx) => {
+        const r = p.customRoutes[k]
+        const first = Array.isArray(r) && r.length > 0 ? r[0] : { col: 2, row: 2 }
+        const { quadrant, cornerName } = DoorDetector.calculateQuadrant(first.col, first.row, mapStore.project.cols, mapStore.project.rows)
+        return {
+          id: k,
+          col: first.col,
+          row: first.row,
+          spawnCol: first.col,
+          spawnRow: first.row,
+          name: `Route ${idx + 1}`,
+          layerId: 'layer-ground',
+          assetId: '',
+          quadrant,
+          isCorner: true,
+          cornerName,
+        }
+      })
+      customRoutes.value = { ...p.customRoutes }
+      if (p.customWaypoints) {
+        customWaypoints.value = { ...p.customWaypoints }
       }
       doorRoutesCache.value = {}
       if (detectedDoors.value.length > 0) {
@@ -369,6 +409,38 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
   }
 
+  function setPlayerStartPoint(doorIdx: number, col: number, row: number) {
+    if (doorIdx < 0 || doorIdx >= detectedDoors.value.length) return
+    const d = detectedDoors.value[doorIdx]
+    if (d) {
+      d.playerCol = col
+      d.playerRow = row
+      syncSpawnPointsToProject()
+      mapStore.pushHistory(`Set Player ${doorIdx + 1} start point to (${col}, ${row})`)
+    }
+  }
+
+  function relocateCurrentPlayerStartPoint(col: number, row: number) {
+    const idx = (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) 
+      ? Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value) 
+      : 0
+    setPlayerStartPoint(idx, col, row)
+  }
+
+  function clearPlayerStartPoint(doorIdx?: number) {
+    const idx = doorIdx !== undefined
+      ? doorIdx
+      : (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 ? selectedDoorIndex.value : 0)
+    if (idx < 0 || idx >= detectedDoors.value.length) return
+    const d = detectedDoors.value[idx]
+    if (d) {
+      delete d.playerCol
+      delete d.playerRow
+      syncSpawnPointsToProject()
+      mapStore.pushHistory(`Cleared Player ${idx + 1} start point`)
+    }
+  }
+
   function removeSpawnPoint(idx: number) {
     if (idx < 0 || idx >= detectedDoors.value.length) return
     const removed = detectedDoors.value.splice(idx, 1)[0]
@@ -396,6 +468,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
       row: d.row,
       spawnCol: d.spawnCol,
       spawnRow: d.spawnRow,
+      playerCol: d.playerCol,
+      playerRow: d.playerRow,
       name: d.name,
       quadrant: d.quadrant,
       isCorner: d.isCorner,
@@ -450,10 +524,26 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${selectedDoorIndex.value}`
     
     // Load existing waypoints or extract from route
-    if (customWaypoints.value[doorKey] && customWaypoints.value[doorKey].length > 0) {
-      drawingWaypoints.value = JSON.parse(JSON.stringify(customWaypoints.value[doorKey]))
-    } else if (customRoutes.value[doorKey] && customRoutes.value[doorKey].length > 0) {
-      drawingWaypoints.value = extractWaypointsFromPath(customRoutes.value[doorKey])
+    let existingWaypoints = customWaypoints.value[doorKey]
+    if (!existingWaypoints || existingWaypoints.length === 0) {
+      const routeKeys = Object.keys(customWaypoints.value || {})
+      if (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 && selectedDoorIndex.value < routeKeys.length) {
+        existingWaypoints = customWaypoints.value[routeKeys[selectedDoorIndex.value]]
+      }
+    }
+
+    let existingRoute = customRoutes.value[doorKey]
+    if (!existingRoute || existingRoute.length === 0) {
+      const routeKeys = Object.keys(customRoutes.value || {})
+      if (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 && selectedDoorIndex.value < routeKeys.length) {
+        existingRoute = customRoutes.value[routeKeys[selectedDoorIndex.value]]
+      }
+    }
+
+    if (existingWaypoints && existingWaypoints.length > 0) {
+      drawingWaypoints.value = JSON.parse(JSON.stringify(existingWaypoints))
+    } else if (existingRoute && existingRoute.length > 0) {
+      drawingWaypoints.value = extractWaypointsFromPath(existingRoute)
     } else {
       drawingWaypoints.value = [startPt]
     }
@@ -482,6 +572,24 @@ export const useCharacterStore = defineStore('characterStore', () => {
         return
       }
       drawingWaypoints.value[idx] = { col: coord.col, row: coord.row }
+      
+      // If moving the first waypoint (the spawn origin), update the door/spawn point immediately
+      if (idx === 0 && selectedDoor.value) {
+        selectedDoor.value.col = coord.col
+        selectedDoor.value.row = coord.row
+        selectedDoor.value.spawnCol = coord.col
+        selectedDoor.value.spawnRow = coord.row
+        const { quadrant, cornerName } = DoorDetector.calculateQuadrant(
+          coord.col,
+          coord.row,
+          mapStore.project.cols,
+          mapStore.project.rows
+        )
+        selectedDoor.value.quadrant = quadrant
+        selectedDoor.value.cornerName = cornerName
+        syncSpawnPointsToProject()
+      }
+
       pushRouteState()
       statusMessage.value = `Moved Point #${idx + 1} to (${coord.col}, ${coord.row})`
       selectedWaypointIndex.value = null
@@ -491,6 +599,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function setWaypointPosition(index: number, coord: GridCoord) {
     if (index >= 0 && index < drawingWaypoints.value.length) {
       drawingWaypoints.value[index] = { col: coord.col, row: coord.row }
+      if (index === 0 && selectedDoor.value) {
+        selectedDoor.value.col = coord.col
+        selectedDoor.value.row = coord.row
+        selectedDoor.value.spawnCol = coord.col
+        selectedDoor.value.spawnRow = coord.row
+        syncSpawnPointsToProject()
+      }
     }
   }
 
@@ -507,6 +622,24 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (drawingWaypoints.value.length > 1 && index >= 0 && index < drawingWaypoints.value.length) {
       drawingWaypoints.value.splice(index, 1)
       selectedWaypointIndex.value = null
+
+      if (index === 0 && drawingWaypoints.value.length > 0 && selectedDoor.value) {
+        const newStart = drawingWaypoints.value[0]
+        selectedDoor.value.col = newStart.col
+        selectedDoor.value.row = newStart.row
+        selectedDoor.value.spawnCol = newStart.col
+        selectedDoor.value.spawnRow = newStart.row
+        const { quadrant, cornerName } = DoorDetector.calculateQuadrant(
+          newStart.col,
+          newStart.row,
+          mapStore.project.cols,
+          mapStore.project.rows
+        )
+        selectedDoor.value.quadrant = quadrant
+        selectedDoor.value.cornerName = cornerName
+        syncSpawnPointsToProject()
+      }
+
       pushRouteState()
       statusMessage.value = `Deleted Point #${index + 1}`
     }
@@ -550,6 +683,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
       const prev = routeUndoStack.value[routeUndoStack.value.length - 1]
       drawingWaypoints.value = JSON.parse(JSON.stringify(prev))
       selectedWaypointIndex.value = null
+      if (drawingWaypoints.value.length > 0 && selectedDoor.value) {
+        const startPt = drawingWaypoints.value[0]
+        selectedDoor.value.col = startPt.col
+        selectedDoor.value.row = startPt.row
+        selectedDoor.value.spawnCol = startPt.col
+        selectedDoor.value.spawnRow = startPt.row
+        syncSpawnPointsToProject()
+      }
       statusMessage.value = `Undo route (${drawingWaypoints.value.length} points)`
     }
   }
@@ -560,6 +701,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
       routeUndoStack.value.push(next)
       drawingWaypoints.value = JSON.parse(JSON.stringify(next))
       selectedWaypointIndex.value = null
+      if (drawingWaypoints.value.length > 0 && selectedDoor.value) {
+        const startPt = drawingWaypoints.value[0]
+        selectedDoor.value.col = startPt.col
+        selectedDoor.value.row = startPt.row
+        selectedDoor.value.spawnCol = startPt.col
+        selectedDoor.value.spawnRow = startPt.row
+        syncSpawnPointsToProject()
+      }
       statusMessage.value = `Redo route (${drawingWaypoints.value.length} points)`
     }
   }
@@ -584,6 +733,26 @@ export const useCharacterStore = defineStore('characterStore', () => {
       customWaypoints.value[doorKey] = [...drawingWaypoints.value]
       customRoutes.value[doorKey] = expandWaypointsToPath(drawingWaypoints.value)
       mapStore.project.customRoutes = { ...customRoutes.value }
+      mapStore.project.customWaypoints = { ...customWaypoints.value }
+
+      // CRITICAL: Synchronize the door / spawn point coordinate with the first waypoint of the route!
+      const startPt = drawingWaypoints.value[0]
+      if (selectedDoor.value && startPt) {
+        selectedDoor.value.col = startPt.col
+        selectedDoor.value.row = startPt.row
+        selectedDoor.value.spawnCol = startPt.col
+        selectedDoor.value.spawnRow = startPt.row
+        const { quadrant, cornerName } = DoorDetector.calculateQuadrant(
+          startPt.col,
+          startPt.row,
+          mapStore.project.cols,
+          mapStore.project.rows
+        )
+        selectedDoor.value.quadrant = quadrant
+        selectedDoor.value.cornerName = cornerName
+        syncSpawnPointsToProject()
+      }
+
       mapStore.project.characterConfig = {
         spawnCount: spawnCount.value,
         speed: speed.value,
@@ -783,6 +952,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     lapCount.value = 0
     isDrawingRoute.value = false
     isSettingSpawnPoint.value = false
+    isSettingPlayerStartPoint.value = false
     statusMessage.value = "Waiting at spawn point"
   }
 
@@ -1774,8 +1944,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
     syncSpawnPointsToProject,
     isSettingSpawnPoint,
     spawnPointPlacementMode,
+    isSettingPlayerStartPoint,
     addSpawnPoint,
     relocateCurrentSpawnPoint,
+    setPlayerStartPoint,
+    relocateCurrentPlayerStartPoint,
+    clearPlayerStartPoint,
     removeSpawnPoint,
     isLoadingGame,
     loadingProgress,

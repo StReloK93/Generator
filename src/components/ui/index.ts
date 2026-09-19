@@ -33,4 +33,5 @@ export { default as UiColorPicker } from './UiColorPicker.vue'
 export type { ColorPickerSize } from './UiColorPicker.vue'
 export { default as UiToastContainer } from './UiToastContainer.vue'
 export { default as UiConfirmModal } from './UiConfirmModal.vue'
+export { UiSpinner } from '../svg'
 

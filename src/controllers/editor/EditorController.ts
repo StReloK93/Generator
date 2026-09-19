@@ -42,7 +42,7 @@ export class EditorController {
     if (active === 'eraser') return this.eraserTool
     if (active === 'bucket') return this.bucketTool
     if (active === 'line') return this.lineTool
-    if (active === 'box-fill') {
+    if (active === 'box-fill' || active === 'box' || active === 'rect') {
       this.boxTool.mode = 'fill'
       return this.boxTool
     }
@@ -54,10 +54,12 @@ export class EditorController {
     if (active === 'water') return this.waterTool
     if (active === 'scatter') return this.scatterTool
     if (active === 'select' || active === 'brush') {
-      if (this.ctx.assetStore.selectedAssetId) {
-        return this.brushTool
+      if (this.ctx.toolStore.drawSubTool === 'line') return this.lineTool
+      if (this.ctx.toolStore.drawSubTool === 'box') {
+        this.boxTool.mode = 'fill'
+        return this.boxTool
       }
-      return this.selectTool
+      return this.brushTool
     }
     return this.brushTool
   }
@@ -76,6 +78,14 @@ export class EditorController {
         characterStore.relocateCurrentSpawnPoint(coord.col, coord.row)
       }
       characterStore.isSettingSpawnPoint = false
+      engine.renderCharacter(characterStore, mapStore.project)
+      return
+    }
+
+    // 1.1 Player Base / Start Point Setting
+    if (characterStore.isSettingPlayerStartPoint) {
+      characterStore.relocateCurrentPlayerStartPoint(coord.col, coord.row)
+      characterStore.isSettingPlayerStartPoint = false
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -183,6 +193,32 @@ export class EditorController {
   public handleContextMenu(): void {
     const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
 
+    // 1. Cancel active multi-point operations first (Line, Box, Eraser, etc.)
+    if (this.lineTool.lineStartPoint) {
+      this.lineTool.onCancel(this.ctx)
+      return
+    }
+    if (this.boxTool.boxStartPoint) {
+      this.boxTool.onCancel(this.ctx)
+      return
+    }
+    if (this.eraserTool.startPoint) {
+      this.eraserTool.onCancel(this.ctx)
+      return
+    }
+    if (this.buildableTool.boxStartPoint) {
+      this.buildableTool.onCancel(this.ctx)
+      return
+    }
+    if (this.waterTool.boxStartPoint) {
+      this.waterTool.onCancel(this.ctx)
+      return
+    }
+    if (this.scatterTool.boxStartPoint) {
+      this.scatterTool.onCancel(this.ctx)
+      return
+    }
+
     if (toolStore.activeTool === 'scatter') {
       this.scatterTool.onCancel(this.ctx)
       return
@@ -208,16 +244,20 @@ export class EditorController {
       characterStore.isSettingSpawnPoint = false
       return
     }
+    if (characterStore.isSettingPlayerStartPoint) {
+      characterStore.isSettingPlayerStartPoint = false
+      return
+    }
     if (toolStore.isMovingElement) {
       toolStore.isMovingElement = false
       return
     }
-    if (assetStore.selectedAssetId) {
-      assetStore.selectAsset(null)
+    if (toolStore.selectedElements.length > 0 || toolStore.selectedElement) {
+      toolStore.clearSelection()
       return
     }
-    if (toolStore.selectedElement) {
-      toolStore.setSelectedElement(null)
+    if (assetStore.selectedAssetId) {
+      assetStore.selectAsset(null)
       return
     }
     toolStore.previewCells = []

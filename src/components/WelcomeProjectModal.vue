@@ -529,6 +529,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       startingGold: Number(gSettings.startingGold) || 150,
       startingLives: Number(gSettings.startingLives) || 20,
       wavePrepTime: Number(gSettings.wavePrepTime) || 10,
+      maxPlayers: gSettings.maxPlayers || undefined,
     }
     characterStore.restoreGameSettingsFromProject()
 
@@ -578,7 +579,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       mapStore.project.gameSettings
     )
 
-    mapStore.pushHistory(`Map loaded: ${project.name || 'Project'}`)
+    mapStore.resetHistory(`Map loaded: ${project.name || 'Project'}`)
     await new Promise(r => setTimeout(r, 220))
 
     isForcedMode.value = false

@@ -93,8 +93,8 @@ export class PixiRenderer {
     this.map.syncLayers(project, assetMap)
   }
 
-  syncWater(project: MapProject): void {
-    this.water.syncWater(project)
+  syncWater(project: MapProject, force = false): void {
+    this.water.syncWater(project, force)
   }
 
   renderTowersAndCombat(
@@ -112,11 +112,9 @@ export class PixiRenderer {
       project.tileHeight
     )
 
-    // Ensure combat animations (projectiles, lasers, explosions, sparks) ALWAYS render above all ground assets and entities
-    if (this.combat.combatGraphics.parent === this.context.worldContainer) {
-      this.combat.combatGraphics.zIndex = 999999
-      const children = this.context.worldContainer.children
-      if (children.length > 0 && children[children.length - 1] !== this.combat.combatGraphics) {
+    // Ensure combatGraphics container is properly attached into context world
+    if (this.combat.combatGraphics) {
+      if (!this.context.worldContainer.children.includes(this.combat.combatGraphics)) {
         this.context.worldContainer.addChild(this.combat.combatGraphics)
       }
     }
@@ -163,8 +161,8 @@ export class PixiRenderer {
     this.overlay.renderPreviewCells(cells, project, activeAsset, activeTool)
   }
 
-  renderBuildableOverlay(project: MapProject, isVisible: boolean, activeTool?: string): void {
-    this.overlay.renderBuildableOverlay(project, isVisible, activeTool)
+  renderBuildableOverlay(project: MapProject, isVisible: boolean, activeTool?: string, force = false): void {
+    this.overlay.renderBuildableOverlay(project, isVisible, activeTool, force)
   }
 
   renderTeammateHovers(teammateHovers: Map<string, any>, project: any): void {

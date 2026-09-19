@@ -56,8 +56,23 @@ export class RouteManager {
     if (!door) return []
     const doorKey = door.id || `door-${doorIdx}`
 
-    if (customRoutes[doorKey] && customRoutes[doorKey].length > 0) {
+    if (customRoutes && customRoutes[doorKey] && customRoutes[doorKey].length > 0) {
       return customRoutes[doorKey]
+    }
+
+    if (customRoutes && customRoutes[`door-${doorIdx}`] && customRoutes[`door-${doorIdx}`].length > 0) {
+      return customRoutes[`door-${doorIdx}`]
+    }
+
+    // Fallback: match by index if IDs differ
+    if (customRoutes) {
+      const keys = Object.keys(customRoutes)
+      if (doorIdx >= 0 && doorIdx < keys.length) {
+        const fallbackKey = keys[doorIdx]
+        if (customRoutes[fallbackKey] && customRoutes[fallbackKey].length > 0) {
+          return customRoutes[fallbackKey]
+        }
+      }
     }
 
     return [{ col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row }]

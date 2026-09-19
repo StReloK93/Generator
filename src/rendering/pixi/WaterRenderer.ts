@@ -110,17 +110,16 @@ export class WaterRenderer {
   }
 
   /**
-   * Synchronizes water cells and updates base isometric polygon geometry,
-   * isometric mask, and shore foam outlines.
+   * Syncs geometry and mask for water tiles with high performance caching.
    * Runs ONLY when water cells or map dimensions change (0% cost during simulation).
    */
-  public syncWater(project: MapProject): void {
+  public syncWater(project: MapProject, force = false): void {
     const rawCells = project.waterCells || []
     const count = rawCells.length
-    const { cols, rows, tileWidth, tileHeight } = project
+    const { cols, rows, tileWidth, tileHeight, updatedAt } = project
 
-    const sig = `${cols}_${rows}_${tileWidth}_${tileHeight}_${count}_${rawCells.slice(0, 50).join('|')}`
-    if (sig === this.lastWaterSignature) return
+    const sig = `${cols}_${rows}_${tileWidth}_${tileHeight}_${count}_${updatedAt || 0}`
+    if (!force && sig === this.lastWaterSignature) return
     this.lastWaterSignature = sig
 
     if (count === 0) {

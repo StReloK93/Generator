@@ -133,6 +133,8 @@ export interface MapGameSettings {
   startingLives: number
   wavePrepTime: number
   scoreMultiplier?: number
+  maxPlayers?: number
+  playerCount?: number
 }
 
 export interface SpawnPointData {
@@ -141,6 +143,8 @@ export interface SpawnPointData {
   row: number
   spawnCol?: number
   spawnRow?: number
+  playerCol?: number
+  playerRow?: number
   name?: string
   quadrant?: number
   isCorner?: boolean
@@ -235,6 +239,7 @@ export interface ProjectHistoryItem {
   buildableCells?: string[]
   buildMode?: 'all' | 'custom'
   waterCells?: string[]
+  tilesCount?: number
 }
 
 export interface SelectedElementRef {

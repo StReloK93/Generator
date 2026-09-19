@@ -5,8 +5,8 @@
       'cursor-grab!': toolStore.activeTool === 'pan' && !camera.isPanning.value,
       'cursor-grabbing!': camera.isPanning.value,
       'cursor-cell!': toolStore.activeTool === 'picker',
-      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingSpawnPoint,
-      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingSpawnPoint,
+      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingSpawnPoint || characterStore.isSettingPlayerStartPoint,
+      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingSpawnPoint && !characterStore.isSettingPlayerStartPoint,
       'cursor-move!': toolStore.isMovingElement,
       'cursor-not-allowed!': mapStore.activeLayer?.locked
     }" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
@@ -30,59 +30,41 @@
       @touchstart.stop
       @wheel.stop
     >
-      <!-- Brush / Select (B) -->
+      <!-- Draw / Select (S) -->
       <UiIconButton
         variant="tool"
         size="sm"
-        :icon="Paintbrush"
-        :active="toolStore.activeTool === 'brush' || toolStore.activeTool === 'select'"
-        :title="`${$t('shortcuts.brushSelect')} (B)`"
+        :icon="Pointer"
+        :active="['brush', 'select', 'line', 'box-fill', 'rect'].includes(toolStore.activeTool)"
+        :title="`${$t('editor.drawSelect')} (S)`"
         @click="toolStore.setTool('brush')"
       />
-      <!-- Box: Select / Fill (F) -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Scan"
-        :active="toolStore.activeTool === 'box-fill'"
-        :title="`${$t('shortcuts.boxTool')} (F)`"
-        @click="toggleBoxMode"
-      />
-      <!-- Eraser (E) -->
+      <!-- Delete / Eraser (R) -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="Eraser"
         :active="toolStore.activeTool === 'eraser'"
-        :title="`${$t('shortcuts.eraser')} (E)`"
+        :title="`${$t('shortcuts.eraser')} (R)`"
         @click="toolStore.setTool('eraser')"
       />
-      <!-- Bucket Fill (G) -->
+      <!-- Bucket Fill (F) -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="PaintBucket"
         :active="toolStore.activeTool === 'bucket'"
-        :title="`${$t('shortcuts.bucketFill')} (G)`"
+        :title="`${$t('shortcuts.bucketFill')} (F)`"
         @click="toolStore.setTool('bucket')"
       />
-      <!-- Eyedropper (I) -->
+      <!-- Eyedropper (G) -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="Pipette"
         :active="toolStore.activeTool === 'picker'"
-        :title="`${$t('shortcuts.eyedropper')} (I)`"
+        :title="`${$t('shortcuts.eyedropper')} (G)`"
         @click="toolStore.setTool('picker')"
-      />
-      <!-- Line (L) -->
-      <UiIconButton
-        variant="tool"
-        size="sm"
-        :icon="Spline"
-        :active="toolStore.activeTool === 'line'"
-        :title="`${$t('shortcuts.lineTool')} (L)`"
-        @click="toolStore.setTool('line')"
       />
       <!-- Buildable Zones (Z) -->
       <UiIconButton
@@ -94,26 +76,25 @@
         @click="toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')"
       />
 
-      <!-- Water Tool (W) -->
+      <!-- Water Tool (No hotkey) -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="Waves"
         :active="toolStore.activeTool === 'water'"
-        :title="`${$t('editor.waterTool') || 'Suv qatlami'} (W)`"
+        :title="`${$t('editor.waterTool') || 'Suv qatlami'}`"
         @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
       />
 
-      <!-- Scatter / Random Multi-Asset Tool (R) -->
+      <!-- Scatter / Random Multi-Asset Tool -->
       <UiIconButton
         variant="tool"
         size="sm"
         :icon="Dices"
         :active="toolStore.activeTool === 'scatter'"
-        :title="`${$t('editor.scatterTool') || 'Tasodifiy asset to\'ldirish (Scatter)'} (R)`"
+        :title="`${$t('editor.scatterTool') || 'Tasodifiy asset to\'ldirish (Scatter)'}`"
         @click="handleToggleScatterTool"
       />
-
 
     </div>
 
@@ -136,30 +117,49 @@
       </UiButton>
     </div>
 
-    <!-- Floating HUD when in Buildable Zones Mode -->
+    <!-- Floating HUD when Setting Player Start / Base Point -->
+    <div v-if="characterStore.isSettingPlayerStartPoint"
+      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-sky-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-sky-200 animate-in fade-in slide-in-from-top-2">
+      <Castle class="w-4 h-4 text-sky-400 animate-bounce shrink-0" />
+      <span class="flex items-center gap-1.5">
+        <Crosshair class="w-3.5 h-3.5 text-sky-400" />
+        <strong>{{ $t('editor.playerStartPoint') || 'O\'yinchi start nuqtasi' }} (P{{ (characterStore.selectedDoorIndex ?? 0) + 1 }}):</strong>
+        {{ $t('editor.clickCellToSetPlayerStart') || 'Xaritadagi istalgan katakni bosib bino qurish bazasini belgilang' }}
+      </span>
+      <UiButton
+        variant="secondary"
+        size="xs"
+        :title="`${$t('common.cancel')} (Esc)`"
+        @click="characterStore.isSettingPlayerStartPoint = false"
+      >
+        {{ $t('common.cancel') }}
+      </UiButton>
+    </div>
+
+    <!-- Minimalist Top Bar when in Buildable Zones Mode -->
     <div 
       v-if="toolStore.activeTool === 'buildable'"
-      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-emerald-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-emerald-200 animate-in fade-in slide-in-from-top-2 select-none"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border border-emerald-500/30 px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-emerald-200 animate-in fade-in slide-in-from-top-2 select-none"
     >
-      <div class="flex items-center gap-1.5 shrink-0">
-        <Castle class="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" />
-        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.buildableZones') }}</span>
-        <span class="font-mono text-[11px] text-emerald-300 font-semibold">
-          ({{ mapStore.project.buildMode === 'all' || !mapStore.project.buildableCells?.length ? ($t('common.all') || 'All') : `${mapStore.project.buildableCells.length} cells` }})
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <Castle class="w-3.5 h-3.5 text-emerald-400 animate-pulse shrink-0" />
+        <span class="font-semibold text-slate-200 hidden md:inline">{{ $t('editor.buildableZones') }}</span>
+        <span class="font-mono text-[11px] text-emerald-300 font-bold px-1.5 py-0.2 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+          {{ mapStore.project.buildMode === 'all' || !mapStore.project.buildableCells?.length ? ($t('common.all') || 'All') : mapStore.project.buildableCells.length }}
         </span>
       </div>
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
-      <!-- Sub-tool Selector: Brush / Line / Box Area -->
+      <!-- Sub-tool Selector: Point (Q) / Line (W) / Box (E) -->
       <UiTabs
         v-model="buildableSubTool"
         variant="segmented"
         size="xs"
         :items="[
-          { id: 'brush', label: $t('tools.brush') || 'Brush', icon: Paintbrush },
-          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
-          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+          { id: 'brush', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
         ]"
       />
 
@@ -169,62 +169,75 @@
         :variant="buildableAction === 'allow' ? 'emerald' : 'segmented'"
         size="xs"
         :items="[
-          { id: 'allow', label: $t('editor.buildableAllow') || 'Allow (+)', icon: Plus },
-          { id: 'block', label: $t('editor.buildableBlock') || 'Block (-)', icon: Minus },
+          { id: 'allow', label: '+' },
+          { id: 'block', label: '-' },
         ]"
       />
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
       <div class="flex items-center gap-1">
         <UiButton
-          variant="secondary"
+          variant="ghost"
           size="xs"
+          custom-class="text-slate-300 hover:text-white"
+          :title="$t('common.all')"
           @click="mapStore.setAllCellsBuildable(true)"
         >
-          {{ $t('editor.allBuildable') || 'All' }}
+          {{ $t('common.all') || 'All' }}
         </UiButton>
         <UiButton
-          variant="danger"
+          variant="ghost"
           size="xs"
+          custom-class="text-rose-400 hover:text-rose-300"
+          :title="$t('common.clear')"
           @click="mapStore.setAllCellsBuildable(false)"
         >
           {{ $t('common.clear') || 'Clear' }}
         </UiButton>
         <UiButton
+          variant="secondary"
+          size="xs"
+          :title="`${$t('common.cancel')} (Esc)`"
+          @click="cancelBuildable"
+        >
+          {{ $t('common.cancel') || 'Cancel' }}
+        </UiButton>
+        <UiButton
           variant="game-green"
           size="xs"
-          @click="toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+          :title="`${$t('common.done')}`"
+          @click="finishBuildable"
         >
-          {{ $t('common.done') }}
+          {{ $t('common.done') || 'Done' }}
         </UiButton>
       </div>
     </div>
 
-    <!-- Floating HUD when in Water Mode -->
+    <!-- Minimalist Top Bar when in Water Mode -->
     <div 
       v-if="toolStore.activeTool === 'water'"
-      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-sky-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-sky-200 animate-in fade-in slide-in-from-top-2 select-none"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border border-sky-500/30 px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-sky-200 animate-in fade-in slide-in-from-top-2 select-none"
     >
-      <div class="flex items-center gap-1.5 shrink-0">
-        <Waves class="w-4 h-4 text-sky-400 shrink-0 animate-pulse" />
-        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.waterLayer') || 'Suv Qatlami' }}</span>
-        <span class="font-mono text-[11px] text-sky-300 font-semibold">
-          ({{ mapStore.project.waterCells?.length || 0 }} {{ $t('common.cells') || 'katak' }})
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <Waves class="w-3.5 h-3.5 text-sky-400 animate-pulse shrink-0" />
+        <span class="font-semibold text-slate-200 hidden md:inline">{{ $t('editor.waterLayer') || 'Suv' }}</span>
+        <span class="font-mono text-[11px] text-sky-300 font-bold px-1.5 py-0.2 bg-sky-500/10 rounded-full border border-sky-500/20">
+          {{ mapStore.project.waterCells?.length || 0 }}
         </span>
       </div>
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
-      <!-- Sub-tool Selector: Brush / Line / Box Area -->
+      <!-- Sub-tool Selector: Point (Q) / Line (W) / Box (E) -->
       <UiTabs
         v-model="waterSubTool"
         variant="segmented"
         size="xs"
         :items="[
-          { id: 'brush', label: $t('tools.brush') || 'Brush', icon: Paintbrush },
-          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
-          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+          { id: 'brush', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
         ]"
       />
 
@@ -234,178 +247,263 @@
         :variant="waterAction === 'water' ? 'emerald' : 'segmented'"
         size="xs"
         :items="[
-          { id: 'water', label: $t('editor.waterAdd') || 'Suv (+)', icon: Plus },
-          { id: 'dry', label: $t('editor.waterDry') || 'Quruqlik (-)', icon: Minus },
+          { id: 'water', label: '+' },
+          { id: 'dry', label: '-' },
         ]"
       />
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
       <div class="flex items-center gap-1">
         <UiButton
-          variant="secondary"
+          variant="ghost"
           size="xs"
-          @click="mapStore.fillAllWaterCells(); engine.syncWater(mapStore.project)"
+          custom-class="text-slate-300 hover:text-white"
+          :title="$t('common.all')"
+          @click="mapStore.fillAllWaterCells(); engine.syncWater(mapStore.project, true)"
         >
-          {{ $t('editor.fillAllWater') || 'Hammasi' }}
+          {{ $t('common.all') || 'All' }}
         </UiButton>
         <UiButton
-          variant="danger"
+          variant="ghost"
           size="xs"
-          @click="mapStore.clearAllWaterCells(); engine.syncWater(mapStore.project)"
+          custom-class="text-rose-400 hover:text-rose-300"
+          :title="$t('common.clear')"
+          @click="mapStore.clearAllWaterCells(); engine.syncWater(mapStore.project, true)"
         >
-          {{ $t('common.clear') || 'Tozalash' }}
+          {{ $t('common.clear') || 'Clear' }}
+        </UiButton>
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :title="`${$t('common.cancel')} (Esc)`"
+          @click="cancelWater"
+        >
+          {{ $t('common.cancel') || 'Cancel' }}
         </UiButton>
         <UiButton
           variant="primary"
           size="xs"
-          @click="toolStore.setTool(toolStore.lastDrawingTool === 'water' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+          :title="`${$t('common.done')}`"
+          @click="finishWater"
         >
-          {{ $t('common.done') || 'Tayyor' }}
+          {{ $t('common.done') || 'Done' }}
         </UiButton>
       </div>
     </div>
 
-    <!-- Floating HUD when in Scatter / Random Multi-Asset Mode -->
+    <!-- Minimalist Top Bar when in Scatter / Random Multi-Asset Mode -->
     <div 
       v-if="toolStore.activeTool === 'scatter'"
-      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-purple-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-purple-200 animate-in fade-in slide-in-from-top-2 select-none"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border border-purple-500/30 px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-purple-200 animate-in fade-in slide-in-from-top-2 select-none"
     >
-      <div class="flex items-center gap-1.5 shrink-0">
-        <Dices class="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />
-        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('editor.scatterTool') || 'Tasodifiy To\'ldirish' }}</span>
-        <span class="font-mono text-[11px] text-purple-300 font-bold">
-          ({{ toolStore.scatterSelectedAssetIds.length }} ta asset)
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <Dices class="w-3.5 h-3.5 text-purple-400 animate-pulse shrink-0" />
+        <span class="font-semibold text-slate-200 hidden md:inline">{{ $t('editor.scatterTool') || 'Scatter' }}</span>
+        <span class="font-mono text-[11px] text-purple-300 font-bold px-1.5 py-0.2 bg-purple-500/10 rounded-full border border-purple-500/20">
+          {{ toolStore.scatterSelectedAssetIds.length }}
         </span>
       </div>
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
-      <!-- Shape Toggle: Box / Line / Brush -->
+      <!-- Shape Toggle: Point (Q) / Line (W) / Box (E) -->
       <UiTabs
         v-model="toolStore.scatterShape"
         variant="brand"
         size="xs"
         :items="[
-          { id: 'box', label: $t('editor.scatterBox') || 'To\'rtburchak', icon: Square },
-          { id: 'line', label: $t('editor.scatterLine') || 'Chiziq', icon: Spline },
-          { id: 'brush', label: $t('editor.scatterBrush') || 'Cho\'tka', icon: Paintbrush },
+          { id: 'brush', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
         ]"
       />
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
       <!-- Settings / Re-open Modal Button -->
       <UiButton
-        variant="secondary"
+        variant="ghost"
         size="xs"
         :leading-icon="Settings2"
         @click="toolStore.openScatterModal"
       >
-        <span>{{ $t('common.settings') || 'Assetlar' }}</span>
+        <span>{{ $t('common.settings') || 'Settings' }}</span>
       </UiButton>
 
-      <!-- Done Button -->
-      <UiButton
-        variant="game-green"
-        size="xs"
-        @click="toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
-      >
-        {{ $t('common.done') || 'Tayyor' }}
-      </UiButton>
+      <!-- Cancel / Done Buttons -->
+      <div class="flex items-center gap-1">
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :title="`${$t('common.cancel')} (Esc)`"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.cancel') || 'Cancel' }}
+        </UiButton>
+        <UiButton
+          variant="game-green"
+          size="xs"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.done') || 'Done' }}
+        </UiButton>
+      </div>
     </div>
 
-    <!-- Floating HUD when Box Mode (Fill or Select) is Active -->
+    <!-- Minimalist Top Bar when in Draw / Select Mode -->
     <div 
-      v-if="toolStore.activeTool === 'box-fill'"
-      class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 animate-in fade-in slide-in-from-top-2"
-      :class="assetStore.selectedAssetId ? 'border-amber-500/60 text-amber-200' : 'border-purple-500/60 text-purple-200'"
+      v-if="['brush', 'select', 'line', 'box-fill', 'rect'].includes(toolStore.activeTool)"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs animate-in fade-in slide-in-from-top-2 select-none"
+      :class="assetStore.selectedAssetId ? 'border-brand-500/40 text-brand-200' : 'border-purple-500/40 text-purple-200'"
     >
-      <Scan class="w-4 h-4 animate-pulse shrink-0" :class="assetStore.selectedAssetId ? 'text-amber-400' : 'text-purple-400'" />
-      
-      <!-- Box Fill Mode (Asset Selected) -->
-      <template v-if="assetStore.selectedAssetId">
-        <span v-if="!editorController.boxTool.boxStartPoint">
-          <strong>{{ $t('editor.boxFill') }}:</strong> {{ $t('editor.boxFillPrompt1') }}
+      <!-- Mode Icon & Label -->
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <component 
+          :is="Pointer" 
+          class="w-3.5 h-3.5 shrink-0" 
+          :class="assetStore.selectedAssetId ? 'text-brand-400' : 'text-purple-400'" 
+        />
+        <span class="font-semibold text-slate-200 hidden md:inline">
+          {{ assetStore.selectedAssetId ? ($t('editor.draw') || 'Draw') : ($t('editor.selectMode') || 'Select') }}
         </span>
-        <span v-else class="flex items-center gap-1.5">
-          <strong>{{ $t('editor.boxFillPrompt2', { col: editorController.boxTool.boxStartPoint.col, row: editorController.boxTool.boxStartPoint.row }) }}</strong>
-          <span v-if="toolStore.previewCells.length > 0" class="font-mono text-emerald-400 font-bold">
-            ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
-          </span>
-        </span>
-      </template>
-
-      <!-- Box Select Mode (No Asset Selected) -->
-      <template v-else>
-        <span v-if="!editorController.boxTool.boxStartPoint">
-          <strong>{{ $t('editor.boxSelect') }}:</strong> {{ $t('editor.boxSelectPrompt1') }}
-        </span>
-        <span v-else class="flex items-center gap-1.5">
-          <strong>{{ $t('editor.boxSelectPrompt2', { col: editorController.boxTool.boxStartPoint.col, row: editorController.boxTool.boxStartPoint.row }) }}</strong>
-          <span v-if="toolStore.previewCells.length > 0" class="font-mono text-purple-400 font-bold">
-            ({{ toolStore.previewCells.length }} {{ $t('editor.totalCellsCount').toLowerCase() }})
-          </span>
-        </span>
-      </template>
-
-      <UiButton
-        variant="secondary"
-        size="xs"
-        :title="`${$t('common.cancel')} (Esc)`"
-        @click="cancelBoxMode"
-      >
-        {{ $t('common.cancel') }}
-      </UiButton>
-    </div>
-
-    <!-- Floating HUD when in Eraser Mode -->
-    <div 
-      v-if="toolStore.activeTool === 'eraser'"
-      class="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-rose-500/60 shadow-2xl flex flex-wrap items-center gap-2 sm:gap-3 text-xs bg-slate-900/95 text-rose-200 animate-in fade-in slide-in-from-top-2 select-none"
-    >
-      <div class="flex items-center gap-1.5 shrink-0">
-        <Eraser class="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
-        <span class="font-bold text-slate-100 hidden md:inline">{{ $t('shortcuts.eraser') }}</span>
       </div>
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
-      <!-- Sub-tool selector (Simple / Line / Box) -->
+      <!-- Sub-tool selector (Point (Q) / Line (W) / Box (E)) -->
+      <UiTabs
+        v-model="toolStore.drawSubTool"
+        variant="segmented"
+        size="xs"
+        :items="[
+          { id: 'brush', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
+        ]"
+      />
+
+      <div class="h-3.5 w-px bg-slate-800"></div>
+
+      <!-- Active Asset Indicator (When Asset is selected) -->
+      <template v-if="assetStore.selectedAssetId && selectedAssetItem">
+        <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-950/60 border border-brand-500/30 text-brand-300 text-[11px] font-medium max-w-35 sm:max-w-45 truncate">
+          <img 
+            v-if="selectedAssetPreviewSrc" 
+            :src="selectedAssetPreviewSrc" 
+            class="w-3.5 h-3.5 object-contain shrink-0 rounded-xs" 
+            alt="asset"
+          />
+          <span class="truncate">{{ selectedAssetItem.name }}</span>
+        </div>
+
+        <!-- Deselect button to quickly switch to Select mode -->
+        <UiButton
+          variant="ghost"
+          size="xs"
+          :leading-icon="X"
+          custom-class="text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 px-2"
+          :title="`${$t('editor.deselect')} (Esc)`"
+          @click="assetStore.selectAsset(null)"
+        >
+          {{ $t('editor.deselect') || 'Deselect' }}
+        </UiButton>
+      </template>
+
+      <!-- Selection Mode Info & Actions (When NO Asset is selected) -->
+      <template v-else>
+        <!-- If elements are selected -->
+        <template v-if="toolStore.selectedElements.length > 0">
+          <span class="font-mono text-purple-300 font-bold px-1.5 py-0.5 rounded-md bg-purple-950/50 border border-purple-500/30 text-[11px]">
+            {{ toolStore.selectedElements.length }} {{ $t('editor.selectedCount') || 'selected' }}
+          </span>
+
+          <UiButton
+            variant="ghost"
+            size="xs"
+            custom-class="text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 px-2"
+            :title="`${$t('common.clear')} (Esc)`"
+            @click="toolStore.clearSelection()"
+          >
+            {{ $t('common.clear') }}
+          </UiButton>
+
+          <UiButton
+            variant="danger"
+            size="xs"
+            :leading-icon="Trash2"
+            custom-class="px-2"
+            :title="`${$t('common.delete')} (Del)`"
+            @click="handleDeleteSelectedElements"
+          >
+            {{ $t('common.delete') }}
+          </UiButton>
+        </template>
+        <template v-else>
+          <span class="text-slate-400 text-[11px] hidden sm:inline px-1">
+            {{ $t('editor.clickOrDragToSelect') || 'Click or drag to select' }}
+          </span>
+        </template>
+      </template>
+    </div>
+
+    <!-- Minimalist Top Bar when in Eraser Mode -->
+    <div 
+      v-if="toolStore.activeTool === 'eraser'"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border border-rose-500/30 px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-rose-200 animate-in fade-in slide-in-from-top-2 select-none"
+    >
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <Eraser class="w-3.5 h-3.5 text-rose-400 animate-pulse shrink-0" />
+        <span class="font-semibold text-slate-200 hidden md:inline">{{ $t('common.delete') || 'Delete' }}</span>
+      </div>
+
+      <div class="h-3.5 w-px bg-slate-800"></div>
+
+      <!-- Sub-tool selector: Point (Q) / Line (W) / Box (E) -->
       <UiTabs
         v-model="eraserSubTool"
         variant="segmented"
         size="xs"
         :items="[
-          { id: 'simple', label: $t('editor.eraserSimple') || 'Oddiy', icon: Eraser },
-          { id: 'line', label: $t('tools.line') || 'Line', icon: Spline },
-          { id: 'box', label: $t('editor.boxArea') || 'Box Area', icon: Scan },
+          { id: 'simple', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
         ]"
       />
 
       <!-- Prompt / Cell count info -->
       <template v-if="eraserSubTool === 'simple'">
-        <span class="text-slate-400 text-[11px] hidden sm:inline">
-          {{ $t('editor.eraserHint') || 'Bosing yoki surib to\'g\'ridan-to\'g\'ri o\'chiring' }}
+        <span class="text-slate-400 text-[11px] hidden sm:inline px-1">
+          {{ $t('editor.eraserHint') || 'Bosing yoki surib o\'chiring' }}
         </span>
       </template>
       <template v-else-if="editorController.eraserTool.startPoint">
-        <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
-        <span class="font-mono text-rose-300 text-[11px] font-semibold">
-          ({{ toolStore.previewCells.length }} {{ $t('common.cells') || 'cells' }})
+        <div class="h-3.5 w-px bg-slate-800"></div>
+        <span class="font-mono text-rose-300 text-[11px] font-bold">
+          ({{ toolStore.previewCells.length }})
         </span>
       </template>
 
-      <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+      <div class="h-3.5 w-px bg-slate-800"></div>
 
-      <!-- Done / Exit button -->
-      <UiButton
-        variant="secondary"
-        size="xs"
-        @click="toolStore.setTool(toolStore.lastDrawingTool === 'eraser' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
-      >
-        {{ $t('common.done') || 'Tayyor' }}
-      </UiButton>
+      <!-- Cancel / Done buttons -->
+      <div class="flex items-center gap-1">
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :title="`${$t('common.cancel')} (Esc)`"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'eraser' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.cancel') || 'Cancel' }}
+        </UiButton>
+        <UiButton
+          variant="game-green"
+          size="xs"
+          @click="toolStore.setTool(toolStore.lastDrawingTool === 'eraser' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))"
+        >
+          {{ $t('common.done') || 'Done' }}
+        </UiButton>
+      </div>
     </div>
 
     <!-- Floating HUD when Drawing Custom Route -->
@@ -603,7 +701,7 @@ import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
   Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves,
-  Dices, Settings2, Square
+  Dices, Settings2, Square, Pointer
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
@@ -646,6 +744,81 @@ const buildableBoxStartPoint = ref<GridCoord | null>(null)
 // Water Layer Sub-tool ('brush' | 'line' | 'box') & Action Mode ('water' | 'dry')
 const waterSubTool = ref<'brush' | 'line' | 'box'>('brush')
 const waterAction = ref<'water' | 'dry'>('water')
+
+// Session Snapshots for Buildable and Water modes to support reliable Cancel (Esc / Cancel button)
+const buildableSnapshot = ref<{ buildMode: 'all' | 'custom' | undefined; buildableCells: string[] } | null>(null)
+const waterSnapshot = ref<string[] | null>(null)
+
+function captureBuildableSnapshot() {
+  buildableSnapshot.value = {
+    buildMode: mapStore.project.buildMode,
+    buildableCells: [...(mapStore.project.buildableCells || [])],
+  }
+}
+
+function captureWaterSnapshot() {
+  waterSnapshot.value = [...(mapStore.project.waterCells || [])]
+}
+
+function cancelBuildable() {
+  if (buildableSnapshot.value) {
+    mapStore.project.buildMode = buildableSnapshot.value.buildMode
+    mapStore.project.buildableCells = [...buildableSnapshot.value.buildableCells]
+    mapStore.project.updatedAt = Date.now()
+    engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, 'brush', true)
+  }
+  editorController.buildableTool.onCancel(editorController.ctx)
+  toolStore.previewCells = []
+  toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+function finishBuildable() {
+  editorController.buildableTool.onCancel(editorController.ctx)
+  toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+function cancelWater() {
+  if (waterSnapshot.value) {
+    mapStore.project.waterCells = [...waterSnapshot.value]
+    mapStore.project.updatedAt = Date.now()
+    engine.syncWater(mapStore.project, true)
+  }
+  editorController.waterTool.onCancel(editorController.ctx)
+  toolStore.previewCells = []
+  toolStore.setTool(toolStore.lastDrawingTool === 'water' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+function finishWater() {
+  editorController.waterTool.onCancel(editorController.ctx)
+  toolStore.setTool(toolStore.lastDrawingTool === 'water' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+const selectedAssetItem = computed(() => {
+  if (!assetStore.selectedAssetId) return null
+  return assetStore.assets.find(a => a.id === assetStore.selectedAssetId) || null
+})
+
+const selectedAssetPreviewSrc = computed(() => {
+  if (!selectedAssetItem.value) return ''
+  return assetStore.getAssetPreview(selectedAssetItem.value)
+})
+
+function handleDeleteSelectedElements() {
+  if (toolStore.selectedElements.length === 0 && !toolStore.selectedElement) return
+  if (toolStore.selectedElements.length > 0) {
+    for (const el of toolStore.selectedElements) {
+      mapStore.removeTileItem(el.col, el.row, el.itemId, el.layerId)
+    }
+  } else if (toolStore.selectedElement) {
+    mapStore.removeTileItem(
+      toolStore.selectedElement.col,
+      toolStore.selectedElement.row,
+      toolStore.selectedElement.itemId,
+      toolStore.selectedElement.layerId
+    )
+  }
+  toolStore.clearSelection()
+}
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
@@ -805,9 +978,17 @@ function requestSyncLayers() {
 }
 
 // Watchers for editor rendering
-watch(() => mapStore.project.layers, () => {
+watch(() => mapStore.historyRevision, () => {
+  if (engine.isInitialized) {
+    engine.syncWater(mapStore.project, true)
+    engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, toolStore.activeTool, true)
+    engine.syncLayers(mapStore.project, getAssetMap())
+  }
+})
+
+watch(() => mapStore.project.updatedAt, () => {
   requestSyncLayers()
-}, { deep: true })
+})
 
 watch(() => [
   mapStore.project.cols, mapStore.project.rows, mapStore.project.tileWidth, mapStore.project.tileHeight,
@@ -869,6 +1050,7 @@ watch(() => [
   characterStore.selectedDoorIndex,
   characterStore.spawnMode,
   characterStore.isSettingSpawnPoint,
+  characterStore.isSettingPlayerStartPoint,
   characterStore.customRoutes,
 ], () => {
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
@@ -907,19 +1089,33 @@ watch(() => [
   }
 }, { deep: true })
 
-// Sync Box, Eraser, and Buildable states if active tool changes elsewhere
-watch(() => toolStore.activeTool, (newTool) => {
+// Sync Box, Eraser, Water, and Buildable states if active tool changes
+watch(() => toolStore.activeTool, (newTool, oldTool) => {
+  if (newTool === 'buildable') {
+    captureBuildableSnapshot()
+  } else if (oldTool === 'buildable') {
+    buildableSnapshot.value = null
+  }
+
+  if (newTool === 'water') {
+    captureWaterSnapshot()
+  } else if (oldTool === 'water') {
+    waterSnapshot.value = null
+  }
+
   if (newTool !== 'box-fill' && editorController.boxTool.boxStartPoint) {
     editorController.boxTool.onCancel(editorController.ctx)
   }
   if (newTool !== 'eraser' && editorController.eraserTool.startPoint) {
     editorController.eraserTool.onCancel(editorController.ctx)
   }
-  if (newTool !== 'buildable' && buildableBoxStartPoint.value) {
-    buildableBoxStartPoint.value = null
-    toolStore.previewCells = []
+  if (newTool !== 'buildable' && editorController.buildableTool.boxStartPoint) {
+    editorController.buildableTool.onCancel(editorController.ctx)
   }
-})
+  if (newTool !== 'water' && editorController.waterTool.boxStartPoint) {
+    editorController.waterTool.onCancel(editorController.ctx)
+  }
+}, { immediate: true })
 
 // Track modifier keys for strict replace (Ctrl) vs stack (Shift) placement
 const isCtrlPressed = ref(false)
@@ -1087,8 +1283,12 @@ function handleKeyDown(e: KeyboardEvent) {
       toolStore.isExportModalOpen = false
       return
     }
-    if (toolStore.activeTool === 'box-fill') {
-      cancelBoxMode()
+    if (editorController.lineTool.lineStartPoint) {
+      editorController.lineTool.onCancel(editorController.ctx)
+      return
+    }
+    if (editorController.boxTool.boxStartPoint) {
+      editorController.boxTool.onCancel(editorController.ctx)
       return
     }
     if (toolStore.activeTool === 'eraser' && editorController.eraserTool.startPoint) {
@@ -1104,17 +1304,32 @@ function handleKeyDown(e: KeyboardEvent) {
       characterStore.isSettingSpawnPoint = false
       return
     }
-    if (toolStore.activeTool === 'buildable') {
-      if (buildableBoxStartPoint.value) {
-        buildableBoxStartPoint.value = null
-        toolStore.previewCells = []
-        return
-      }
-      toolStore.setTool(toolStore.lastDrawingTool === 'buildable' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+    if (characterStore.isSettingPlayerStartPoint) {
+      characterStore.isSettingPlayerStartPoint = false
       return
     }
-    if (toolStore.selectedElement) {
-      toolStore.setSelectedElement(null)
+    if (toolStore.activeTool === 'buildable') {
+      if (editorController.buildableTool.boxStartPoint) {
+        editorController.buildableTool.onCancel(editorController.ctx)
+        return
+      }
+      cancelBuildable()
+      return
+    }
+    if (toolStore.activeTool === 'water') {
+      if (editorController.waterTool.boxStartPoint) {
+        editorController.waterTool.onCancel(editorController.ctx)
+        return
+      }
+      cancelWater()
+      return
+    }
+    if (toolStore.activeTool === 'scatter') {
+      toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+      return
+    }
+    if (toolStore.selectedElements.length > 0 || toolStore.selectedElement) {
+      toolStore.clearSelection()
       return
     }
     if (assetStore.selectedAssetId) {
@@ -1148,6 +1363,9 @@ function handleKeyDown(e: KeyboardEvent) {
         engine.renderCharacter(characterStore, mapStore.project)
       } else {
         mapStore.redo()
+        engine.syncWater(mapStore.project, true)
+        engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, toolStore.activeTool, true)
+        engine.syncLayers(mapStore.project, getAssetMap())
       }
       return
     }
@@ -1160,6 +1378,9 @@ function handleKeyDown(e: KeyboardEvent) {
         engine.renderCharacter(characterStore, mapStore.project)
       } else {
         mapStore.undo()
+        engine.syncWater(mapStore.project, true)
+        engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, toolStore.activeTool, true)
+        engine.syncLayers(mapStore.project, getAssetMap())
       }
       return
     }
@@ -1172,7 +1393,7 @@ function handleKeyDown(e: KeyboardEvent) {
     }
   }
 
-  // 5. Delete / Backspace: delete selected item / waypoint
+  // 5. Delete / Backspace: delete selected item(s) / waypoint
   if (code === 'Delete' || code === 'Backspace' || key === 'delete' || key === 'backspace') {
     if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
       e.preventDefault()
@@ -1180,10 +1401,9 @@ function handleKeyDown(e: KeyboardEvent) {
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (toolStore.selectedElement) {
+    if (toolStore.selectedElements.length > 0 || toolStore.selectedElement) {
       e.preventDefault()
-      mapStore.removeTileItem(toolStore.selectedElement.col, toolStore.selectedElement.row, toolStore.selectedElement.itemId, toolStore.selectedElement.layerId)
-      toolStore.setSelectedElement(null)
+      handleDeleteSelectedElements()
       return
     }
   }
@@ -1239,31 +1459,9 @@ function handleKeyDown(e: KeyboardEvent) {
       return
     }
 
-    // Box Tool (Select / Fill): F / U
-    if (code === 'KeyF' || key === 'f' || code === 'KeyU' || key === 'u') {
-      e.preventDefault()
-      if (toolStore.activeTool === 'buildable') {
-        buildableSubTool.value = 'box'
-        return
-      }
-      if (toolStore.activeTool === 'water') {
-        waterSubTool.value = 'box'
-        return
-      }
-      toggleBoxMode()
-      return
-    }
-
-    // Box Clear Shortcut (C): Switch to Eraser Box mode
-    if (code === 'KeyC' || key === 'c') {
-      e.preventDefault()
-      toolStore.setTool('eraser')
-      eraserSubTool.value = 'box'
-      return
-    }
-
-    // Tool switching: V, B, E, G, I, L
-    if (code === 'KeyV' || key === 'v' || code === 'KeyB' || key === 'b') {
+    // --- Unified Sub-Mode Hotkeys: Q (Point), W (Line), E (Box) ---
+    // Works across Select/Draw, Delete/Eraser, Water, Buildable Zones, Scatter
+    if (code === 'KeyQ' || key === 'q') {
       e.preventDefault()
       if (toolStore.activeTool === 'buildable') {
         buildableSubTool.value = 'brush'
@@ -1273,36 +1471,102 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'brush'
         return
       }
-      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
+      if (toolStore.activeTool === 'eraser') {
+        eraserSubTool.value = 'simple'
+        return
+      }
+      if (toolStore.activeTool === 'scatter') {
+        toolStore.scatterShape = 'brush'
+        return
+      }
       toolStore.setTool('brush')
+      toolStore.drawSubTool = 'brush'
       return
     }
-    if (code === 'KeyE' || key === 'e') {
+
+    if (code === 'KeyW' || key === 'w') {
       e.preventDefault()
       if (toolStore.activeTool === 'buildable') {
-        buildableAction.value = 'block'
+        buildableSubTool.value = 'line'
         return
       }
       if (toolStore.activeTool === 'water') {
-        waterAction.value = 'dry'
+        waterSubTool.value = 'line'
         return
       }
-      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
+      if (toolStore.activeTool === 'eraser') {
+        eraserSubTool.value = 'line'
+        return
+      }
+      if (toolStore.activeTool === 'scatter') {
+        toolStore.scatterShape = 'line'
+        return
+      }
+      toolStore.setTool('brush')
+      toolStore.drawSubTool = 'line'
+      return
+    }
+
+    if (code === 'KeyE' || key === 'e') {
+      e.preventDefault()
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'eraser') {
+        eraserSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'scatter') {
+        toolStore.scatterShape = 'box'
+        return
+      }
+      toolStore.setTool('brush')
+      toolStore.drawSubTool = 'box'
+      return
+    }
+
+    // --- Main Tool Selection Hotkeys ---
+    // Select / Draw: S (aliases: B, V)
+    if (code === 'KeyS' || key === 's' || code === 'KeyB' || key === 'b' || code === 'KeyV' || key === 'v') {
+      e.preventDefault()
+      toolStore.setTool('brush')
+      return
+    }
+
+    // Delete / Eraser: R
+    if (code === 'KeyR' || key === 'r') {
+      e.preventDefault()
       toolStore.setTool('eraser')
       return
     }
-    if (code === 'KeyG' || key === 'g') {
+
+    // Bucket Fill: F
+    if (code === 'KeyF' || key === 'f') {
       e.preventDefault()
-      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('bucket')
       return
     }
-    if (code === 'KeyI' || key === 'i') {
+
+    // Eyedropper / Pipette: G (alias: I)
+    if (code === 'KeyG' || key === 'g' || code === 'KeyI' || key === 'i') {
       e.preventDefault()
-      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
       toolStore.setTool('picker')
       return
     }
+
+    // Buildable Zones: Z
+    if (code === 'KeyZ' || key === 'z') {
+      e.preventDefault()
+      toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')
+      return
+    }
+
+    // Direct Line Tool alias: L
     if (code === 'KeyL' || key === 'l') {
       e.preventDefault()
       if (toolStore.activeTool === 'buildable') {
@@ -1313,30 +1577,45 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'line'
         return
       }
-      if (toolStore.activeTool === 'box-fill') cancelBoxMode()
-      toolStore.setTool('line')
+      if (toolStore.activeTool === 'eraser') {
+        eraserSubTool.value = 'line'
+        return
+      }
+      toolStore.setTool('brush')
+      toolStore.drawSubTool = 'line'
       return
     }
-    if (code === 'KeyW' || key === 'w') {
-      if (!e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')
+
+    // Direct Box Tool alias: U / C
+    if (code === 'KeyU' || key === 'u' || code === 'KeyC' || key === 'c') {
+      e.preventDefault()
+      if (code === 'KeyC' || key === 'c') {
+        toolStore.setTool('eraser')
+        eraserSubTool.value = 'box'
         return
       }
+      if (toolStore.activeTool === 'buildable') {
+        buildableSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'water') {
+        waterSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'eraser') {
+        eraserSubTool.value = 'box'
+        return
+      }
+      toolStore.setTool('brush')
+      toolStore.drawSubTool = 'box'
+      return
     }
-    if (code === 'KeyR' || key === 'r') {
-      if (!e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        handleToggleScatterTool()
-        return
-      }
-    }
-    if (code === 'KeyZ' || key === 'z') {
-      if (!e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')
-        return
-      }
+
+    // History Log Modal: H
+    if (code === 'KeyH' || key === 'h') {
+      e.preventDefault()
+      toolStore.isHistoryModalOpen = !toolStore.isHistoryModalOpen
+      return
     }
   }
 }
@@ -1349,25 +1628,7 @@ function handleKeyUp(e: KeyboardEvent) {
   if (e.code === 'Space') camera.isSpacePressed.value = false
 }
 
-function toggleBoxMode() {
-  if (toolStore.activeTool === 'box-fill') {
-    toolStore.setTool(toolStore.lastDrawingTool === 'box-fill' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
-  } else {
-    toolStore.setTool('box-fill')
-  }
-}
-
-function cancelBoxMode() {
-  editorController.boxTool.onCancel(editorController.ctx)
-  if (toolStore.activeTool === 'box-fill') {
-    toolStore.setTool(toolStore.lastDrawingTool === 'box-fill' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
-  }
-}
-
-
 function handleToggleScatterTool() {
-  if (toolStore.activeTool === 'box-fill') cancelBoxMode()
-
   if (toolStore.activeTool === 'scatter') {
     toolStore.openScatterModal()
   } else {

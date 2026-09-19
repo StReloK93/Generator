@@ -5,6 +5,7 @@ import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef, BoxCle
 export const useToolStore = defineStore('toolStore', () => {
   const activeTool = ref<ToolType>('brush')
   const lastDrawingTool = ref<ToolType>('brush')
+  const drawSubTool = ref<'brush' | 'line' | 'box'>('brush')
   const hoveredCell = ref<GridCoord | null>(null)
   const isMouseDown = ref<boolean>(false)
   const dragStartCell = ref<GridCoord | null>(null)
@@ -26,6 +27,7 @@ export const useToolStore = defineStore('toolStore', () => {
   // UI Modals & Panels
   const isExportModalOpen = ref<boolean>(false)
   const isShortcutsModalOpen = ref<boolean>(false)
+  const isHistoryModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
   const isBoxClearModalOpen = ref<boolean>(false)
   const boxClearData = ref<BoxClearModalData | null>(null)
@@ -117,12 +119,20 @@ export const useToolStore = defineStore('toolStore', () => {
 
   function setTool(tool: ToolType) {
     activeTool.value = tool
+    if (tool === 'line') {
+      drawSubTool.value = 'line'
+    } else if (tool === 'box-fill' || tool === 'rect') {
+      drawSubTool.value = 'box'
+    } else if (tool === 'brush' || tool === 'select') {
+      drawSubTool.value = 'brush'
+    }
+
     if (DRAWING_TOOLS.includes(tool)) {
       lastDrawingTool.value = tool
     }
     previewCells.value = []
     dragStartCell.value = null
-    if (tool !== 'select') {
+    if (tool !== 'select' && tool !== 'brush') {
       isMovingElement.value = false
     }
   }
@@ -197,6 +207,7 @@ export const useToolStore = defineStore('toolStore', () => {
   return {
     activeTool,
     lastDrawingTool,
+    drawSubTool,
     hoveredCell,
     isMouseDown,
     dragStartCell,
@@ -210,6 +221,7 @@ export const useToolStore = defineStore('toolStore', () => {
     pan,
     isExportModalOpen,
     isShortcutsModalOpen,
+    isHistoryModalOpen,
     isGameConfigModalOpen,
     isBoxClearModalOpen,
     boxClearData,

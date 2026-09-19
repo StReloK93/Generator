@@ -68,6 +68,7 @@
     <TowerCreateModal />
     <BoxClearModal />
     <KeyboardShortcutsModal />
+    <HistoryModal />
 
     <WelcomeProjectModal ref="welcomeModalRef" />
 
@@ -88,6 +89,7 @@ import GameConfigModal from '../components/GameConfigModal.vue'
 import TowerCreateModal from '../components/TowerCreateModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'
+import HistoryModal from '../components/editor/HistoryModal.vue'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -198,7 +200,6 @@ function autoSaveCurrentState() {
 watch(
   () => [
     mapStore.project.updatedAt,
-    mapStore.totalTilesCount,
     assetStore.assets.length,
     characterStore.waveConfigs,
     characterStore.customRoutes,

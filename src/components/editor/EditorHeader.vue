@@ -102,6 +102,16 @@
         :title="`${$t('header.redo')} (Ctrl+Y)`"
         @click="handleRedo"
       />
+
+      <!-- History -->
+      <UiIconButton
+        variant="ghost"
+        size="sm"
+        :icon="History"
+        :active="toolStore.isHistoryModalOpen"
+        :title="`${$t('header.history')} (H)`"
+        @click="toolStore.isHistoryModalOpen = !toolStore.isHistoryModalOpen"
+      />
     </div>
 
     <!-- Right: TD Hub Modal, Start Game, Export -->
@@ -159,7 +169,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload
+  Home, Grid, Hash, Undo2, Redo2, History, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'

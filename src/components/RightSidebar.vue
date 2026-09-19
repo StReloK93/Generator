@@ -19,7 +19,7 @@
 
       <div class="writing-mode-vertical text-xs font-bold text-slate-400 tracking-wider flex items-center gap-2">
         <Boxes class="w-3.5 h-3.5 text-brand-400" />
-        <span>{{ $t('sidebar.objectsAndAssets') }} ({{ mapStore.allPlacedElements.length }} / {{ assetStore.assets.length }})</span>
+        <span>{{ $t('sidebar.objectsAndAssets') }} ({{ mapStore.totalTilesCount }} / {{ assetStore.assets.length }})</span>
       </div>
 
       <UiIconButton 
@@ -407,6 +407,16 @@
                     @click.stop="handleRelocateStart(idx)"
                   />
 
+                  <!-- Set / Relocate Player Base Point -->
+                  <UiIconButton 
+                    :icon="Castle"
+                    size="sm"
+                    variant="ghost"
+                    :title="$t('sidebar.setPlayerStart')"
+                    custom-class="p-0.5! w-6! h-6! text-sky-400 hover:text-sky-300"
+                    @click.stop="handleSetPlayerStart(idx)"
+                  />
+
                   <!-- Delete Route -->
                   <UiIconButton 
                     v-if="characterStore.detectedDoors.length > 1"
@@ -421,10 +431,15 @@
               </div>
 
               <!-- Route Bottom Row: Coordinates & Waypoint Stats -->
-              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pl-7">
-                <span class="text-amber-400/90 font-medium">
-                  {{ $t('sidebar.startCoord') }}: ({{ door.spawnCol ?? door.col }}, {{ door.spawnRow ?? door.row }})
-                </span>
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pl-7 flex-wrap gap-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-amber-400/90 font-medium">
+                    {{ $t('sidebar.startCoord') }}: ({{ door.spawnCol ?? door.col }}, {{ door.spawnRow ?? door.row }})
+                  </span>
+                  <span v-if="door.playerCol !== undefined" class="text-sky-400 font-medium bg-sky-950/50 px-1 rounded border border-sky-500/20">
+                    {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ door.playerCol }}, {{ door.playerRow }})
+                  </span>
+                </div>
                 <span class="text-slate-500">
                   {{ getRouteStats(door, idx) }}
                 </span>
@@ -576,7 +591,7 @@ import {
   Crosshair, Trash2, FolderOpen, 
   Plus, Eye, EyeOff, Lock, Unlock, 
   ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin,
-  CopyCheck, Maximize2, Star
+  CopyCheck, Maximize2, Star, Castle
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -684,6 +699,12 @@ function handleRelocateStart(idx: number) {
   characterStore.statusMessage = t('sidebar.clickRelocateStart', { number: idx + 1 })
 }
 
+function handleSetPlayerStart(idx: number) {
+  characterStore.selectedDoorIndex = idx
+  characterStore.isSettingPlayerStartPoint = true
+  characterStore.statusMessage = t('sidebar.clickSetPlayerStart', { number: idx + 1 })
+}
+
 function getRouteStats(door: any, idx: number): string {
   const doorKey = door.id || `door-${idx}`
   const waypoints = characterStore.customWaypoints[doorKey] || []
@@ -728,6 +749,7 @@ function getAsset(assetId: string): AssetItem | null {
 }
 
 const filteredPlacedElements = computed(() => {
+  if (activeTopTab.value !== 'elements') return []
   const query = elementSearchQuery.value.trim().toLowerCase()
   return mapStore.allPlacedElements.filter(entry => {
     if (!query) return true

@@ -108,13 +108,14 @@ const shortcutCategories: ShortcutCategory[] = [
     icon: Paintbrush,
     badgeClass: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
     items: [
-      { actionKey: 'shortcuts.brushSelect', keys: [['B'], ['V']] },
-      { actionKey: 'shortcuts.boxTool', keys: [['F'], ['U']] },
-      { actionKey: 'shortcuts.eraser', keys: [['E']] },
-      { actionKey: 'shortcuts.bucketFill', keys: [['G']] },
-      { actionKey: 'shortcuts.eyedropper', keys: [['I']] },
-      { actionKey: 'shortcuts.lineTool', keys: [['L']] },
-      { actionKey: 'shortcuts.boxClear', keys: [['C']] },
+      { actionKey: 'shortcuts.brushSelect', keys: [['S']] },
+      { actionKey: 'shortcuts.eraser', keys: [['R']] },
+      { actionKey: 'shortcuts.bucketFill', keys: [['F']] },
+      { actionKey: 'shortcuts.eyedropper', keys: [['G']] },
+      { actionKey: 'shortcuts.buildableTool', keys: [['Z']] },
+      { actionKey: 'shortcuts.subPoint', keys: [['Q']] },
+      { actionKey: 'shortcuts.subLine', keys: [['W']] },
+      { actionKey: 'shortcuts.subBox', keys: [['E']] },
     ]
   },
   {
@@ -126,7 +127,6 @@ const shortcutCategories: ShortcutCategory[] = [
       { actionKey: 'shortcuts.panCanvas', keys: [['Space', 'Drag']] },
       { actionKey: 'shortcuts.zoomCanvas', keys: [['Wheel']] },
       { actionKey: 'shortcuts.focusCenter', keys: [['Home'], ['Ctrl', '0']] },
-      { actionKey: 'shortcuts.toggleGrid', keys: [['H']] },
       { actionKey: 'shortcuts.toggleCoordinates', keys: [['K']] },
     ]
   },
@@ -138,6 +138,7 @@ const shortcutCategories: ShortcutCategory[] = [
     items: [
       { actionKey: 'shortcuts.undo', keys: [['Ctrl', 'Z']] },
       { actionKey: 'shortcuts.redo', keys: [['Ctrl', 'Y'], ['Ctrl', 'Shift', 'Z']] },
+      { actionKey: 'shortcuts.history', keys: [['H']] },
       { actionKey: 'shortcuts.deleteItem', keys: [['Delete'], ['Backspace']] },
       { actionKey: 'shortcuts.cancelDeselect', keys: [['Esc']] },
       { actionKey: 'shortcuts.stackModifier', keys: [['Shift', 'Click']] },

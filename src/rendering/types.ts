@@ -26,4 +26,5 @@ export interface RenderOverlayOptions {
   previewColor?: number
   isDrawingRoute?: boolean
   isSettingSpawnPoint?: boolean
+  isSettingPlayerStartPoint?: boolean
 }

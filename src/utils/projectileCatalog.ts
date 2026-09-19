@@ -632,7 +632,7 @@ const runtimeCustomProjectilesMap = new Map<string, ProjectileDef>()
 
 export function normalizeProjectileDef(raw: any): ProjectileDef {
   if (!raw) return BASE_PROJECTILE_CATALOG[0]
-  
+
   const parseHex = (val: any, fallback: number): number => {
     if (typeof val === 'number' && !isNaN(val)) return val
     if (typeof val === 'string' && val.startsWith('#')) {

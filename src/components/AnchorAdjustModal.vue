@@ -81,66 +81,15 @@
           @wheel.prevent="handleViewportWheel"
         >
           <!-- 1. SVG Base Isometric Grid Layer (Underneath Sprite) -->
-          <svg 
-            class="absolute inset-0 w-full h-full pointer-events-none"
-            :style="{
-              transform: `scale(${zoom})`,
-              transformOrigin: `${viewportCenter.x}px ${viewportCenter.y}px`
-            }"
-          >
-            <g v-if="viewMode === 'isometric'">
-              <!-- Ambient 5x5 Isometric Diamond Grid (Bright & Clearly Visible) -->
-              <g opacity="0.65">
-                <polygon 
-                  v-for="cell in ambientGridCells" 
-                  :key="cell.key"
-                  :points="cell.points"
-                  fill="rgba(15, 23, 42, 0.6)"
-                  stroke="rgba(100, 116, 139, 0.75)"
-                  stroke-width="1.2"
-                />
-              </g>
-
-              <!-- Optional Ground Slab Underneath for Preview -->
-              <polygon 
-                v-if="showGroundGuide"
-                :points="primaryCellPolygon"
-                fill="rgba(34, 197, 94, 0.25)"
-                stroke="rgba(34, 197, 94, 0.8)"
-                stroke-width="1.8"
-              />
-
-              <!-- Highlight Active Target Footprint Diamond Base -->
-              <polygon 
-                :points="footprintPolygon"
-                fill="rgba(99, 102, 241, 0.2)"
-                stroke="rgba(129, 140, 248, 0.9)"
-                stroke-width="2"
-              />
-            </g>
-
-            <!-- 2D Sprite Mode: Center Guides -->
-            <g v-else opacity="0.5">
-              <line 
-                :x1="viewportCenter.x - 120" 
-                :y1="viewportCenter.y" 
-                :x2="viewportCenter.x + 120" 
-                :y2="viewportCenter.y" 
-                stroke="#64748b" 
-                stroke-width="1" 
-                stroke-dasharray="3 3" 
-              />
-              <line 
-                :x1="viewportCenter.x" 
-                :y1="viewportCenter.y - 120" 
-                :x2="viewportCenter.x" 
-                :y2="viewportCenter.y + 120" 
-                stroke="#64748b" 
-                stroke-width="1" 
-                stroke-dasharray="3 3" 
-              />
-            </g>
-          </svg>
+          <AnchorBaseGridSvg
+            :zoom="zoom"
+            :viewport-center="viewportCenter"
+            :view-mode="viewMode"
+            :ambient-grid-cells="ambientGridCells"
+            :show-ground-guide="showGroundGuide"
+            :primary-cell-polygon="primaryCellPolygon"
+            :footprint-polygon="footprintPolygon"
+          />
 
           <!-- 2. Rendered Sprite Graphic Layer (Exact Pixel & Bounds Alignment) -->
           <div 
@@ -184,90 +133,15 @@
           </div>
 
           <!-- 3. SVG Grid Overlay Layer (ALWAYS ON TOP of Sprite so Grid & Anchor are Never Hidden) -->
-          <svg 
-            class="absolute inset-0 w-full h-full pointer-events-none z-20"
-            :style="{
-              transform: `scale(${zoom})`,
-              transformOrigin: `${viewportCenter.x}px ${viewportCenter.y}px`
-            }"
-          >
-            <g v-if="viewMode === 'isometric'">
-              <!-- Target Tile Diamond Outline (Glowing Cyan on top of sprite) -->
-              <polygon 
-                :points="footprintPolygon"
-                fill="none"
-                stroke="#38bdf8"
-                stroke-width="1.8"
-                stroke-dasharray="4 2"
-              />
-
-              <!-- 4 Diamond Vertices (Cyan Dots) -->
-              <circle 
-                v-for="(vert, vIdx) in footprintVertices" 
-                :key="vIdx"
-                :cx="vert.x" 
-                :cy="vert.y" 
-                r="3" 
-                fill="#38bdf8" 
-                stroke="#0f172a" 
-                stroke-width="1" 
-              />
-
-              <!-- Footprint Center Crosshairs (Rose/Red) -->
-              <line 
-                :x1="footprintCenter.x - 18" 
-                :y1="footprintCenter.y" 
-                :x2="footprintCenter.x + 18" 
-                :y2="footprintCenter.y" 
-                stroke="#f43f5e" 
-                stroke-width="1.8" 
-              />
-              <line 
-                :x1="footprintCenter.x" 
-                :y1="footprintCenter.y - 12" 
-                :x2="footprintCenter.x" 
-                :y2="footprintCenter.y + 12" 
-                stroke="#f43f5e" 
-                stroke-width="1.8" 
-              />
-              <circle 
-                :cx="footprintCenter.x" 
-                :cy="footprintCenter.y" 
-                r="4" 
-                fill="#f43f5e" 
-                stroke="#ffffff" 
-                stroke-width="1.5" 
-              />
-            </g>
-
-            <!-- 2D Sprite Mode Pivot Indicator -->
-            <g v-else>
-              <circle 
-                :cx="spriteModePivot.x" 
-                :cy="spriteModePivot.y" 
-                r="4.5" 
-                fill="#f43f5e" 
-                stroke="#ffffff" 
-                stroke-width="1.5" 
-              />
-              <line 
-                :x1="spriteModePivot.x - 16" 
-                :y1="spriteModePivot.y" 
-                :x2="spriteModePivot.x + 16" 
-                :y2="spriteModePivot.y" 
-                stroke="#f43f5e" 
-                stroke-width="1.5" 
-              />
-              <line 
-                :x1="spriteModePivot.x" 
-                :y1="spriteModePivot.y - 16" 
-                :x2="spriteModePivot.x" 
-                :y2="spriteModePivot.y + 16" 
-                stroke="#f43f5e" 
-                stroke-width="1.5" 
-              />
-            </g>
-          </svg>
+          <AnchorOverlayGridSvg
+            :zoom="zoom"
+            :viewport-center="viewportCenter"
+            :view-mode="viewMode"
+            :footprint-polygon="footprintPolygon"
+            :footprint-vertices="footprintVertices"
+            :footprint-center="footprintCenter"
+            :sprite-mode-pivot="spriteModePivot"
+          />
 
           <!-- Bottom Viewport Helper Info Overlay -->
           <div class="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-30">
@@ -580,6 +454,7 @@ import {
   Focus, Footprints, Lightbulb, Castle 
 } from 'lucide-vue-next'
 import { UiModal, UiSlider, UiButton, UiIconButton, UiTabs, UiNumberInput, UiSwitch } from './ui'
+import { AnchorBaseGridSvg, AnchorOverlayGridSvg } from './svg'
 import { AssetItem } from '../types/map'
 import { useAssetStore } from '../stores/assetStore'
 

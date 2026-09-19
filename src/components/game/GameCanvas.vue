@@ -109,19 +109,19 @@ onMounted(async () => {
   towerStore.restoreFromProject()
   characterStore.detectDoors()
 
-  // Focus on player's start point (or player's assigned route)
+  // Focus on player's build base point (or player's assigned route start)
   let targetCol = (mapStore.project.cols - 1) / 2
   let targetRow = (mapStore.project.rows - 1) / 2
 
   if (multiplayerStore.roomId && multiplayerStore.mySlot) {
-    targetCol = multiplayerStore.mySlot.spawnCol
-    targetRow = multiplayerStore.mySlot.spawnRow
+    targetCol = multiplayerStore.mySlot.playerCol ?? multiplayerStore.mySlot.spawnCol
+    targetRow = multiplayerStore.mySlot.playerRow ?? multiplayerStore.mySlot.spawnRow
   } else if (characterStore.detectedDoors.length > 0) {
     const doorIdx = characterStore.selectedDoorIndex ?? 0
     const door = characterStore.detectedDoors[doorIdx] || characterStore.detectedDoors[0]
     if (door) {
-      targetCol = door.spawnCol ?? door.col
-      targetRow = door.spawnRow ?? door.row
+      targetCol = door.playerCol ?? door.spawnCol ?? door.col
+      targetRow = door.playerRow ?? door.spawnRow ?? door.row
     }
   }
 

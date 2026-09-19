@@ -46,7 +46,13 @@ export function getBuiltinMaps(): BuiltinMapSummary[] {
       name: project.name || fileName,
       cols: project.cols || 60,
       rows: project.rows || 60,
-      playersCount: project.playersCount || project.gameSettings?.maxPlayers || (project.cols >= 60 ? 4 : 2),
+      playersCount: (() => {
+        const explicit = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
+        if (explicit && typeof explicit === 'number' && explicit > 0) return explicit
+        const spawnPointsCount = project.spawnPoints?.length || Object.keys(project.customRoutes || {}).length || 0
+        if (spawnPointsCount > 0) return spawnPointsCount
+        return project.cols >= 60 ? 4 : 2
+      })(),
       wavesCount: waves.length || 24,
       raw,
     }
@@ -277,4 +283,5 @@ export function applyMapPayloadToStores(rawPayload: any): void {
   towerStore.restoreFromProject()
   characterStore.restoreWavesFromProject()
   characterStore.detectDoors()
+  mapStore.resetHistory(`Map loaded: ${project.name || 'Project'}`)
 }
