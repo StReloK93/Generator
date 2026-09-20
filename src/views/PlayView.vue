@@ -80,7 +80,7 @@
         <!-- Map Selection Grid -->
         <div class="space-y-1 min-h-0 flex-1 flex flex-col justify-center">
           <div class="flex items-center justify-between px-0.5">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $t('play.selectMap') }}:</label>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ $t('common.selectMap') }}:</label>
             <span class="text-[9px] text-amber-400 font-semibold">{{ availableMaps[selectedMapIndex]?.playersCount || 4 }} {{ $t('lobby.players').split(' ')[0] }}</span>
           </div>
 
@@ -172,7 +172,7 @@
             :loading="isRefreshing"
             @click="refreshRooms"
           >
-            {{ $t('play.refresh') }}
+            {{ $t('common.refresh') }}
           </UiButton>
         </div>
 

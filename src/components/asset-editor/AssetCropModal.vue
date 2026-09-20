@@ -43,7 +43,7 @@
             :icon="RotateCcw"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.rotate90') + ' (CCW)'"
+            :title="$t('common.rotate90') + ' (CCW)'"
             @click="rotateImage(-90)"
           />
 
@@ -52,7 +52,7 @@
             :icon="RotateCw"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.rotate90') + ' (CW)'"
+            :title="$t('common.rotate90') + ' (CW)'"
             @click="rotateImage(90)"
           />
 
@@ -61,7 +61,7 @@
             :icon="FlipHorizontal"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.flipH')"
+            :title="$t('common.flipHorizontal')"
             @click="toggleFlipH"
           />
 
@@ -70,7 +70,7 @@
             :icon="FlipVertical"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.flipV')"
+            :title="$t('common.flipVertical')"
             @click="toggleFlipV"
           />
 
@@ -79,7 +79,7 @@
             :icon="RefreshCw"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.resetCrop')"
+            :title="$t('common.reset')"
             @click="resetCrop"
           />
         </div>
@@ -196,13 +196,13 @@
         />
         <UiNumberInput
           :model-value="Math.round(cropRect.width)"
-          :label="$t('assetEditor.cropWidth') || 'Kenglik'"
+          :label="$t('common.width') || 'Kenglik'"
           unit="px"
           @update:model-value="(val) => updateCoord('width', val)"
         />
         <UiNumberInput
           :model-value="Math.round(cropRect.height)"
-          :label="$t('assetEditor.cropHeight') || 'Balandlik'"
+          :label="$t('common.height') || 'Balandlik'"
           unit="px"
           @update:model-value="(val) => updateCoord('height', val)"
         />
@@ -241,7 +241,7 @@
             :disabled="!imageLoaded"
             @click="handleApplyCrop(true)"
           >
-            {{ $t('assetEditor.applyCrop') }}
+            {{ $t('common.apply') }}
           </UiButton>
         </div>
       </div>

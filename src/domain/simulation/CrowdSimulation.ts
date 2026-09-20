@@ -105,9 +105,9 @@ export class CrowdSimulation {
 
           dotColor = 0xf97316
           dotText = `-${tickDmg}`
-          if (effect.type === 'fire') { dotColor = 0xef4444; dotText = `-${tickDmg} 🔥` }
-          else if (effect.type === 'poison') { dotColor = 0x10b981; dotText = `-${tickDmg} 🧪` }
-          else if (effect.type === 'blood') { dotColor = 0xf43f5e; dotText = `-${tickDmg} 🩸` }
+          if (effect.type === 'fire') { dotColor = 0xef4444; dotText = `-${tickDmg}` }
+          else if (effect.type === 'poison') { dotColor = 0x10b981; dotText = `-${tickDmg}` }
+          else if (effect.type === 'blood') { dotColor = 0xf43f5e; dotText = `-${tickDmg}` }
         }
       }
 

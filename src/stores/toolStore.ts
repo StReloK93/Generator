@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef, BoxClearModalData } from '../types/map'
 
 export const useToolStore = defineStore('toolStore', () => {
@@ -184,8 +184,25 @@ export const useToolStore = defineStore('toolStore', () => {
     isMovingElement.value = false
   }
 
+  const selectedKeysSet = computed(() => {
+    const set = new Set<string>()
+    const list = selectedElements.value
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i]
+      if (e) {
+        set.add(`${e.layerId}:${e.itemId}`)
+        set.add(e.itemId)
+      }
+    }
+    return set
+  })
+
   function isElementSelected(itemId: string, layerId?: string): boolean {
-    return selectedElements.value.some(e => e.itemId === itemId && (!layerId || e.layerId === layerId))
+    if (!itemId) return false
+    if (layerId) {
+      return selectedKeysSet.value.has(`${layerId}:${itemId}`)
+    }
+    return selectedKeysSet.value.has(itemId)
   }
 
   function setZoom(newZoom: number) {

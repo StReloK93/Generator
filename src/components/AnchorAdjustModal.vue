@@ -57,7 +57,7 @@
                 size="xs"
                 variant="ghost"
                 custom-class="px-1.5! py-0.5! text-[11px]! font-mono text-slate-300 hover:text-brand-300"
-                :title="$t('anchor.resetZoom')"
+                :title="$t('common.reset')"
                 @click="resetView"
               >
                 {{ Math.round(zoom * 100) }}%
@@ -127,7 +127,7 @@
               }"
             >
               <div class="w-7 h-14 bg-linear-to-t from-cyan-500 to-cyan-300/50 rounded-t-full border border-cyan-200 flex items-center justify-center text-[9px] font-extrabold text-slate-950 shadow-md">
-                {{ $t('anchor.unit') }}
+                {{ $t('common.unitScale') }}
               </div>
             </div>
           </div>
@@ -177,7 +177,7 @@
             <UiSwitch 
               v-model="showUnitGuide"
               size="sm"
-              :label="$t('anchor.unitScale')"
+              :label="$t('common.unitScale')"
             />
             <UiSwitch 
               v-model="showBoundsGuide"
@@ -221,7 +221,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              :title="$t('anchor.nudgeLeft')"
+              :title="$t('common.nudgeLeft')"
               @click="nudge(-nudgeStep, 0)"
             >
               <ArrowLeft class="w-4 h-4" />
@@ -229,7 +229,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              :title="$t('anchor.nudgeUp')"
+              :title="$t('common.nudgeUp')"
               @click="nudge(0, -nudgeStep)"
             >
               <ArrowUp class="w-4 h-4" />
@@ -246,7 +246,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              :title="$t('anchor.nudgeDown')"
+              :title="$t('common.nudgeDown')"
               @click="nudge(0, nudgeStep)"
             >
               <ArrowDown class="w-4 h-4" />
@@ -254,7 +254,7 @@
             <UiButton 
               variant="secondary"
               size="sm"
-              :title="$t('anchor.nudgeRight')"
+              :title="$t('common.nudgeRight')"
               @click="nudge(nudgeStep, 0)"
             >
               <ArrowRight class="w-4 h-4" />
@@ -323,7 +323,7 @@
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 1.0)"
             >
-              {{ $t('anchor.bottom') }}
+              {{ $t('common.bottom') }}
             </UiButton>
             <UiButton 
               variant="secondary"
@@ -353,7 +353,7 @@
               custom-class="justify-start! text-left!"
               @click="setPreset(0.5, 0.0)"
             >
-              {{ $t('anchor.top') }}
+              {{ $t('common.top') }}
             </UiButton>
             <UiButton 
               variant="secondary"
@@ -398,7 +398,7 @@
                 custom-class="text-[10px]! px-1.5! py-0.5! text-slate-400 hover:text-white"
                 @click="currentScale = 1.0"
               >
-                {{ $t('anchor.reset') }}
+                {{ $t('common.reset') }}
               </UiButton>
             </div>
           </div>
@@ -437,7 +437,7 @@
             :leading-icon="Check"
             @click="save"
           >
-            {{ $t('anchor.applySave') }}
+            {{ $t('common.save') }}
           </UiButton>
         </div>
       </div>

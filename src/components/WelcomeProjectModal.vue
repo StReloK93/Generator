@@ -5,7 +5,7 @@
     :subtitle="$t('welcome.subtitle')"
     :icon="Map"
     icon-color="brand"
-    size="2xl"
+    size="5xl"
     :show-close="canClose && !isImporting"
     :close-on-backdrop="canClose && !isImporting"
     :close-on-escape="canClose && !isImporting"
@@ -88,7 +88,6 @@
                 custom-class="text-center flex flex-col items-center justify-center gap-0.5"
                 @click="applyPreset(preset)"
               >
-                <span class="text-xs font-bold">{{ $t(preset.nameKey) }}</span>
                 <span class="text-[11px] font-mono opacity-80 text-brand-300">{{ preset.cols }}×{{ preset.rows }}</span>
               </UiCard>
             </div>
@@ -127,7 +126,7 @@
             :leading-icon="Sparkles"
             @click="handleCreateNew"
           >
-            {{ $t('welcome.createEmpty') }} ({{ cols }}×{{ rows }})
+            {{ $t('common.create') }} ({{ cols }}×{{ rows }})
           </UiButton>
         </div>
 
@@ -143,7 +142,7 @@
               <Upload class="w-8 h-8" />
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-100">{{ $t('welcome.importProject') }}</h3>
+              <h3 class="text-base font-bold text-slate-100">{{ $t('common.import') }}</h3>
               <p class="text-xs text-slate-400 mt-1">{{ $t('welcome.importDesc') }}</p>
             </div>
             <UiButton
@@ -210,7 +209,7 @@
                   size="sm"
                   @click="openRecentProject(rec)"
                 >
-                  {{ $t('header.openMap') }}
+                  {{ $t('common.open') }}
                 </UiButton>
 
                 <UiIconButton 
@@ -290,7 +289,7 @@ const recentProjects = ref<RecentProjectItem[]>([])
 const tabItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
     { id: 'new', label: t('header.newMap'), icon: Sparkles },
-    { id: 'import', label: t('welcome.importProject'), icon: Upload },
+    { id: 'import', label: t('common.import'), icon: Upload },
   ]
   if (recentProjects.value.length > 0) {
     items.push({
@@ -318,16 +317,15 @@ const canClose = computed(() => {
 
 interface Preset {
   id: string
-  nameKey: string
   cols: number
   rows: number
 }
 
 const presets: Preset[] = [
-  { id: 'small', nameKey: 'welcome.presetSmall', cols: 30, rows: 30 },
-  { id: 'medium', nameKey: 'welcome.presetMedium', cols: 60, rows: 60 },
-  { id: 'large', nameKey: 'welcome.presetLarge', cols: 90, rows: 90 },
-  { id: 'huge', nameKey: 'welcome.presetHuge', cols: 120, rows: 120 },
+  { id: 'small', cols: 30, rows: 30 },
+  { id: 'medium', cols: 60, rows: 60 },
+  { id: 'large', cols: 90, rows: 90 },
+  { id: 'huge', cols: 120, rows: 120 },
 ]
 
 function applyPreset(preset: Preset) {

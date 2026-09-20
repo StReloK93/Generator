@@ -57,11 +57,19 @@ export const useAssetStore = defineStore('assetStore', () => {
       if (!a) continue
       map.set(a.id, a)
       if (a.name && !map.has(a.name)) map.set(a.name, a)
-      const cleanId = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
+      const cleanId = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
       if (!map.has(cleanId)) map.set(cleanId, a)
     }
     return map
   })
+
+  function getAsset(assetId: string | null | undefined): AssetItem | null {
+    if (!assetId) return null
+    const direct = assetMap.value.get(assetId)
+    if (direct) return direct
+    const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    return assetMap.value.get(cleanId) || null
+  }
 
   // Get preview data URL extracted directly from PixiJS Atlas texture
   function getAssetPreview(assetOrId: AssetItem | string | null | undefined): string {
@@ -374,6 +382,8 @@ export const useAssetStore = defineStore('assetStore', () => {
     reconcileImportedAssets,
     usedInMapAssetIds,
     updateUsedInMap,
+    assetMap,
+    getAsset,
   }
 })
 

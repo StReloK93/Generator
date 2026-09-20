@@ -151,7 +151,7 @@
     <!-- ================= 6. SCALABLE MAP SELECTION MODAL (SUPPORTS 100+ MAPS) ================= -->
     <UiModal
       v-model:is-open="isMapModalOpen"
-      :title="$t('home.selectMapTitle')"
+      :title="$t('common.selectMap')"
       :subtitle="$t('home.selectMapSubtitle')"
       :icon="Map"
       icon-color="amber"

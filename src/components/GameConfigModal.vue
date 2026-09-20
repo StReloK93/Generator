@@ -46,7 +46,7 @@
               :leading-icon="Plus"
               @click="openCreateClanModal"
             >
-              {{ $t('clans.addClan') }}
+              {{ $t('common.add') }}
             </UiButton>
           </div>
         </div>
@@ -143,7 +143,7 @@
           custom-class="ml-auto"
           @click="openCreateTowerModal"
         >
-          {{ activeEditorClan ? $t('clans.addTowerToClan', { clan: activeEditorClan.name }) : $t('config.createTower') }}
+          {{ activeEditorClan ? $t('common.add', { clan: activeEditorClan.name }) : $t('common.create') }}
         </UiButton>
       </div>
 
@@ -178,7 +178,7 @@
           :leading-icon="Plus"
           @click="openCreateTowerModal"
         >
-          {{ activeEditorClan ? $t('clans.createFirstTowerForClan', { clan: activeEditorClan.name }) : $t('config.createFirstTower') }}
+          {{ activeEditorClan ? $t('clans.createFirstTowerForClan', { clan: activeEditorClan.name }) : $t('common.create') }}
         </UiButton>
       </UiCard>
 
@@ -215,7 +215,7 @@
               :leading-icon="Trash2"
               @click="handleRemoveSelectedBp()"
             >
-              {{ $t('config.deleteBlueprint') }}
+              {{ $t('common.delete') }}
             </UiButton>
           </div>
         </UiCard>
@@ -226,7 +226,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <UiInput 
               :model-value="selectedBp.name"
-              :label="$t('config.towerName')"
+              :label="$t('common.towerName')"
               size="sm"
               @update:model-value="(val) => updateSelectedBp({ name: String(val) })"
             />
@@ -272,7 +272,7 @@
                   :leading-icon="Plus"
                   @click="handleAddLevel"
                 >
-                  {{ $t('config.addLevel') }}
+                  {{ $t('common.add') }}
                 </UiButton>
                 <UiButton
                   v-if="selectedLevelIndex > 0"
@@ -281,7 +281,7 @@
                   :leading-icon="Trash2"
                   @click="handleRemoveLevel"
                 >
-                  {{ $t('config.deleteLevel') }}
+                  {{ $t('common.delete') }}
                 </UiButton>
               </div>
             </div>
@@ -328,7 +328,7 @@
             <!-- Damage -->
             <UiSlider 
               :model-value="activeLevelConfig.damage"
-              :label="$t('config.damage')"
+              :label="$t('common.damage')"
               :min="5"
               :max="500"
               :step="5"
@@ -457,7 +457,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
               <UiSlider 
                 :model-value="activeLevelConfig.splashRadius || 1.5"
-                :label="$t('config.splashRadius')"
+                :label="$t('common.splashRadius')"
                 :min="0.5"
                 :max="5.0"
                 :step="0.5"
@@ -804,7 +804,7 @@
           :leading-icon="Plus"
           @click="characterStore.addNewWave()"
         >
-          {{ $t('config.createWave1') }}
+          {{ $t('common.create') }}
         </UiButton>
       </UiCard>
 
@@ -889,7 +889,7 @@
               :leading-icon="Trash2"
               @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
             >
-              {{ $t('config.deleteWave') }}
+              {{ $t('common.delete') }}
             </UiButton>
           </div>
 
@@ -997,7 +997,7 @@
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitScale || 1.0"
-                :label="$t('config.unitScale')"
+                :label="$t('common.unitScale')"
                 :min="0.5"
                 :max="3.0"
                 :step="0.05"
@@ -1113,7 +1113,7 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Coins class="w-4 h-4 text-yellow-400" />
-              {{ $t('config.startingGold') }}
+              {{ $t('common.startingGold') }}
             </span>
             <UiBadge variant="amber" size="sm">{{ characterStore.startingGold }} gold</UiBadge>
           </div>
@@ -1145,7 +1145,7 @@
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Heart class="w-4 h-4 text-rose-400" />
-              {{ $t('config.baseLives') }}
+              {{ $t('common.startingLives') }}
             </span>
             <UiBadge variant="rose" size="sm">{{ characterStore.startingLives }} lives</UiBadge>
           </div>
@@ -1351,7 +1351,7 @@
                   :leading-icon="Trash2"
                   @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex ?? 0)"
                 >
-                  {{ $t('config.deleteDoor') }}
+                  {{ $t('common.delete') }}
                 </UiButton>
               </div>
             </div>
@@ -1397,7 +1397,7 @@
                 :leading-icon="RotateCcw"
                 @click="characterStore.deleteCurrentRoute()"
               >
-                {{ $t('config.clearRoute') }}
+                {{ $t('common.clear') }}
               </UiButton>
             </div>
           </UiCard>
@@ -1653,7 +1653,7 @@
           :leading-icon="Check"
           @click="saveUnitSelection()"
         >
-          {{ $t('config.saveApplyUnit') }}
+          {{ $t('common.save') }}
         </UiButton>
       </div>
 
@@ -2077,7 +2077,7 @@ const tempSelectedAssetId = ref('')
 
 const spriteCategories = computed(() => {
   const items = [
-    { id: 'all', label: t('assets.catAll') || 'Barchasi' },
+    { id: 'all', label: t('common.all') || 'Barchasi' },
     { id: 'builtin', label: t('config.builtinTowers') || 'Asosiy minoralar' },
   ]
   if (assetStore.customAssets.length > 0) {

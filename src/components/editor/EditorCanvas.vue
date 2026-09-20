@@ -82,7 +82,7 @@
         size="sm"
         :icon="Waves"
         :active="toolStore.activeTool === 'water'"
-        :title="`${$t('editor.waterTool') || 'Suv qatlami'}`"
+        :title="$t('editor.waterTool')"
         @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
       />
 
@@ -92,7 +92,7 @@
         size="sm"
         :icon="Dices"
         :active="toolStore.activeTool === 'scatter'"
-        :title="`${$t('editor.scatterTool') || 'Tasodifiy asset to\'ldirish (Scatter)'}`"
+        :title="$t('editor.scatterTool')"
         @click="handleToggleScatterTool"
       />
 
@@ -365,7 +365,7 @@
           :class="assetStore.selectedAssetId ? 'text-brand-400' : 'text-purple-400'" 
         />
         <span class="font-semibold text-slate-200 hidden md:inline">
-          {{ assetStore.selectedAssetId ? ($t('editor.draw') || 'Draw') : ($t('editor.selectMode') || 'Select') }}
+          {{ assetStore.selectedAssetId ? ($t('editor.draw') || 'Draw') : ($t('common.select') || 'Select') }}
         </span>
       </div>
 
@@ -987,6 +987,10 @@ watch(() => mapStore.historyRevision, () => {
 })
 
 watch(() => mapStore.project.updatedAt, () => {
+  requestSyncLayers()
+})
+
+watch(() => mapStore.project.layers.map(l => `${l.id}:${l.visible}:${l.opacity}`).join('|'), () => {
   requestSyncLayers()
 })
 

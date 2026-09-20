@@ -76,7 +76,7 @@
               custom-class="text-[10px]! p-0! text-purple-400 hover:text-white"
               @click="toolStore.clearSelection()"
             >
-              {{ $t('inspector.deselectAll') }}
+              {{ $t('common.deselectAll') }}
             </UiButton>
           </div>
 
@@ -137,7 +137,7 @@
                   :icon="CopyCheck"
                   size="sm"
                   variant="ghost"
-                  :title="$t('inspector.selectAllOnMap', { count: mapStore.getAllItemsByAssetId(entry.item.assetId).length })"
+                  :title="$t('inspector.selectAllOnMap', { count: mapStore.getAssetItemCount(entry.item.assetId) })"
                   custom-class="p-0.5! w-6! h-6! text-brand-400 hover:text-brand-300"
                   @click.stop="handleSelectAllOfAsset(entry)"
                 />
@@ -153,7 +153,7 @@
                   :icon="Trash2"
                   size="sm"
                   variant="danger"
-                  :title="`${$t('sidebar.deleteObject')} (Del)`"
+                  :title="`${$t('common.delete')} (Del)`"
                   custom-class="p-0.5! w-6! h-6!"
                   @click.stop="handleDeleteItem(entry)"
                 />
@@ -256,14 +256,14 @@
                     :icon="ArrowUp"
                     size="sm"
                     variant="ghost"
-                    :title="$t('sidebar.moveUp')"
+                    :title="$t('common.moveUp')"
                     @click.stop="mapStore.moveLayer(layer.id, 'up')"
                   />
                   <UiIconButton 
                     :icon="ArrowDown"
                     size="sm"
                     variant="ghost"
-                    :title="$t('sidebar.moveDown')"
+                    :title="$t('common.moveDown')"
                     @click.stop="mapStore.moveLayer(layer.id, 'down')"
                   />
                   <UiIconButton 
@@ -271,7 +271,7 @@
                     :icon="Trash2"
                     size="sm"
                     variant="danger"
-                    :title="$t('sidebar.deleteLayer')"
+                    :title="$t('common.delete')"
                     @click.stop="mapStore.removeLayer(layer.id)"
                   />
                 </div>
@@ -291,7 +291,7 @@
                   />
                   <span class="font-mono w-7 text-right shrink-0 text-slate-300 font-bold">{{ Math.round(layer.opacity * 100) }}%</span>
                 </div>
-                <span class="font-mono text-slate-500 shrink-0">{{ $t('sidebar.tileCount', { count: Object.keys(layer.tiles).length }) }}</span>
+                <span class="font-mono text-slate-500 shrink-0">{{ $t('common.itemsCount', { count: Object.keys(layer.tiles).length }) }}</span>
               </div>
             </UiCard>
           </div>
@@ -423,7 +423,7 @@
                     :icon="Trash2"
                     size="sm"
                     variant="danger"
-                    :title="$t('sidebar.deleteRoute')"
+                    :title="$t('common.delete')"
                     custom-class="p-0.5! w-6! h-6!"
                     @click.stop="handleDeleteRoute(idx)"
                   />
@@ -642,13 +642,13 @@ watch([() => assetStore.selectedCategory, () => mapStore.totalTilesCount], ([cat
 
 const topTabItems = computed<TabItem[]>(() => [
   { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
-  { id: 'layers', label: t('sidebar.layersTab') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
+  { id: 'layers', label: t('common.layers') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
   { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: characterStore.detectedDoors.length }
 ])
 
 const assetCategoryItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
-    { id: 'All', label: t('sidebar.allCategories') || 'All' },
+    { id: 'All', label: t('common.all') || 'All' },
     { id: 'Favorites', label: t('sidebar.favorites') || 'Favorites' },
     { id: 'UsedInMap', label: t('sidebar.usedInMap') || 'In Map' },
   ]
@@ -720,32 +720,9 @@ const reversedLayers = computed(() => {
   return [...mapStore.project.layers].reverse()
 })
 
-// Fast O(1) asset map lookup
-const assetMap = computed(() => {
-  const map = new Map<string, AssetItem>()
-  for (const a of assetStore.assets) {
-    if (!a) continue
-    map.set(a.id, a)
-    const cleanId = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-    if (!map.has(cleanId)) map.set(cleanId, a)
-    if (a.name) {
-      const nameKey = a.name.toLowerCase()
-      if (!map.has(nameKey)) map.set(nameKey, a)
-    }
-    if (a.fileRelativePath) {
-      const pathKey = a.fileRelativePath.toLowerCase()
-      if (!map.has(pathKey)) map.set(pathKey, a)
-    }
-  }
-  return map
-})
-
+// Fast O(1) asset lookup via assetStore
 function getAsset(assetId: string): AssetItem | null {
-  if (!assetId) return null
-  const direct = assetMap.value.get(assetId)
-  if (direct) return direct
-  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-  return assetMap.value.get(cleanId) || null
+  return assetStore.getAsset(assetId)
 }
 
 const filteredPlacedElements = computed(() => {

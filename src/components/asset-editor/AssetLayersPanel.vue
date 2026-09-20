@@ -43,14 +43,14 @@
           :icon="ChevronUp" 
           size="sm" 
           variant="ghost" 
-          :title="$t('assetEditor.moveUp')" 
+          :title="$t('common.moveUp')" 
           @click="store.moveUp()" 
         />
         <UiIconButton 
           :icon="ChevronDown" 
           size="sm" 
           variant="ghost" 
-          :title="$t('assetEditor.moveDown')" 
+          :title="$t('common.moveDown')" 
           @click="store.moveDown()" 
         />
         <UiIconButton 
@@ -167,7 +167,7 @@
             :icon="Copy"
             size="xs"
             variant="ghost"
-            :title="$t('assetEditor.duplicate') + ' (Ctrl+D)'"
+            :title="$t('common.duplicate') + ' (Ctrl+D)'"
             custom-class="text-slate-400 hover:text-sky-300"
             @click="store.duplicatePart(part.id)"
           />
@@ -203,7 +203,7 @@
           :title="$t('assetEditor.selectAllTitle')"
           @click="store.selectAll()"
         >
-          {{ $t('assetEditor.selectAll') }}
+          {{ $t('common.selectAll') }}
         </UiButton>
       </div>
 

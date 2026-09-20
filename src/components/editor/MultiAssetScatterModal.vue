@@ -43,7 +43,7 @@
               :disabled="filteredAssets.length === 0"
               @click="selectAllFiltered"
             >
-              {{ $t('assetEditor.selectAll') || 'Barchasini tanlash' }}
+              {{ $t('common.selectAll') || 'Barchasini tanlash' }}
             </UiButton>
           </div>
         </div>
@@ -451,7 +451,7 @@ const placementOptions = computed<TabItem[]>(() => [
 // Real categories that exist in the asset store
 const categoryItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
-    { id: 'All', label: t('sidebar.allCategories') || t('common.all') || 'All' },
+    { id: 'All', label: t('common.all') || t('common.all') || 'All' },
   ]
 
   for (const cat of assetStore.categories) {

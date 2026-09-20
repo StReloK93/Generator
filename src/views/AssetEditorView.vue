@@ -75,7 +75,7 @@
           :leading-icon="Upload"
           @click="triggerHeaderFileInput"
         >
-          <span class="hidden sm:inline">{{ $t('assetEditor.importAsset') }}</span>
+          <span class="hidden sm:inline">{{ $t('common.import') }}</span>
           <span class="sm:hidden">{{ $t('common.upload') }}</span>
         </UiButton>
         <input 
@@ -95,7 +95,7 @@
           :disabled="store.parts.length === 0"
           @click="handleSaveToProject"
         >
-          <span class="hidden sm:inline">{{ $t('assetEditor.addToLibrary') }}</span>
+          <span class="hidden sm:inline">{{ $t('common.add') }}</span>
           <span class="sm:hidden">{{ $t('common.add') }}</span>
         </UiButton>
 
@@ -127,7 +127,7 @@
       </main>
 
       <!-- 3. RIGHT: Inspector & Layers Panel -->
-      <aside class="flex flex-col h-full w-80 sm:w-96 bg-slate-900/90 border-l border-slate-800/80 backdrop-blur-xl shrink-0 p-3 overflow-hidden select-none">
+      <aside class="flex flex-col h-full w-120  bg-slate-900/90 border-l border-slate-800/80 backdrop-blur-xl shrink-0 p-3 overflow-hidden select-none">
         
         <!-- Right Navigation Tabs -->
         <UiTabs 
@@ -205,7 +205,7 @@ const rightActiveTab = ref<'layers' | 'transform'>('layers')
 const toastMessage = ref('')
 
 const rightSidebarTabs = computed<TabItem[]>(() => [
-  { id: 'layers', label: t('assetEditor.layersTab'), icon: Layers, count: store.parts.length },
+  { id: 'layers', label: t('common.layers'), icon: Layers, count: store.parts.length },
   { id: 'transform', label: t('assetEditor.transformTab'), icon: Move },
 ])
 

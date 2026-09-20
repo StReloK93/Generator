@@ -60,25 +60,25 @@
 
           <!-- Bottom hint overlay -->
           <div class="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-slate-700/80 text-[10px] text-slate-300 shadow-lg whitespace-nowrap">
-            🎯 Maydonga bosing — istalgan joyga otadi
+            {{ t('projectiles.clickArenaHint') }}
           </div>
         </div>
 
         <!-- Projectile Info & Details Card -->
         <div class="flex flex-col gap-1.5 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs">
           <p class="text-[11px] text-slate-300 leading-relaxed line-clamp-2">
-            {{ activeSelectedDef?.description || 'Oddiy nishon uruvchi snaryad' }}
+            {{ activeSelectedDef?.description || t('projectiles.defaultDesc') }}
           </p>
 
           <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-800 text-[10px] font-mono text-slate-400">
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
-              Shakl: {{ activeSelectedDef?.shape || 'circle' }}
+              {{ t('projectiles.shapeLabel') }}: {{ activeSelectedDef?.shape || 'circle' }}
             </span>
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
-              Harakat: {{ activeSelectedDef?.formation || 'single' }}
+              {{ t('projectiles.formationLabel') }}: {{ activeSelectedDef?.formation || 'single' }}
             </span>
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
-              Uchqun: {{ activeSelectedDef?.sparkType || 'default' }}
+              {{ t('projectiles.sparkLabel') }}: {{ activeSelectedDef?.sparkType || 'default' }}
             </span>
           </div>
         </div>
@@ -91,7 +91,7 @@
           custom-class="text-amber-300 hover:bg-amber-500/20 border border-amber-500/40 w-full justify-center"
           @click="openProjectileStudio"
         >
-          {{ t('towers.projectileStudio') || 'Snaryadlar Redaktorini ochish' }}
+          {{ t('towers.projectileStudio') }}
         </UiButton>
       </div>
 
@@ -103,13 +103,13 @@
             <UiInput
               v-model="searchQuery"
               size="sm"
-              :placeholder="t('projectiles.search') || 'Snaryad qidirish...'"
+              :placeholder="t('projectiles.search')"
               :leading-icon="Search"
             />
           </div>
 
           <UiBadge variant="amber" size="sm" class="shrink-0">
-            {{ filteredProjectiles.length }} / {{ allAvailableProjectiles.length }} {{ t('towers.projectilesLabel') || 'Turlari' }}
+            {{ filteredProjectiles.length }} / {{ allAvailableProjectiles.length }} {{ t('towers.projectilesLabel') }}
           </UiBadge>
         </div>
 
@@ -126,7 +126,7 @@
             @click="selectedCategory = 'all'"
           >
             <Sparkles class="w-3.5 h-3.5" />
-            <span>{{ t('sidebar.allCategories') || 'Barchasi' }} ({{ allAvailableProjectiles.length }})</span>
+            <span>{{ t('common.all') }} ({{ allAvailableProjectiles.length }})</span>
           </button>
 
           <button
@@ -151,7 +151,7 @@
         <div class="overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 max-h-[46vh] lg:max-h-[52vh] p-0.5">
           <div v-if="filteredProjectiles.length === 0" class="flex flex-col items-center justify-center py-12 text-slate-500 text-xs gap-2 text-center">
             <Crosshair class="w-8 h-8 text-slate-600" />
-            <span>Mos keladigan snaryadlar topilmadi.</span>
+            <span>{{ t('projectiles.noResultsFound') }}</span>
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
@@ -246,7 +246,7 @@
             size="sm"
             @click="emit('close')"
           >
-            {{ t('common.cancel') || 'Bekor qilish' }}
+            {{ t('common.cancel') }}
           </UiButton>
 
           <UiButton
@@ -255,7 +255,7 @@
             :leading-icon="Check"
             @click="applySelection"
           >
-            {{ t('common.confirm') || t('common.save') || 'Tanlash' }}
+            {{ t('common.confirm') }}
           </UiButton>
         </div>
       </div>

@@ -126,7 +126,7 @@
       <div class="grid grid-cols-2 gap-1.5 text-[11px] font-mono text-slate-300">
         <div class="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <span class="text-slate-400 flex items-center gap-1">
-            <Flame class="w-3.5 h-3.5 text-rose-400" />{{ $t('config.damage') }}:
+            <Flame class="w-3.5 h-3.5 text-rose-400" />{{ $t('common.damage') }}:
           </span>
           <span class="font-bold text-white">{{ activeSelectedBlueprint.damage }}</span>
         </div>

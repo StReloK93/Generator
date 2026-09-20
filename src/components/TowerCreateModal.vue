@@ -121,7 +121,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <UiInput
           v-model="form.name"
-          :label="$t('towers.towerNameLabel')"
+          :label="$t('common.towerName')"
           :placeholder="$t('towers.towerNamePlaceholder')"
         />
 
@@ -268,7 +268,7 @@
         <div v-if="form.isSplash" class="flex flex-col gap-2 pt-2 mt-2 border-t border-slate-800/80">
           <UiSlider
             v-model="form.splashRadius"
-            :label="$t('towers.splashRadiusLabel')"
+            :label="$t('common.splashRadius')"
             :min="0.5"
             :max="5.0"
             :step="0.5"
@@ -543,7 +543,7 @@
         :leading-icon="ShieldAlert"
         @click="handleCreateTower"
       >
-        {{ $t('towers.createTowerBtn') }}
+        {{ $t('common.create') }}
       </UiButton>
     </template>
   </UiModal>
@@ -593,7 +593,7 @@ const currentCategoryProjectiles = computed(() => getProjectilesByCategory(activ
 
 const categories = computed(() => {
   const items = [
-    { id: 'all', label: t('assets.catAll') || 'Barchasi' },
+    { id: 'all', label: t('common.all') || 'Barchasi' },
     { id: 'builtin', label: t('config.builtinTowers') || 'Asosiy minoralar' },
   ]
   if (assetStore.customAssets.length > 0) {

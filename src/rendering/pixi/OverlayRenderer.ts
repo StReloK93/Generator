@@ -206,27 +206,40 @@ export class OverlayRenderer {
     const items = Array.isArray(selected) ? selected : [selected]
     if (items.length === 0) return
 
-    for (const sel of items) {
+    const isMulti = Array.isArray(selected)
+    const layerMap = isMulti
+      ? new Map(project.layers.map((l) => [l.id, l]))
+      : null
+
+    let hasDrawn = false
+    for (let i = 0; i < items.length; i++) {
+      const sel = items[i]
       if (!sel) continue
       let itemSpanX = spanX
       let itemSpanY = spanY
 
-      if (Array.isArray(selected)) {
-        const layer = project.layers.find((l) => l.id === sel.layerId)
+      if (isMulti && layerMap) {
+        const layer = layerMap.get(sel.layerId)
         if (layer) {
           const key = cellKey(sel.col, sel.row)
-          const cellItems = layer.tiles[key] || []
-          const found = cellItems.find((i) => i.id === sel.itemId)
-          if (found) {
-            itemSpanX = found.spanX || 1
-            itemSpanY = found.spanY || 1
+          const cellItems = layer.tiles[key]
+          if (cellItems) {
+            const found = cellItems.find((ci) => ci.id === sel.itemId)
+            if (found) {
+              itemSpanX = found.spanX || 1
+              itemSpanY = found.spanY || 1
+            }
           }
         }
       }
 
       const poly = getFootprintPolygon(sel.col, sel.row, itemSpanX, itemSpanY, tileWidth, tileHeight)
+      this.selectionGraphics.poly(poly)
+      hasDrawn = true
+    }
+
+    if (hasDrawn) {
       this.selectionGraphics
-        .poly(poly)
         .fill({ color: 0xa855f7, alpha: 0.35 })
         .stroke({ width: 2.5, color: 0xc084fc, alpha: 1.0 })
     }

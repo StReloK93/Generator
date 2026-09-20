@@ -1,5 +1,5 @@
 <template>
-  <aside class="flex flex-col h-full w-72 sm:w-80 bg-slate-900/90 border-r border-slate-800/80 backdrop-blur-xl shrink-0 overflow-hidden select-none">
+  <aside class="flex flex-col h-full w-100  bg-slate-900/90 border-r border-slate-800/80 backdrop-blur-xl shrink-0 overflow-hidden select-none">
     
     <!-- Sidebar Header -->
     <div class="p-3 border-b border-slate-800/80 flex items-center justify-between gap-2 shrink-0 bg-slate-950/40">
@@ -21,7 +21,7 @@
           size="xs"
           variant="secondary"
           :leading-icon="Upload"
-          :title="$t('assetEditor.importAsset')"
+          :title="$t('common.import')"
           @click="triggerSidebarFileInput"
         >
           <span class="text-[10px]">{{ $t('common.upload') }}</span>
@@ -155,7 +155,7 @@ function handleDragStart(e: DragEvent, asset: AssetItem) {
 }
 
 const categories = computed<TabItem[]>(() => [
-  { id: 'all', label: t('assets.catAll') },
+  { id: 'all', label: t('common.all') },
   { id: 'custom', label: t('common.custom'), count: assetStore.customAssets.length || undefined },
   { id: 'towers', label: t('common.towers') || 'Towers' },
   { id: 'walls', label: t('assets.catWalls') },

@@ -16,7 +16,7 @@
     <!-- ========================================================================= -->
     <template v-if="isMultiSelectMode">
       <!-- Multi-Select Header -->
-      <div class="p-3.5 border-b border-purple-900/50 flex items-center justify-between bg-linear-to-r from-purple-950/50 to-slate-900/80">
+      <div class="p-3.5 border-b border-purple-900/50 flex items-center justify-between bg-linear-to-r from-purple-950/50 to-slate-900/80 shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-400 shadow-sm shrink-0">
             <Layers class="w-4 h-4" />
@@ -32,14 +32,14 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 shrink-0">
           <UiButton 
             variant="ghost" 
             size="xs" 
             custom-class="text-[10px]! px-2! py-1! text-purple-300 hover:text-white"
             @click="toolStore.clearSelection()"
           >
-            {{ $t('inspector.deselectAll') }}
+            {{ $t('common.deselectAll') }}
           </UiButton>
           <UiIconButton
             :icon="X"
@@ -51,11 +51,11 @@
         </div>
       </div>
 
-      <!-- Scrollable Multi-Select Content -->
-      <div class="flex-1 p-3.5 overflow-y-auto flex flex-col gap-3 custom-scrollbar pb-10">
+      <!-- Scrollable Multi-Select Content (Single unified scroll, no inner shrinking) -->
+      <div class="flex-1 min-h-0 p-3.5 overflow-y-auto overflow-x-hidden flex flex-col gap-3 custom-scrollbar pb-10">
 
         <!-- 1. BATCH LAYER SWITCHER -->
-        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
           <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
             <Layers class="w-3.5 h-3.5 text-brand-400" />
             {{ $t('inspector.batchMoveToLayer') }}
@@ -70,7 +70,7 @@
         </UiCard>
 
         <!-- 2. BATCH ANCHOR ADJUSTMENT -->
-        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2.5">
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2.5 shrink-0">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
               <Crosshair class="w-3.5 h-3.5 text-brand-400" />
@@ -127,7 +127,7 @@
         </UiCard>
 
         <!-- 3. BATCH RELATIVE DEPTH SHIFT -->
-        <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2">
+        <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-brand-300 flex items-center gap-1.5">
               <Layers class="w-4 h-4 text-brand-400" />
@@ -137,8 +137,8 @@
 
           <div class="grid grid-cols-2 gap-2 mt-0.5">
             <UiButton 
-              variant="primary"
-              size="sm"
+              variant="primary" 
+              size="sm" 
               :leading-icon="ArrowDownToLine"
               @click="handleBatchShiftDepth(+1)"
             >
@@ -146,8 +146,8 @@
             </UiButton>
 
             <UiButton 
-              variant="secondary"
-              size="sm"
+              variant="secondary" 
+              size="sm" 
               :leading-icon="ArrowUpToLine"
               @click="handleBatchShiftDepth(-1)"
             >
@@ -156,21 +156,21 @@
           </div>
 
           <div class="flex items-center justify-between gap-2 pt-1 border-t border-brand-500/20 text-xs">
-            <span class="text-[11px] text-slate-400">{{ $t('inspector.reset') }}</span>
+            <span class="text-[11px] text-slate-400">{{ $t('common.reset') }}</span>
             <UiButton 
-              variant="ghost"
-              size="xs"
+              variant="ghost" 
+              size="xs" 
               @click="handleBatchResetDepth"
             >
-              {{ $t('inspector.reset') }} (0)
+              {{ $t('common.reset') }} (0)
             </UiButton>
           </div>
         </UiCard>
 
         <!-- 4. BATCH SCALE & Z-INDEX COMBINED -->
-        <div class="grid grid-cols-1 gap-2.5">
+        <div class="grid grid-cols-1 gap-2.5 shrink-0">
           <!-- Scale Card -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.batchScale') }}</span>
             <UiSlider
               :model-value="1.0"
@@ -183,23 +183,23 @@
           </UiCard>
 
           <!-- In-Cell Z-Index Card -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <Layers class="w-3.5 h-3.5 text-slate-400" />
               {{ $t('inspector.batchZIndex') }}
             </span>
             <div class="grid grid-cols-2 gap-1.5 text-xs">
               <UiButton 
-                variant="secondary"
-                size="xs"
+                variant="secondary" 
+                size="xs" 
                 :leading-icon="ArrowUpToLine"
                 @click="handleBatchAdjustZIndex(+1)"
               >
                 {{ $t('inspector.zStepUp') }}
               </UiButton>
               <UiButton 
-                variant="secondary"
-                size="xs"
+                variant="secondary" 
+                size="xs" 
                 :leading-icon="ArrowDownToLine"
                 @click="handleBatchAdjustZIndex(-1)"
               >
@@ -210,45 +210,45 @@
         </div>
 
         <!-- 5. BATCH PIXEL OFFSET (NUDGE) -->
-        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+        <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
           <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.batchOffset') }}</span>
           
           <div class="grid grid-cols-5 gap-1">
             <UiButton 
-              variant="secondary"
-              size="xs"
+              variant="secondary" 
+              size="xs" 
               :leading-icon="ArrowLeft"
               @click="handleBatchNudge(-1, 0)"
             >
               1px
             </UiButton>
             <UiButton 
-              variant="secondary"
-              size="xs"
+              variant="secondary" 
+              size="xs" 
               :leading-icon="ArrowUp"
               @click="handleBatchNudge(0, -1)"
             >
               1px
             </UiButton>
             <UiButton 
-              variant="secondary"
-              size="xs"
+              variant="secondary" 
+              size="xs" 
               :leading-icon="ArrowDown"
               @click="handleBatchNudge(0, 1)"
             >
               1px
             </UiButton>
             <UiButton 
-              variant="secondary"
-              size="xs"
+              variant="secondary" 
+              size="xs" 
               :leading-icon="ArrowRight"
               @click="handleBatchNudge(1, 0)"
             >
               1px
             </UiButton>
             <UiButton 
-              variant="secondary"
-              size="xs"
+              variant="secondary" 
+              size="xs" 
               @click="handleBatchResetOffset"
             >
               0
@@ -257,31 +257,31 @@
         </UiCard>
 
         <!-- 6. BATCH TRANSFORMS (Flip & Rotate) -->
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2 shrink-0">
           <UiButton 
-            variant="secondary"
-            size="sm"
+            variant="secondary" 
+            size="sm" 
             :leading-icon="FlipHorizontal"
             @click="handleBatchFlipX"
           >
-            {{ $t('inspector.flipHorizontal') }}
+            {{ $t('common.flipHorizontal') }}
           </UiButton>
           <UiButton 
-            variant="secondary"
-            size="sm"
+            variant="secondary" 
+            size="sm" 
             :leading-icon="RotateCw"
             @click="handleBatchRotate"
           >
-            {{ $t('inspector.rotate90') }}
+            {{ $t('common.rotate90') }}
           </UiButton>
         </div>
 
         <!-- 7. BATCH DELETE -->
-        <div class="pt-2 border-t border-slate-800">
+        <div class="pt-2 border-t border-slate-800 shrink-0">
           <UiButton 
-            variant="danger"
-            size="md"
-            block
+            variant="danger" 
+            size="md" 
+            block 
             :leading-icon="Trash2"
             @click="handleBatchDelete"
           >
@@ -297,9 +297,9 @@
     <!-- ========================================================================= -->
     <template v-else-if="toolStore.selectedElement">
       <!-- Panel Header -->
-      <div class="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
+      <div class="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/70 shrink-0">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400 shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400 shadow-sm shrink-0">
             <Sliders class="w-4 h-4" />
           </div>
           <div>
@@ -320,10 +320,10 @@
         />
       </div>
 
-      <!-- Scrollable Content -->
-      <div class="flex-1 p-3 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
+      <!-- Scrollable Content (Single unified scroll) -->
+      <div class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden flex flex-col gap-3 custom-scrollbar pb-10">
         <!-- 1. List of Elements on / covering this cell -->
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 shrink-0">
           <div class="flex items-center justify-between text-xs px-0.5">
             <span class="font-semibold text-slate-300">{{ $t('inspector.elementsOnCell') }}</span>
             <UiBadge variant="brand" size="xs">
@@ -331,7 +331,7 @@
             </UiBadge>
           </div>
 
-          <div class="flex flex-col gap-1.5 max-h-32 overflow-y-auto p-1">
+          <div class="flex flex-col gap-1.5 p-1 shrink-0">
             <UiCard 
               v-for="entry in coveringElements" 
               :key="entry.item.id"
@@ -380,10 +380,10 @@
         </div>
 
         <!-- Active Element Full Inspector -->
-        <div v-if="activeItem" class="flex flex-col gap-3 border-t border-slate-800/80 pt-3">
+        <div v-if="activeItem" class="flex flex-col gap-3 border-t border-slate-800/80 pt-3 shrink-0">
 
           <!-- Quick Identical Assets Multi-Select Card -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 bg-slate-950/70 border-brand-500/30">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 bg-slate-950/70 border-brand-500/30 shrink-0">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-slate-200 flex items-center gap-1.5">
                 <CopyCheck class="w-3.5 h-3.5 text-brand-400" />
@@ -420,7 +420,7 @@
           </UiCard>
 
           <!-- 2. RELATIVE DEPTH SHIFT -->
-          <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="brand" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-brand-300 flex items-center gap-1.5">
                 <Layers class="w-4 h-4 text-brand-400" />
@@ -473,7 +473,7 @@
                   :title="$t('inspector.resetDepthDesc')"
                   @click="resetDepth"
                 >
-                  {{ $t('inspector.reset') }} (0)
+                  {{ $t('common.reset') }} (0)
                 </UiButton>
               </div>
             </div>
@@ -484,7 +484,7 @@
           </UiCard>
 
           <!-- 3. Layer Selector -->
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 shrink-0">
             <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.layer') }}</span>
             <UiTabs
               :model-value="toolStore.selectedElement?.layerId || ''"
@@ -496,7 +496,7 @@
           </div>
 
           <!-- 4. In-Cell Z-Index -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-slate-200 flex items-center gap-1.5">
                 <Layers class="w-3.5 h-3.5 text-slate-400" />
@@ -605,7 +605,7 @@
                 custom-class="flex-col! py-2! gap-0.5!"
                 @click="handleBringToTop"
               >
-                <span class="text-[10px] font-semibold text-brand-400">{{ $t('inspector.top') }}</span>
+                <span class="text-[10px] font-semibold text-brand-400">{{ $t('common.top') }}</span>
               </UiButton>
               <UiButton 
                 variant="secondary"
@@ -615,13 +615,13 @@
                 custom-class="flex-col! py-2! gap-0.5!"
                 @click="handleSendToBottom"
               >
-                <span class="text-[10px] font-semibold text-slate-400">{{ $t('inspector.bottom') }}</span>
+                <span class="text-[10px] font-semibold text-slate-400">{{ $t('common.bottom') }}</span>
               </UiButton>
             </div>
           </UiCard>
 
           <!-- 5. Anchor Base Height -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <div class="flex justify-between items-center text-xs">
               <span class="font-bold text-slate-200 flex items-center gap-1.5">
                 <Crosshair class="w-3.5 h-3.5 text-brand-400" />
@@ -654,7 +654,7 @@
           </UiCard>
 
           <!-- 6. Scaling -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <div class="flex justify-between items-center text-xs">
               <span class="font-semibold text-slate-300">{{ $t('inspector.scale') }}</span>
               <span class="font-mono text-xs font-bold text-slate-200">
@@ -672,7 +672,7 @@
           </UiCard>
 
           <!-- 7. Fine Pixel Offset (Nudge) -->
-          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2">
+          <UiCard variant="default" padding="sm" custom-class="flex flex-col gap-2 shrink-0">
             <div class="flex justify-between items-center text-xs">
               <span class="text-xs font-semibold text-slate-300">{{ $t('inspector.finePixelOffset') }}</span>
               <span class="text-[10px] font-mono text-slate-400">
@@ -729,7 +729,7 @@
           </UiCard>
 
           <!-- 8. Move & Delete Action Buttons -->
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-800 shrink-0">
             <UiButton 
               :variant="toolStore.isMovingElement ? 'primary' : 'secondary'"
               size="md"
@@ -738,7 +738,7 @@
               :custom-class="toolStore.isMovingElement ? 'animate-pulse' : ''"
               @click="handleMoveMode"
             >
-              {{ toolStore.isMovingElement ? $t('inspector.moveTarget') : $t('inspector.move') }}
+              {{ toolStore.isMovingElement ? $t('inspector.moveTarget') : $t('common.move') }}
             </UiButton>
 
             <UiButton 
@@ -748,7 +748,7 @@
               :leading-icon="Trash2"
               @click="handleDelete"
             >
-              {{ $t('inspector.delete') }}
+              {{ $t('common.delete') }}
             </UiButton>
           </div>
         </div>
@@ -756,7 +756,7 @@
     </template>
 
     <!-- Footer Help -->
-    <div class="p-2.5 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-400 flex items-center justify-between">
+    <div class="p-2.5 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-400 flex items-center justify-between shrink-0">
       <span v-html="$t('inspector.deselectHint')"></span>
       <span v-html="$t('inspector.deleteHint')"></span>
     </div>
@@ -822,13 +822,7 @@ const activeItem = computed<TileItem | null>(() => {
 })
 
 function getAsset(assetId: string) {
-  if (!assetId) return null
-  const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-  return assetStore.assets.find(a => {
-    if (a.id === assetId) return true
-    const aClean = a.id.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-    return aClean === cleanId || (a.fileRelativePath && a.fileRelativePath.toLowerCase().includes(cleanId))
-  }) || null
+  return assetStore.getAsset(assetId)
 }
 
 const currentAsset = computed(() => {
@@ -838,12 +832,12 @@ const currentAsset = computed(() => {
 
 const identicalMapCount = computed(() => {
   if (!activeItem.value) return 0
-  return mapStore.getAllItemsByAssetId(activeItem.value.assetId).length
+  return mapStore.getAssetItemCount(activeItem.value.assetId)
 })
 
 const identicalLayerCount = computed(() => {
   if (!activeItem.value || !toolStore.selectedElement) return 0
-  return mapStore.getAllItemsByAssetId(activeItem.value.assetId, toolStore.selectedElement.layerId).length
+  return mapStore.getAssetItemCount(activeItem.value.assetId, toolStore.selectedElement.layerId)
 })
 
 function handleSelectAllIdenticalOnMap() {

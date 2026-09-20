@@ -37,7 +37,7 @@
           :leading-icon="Sparkles"
           @click="handleCreateClean"
         >
-          {{ t('projectiles.createClean') }}
+          {{ t('common.create') }}
         </UiButton>
 
         <UiButton
@@ -64,7 +64,7 @@
           :leading-icon="RotateCcw"
           @click="confirmResetDefaults"
         >
-          {{ t('projectiles.resetDefaults') }}
+          {{ t('common.reset') }}
         </UiButton>
 
         <div class="h-5 w-px bg-slate-800 mx-1" />
@@ -141,7 +141,7 @@
 
           <!-- Bottom hint overlay -->
           <div class="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700/80 text-[10px] text-slate-300 shadow-lg">
-            {{ aimMode === 'single' ? '🎯 Maydonga bosing — istalgan nuqtaga otadi' : '✨ Ko\'p yo\'nalishli otish sinovi faol' }}
+            {{ aimMode === 'single' ? t('projectiles.aimModeSingleHint') : t('projectiles.aimModeMultiHint') }}
           </div>
         </div>
 
@@ -211,15 +211,15 @@
                   v-model="currentForm.category"
                   class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
                 >
-                  <option value="fire">🔥 {{ t('projectiles.catFire') }}</option>
-                  <option value="frost">❄️ {{ t('projectiles.catFrost') }}</option>
-                  <option value="electro">⚡ {{ t('projectiles.catElectro') }}</option>
-                  <option value="poison">🧪 {{ t('projectiles.catPoison') }}</option>
-                  <option value="arcane">🔮 {{ t('projectiles.catArcane') }}</option>
-                  <option value="void">💀 {{ t('projectiles.catVoid') }}</option>
-                  <option value="siege">🏹 {{ t('projectiles.catSiege') }}</option>
-                  <option value="holy">✨ {{ t('projectiles.catHoly') }}</option>
-                  <option value="custom">🌟 {{ t('projectiles.catCustom') }}</option>
+                  <option value="fire">{{ t('projectiles.catFire') }}</option>
+                  <option value="frost">{{ t('projectiles.catFrost') }}</option>
+                  <option value="electro">{{ t('projectiles.catElectro') }}</option>
+                  <option value="poison">{{ t('projectiles.catPoison') }}</option>
+                  <option value="arcane">{{ t('projectiles.catArcane') }}</option>
+                  <option value="void">{{ t('projectiles.catVoid') }}</option>
+                  <option value="siege">{{ t('projectiles.catSiege') }}</option>
+                  <option value="holy">{{ t('projectiles.catHoly') }}</option>
+                  <option value="custom">{{ t('projectiles.catCustom') }}</option>
                 </select>
               </div>
 
@@ -245,21 +245,21 @@
                   v-model="currentForm.shape"
                   class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
                 >
-                  <option value="circle">⚪ {{ t('projectiles.shapeCircle') }}</option>
-                  <option value="sand_cluster">🌪️ {{ t('projectiles.shapeSandCluster') }}</option>
-                  <option value="line_streak">⚡ {{ t('projectiles.shapeLineStreak') }}</option>
-                  <option value="instant_strike">💥 {{ t('projectiles.shapeInstantStrike') }}</option>
-                  <option value="energy_orb">🔮 {{ t('projectiles.shapeEnergyOrb') }}</option>
-                  <option value="energy_wave">🌊 {{ t('projectiles.shapeEnergyWave') }}</option>
-                  <option value="flame_wisp">🔥 {{ t('projectiles.shapeFlameWisp') }}</option>
-                  <option value="diamond_shard">💎 {{ t('projectiles.shapeDiamondShard') }}</option>
-                  <option value="star">⭐ {{ t('projectiles.shapeStar') }}</option>
-                  <option value="arrow">🏹 {{ t('projectiles.shapeArrow') }}</option>
-                  <option value="spear_lance">🗡️ {{ t('projectiles.shapeSpearLance') }}</option>
-                  <option value="lightning_bolt">⚡ {{ t('projectiles.shapeLightningBolt') }}</option>
-                  <option value="shuriken">🥷 {{ t('projectiles.shapeShuriken') }}</option>
-                  <option value="sawblade">⚙️ {{ t('projectiles.shapeSawblade') }}</option>
-                  <option value="skull">💀 {{ t('projectiles.shapeSkull') }}</option>
+                  <option value="circle">{{ t('projectiles.shapeCircle') }}</option>
+                  <option value="sand_cluster">{{ t('projectiles.shapeSandCluster') }}</option>
+                  <option value="line_streak">{{ t('projectiles.shapeLineStreak') }}</option>
+                  <option value="instant_strike">{{ t('projectiles.shapeInstantStrike') }}</option>
+                  <option value="energy_orb">{{ t('projectiles.shapeEnergyOrb') }}</option>
+                  <option value="energy_wave">{{ t('projectiles.shapeEnergyWave') }}</option>
+                  <option value="flame_wisp">{{ t('projectiles.shapeFlameWisp') }}</option>
+                  <option value="diamond_shard">{{ t('projectiles.shapeDiamondShard') }}</option>
+                  <option value="star">{{ t('projectiles.shapeStar') }}</option>
+                  <option value="arrow">{{ t('projectiles.shapeArrow') }}</option>
+                  <option value="spear_lance">{{ t('projectiles.shapeSpearLance') }}</option>
+                  <option value="lightning_bolt">{{ t('projectiles.shapeLightningBolt') }}</option>
+                  <option value="shuriken">{{ t('projectiles.shapeShuriken') }}</option>
+                  <option value="sawblade">{{ t('projectiles.shapeSawblade') }}</option>
+                  <option value="skull">{{ t('projectiles.shapeSkull') }}</option>
                 </select>
               </div>
 
@@ -287,9 +287,9 @@
                 v-model="currentForm.instantType"
                 class="w-full bg-slate-900 border border-amber-500/40 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
               >
-                <option value="sky_strike">⚡ {{ t('projectiles.instantSkyStrike') }}</option>
-                <option value="ground_burst">🌋 {{ t('projectiles.instantGroundBurst') }}</option>
-                <option value="unit_aura">🔮 {{ t('projectiles.instantUnitAura') }}</option>
+                <option value="sky_strike">{{ t('projectiles.instantSkyStrike') }}</option>
+                <option value="ground_burst">{{ t('projectiles.instantGroundBurst') }}</option>
+                <option value="unit_aura">{{ t('projectiles.instantUnitAura') }}</option>
               </select>
             </div>
 
@@ -357,7 +357,6 @@
                   ]"
                   @click="currentForm.trailStyle = st.id as any"
                 >
-                  <span>{{ st.icon }}</span>
                   <span>{{ st.label }}</span>
                 </button>
               </div>
@@ -422,17 +421,17 @@
                   v-model="currentForm.sparkType"
                   class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
                 >
-                  <option value="fire_ember">🔥 {{ t('projectiles.sparkFireEmber') }}</option>
-                  <option value="sand_dust">🌪️ {{ t('projectiles.sparkSandDust') }}</option>
-                  <option value="spark_line">✨ {{ t('projectiles.sparkSparkLine') }}</option>
-                  <option value="ice_shard">❄️ {{ t('projectiles.sparkIceShard') }}</option>
-                  <option value="snowflake">❄️ {{ t('projectiles.sparkSnowflake') }}</option>
-                  <option value="lightning_arc">⚡ {{ t('projectiles.sparkLightningArc') }}</option>
-                  <option value="acid_drop">🧪 {{ t('projectiles.sparkAcidDrop') }}</option>
-                  <option value="arcane_star">🔮 {{ t('projectiles.sparkArcaneStar') }}</option>
-                  <option value="void_blood">💀 {{ t('projectiles.sparkVoidBlood') }}</option>
-                  <option value="shrapnel">🏹 {{ t('projectiles.sparkShrapnel') }}</option>
-                  <option value="holy_cross">✨ {{ t('projectiles.sparkHolyCross') }}</option>
+                  <option value="fire_ember">{{ t('projectiles.sparkFireEmber') }}</option>
+                  <option value="sand_dust">{{ t('projectiles.sparkSandDust') }}</option>
+                  <option value="spark_line">{{ t('projectiles.sparkSparkLine') }}</option>
+                  <option value="ice_shard">{{ t('projectiles.sparkIceShard') }}</option>
+                  <option value="snowflake">{{ t('projectiles.sparkSnowflake') }}</option>
+                  <option value="lightning_arc">{{ t('projectiles.sparkLightningArc') }}</option>
+                  <option value="acid_drop">{{ t('projectiles.sparkAcidDrop') }}</option>
+                  <option value="arcane_star">{{ t('projectiles.sparkArcaneStar') }}</option>
+                  <option value="void_blood">{{ t('projectiles.sparkVoidBlood') }}</option>
+                  <option value="shrapnel">{{ t('projectiles.sparkShrapnel') }}</option>
+                  <option value="holy_cross">{{ t('projectiles.sparkHolyCross') }}</option>
                 </select>
               </div>
 
@@ -554,7 +553,7 @@
               :leading-icon="Copy"
               @click="handleDuplicate"
             >
-              {{ t('projectiles.duplicate') }}
+              {{ t('common.duplicate') }}
             </UiButton>
           </div>
         </div>
@@ -765,18 +764,18 @@ const aimMode = ref<AimMode>('single')
 const isCodeCopied = ref(false)
 
 const aimModes = computed(() => [
-  { id: 'single' as AimMode, label: '🎯 ' + t('projectiles.aimModeSingle') },
-  { id: 'burst_8' as AimMode, label: '✨ ' + t('projectiles.aimModeBurst8') },
-  { id: 'nova_16' as AimMode, label: '💥 ' + t('projectiles.aimModeNova16') },
-  { id: 'turret_spin' as AimMode, label: '🔄 ' + t('projectiles.aimModeTurretSpin') },
-  { id: 'moving_target' as AimMode, label: '🏃 ' + t('projectiles.aimModeMovingTarget') },
+  { id: 'single' as AimMode, label: t('projectiles.aimModeSingle') },
+  { id: 'burst_8' as AimMode, label: t('projectiles.aimModeBurst8') },
+  { id: 'nova_16' as AimMode, label: t('projectiles.aimModeNova16') },
+  { id: 'turret_spin' as AimMode, label: t('projectiles.aimModeTurretSpin') },
+  { id: 'moving_target' as AimMode, label: t('projectiles.aimModeMovingTarget') },
 ])
 
 const trailStyleOptions = computed(() => [
-  { id: 'solid_line', label: t('projectiles.trailStyleSolid'), icon: '➖' },
-  { id: 'glow_streak', label: t('projectiles.trailStyleGlow'), icon: '✨' },
-  { id: 'particles', label: t('projectiles.trailStyleParticles'), icon: '⚪' },
-  { id: 'none', label: t('projectiles.trailStyleNone'), icon: '🚫' },
+  { id: 'solid_line', label: t('projectiles.trailStyleSolid') },
+  { id: 'glow_streak', label: t('projectiles.trailStyleGlow') },
+  { id: 'particles', label: t('projectiles.trailStyleParticles') },
+  { id: 'none', label: t('projectiles.trailStyleNone') },
 ])
 
 const arenaCanvasRef = ref<HTMLCanvasElement | null>(null)

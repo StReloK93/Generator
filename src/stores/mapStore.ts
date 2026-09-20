@@ -79,11 +79,20 @@ export const useMapStore = defineStore('mapStore', () => {
   // All placed elements across all layers for the Right Panel Outliner
   const allPlacedElements = computed<PlacedElementEntry[]>(() => {
     const list: PlacedElementEntry[] = []
-    for (const layer of project.value.layers) {
-      for (const [key, items] of Object.entries(layer.tiles)) {
-        const [col, row] = key.split(',').map(Number)
+    const layers = project.value.layers
+    for (let l = 0; l < layers.length; l++) {
+      const layer = layers[l]
+      if (!layer || !layer.tiles) continue
+      const tiles = layer.tiles
+      for (const key in tiles) {
+        const items = tiles[key]
+        if (!items) continue
+        const commaIdx = key.indexOf(',')
+        const col = commaIdx !== -1 ? Number(key.slice(0, commaIdx)) : 0
+        const row = commaIdx !== -1 ? Number(key.slice(commaIdx + 1)) : 0
         const itemArr = Array.isArray(items) ? items : [items]
-        for (const item of itemArr) {
+        for (let i = 0; i < itemArr.length; i++) {
+          const item = itemArr[i]
           if (item && item.id) {
             list.push({
               item,
@@ -430,17 +439,26 @@ export const useMapStore = defineStore('mapStore', () => {
 
   function toggleLayerVisibility(id: string) {
     const layer = project.value.layers.find(l => l.id === id)
-    if (layer) layer.visible = !layer.visible
+    if (layer) {
+      layer.visible = !layer.visible
+      project.value.updatedAt = Date.now()
+    }
   }
 
   function toggleLayerLock(id: string) {
     const layer = project.value.layers.find(l => l.id === id)
-    if (layer) layer.locked = !layer.locked
+    if (layer) {
+      layer.locked = !layer.locked
+      project.value.updatedAt = Date.now()
+    }
   }
 
   function setLayerOpacity(id: string, opacity: number) {
     const layer = project.value.layers.find(l => l.id === id)
-    if (layer) layer.opacity = Math.max(0, Math.min(1, opacity))
+    if (layer) {
+      layer.opacity = Math.max(0, Math.min(1, opacity))
+      project.value.updatedAt = Date.now()
+    }
   }
 
   function renameLayer(id: string, newName: string) {
@@ -1797,27 +1815,77 @@ export const useMapStore = defineStore('mapStore', () => {
 
   // --- Batch Operations for Multi-Select & Identical Assets Management ---
 
-  function getAllItemsByAssetId(assetId: string, layerId?: string): { col: number; row: number; layerId: string; item: TileItem }[] {
-    const results: { col: number; row: number; layerId: string; item: TileItem }[] = []
-    const cleanTargetId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+  // Fast indexed cache of placed elements by assetId.
+  // Computed ONCE whenever layers/tiles change - never recomputed on cell selection!
+  const assetItemsIndex = computed(() => {
+    const map = new Map<string, { col: number; row: number; layerId: string; item: TileItem }[]>()
+    const layers = project.value.layers
+    for (let l = 0; l < layers.length; l++) {
+      const layer = layers[l]
+      if (!layer || !layer.tiles) continue
+      const tiles = layer.tiles
+      for (const key in tiles) {
+        const raw = tiles[key]
+        if (!raw) continue
+        const items = Array.isArray(raw) ? raw : [raw]
+        const commaIdx = key.indexOf(',')
+        const kCol = commaIdx !== -1 ? Number(key.slice(0, commaIdx)) : 0
+        const kRow = commaIdx !== -1 ? Number(key.slice(commaIdx + 1)) : 0
 
-    const layersToScan = layerId ? project.value.layers.filter(l => l.id === layerId) : project.value.layers
-    for (const layer of layersToScan) {
-      for (const [key, items] of Object.entries(layer.tiles)) {
-        for (const item of items) {
-          const itemClean = item.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
-          if (item.assetId === assetId || itemClean === cleanTargetId) {
-            results.push({
-              col: item.x,
-              row: item.y,
-              layerId: layer.id,
-              item,
-            })
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          if (!item || !item.id || !item.assetId) continue
+
+          const entry = {
+            col: item.x !== undefined ? item.x : kCol,
+            row: item.y !== undefined ? item.y : kRow,
+            layerId: layer.id,
+            item,
+          }
+
+          // Index by exact assetId
+          let list = map.get(item.assetId)
+          if (!list) {
+            list = []
+            map.set(item.assetId, list)
+          }
+          list.push(entry)
+
+          // Also index by normalized cleanId if different
+          const cleanId = item.assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+          if (cleanId !== item.assetId) {
+            let cleanList = map.get(cleanId)
+            if (!cleanList) {
+              cleanList = []
+              map.set(cleanId, cleanList)
+            }
+            cleanList.push(entry)
           }
         }
       }
     }
-    return results
+    return map
+  })
+
+  function getAllItemsByAssetId(assetId: string, layerId?: string): { col: number; row: number; layerId: string; item: TileItem }[] {
+    if (!assetId) return []
+    const cleanTargetId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    const all = assetItemsIndex.value.get(assetId) || assetItemsIndex.value.get(cleanTargetId) || []
+    if (!layerId) return all
+    return all.filter(e => e.layerId === layerId)
+  }
+
+  function getAssetItemCount(assetId: string, layerId?: string): number {
+    if (!assetId) return 0
+    const cleanTargetId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '').toLowerCase()
+    const all = assetItemsIndex.value.get(assetId) || assetItemsIndex.value.get(cleanTargetId)
+    if (!all) return 0
+    if (!layerId) return all.length
+    let count = 0
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].layerId === layerId) count++
+    }
+    return count
   }
 
   function batchMoveItemsToLayer(
@@ -2303,6 +2371,7 @@ export const useMapStore = defineStore('mapStore', () => {
     getElementsAtOrCoveringCell,
     getAllElementsAtOrCoveringCell,
     getAllItemsByAssetId,
+    getAssetItemCount,
     pushHistory,
     resetHistory,
     jumpToHistory,

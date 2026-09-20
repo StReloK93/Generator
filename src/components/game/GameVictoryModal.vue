@@ -109,7 +109,7 @@
             :leading-icon="RotateCcw"
             @click="characterStore.restartGame()"
           >
-            {{ $t('game.playAgain') }}
+            {{ $t('common.playAgain') }}
           </UiButton>
           <UiButton
             variant="secondary"

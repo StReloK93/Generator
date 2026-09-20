@@ -52,7 +52,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            :title="$t('assetEditor.nudgeUp')" 
+            :title="$t('common.nudgeUp')" 
             @click="store.nudgeSelected(0, -1)"
           >
             <ArrowUp class="w-4 h-4" />
@@ -62,7 +62,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            :title="$t('assetEditor.nudgeLeft')" 
+            :title="$t('common.nudgeLeft')" 
             @click="store.nudgeSelected(-1, 0)"
           >
             <ArrowLeft class="w-4 h-4" />
@@ -73,7 +73,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            :title="$t('assetEditor.nudgeRight')" 
+            :title="$t('common.nudgeRight')" 
             @click="store.nudgeSelected(1, 0)"
           >
             <ArrowRight class="w-4 h-4" />
@@ -83,7 +83,7 @@
           <UiButton 
             variant="secondary" 
             size="sm" 
-            :title="$t('assetEditor.nudgeDown')" 
+            :title="$t('common.nudgeDown')" 
             @click="store.nudgeSelected(0, 1)"
           >
             <ArrowDown class="w-4 h-4" />
@@ -112,7 +112,7 @@
       <UiCard v-if="store.selectedPart" variant="subtle" padding="sm" custom-class="flex flex-col gap-2">
         <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
           <Crop class="w-3.5 h-3.5 text-cyan-400" />
-          <span>{{ $t('assetEditor.cropSection') || 'Qirqish va Qirralar' }}</span>
+          <span>{{ $t('assetEditor.cropSection') }}</span>
         </span>
 
         <div class="grid grid-cols-2 gap-2">
@@ -120,20 +120,20 @@
             variant="secondary" 
             size="xs" 
             :leading-icon="Crop"
-            :title="$t('assetEditor.cropDesc') || 'Rasmni interaktiv qirqib olish'"
+            :title="$t('assetEditor.cropDesc')"
             @click="store.openCropModal(store.selectedPart!.id)"
           >
-            {{ $t('assetEditor.crop') || 'Qirqish' }}
+            {{ $t('assetEditor.crop') }}
           </UiButton>
 
           <UiButton 
             variant="game-amber" 
             size="xs" 
             :leading-icon="Sparkles"
-            :title="$t('assetEditor.autoTrimDesc') || 'Shaffof chegaralarni avtomatik tozalash'"
+            :title="$t('assetEditor.autoTrimDesc')"
             @click="store.autoTrimPart(store.selectedPart!.id)"
           >
-            {{ $t('assetEditor.autoTrim') || 'Avto-qirqish' }}
+            {{ $t('assetEditor.autoTrim') }}
           </UiButton>
         </div>
       </UiCard>
@@ -177,7 +177,7 @@
             :leading-icon="FlipHorizontal"
             @click="toggleFlipX"
           >
-            {{ $t('assetEditor.flipHorizontal') }}
+            {{ $t('common.flipHorizontal') }}
           </UiButton>
 
           <UiButton 
@@ -186,7 +186,7 @@
             :leading-icon="FlipVertical"
             @click="toggleFlipY"
           >
-            {{ $t('assetEditor.flipVertical') }}
+            {{ $t('common.flipVertical') }}
           </UiButton>
         </div>
 
@@ -223,7 +223,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
             <Scaling class="w-3.5 h-3.5 text-emerald-400" />
-            <span>{{ $t('assetEditor.scaleDimensions') || 'O\'lcham va Masshtab (Scale)' }}</span>
+            <span>{{ $t('assetEditor.scaleDimensions') }}</span>
           </span>
 
           <!-- Aspect Ratio Lock / Unlock Toggle -->
@@ -231,21 +231,21 @@
             variant="ghost"
             size="xs"
             :leading-icon="isAspectLocked ? Link2 : Unlink2"
-            :title="isAspectLocked ? ($t('assetEditor.aspectRatioLocked') || 'Proporsiya bog\'langan (Bir xil o\'zgaradi)') : ($t('assetEditor.aspectRatioUnlocked') || 'O\'qlar alohida (X va Y mustaqil)')"
+            :title="isAspectLocked ? $t('assetEditor.aspectRatioLocked') : $t('assetEditor.aspectRatioUnlocked')"
             :custom-class="isAspectLocked ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2!' : 'text-amber-400 bg-amber-950/60 border border-amber-800/80 px-2!'"
             @click="isAspectLocked = !isAspectLocked"
           >
-            {{ isAspectLocked ? ($t('assetEditor.locked') || 'Bog\'langan') : ($t('assetEditor.unlocked') || 'Alohida') }}
+            {{ isAspectLocked ? $t('assetEditor.locked') : $t('assetEditor.unlocked') }}
           </UiButton>
         </div>
 
         <!-- Fine Step Multiplier Selector (Slow / Precise vs Normal) -->
         <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
-          <span>{{ $t('assetEditor.stepPrecision') || 'Sekin masshtablash qadami' }}:</span>
+          <span>{{ $t('assetEditor.stepPrecision') }}:</span>
           <UiTabs
             v-model="fineStep"
             :items="[
-              { id: 0.01, label: '0.01 (Sekin)' },
+              { id: 0.01, label: '0.01' },
               { id: 0.05, label: '0.05' },
               { id: 0.1, label: '0.1' },
             ]"
@@ -259,7 +259,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-emerald-300 flex items-center gap-1">
               <MoveHorizontal class="w-3.5 h-3.5 text-emerald-400" />
-              <span>Scale X (Kenglik):</span>
+              <span>{{ $t('assetEditor.scaleX') }}:</span>
             </span>
             <div class="flex items-center gap-1">
               <!-- Slow Minus Stepper Button -->
@@ -303,7 +303,7 @@
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-cyan-300 flex items-center gap-1">
               <MoveVertical class="w-3.5 h-3.5 text-cyan-400" />
-              <span>Scale Y (Balandlik):</span>
+              <span>{{ $t('assetEditor.scaleY') }}:</span>
             </span>
             <div class="flex items-center gap-1">
               <!-- Slow Minus Stepper Button -->
@@ -344,7 +344,7 @@
 
         <!-- Quick Scale Presets & Reset Row -->
         <div v-if="store.selectedPart" class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80 flex-wrap">
-          <span class="text-[10px] text-slate-400 font-mono">{{ $t('assetEditor.quickPresets') || 'Andozalar' }}:</span>
+          <span class="text-[10px] text-slate-400 font-mono">{{ $t('assetEditor.quickPresets') }}:</span>
           <div class="flex items-center gap-1 flex-wrap">
             <UiButton
               v-for="p in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]"

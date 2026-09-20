@@ -239,7 +239,7 @@
               'bg-slate-800 text-slate-300': axisConstraint === 'none',
             }"
           >
-            {{ axisConstraint === 'none' ? 'XY (Universal)' : axisConstraint.toUpperCase() + '-O\'Q' }}
+            {{ axisConstraint === 'none' ? $t('assetEditor.axisConstraintUniversal') : $t('assetEditor.axisConstraintAxis', { axis: axisConstraint.toUpperCase() }) }}
           </span>
         </div>
 
@@ -249,23 +249,23 @@
           :class="isShiftSlow ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse' : 'bg-slate-800 text-slate-500'"
         >
           <span>Shift:</span>
-          <span>{{ isShiftSlow ? 'SEKIN (SLOW)' : 'Oddiy' }}</span>
+          <span>{{ isShiftSlow ? $t('assetEditor.shiftSlow') : $t('assetEditor.shiftNormal') }}</span>
         </div>
       </div>
 
       <!-- Helper Keyboard Controls Sub-Banner -->
       <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-950/90 border border-slate-800 text-[10px] text-slate-300 font-mono shadow-lg">
         <span class="text-emerald-400 font-bold">[Left-Click / Enter]</span>
-        <span>Saqlash</span>
+        <span>{{ $t('common.save') }}</span>
         <span class="text-slate-700">|</span>
         <span class="text-rose-400 font-bold">[Right-Click / Esc]</span>
-        <span>Bekor qilish</span>
+        <span>{{ $t('common.cancel') }}</span>
         <span class="text-slate-700">|</span>
         <span class="text-amber-400 font-bold">[X] / [Y]</span>
-        <span>O'qni qulflash</span>
+        <span>{{ $t('assetEditor.keyLockAxis') }}</span>
         <span class="text-slate-700">|</span>
         <span class="text-cyan-400 font-bold">[Shift]</span>
-        <span>Juda sekin / aniq</span>
+        <span>{{ $t('assetEditor.keySlowPrecise') }}</span>
       </div>
     </div>
 
@@ -275,16 +275,16 @@
       class="absolute top-4 left-4 z-30 flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-2xl shadow-xl backdrop-blur-md text-[10px] text-slate-300 font-mono"
     >
       <span class="text-emerald-400 font-bold">"S":</span>
-      <span>Scale (Markazga yaqin/uzoq)</span>
+      <span>{{ $t('assetEditor.tipScale') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-cyan-400 font-bold">"G":</span>
-      <span>Grab / Move (Sichqonchaga yopishish)</span>
+      <span>{{ $t('assetEditor.tipGrab') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-amber-400 font-bold">"X" / "Y":</span>
-      <span>Bir o'q bo'yicha</span>
+      <span>{{ $t('assetEditor.tipSingleAxis') }}</span>
       <span class="text-slate-600">|</span>
       <span class="text-amber-400 font-bold">Shift:</span>
-      <span>Sekin o'zgartirish</span>
+      <span>{{ $t('assetEditor.keySlowPrecise') }}</span>
     </div>
 
     <!-- Selected Part Live Scale Indicator in Viewport HUD -->
@@ -354,7 +354,7 @@
       @click.self="closeQuickScale"
     >
       <div 
-        class="bg-slate-900 border border-brand-500/80 rounded-2xl p-5 shadow-2xl w-80 sm:w-96 flex flex-col gap-3.5 ring-4 ring-brand-500/20 animate-in zoom-in-95 duration-150"
+        class="bg-slate-900 border border-brand-500/80 rounded-2xl p-5 shadow-2xl w-80  flex flex-col gap-3.5 ring-4 ring-brand-500/20 animate-in zoom-in-95 duration-150"
         @keydown.stop
       >
         <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">

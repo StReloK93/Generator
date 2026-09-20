@@ -98,7 +98,7 @@
           </span>
           <span class="text-slate-600">•</span>
           <span class="text-rose-300 font-mono font-medium">
-            {{ $t('editor.selectedTypesCount', { count: selectedAssetIds.length }) }} ({{ $t('editor.totalItemsToDelete', { count: selectedItemsCount }) }})
+            {{ $t('editor.selectedTypesCount', { count: selectedAssetIds.length }) }} ({{ $t('common.itemsCount', { count: selectedItemsCount }) }})
           </span>
         </div>
 
@@ -121,7 +121,7 @@
             :leading-icon="CheckSquare"
             @click="selectAll"
           >
-            {{ $t('editor.selectAll') }}
+            {{ $t('common.selectAll') }}
           </UiButton>
           <UiButton
             variant="ghost"
@@ -129,7 +129,7 @@
             :leading-icon="Square"
             @click="deselectAll"
           >
-            {{ $t('editor.deselectAll') }}
+            {{ $t('common.deselectAll') }}
           </UiButton>
         </div>
       </div>

@@ -51,7 +51,7 @@
             @click="openLiveConfigModal"
             :title="$t('sandbox.openTdSettings')"
           >
-            {{ $t('sandbox.tdSettings') }}
+            {{ $t('common.tdSettings') }}
           </UiButton>
 
           <UiIconButton
@@ -105,7 +105,7 @@
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1">
               <Coins class="w-3.5 h-3.5 text-amber-400" />
-              <span>{{ $t('sandbox.startingGold') }}</span>
+              <span>{{ $t('common.startingGold') }}</span>
             </span>
             <span class="font-mono text-[10px] text-slate-400">{{ testStartingGold }} {{ $t('common.gold') }}</span>
           </div>
@@ -234,7 +234,7 @@
               class="px-1! text-[10px]!"
               @click="characterStore.devSetGold(99999)"
             >
-              {{ $t('sandbox.max') }} (99k)
+              {{ $t('common.max') }} (99k)
             </UiButton>
           </div>
         </div>

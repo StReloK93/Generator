@@ -122,10 +122,10 @@
         :variant="toolStore.isGameConfigModalOpen ? 'game-amber' : 'secondary'"
         size="sm"
         :leading-icon="ShieldAlert"
-        :title="`${$t('header.gameConfig')} (T)`"
+        :title="`${$t('common.tdSettings')} (T)`"
         @click="toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen"
       >
-        <span class="hidden sm:inline">{{ $t('header.gameConfig') }}</span>
+        <span class="hidden sm:inline">{{ $t('common.tdSettings') }}</span>
       </UiButton>
 
       <!-- Play Game Button (Navigates cleanly to /game) -->

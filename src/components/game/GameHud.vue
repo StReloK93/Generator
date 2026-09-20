@@ -42,17 +42,6 @@
             :title="$t('header.centerToggle')"
             @click="handleFocusCenter"
           />
-
-          <!-- 5. Route Lines Toggle Button -->
-          <UiButton
-            variant="ghost"
-            size="sm"
-            :leading-icon="Footprints"
-            :active="characterStore.showPathTrail !== false"
-            :title="characterStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
-            @click="characterStore.showPathTrail = (characterStore.showPathTrail === false)"
-          />
-
         </div>
       </div>
       <!-- 2. GLOBAL GAME (BASE & WAVE) INDICATORS -->
@@ -61,7 +50,7 @@
       <!-- Singleplayer User Stats -->
       <UiCard v-if="!multiplayerStore.roomId" class="px-2.5 landscape:py-0.5 flex gap-3">
         <!-- Gold -->
-        <div class="flex items-center gap-1" :title="$t('game.gold')">
+        <div class="flex items-center gap-1" :title="$t('common.gold')">
           <DollarSign class="size-4 text-amber-400" />
           <span class="font-bold text-amber-400">{{ characterStore.gold }}</span>
         </div>
@@ -75,7 +64,7 @@
         <!-- Base Lives -->
         <div class="flex items-center gap-1"
           :class="characterStore.playerLives <= 5 ? 'text-rose-400 animate-pulse font-black' : 'text-slate-200'"
-          :title="$t('game.lives')">
+          :title="$t('common.lives')">
           <Heart class="size-4 text-rose-500 fill-rose-500" />
           <span class="font-bold">
             {{ characterStore.playerLives }}
@@ -157,7 +146,7 @@
           :leading-icon="RotateCcw"
           @click="handleRestartGame"
         >
-          {{ $t('game.restartGame') }}
+          {{ $t('common.playAgain') }}
         </UiButton>
 
         <!-- Exit to Home / Editor -->
@@ -236,7 +225,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages, Footprints
+  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
