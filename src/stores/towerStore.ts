@@ -35,6 +35,8 @@ export interface TowerBlueprint extends TowerTraitsConfig {
   splashType: SplashType
   cost: number
   scale?: number
+  muzzleOffsetX?: number // px offset from tower center for projectile origin (default: 0)
+  muzzleOffsetY?: number // px offset from default muzzle Y for projectile origin (default: 0)
   spanX?: number
   spanY?: number
   anchorX?: number
@@ -1047,9 +1049,10 @@ export const useTowerStore = defineStore('towerStore', () => {
         if (bestTarget) {
           tower.cooldownTimer = tower.attackSpeed
 
-          // Calculate tower muzzle spawn position (top of stone column)
-          const muzzleX = tower.screenX
-          const muzzleY = tower.screenY - tileHeight * 1.35 // Muzzle at top of column
+          // Calculate tower muzzle spawn position (from blueprint config or default top of column)
+          const bp = blueprintMap.value.get(tower.blueprintId)
+          const muzzleX = tower.screenX + (bp?.muzzleOffsetX ?? 0)
+          const muzzleY = tower.screenY - tileHeight * 1.35 + (bp?.muzzleOffsetY ?? 0)
 
           const targetX = bestTarget.screenX
           const targetY = bestTarget.screenY - tileHeight * 0.5 // Target center of body

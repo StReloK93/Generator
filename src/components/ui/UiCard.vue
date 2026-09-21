@@ -102,7 +102,7 @@ const variantClasses = computed(() => {
       return 'bg-transparent border-transparent'
     case 'default':
     default:
-      return 'bg-slate-900/80 border-slate-800 backdrop-blur-md hover:border-slate-700/80 shadow-md'
+      return 'bg-slate-900/70 border-slate-800 backdrop-blur-sm hover:border-slate-700/80 shadow-md'
   }
 })
 

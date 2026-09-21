@@ -212,7 +212,7 @@
         type="button"
         @click="towerStore.openClanSelectModal()"
         :class="[
-          'rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 touch-target shadow-md px-2.5 py-1 gap-1.5',
+          'rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 touch-target shadow-md px-2.5 py-1 gap-1.5',
           'bg-slate-900/90 border-amber-400/80 hover:bg-slate-800'
         ]"
         :title="`${$t('clans.activeClan')}: ${towerStore.selectedClan.name}`"
@@ -222,7 +222,7 @@
           class="w-4 h-4"
           :style="{ color: towerStore.selectedClan.color || '#38bdf8' }"
         />
-        <span class="text-xs font-bold text-amber-300 hidden sm:inline">{{ towerStore.selectedClan.name }}</span>
+        <!-- <span class="text-xs font-bold text-amber-300 hidden sm:inline">{{ towerStore.selectedClan.name }}</span> -->
       </button>
 
       <!-- Tower Buttons of the Selected Faction -->
@@ -231,7 +231,7 @@
           ? 'bg-amber-500/30 border-amber-400'
           : 'bg-slate-900/70 border-slate-400'
       ]"
-        class="rounded-2xl border-2 flex items-center gap-2 transition-all cursor-pointer shrink-0 active:scale-95 touch-target"
+        class="rounded-xl border flex items-center gap-2 transition-all cursor-pointer shrink-0 active:scale-95 touch-target"
         :title="`${bp.name} — ${$t('game.cost', { amount: bp.cost })}`">
         <div
           class="w-10 h-10 sm:w-11 sm:h-11 p-2">
@@ -254,14 +254,14 @@
 
 
       <!-- Right Side: Circular Timer / Combat Indicator / Test Speed Controls -->
-      <div class="flex items-center gap-1.5 shrink-0 pl-0.5 border-l border-slate-800/80">
+      <div class="flex items-center gap-1.5 shrink-0 px-0.5  border-slate-800/80">
 
         <!-- Speed Multiplier (ONLY in Preview / Test Mode) -->
         <div v-if="!multiplayerStore.roomId" class="shrink-0">
           <UiTabs
             :model-value="characterStore.gameSpeed"
             :items="speedTabs"
-            size="xs"
+            size="sm"
             variant="amber"
             @update:model-value="characterStore.setGameSpeed(Number($event))"
           />
@@ -335,9 +335,6 @@ const speedTabs = [
   { id: 1, label: '1x' },
   { id: 2, label: '2x' },
   { id: 5, label: '5x' },
-  { id: 10, label: '10x' },
-  { id: 20, label: '20x' },
-  { id: 50, label: '50x' }
 ]
 
 // Active currently selected blueprint for placement

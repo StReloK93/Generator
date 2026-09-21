@@ -3,10 +3,7 @@
     <!-- Left & Center: Game Global Indicators + User Indicators -->
     <div class="flex flex-wrap justify-between gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1">
       <!-- Right: Unified Action Dock (Menu, Exit, Fullscreen, Center, Language) -->
-      <div class="flex items-center pointer-events-auto">
-        <div
-          class="p-0.5 landscape:p-0.5 rounded-xl sm:rounded-xl border border-slate-800/80 shadow-2xl backdrop-blur-xl bg-slate-950/80 flex items-center gap-1 sm:gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
-
+      <UiCard class="pointer-events-auto landscape:py-0.5 landscape:px-0.5 flex gap-0.5">
           <!-- 1. Tactical In-Game Menu Button -->
           <UiButton
             variant="ghost"
@@ -14,15 +11,6 @@
             :leading-icon="Menu"
             :title="$t('game.menu')"
             @click="isMenuOpen = true"
-          />
-
-          <!-- 2. Exit / Back Button -->
-          <UiButton
-            variant="danger"
-            size="sm"
-            :leading-icon="ArrowLeft"
-            :title="isEditorMode ? $t('game.returnEditor') : $t('game.returnHome')"
-            @click="handleExitGame"
           />
 
           <!-- 3. Fullscreen Button -->
@@ -33,36 +21,26 @@
             :title="$t('game.fullscreen')"
             @click="handleToggleFullscreen"
           />
-
-          <!-- 4. Center Focus Button -->
-          <UiButton
-            variant="ghost"
-            size="sm"
-            :leading-icon="Crosshair"
-            :title="$t('header.centerToggle')"
-            @click="handleFocusCenter"
-          />
-        </div>
-      </div>
+      </UiCard>
       <!-- 2. GLOBAL GAME (BASE & WAVE) INDICATORS -->
 
 
       <!-- Singleplayer User Stats -->
-      <UiCard v-if="!multiplayerStore.roomId" class="px-2.5 landscape:py-0.5 flex gap-3">
+      <UiCard v-if="!multiplayerStore.roomId" class="landscape:py-0.5 flex gap-3">
         <!-- Gold -->
-        <div class="flex items-center gap-1" :title="$t('common.gold')">
-          <DollarSign class="size-4 text-amber-400" />
+        <div class="flex items-center gap-1.5" :title="$t('common.gold')">
+          <Coins class="size-4 text-amber-400" />
           <span class="font-bold text-amber-400">{{ characterStore.gold }}</span>
         </div>
 
         <!-- Total Kills -->
-        <div class="flex items-center gap-1" :title="$t('game.kills')">
+        <div class="flex items-center gap-1.5" :title="$t('game.kills')">
           <Skull class="size-4 text-rose-400" />
           <span class="font-bold text-rose-300">{{ characterStore.totalKills }}</span>
         </div>
 
         <!-- Base Lives -->
-        <div class="flex items-center gap-1"
+        <div class="flex items-center gap-1.5"
           :class="characterStore.playerLives <= 5 ? 'text-rose-400 animate-pulse font-black' : 'text-slate-200'"
           :title="$t('common.lives')">
           <Heart class="size-4 text-rose-500 fill-rose-500" />
@@ -73,11 +51,11 @@
 
 
         <!-- Wave -->
-        <div class="flex items-center gap-1 shrink-0" :title="$t('game.wave')">
-          <Swords class="size-4 text-purple-400 shrink-0" />
-          <span class="font-mono font-bold text-xs text-purple-200">
-            {{ characterStore.currentWaveIndex + 1 }}<span class="text-slate-500 font-normal text-[10px]">/{{
-              characterStore.waveConfigs.length || 0 }}</span>
+        <div class="flex items-center gap-1.5" :title="$t('game.wave')">
+          <Swords class="size-4 text-blue-400" />
+          <span class="font-mono font-bold text-xs text-purple-200 flex">
+            {{ characterStore.currentWaveIndex + 1 }}
+            <span class="text-slate-400 font-normal">/{{ characterStore.waveConfigs.length || 0 }}</span>
           </span>
         </div>
       </UiCard>
@@ -225,7 +203,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  Heart, DollarSign, Swords, Skull, ArrowLeft, Maximize2, Minimize2, Activity, Crosshair, Users, DoorOpen, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
+  Heart,  Swords, Skull,  Maximize2, Minimize2, Activity,  X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
@@ -269,12 +247,6 @@ onUnmounted(() => {
 async function handleToggleFullscreen() {
   const active = await toggleAppFullscreen()
   isFullscreenMode.value = active
-}
-
-function handleFocusCenter() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('game-focus-center'))
-  }
 }
 
 function handleRestartGame() {

@@ -18,8 +18,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { TowerBlueprint } from '../../stores/towerStore'
-import { useAssetStore } from '../../stores/assetStore'
-import { getProjectileTheme, renderCanvasProjectileHead, renderCanvasProjectileTrail } from '../../utils/projectileEffectRenderer'
+import { useAssetStore } from  '../../stores/assetStore'
+import { getProjectileTheme, renderCanvasProjectileHead, renderCanvasProjectileTrail } 
+from '../../utils/projectileEffectRenderer'
 import { getProjectileDef } from '../../utils/projectileCatalog'
 
 const props = defineProps<{
@@ -115,8 +116,8 @@ function spawnProjectile() {
   // Building placed exactly in the DEAD CENTER
   const targetH = Math.min(100, Math.max(56, h * 0.52))
   const towerCenterX = w * 0.5
-  const muzzleX = towerCenterX
-  const muzzleY = h * 0.5 - targetH * 0.35
+  const muzzleX = towerCenterX + (props.blueprint.muzzleOffsetX ?? 0)
+  const muzzleY = h * 0.5 - targetH * 0.35 + (props.blueprint.muzzleOffsetY ?? 0)
 
   // Target angles (cycles through dynamic firing directions)
   const targetAngles = [

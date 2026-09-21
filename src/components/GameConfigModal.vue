@@ -478,6 +478,54 @@
             </div>
           </div>
 
+          <!-- Visual Settings: Tower Scale & Muzzle Origin -->
+          <div class="flex flex-col gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
+            <div class="flex items-center justify-between flex-wrap gap-1.5 pb-1 border-b border-slate-800">
+              <div class="flex items-center gap-1.5">
+                <Crosshair class="w-4 h-4 text-amber-400" />
+                <span class="text-xs font-bold text-slate-200">{{ $t('config.visualSettings') }}</span>
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-tight">
+              {{ $t('config.visualSettingsDesc') }}
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <!-- Tower Scale -->
+              <UiSlider 
+                :model-value="selectedBp?.scale ?? 1.0"
+                :label="$t('config.towerScale')"
+                :min="0.3"
+                :max="3.0"
+                :step="0.05"
+                unit="x"
+                @update:model-value="(val) => updateSelectedBp({ scale: val })"
+              />
+
+              <!-- Muzzle Offset X -->
+              <UiSlider 
+                :model-value="selectedBp?.muzzleOffsetX ?? 0"
+                :label="$t('config.muzzleOffsetX')"
+                :min="-50"
+                :max="50"
+                :step="1"
+                unit=" px"
+                @update:model-value="(val) => updateSelectedBp({ muzzleOffsetX: val })"
+              />
+
+              <!-- Muzzle Offset Y -->
+              <UiSlider 
+                :model-value="selectedBp?.muzzleOffsetY ?? 0"
+                :label="$t('config.muzzleOffsetY')"
+                :min="-80"
+                :max="20"
+                :step="1"
+                unit=" px"
+                @update:model-value="(val) => updateSelectedBp({ muzzleOffsetY: val })"
+              />
+            </div>
+          </div>
+
           <!-- Multi-Traits & Elemental Properties Card -->
           <div class="flex flex-col gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
             <div class="flex items-center justify-between flex-wrap gap-1.5 pb-1 border-b border-slate-800">

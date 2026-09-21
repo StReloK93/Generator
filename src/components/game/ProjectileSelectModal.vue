@@ -221,7 +221,7 @@
 
               <!-- Right Active Checkmark Badge -->
               <div v-if="tempSelectedId === proj.id" class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 shadow-md">
-                <Check class="w-3.5 h-3.5 stroke-[3]" />
+                <Check class="w-3.5 h-3.5 stroke-3" />
               </div>
             </div>
           </div>

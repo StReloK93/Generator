@@ -88,7 +88,7 @@
       <!-- Main Interactive Cropper Stage -->
       <div 
         ref="cropContainerRef"
-        class="relative w-full h-[380px] sm:h-[440px] rounded-2xl bg-slate-950 border border-slate-800/90 overflow-hidden flex items-center justify-center checker-pattern cursor-crosshair"
+        class="relative w-full h-95 sm:h-110 rounded-2xl bg-slate-950 border border-slate-800/90 overflow-hidden flex items-center justify-center checker-pattern cursor-crosshair"
         @mousedown="handleStageMouseDown"
         @mousemove="handleStageMouseMove"
         @mouseup="handleStageMouseUp"
