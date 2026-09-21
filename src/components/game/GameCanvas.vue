@@ -284,11 +284,15 @@ function handleTouchMove(e: TouchEvent) {
 
 function handleTouchEnd(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
-  camera.handleTouchEnd(e, (clientX, clientY) => {
-    const rect = camera.getViewportRect(viewportContainerRef.value)
-    const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
-    gameController.handleCellClick(gridCoord)
-  })
+  camera.handleTouchEnd(
+    e,
+    (clientX, clientY) => {
+      const rect = camera.getViewportRect(viewportContainerRef.value)
+      const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
+      gameController.handleCellClick(gridCoord)
+    },
+    !!towerStore.activeBuildTowerId
+  )
 }
 
 function handleTouchCancel() {

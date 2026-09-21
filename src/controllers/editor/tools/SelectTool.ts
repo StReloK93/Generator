@@ -33,8 +33,8 @@ export class SelectTool implements IEditorTool {
       mapStore.activeLayerId = chosen.layerId
 
       const newRef: SelectedElementRef = {
-        col: coord.col,
-        row: coord.row,
+        col: chosen.originCol !== undefined ? chosen.originCol : coord.col,
+        row: chosen.originRow !== undefined ? chosen.originRow : coord.row,
         layerId: chosen.layerId,
         itemId: chosen.item.id,
       }

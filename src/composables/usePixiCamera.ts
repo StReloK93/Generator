@@ -260,7 +260,11 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     }
   }
 
-  function handleTouchEnd(e: TouchEvent, onSingleTap?: (clientX: number, clientY: number) => void) {
+  function handleTouchEnd(
+    e: TouchEvent, 
+    onSingleTap?: (clientX: number, clientY: number) => void,
+    disableDoubleTapZoom?: boolean
+  ) {
     if (e.touches.length === 0) {
       const now = performance.now()
       const elapsed = now - touchState.value.startTime
@@ -274,7 +278,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
           touchState.value.startX - touchState.value.lastTapPos.x,
           touchState.value.startY - touchState.value.lastTapPos.y
         )
-        if (now - touchState.value.lastTapTime < 350 && distFromLastTap < 30) {
+        if (!disableDoubleTapZoom && now - touchState.value.lastTapTime < 350 && distFromLastTap < 30) {
           zoomIn()
           touchState.value.lastTapTime = 0
         } else {

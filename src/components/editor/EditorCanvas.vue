@@ -804,19 +804,12 @@ const selectedAssetPreviewSrc = computed(() => {
 })
 
 function handleDeleteSelectedElements() {
-  if (toolStore.selectedElements.length === 0 && !toolStore.selectedElement) return
-  if (toolStore.selectedElements.length > 0) {
-    for (const el of toolStore.selectedElements) {
-      mapStore.removeTileItem(el.col, el.row, el.itemId, el.layerId)
-    }
-  } else if (toolStore.selectedElement) {
-    mapStore.removeTileItem(
-      toolStore.selectedElement.col,
-      toolStore.selectedElement.row,
-      toolStore.selectedElement.itemId,
-      toolStore.selectedElement.layerId
-    )
-  }
+  const elements = toolStore.selectedElements.length > 0
+    ? [...toolStore.selectedElements]
+    : (toolStore.selectedElement ? [toolStore.selectedElement] : [])
+  if (elements.length === 0) return
+
+  mapStore.batchRemoveTileItems(elements)
   toolStore.clearSelection()
 }
 

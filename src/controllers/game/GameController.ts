@@ -64,11 +64,12 @@ export class GameController {
     if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
       towerStore.selectPlacedTower(null)
       this.pendingBuildCell = null
+      towerStore.setPendingBuildCell(null)
       toolStore.setHoveredCell(null)
       return
     }
 
-    // 1. If building a tower from shop (2-step confirmation)
+    // 1. If building a tower from shop
     if (towerStore.activeBuildTowerId) {
       // Check if cell already has a placed tower!
       const existingTower = towerStore.placedTowers.find(
@@ -76,16 +77,18 @@ export class GameController {
       )
       if (existingTower) {
         notify.warning(t('game.tileAlreadyOccupied'), t('game.cannotPlaceHere'))
-        this.pendingBuildCell = null
-        toolStore.setHoveredCell(null)
         return
       }
 
       // Check if cell is blocked by spawn point or route
       if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
         notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
-        this.pendingBuildCell = null
-        toolStore.setHoveredCell(null)
+        return
+      }
+
+      // Check if cell is in buildable zone
+      if (!mapStore.isCellBuildable(gridCoord.col, gridCoord.row)) {
+        notify.warning(t('game.cannotPlaceHere'), t('game.cannotPlaceHere'))
         return
       }
 
@@ -96,6 +99,7 @@ export class GameController {
         this.pendingBuildCell.row !== gridCoord.row
       ) {
         this.pendingBuildCell = { col: gridCoord.col, row: gridCoord.row }
+        towerStore.setPendingBuildCell(this.pendingBuildCell)
         toolStore.setHoveredCell({ col: gridCoord.col, row: gridCoord.row })
         towerStore.selectPlacedTower(null)
         return
@@ -125,6 +129,7 @@ export class GameController {
       if (placed) {
         this.lastBuildTimestamp = Date.now()
         this.pendingBuildCell = null
+        towerStore.setPendingBuildCell(null)
         toolStore.setHoveredCell(null)
         towerStore.selectBuildTower(null)
         towerStore.selectPlacedTower(null)
@@ -175,6 +180,7 @@ export class GameController {
     const { towerStore, toolStore } = this.deps
     if (towerStore.activeBuildTowerId) {
       this.pendingBuildCell = null
+      towerStore.setPendingBuildCell(null)
       toolStore.setHoveredCell(null)
       towerStore.selectBuildTower(null)
       return
@@ -186,6 +192,7 @@ export class GameController {
 
   public resetBuildState(): void {
     this.pendingBuildCell = null
+    this.deps.towerStore.setPendingBuildCell(null)
     this.deps.toolStore.setHoveredCell(null)
   }
 

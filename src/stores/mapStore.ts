@@ -108,8 +108,59 @@ export const useMapStore = defineStore('mapStore', () => {
     return list
   })
 
+  function cloneTileItem(item: TileItem): TileItem {
+    return {
+      id: item.id,
+      x: item.x,
+      y: item.y,
+      assetId: item.assetId,
+      zIndex: item.zIndex,
+      depthOffset: item.depthOffset,
+      cellZIndex: item.cellZIndex ? { ...item.cellZIndex } : undefined,
+      spanX: item.spanX,
+      spanY: item.spanY,
+      scale: item.scale,
+      anchorX: item.anchorX,
+      anchorY: item.anchorY,
+      flipX: item.flipX,
+      rotation: item.rotation,
+      offsetX: item.offsetX,
+      offsetY: item.offsetY,
+      opacity: item.opacity,
+    }
+  }
+
   function cloneLayers(layers: Layer[]): Layer[] {
-    return JSON.parse(JSON.stringify(layers))
+    const len = layers.length
+    const result: Layer[] = new Array(len)
+    for (let i = 0; i < len; i++) {
+      const l = layers[i]
+      const clonedTiles: Record<string, TileItem[]> = {}
+      if (l.tiles) {
+        for (const key in l.tiles) {
+          const val = l.tiles[key]
+          if (Array.isArray(val)) {
+            const arrLen = val.length
+            const arr = new Array(arrLen)
+            for (let j = 0; j < arrLen; j++) {
+              arr[j] = cloneTileItem(val[j])
+            }
+            clonedTiles[key] = arr
+          } else if (val) {
+            clonedTiles[key] = [cloneTileItem(val as any)]
+          }
+        }
+      }
+      result[i] = {
+        id: l.id,
+        name: l.name,
+        visible: l.visible,
+        locked: l.locked,
+        opacity: l.opacity,
+        tiles: clonedTiles,
+      }
+    }
+    return result
   }
 
   function pushHistory(description: string) {
@@ -2177,30 +2228,116 @@ export const useMapStore = defineStore('mapStore', () => {
     }
   }
 
-  function batchRemoveTileItems(items: { col: number; row: number; itemId: string; layerId: string }[]) {
-    let removedCount = 0
-    for (const entry of items) {
-      const layer = project.value.layers.find(l => l.id === entry.layerId)
-      if (!layer || layer.locked) continue
+  function batchRemoveTileItems(items: { col: number; row: number; itemId: string; layerId: string }[]): number {
+    if (!items || items.length === 0) return 0
 
-      const key = cellKey(entry.col, entry.row)
-      const cellItems = getCellItems(entry.col, entry.row, entry.layerId)
-      const index = cellItems.findIndex(i => i.id === entry.itemId)
-      if (index === -1) continue
+    // Group itemIds by layerId for O(1) set lookup
+    const layerItemsToDelete = new Map<string, Set<string>>()
+    // Track candidate cell keys for fast O(1) direct hits: layerId -> Set<cellKey>
+    const layerCandidateKeys = new Map<string, Set<string>>()
 
-      cellItems.splice(index, 1)
-      if (cellItems.length === 0) {
-        delete layer.tiles[key]
-      } else {
-        layer.tiles[key] = [...cellItems]
+    for (let i = 0; i < items.length; i++) {
+      const entry = items[i]
+      if (!entry || !entry.layerId || !entry.itemId) continue
+
+      let itemSet = layerItemsToDelete.get(entry.layerId)
+      if (!itemSet) {
+        itemSet = new Set<string>()
+        layerItemsToDelete.set(entry.layerId, itemSet)
       }
-      removedCount++
+      itemSet.add(entry.itemId)
+
+      let keySet = layerCandidateKeys.get(entry.layerId)
+      if (!keySet) {
+        keySet = new Set<string>()
+        layerCandidateKeys.set(entry.layerId, keySet)
+      }
+      if (entry.col !== undefined && entry.row !== undefined) {
+        keySet.add(cellKey(entry.col, entry.row))
+      }
+    }
+
+    let removedCount = 0
+
+    for (const [layerId, itemIdsToDelete] of layerItemsToDelete.entries()) {
+      const layer = project.value.layers.find(l => l.id === layerId)
+      if (!layer || layer.locked || !layer.tiles) continue
+
+      const candidateKeys = layerCandidateKeys.get(layerId)
+      const remainingToDelete = new Set(itemIdsToDelete)
+
+      // 1. Fast-path: Check candidate keys directly
+      if (candidateKeys) {
+        for (const key of candidateKeys) {
+          const raw = layer.tiles[key]
+          if (!raw) continue
+
+          const cellItems = Array.isArray(raw) ? raw : [raw]
+          const remaining: TileItem[] = []
+          let cellChanged = false
+
+          for (let j = 0; j < cellItems.length; j++) {
+            const item = cellItems[j]
+            if (item && itemIdsToDelete.has(item.id)) {
+              remainingToDelete.delete(item.id)
+              removedCount++
+              cellChanged = true
+            } else {
+              remaining.push(item)
+            }
+          }
+
+          if (cellChanged) {
+            if (remaining.length === 0) {
+              delete layer.tiles[key]
+            } else {
+              layer.tiles[key] = remaining
+            }
+          }
+        }
+      }
+
+      // 2. Fallback: If any multi-cell items had different origin than candidate key, scan remaining cells
+      if (remainingToDelete.size > 0) {
+        for (const key in layer.tiles) {
+          if (candidateKeys && candidateKeys.has(key)) continue
+          const raw = layer.tiles[key]
+          if (!raw) continue
+
+          const cellItems = Array.isArray(raw) ? raw : [raw]
+          const remaining: TileItem[] = []
+          let cellChanged = false
+
+          for (let j = 0; j < cellItems.length; j++) {
+            const item = cellItems[j]
+            if (item && remainingToDelete.has(item.id)) {
+              remainingToDelete.delete(item.id)
+              removedCount++
+              cellChanged = true
+            } else {
+              remaining.push(item)
+            }
+          }
+
+          if (cellChanged) {
+            if (remaining.length === 0) {
+              delete layer.tiles[key]
+            } else {
+              layer.tiles[key] = remaining
+            }
+          }
+
+          if (remainingToDelete.size === 0) break
+        }
+      }
     }
 
     if (removedCount > 0) {
       project.value.updatedAt = Date.now()
       pushHistory(`Deleted ${removedCount} elements`)
     }
+
+    return removedCount
   }
 
   function isCellBuildable(col: number, row: number): boolean {

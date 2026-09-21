@@ -6,7 +6,7 @@ import { useCharacterStore } from './characterStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { combatEvents } from '../services/combatEvents'
-import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig, ProjectileType } from '../types/map'
+import { TowerTraitType, TowerTraitsConfig, TowerClan, TowerLevelConfig, ProjectileType, GridCoord } from '../types/map'
 import { createDefaultClan, DEFAULT_CLANS_PRESET } from '../utils/towerClans'
 import { TargetingSystem, DamageCalculator, CombatSimulation } from '../domain/combat'
 import { getProjectileTheme } from '../utils/projectileEffectRenderer'
@@ -128,6 +128,7 @@ export const useTowerStore = defineStore('towerStore', () => {
   // Placed towers on map
   const placedTowers = ref<PlacedTower[]>([])
   const activeBuildTowerId = ref<string | null>(null) // When placing a new tower
+  const pendingBuildCell = ref<GridCoord | null>(null) // Target cell selected on map for placement
   const selectedPlacedTowerId = ref<string | null>(null) // When inspecting/editing placed tower
   const selectedBlueprintId = ref<string>('') // For Blueprint Editor
 
@@ -391,10 +392,35 @@ export const useTowerStore = defineStore('towerStore', () => {
    */
   function selectBuildTower(blueprintId: string | null) {
     activeBuildTowerId.value = blueprintId
+    pendingBuildCell.value = null
     if (blueprintId) {
       selectedPlacedTowerId.value = null
       toolStore.setTool('select')
     }
+  }
+
+  function setPendingBuildCell(cell: GridCoord | null) {
+    pendingBuildCell.value = cell
+  }
+
+  function cancelBuild() {
+    activeBuildTowerId.value = null
+    pendingBuildCell.value = null
+    toolStore.setHoveredCell(null)
+  }
+
+  function confirmBuild(): PlacedTower | null {
+    if (!activeBuildTowerId.value || !pendingBuildCell.value) return null
+    const { col, row } = pendingBuildCell.value
+    const placed = placeTowerAt(col, row)
+    if (placed) {
+      pendingBuildCell.value = null
+      activeBuildTowerId.value = null
+      toolStore.setHoveredCell(null)
+      selectedPlacedTowerId.value = null
+      return placed
+    }
+    return null
   }
 
   function selectPlacedTower(id: string | null) {
@@ -1483,6 +1509,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     getTowerUpgradeCost,
     placedTowers,
     activeBuildTowerId,
+    pendingBuildCell,
     selectedPlacedTowerId,
     selectedPlacedTower,
     activeBlueprint,
@@ -1493,6 +1520,9 @@ export const useTowerStore = defineStore('towerStore', () => {
     addNewBlueprint,
     removeBlueprint,
     selectBuildTower,
+    setPendingBuildCell,
+    cancelBuild,
+    confirmBuild,
     selectPlacedTower,
     sellPlacedTower,
     placeTowerAt,
