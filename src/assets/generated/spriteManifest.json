@@ -8625,6 +8625,75 @@
     "isSample": true
   },
   {
+    "id": "sprite-tower blood1",
+    "name": "Tower blood1",
+    "baseName": "tower blood1",
+    "fileRelativePath": "towers/tower blood1.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 31,
+    "trimHeight": 67,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 112,
+      "minY": 391,
+      "maxX": 142,
+      "maxY": 457
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
+    "id": "sprite-tower blood2",
+    "name": "Tower blood2",
+    "baseName": "tower blood2",
+    "fileRelativePath": "towers/tower blood2.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 69,
+    "trimHeight": 99,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 92,
+      "minY": 368,
+      "maxX": 160,
+      "maxY": 466
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
+    "id": "sprite-tower blood3",
+    "name": "Tower blood3",
+    "baseName": "tower blood3",
+    "fileRelativePath": "towers/tower blood3.png",
+    "category": "Towers",
+    "width": 256,
+    "height": 512,
+    "trimWidth": 66,
+    "trimHeight": 121,
+    "anchorX": 0.5,
+    "anchorY": 0.88,
+    "contentBounds": {
+      "minX": 93,
+      "minY": 345,
+      "maxX": 158,
+      "maxY": 465
+    },
+    "spanX": 1,
+    "spanY": 1,
+    "scale": 1,
+    "isSample": true
+  },
+  {
     "id": "sprite-tower_fire",
     "name": "Tower_fire",
     "baseName": "tower_fire",

@@ -99,6 +99,66 @@
         "w": 256,
         "h": 512
       }
+    },
+    "tower blood3": {
+      "frame": {
+        "x": 705,
+        "y": 2,
+        "w": 66,
+        "h": 121
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 93,
+        "y": 345,
+        "w": 66,
+        "h": 121
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower blood2": {
+      "frame": {
+        "x": 773,
+        "y": 2,
+        "w": 69,
+        "h": 99
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 92,
+        "y": 368,
+        "w": 69,
+        "h": 99
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "tower blood1": {
+      "frame": {
+        "x": 844,
+        "y": 2,
+        "w": 31,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 112,
+        "y": 391,
+        "w": 31,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
     }
   },
   "meta": {

@@ -963,8 +963,8 @@
                 :model-value="selectedWave.unitHp"
                 :label="$t('config.healthHp')"
                 :min="20"
-                :max="5000"
-                :step="10"
+                :max="20000"
+                :step="5"
                 unit=" HP"
                 @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
               />
