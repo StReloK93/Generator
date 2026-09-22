@@ -433,7 +433,7 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   function ensureDefaultClan(): TowerClan {
     if (clans.value.length === 0) {
-      const defaultClan = createDefaultClan('clan-iron', 'Iron Citadel')
+      const defaultClan = createDefaultClan()
       clans.value = [defaultClan]
     }
     if (!selectedEditorClanId.value && clans.value.length > 0) {
@@ -535,9 +535,7 @@ export const useTowerStore = defineStore('towerStore', () => {
       selectedClanId.value = clans.value[0]?.id || 'clan-default'
       isClanSelectModalOpen.value = false
     } else {
-      if (!selectedClanId.value) {
-        isClanSelectModalOpen.value = true
-      }
+      isClanSelectModalOpen.value = true
     }
   }
 
@@ -1219,8 +1217,8 @@ export const useTowerStore = defineStore('towerStore', () => {
     const isSplashHit = Boolean(proj.isSplash && (proj.splashRadius || 0) > 0)
     const effectiveSplashRadius = proj.splashRadius || 1.5
     const splashRadiusPx = effectiveSplashRadius * tileWidth * 0.65
-    const hitRingRadius = isSplashHit 
-      ? splashRadiusPx 
+    const hitRingRadius = isSplashHit
+      ? splashRadiusPx
       : (projDef.shockwaveRadius || (isArrow ? 14 : 22))
 
     // 1. Spawn Impact Shockwave Ring VFX for ALL hits (matching Projectile Studio!)

@@ -1,10 +1,10 @@
 <template>
-  <div class="pointer-events-none z-30 flex flex-col justify-between select-none w-full gap-1 landscape:gap-0.5">
+  <div class="absolute top-0 right-0 z-50  pointer-events-none  flex flex-col justify-between select-none  gap-1  w-60 h-full">
     <!-- Left & Center: Game Global Indicators + User Indicators -->
-    <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1 h-full">
+    <UiCard  class="pointer-events-auto h-full border-none rounded-none">
       <!-- Singleplayer User Stats -->
-      <UiCard v-if="!multiplayerStore.roomId" class="landscape:py-0.5 flex gap-3">
-        <UiButton variant="ghost" size="sm" :leading-icon="Menu" :title="$t('game.menu')" @click="isMenuOpen = true" />
+      <div v-if="!multiplayerStore.roomId" class=" flex gap-3">
+        <!-- <UiButton variant="ghost" size="sm" :leading-icon="Menu" :title="$t('game.menu')" @click="isMenuOpen = true" /> -->
         <!-- Gold -->
         <div class="flex items-center gap-1.5" :title="$t('common.gold')">
           <Coins class="size-4 text-amber-400" />
@@ -36,7 +36,7 @@
             <span class="text-slate-400 font-normal">/{{ characterStore.waveConfigs.length || 0 }}</span>
           </span>
         </div>
-      </UiCard>
+      </div>
 
       <!-- Multiplayer Players Leaderboard Cards -->
       <div v-else class="flex flex-wrap items-center gap-1.5 sm:gap-2" @mousedown.stop @mouseup.stop @click.stop
@@ -67,12 +67,16 @@
           </div>
         </div>
       </div>
-    </div>
+    </UiCard>
 
     <!-- In-Game Tactical Menu Modal -->
-    <UiModal :is-open="isMenuOpen" :title="$t('game.pauseMenu')" :subtitle="$t('game.menu')" 
+    <UiModal
+      :is-open="isMenuOpen"
+      :title="$t('game.pauseMenu')"
+      :subtitle="$t('game.menu')" 
       :teleport="true"  size="sm"
-      @close="isMenuOpen = false">
+      @close="isMenuOpen = false"
+    >
       <div class="flex flex-col gap-2.5 w-full">
         <!-- Resume Game -->
         <UiButton variant="game-green" size="sm" :leading-icon="Play" @click="isMenuOpen = false">
@@ -85,11 +89,6 @@
           {{ $t('common.playAgain') }}
         </UiButton>
 
-        <!-- 3. Fullscreen Button -->
-        <UiButton size="sm" :leading-icon="isFullscreenMode ? Minimize2 : Maximize2" :title="$t('game.fullscreen')"
-          @click="handleToggleFullscreen">
-          {{ $t('game.fullscreen') }}
-        </UiButton>
         <!-- Exit to Home / Editor -->
         <UiButton variant="secondary" size="sm" 
           :leading-icon="isEditorMode ? Layers : Home" @click="handleExitFromMenu">
@@ -98,12 +97,17 @@
 
         <!-- Language Switcher in Menu -->
         <div
-          class="flex items-center justify-between px-3 py-1 mt-1 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
+          class="flex items-center justify-between px-3 py-0.5 mt-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
           <span class="text-slate-300 font-semibold flex items-center gap-1.5">
             <Languages class="w-4 h-4 text-cyan-400" />
             {{ $t('common.settings') }}
           </span>
-          <UiLanguageSwitcher />
+          <main class="flex items-center gap-2">
+            <UiButton variant="ghost" size="sm" :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
+            :title="$t('game.fullscreen')" @click="handleToggleFullscreen" />
+            <UiLanguageSwitcher />
+          </main>
+
         </div>
       </div>
     </UiModal>
@@ -204,7 +208,7 @@ async function handleToggleFullscreen() {
 }
 
 function handleRestartGame() {
-  towerStore.setPlayerClan('')
+  towerStore.initGameClanSelection()
   isMenuOpen.value = false
   characterStore.restartGame()
 }

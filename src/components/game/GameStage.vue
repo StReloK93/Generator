@@ -45,12 +45,7 @@
 
     <!-- 2. FLOATING TOP IN-GAME HUD (Slides smoothly in from top when canvas is ready) -->
     <Transition name="hud-slide-top">
-      <div 
-        v-if="isCanvasReady" 
-        class="absolute top-0 inset-x-0 z-30 pointer-events-none pt-safe"
-      >
-        <GameHud />
-      </div>
+        <GameHud v-if="isCanvasReady"  />
     </Transition>
 
     <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Slides smoothly in from bottom when canvas is ready) -->

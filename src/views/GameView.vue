@@ -1,7 +1,5 @@
 <template>
-  <div class="relative w-full h-full">
-    <GameStage :is-editor-mode="false" />
-  </div>
+  <GameStage :is-editor-mode="false" />
 </template>
 
 <script setup lang="ts">
