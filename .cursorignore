@@ -1,0 +1,36 @@
+# Kutubxonalar va cache (bular eng ko'p limitni yeydi)
+node_modules/
+.npm/
+.yarn/
+
+# Build natijalari
+dist/
+dist-ssr/
+build/
+*.local
+
+# Git va IDE sozlamalari
+.git/
+.vscode/
+.idea/
+
+# Katta aktivlar (rasmlar, audio, 3D modellar)
+src/assets/images/
+public/assets/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.glb
+*.gltf
+
+# Loglar va katta ma'lumotlar
+*.log
+npm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Vaqtinchalik yoki test fayllari
+coverage/
+.temp/

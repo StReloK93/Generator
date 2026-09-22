@@ -33,7 +33,7 @@ import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
-import { GridCoord, AssetItem } from '../../types/map'
+import {  AssetItem } from '../../types/map'
 import { assetManager } from '../../services/assetManager'
 import { GameController } from '../../controllers/game/GameController'
 

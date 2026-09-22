@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pointer-events-none z-30 flex items-center justify-between w-full px-2  landscape:pb-1 select-none">
+    class="pointer-events-none z-30 flex items-center justify-between w-full px-2 select-none">
 
     <!-- ================= 1. SELECTED PLACED TOWER UPGRADE/SELL MODAL (ON MAP TAP) ================= -->
     <UiCard v-if="towerStore.selectedPlacedTower" variant="slate" padding="sm"
@@ -98,7 +98,6 @@
 
 
 
-    <!-- Mazgi -->
     <!-- ================= 2. ACTIVE SELECTED BUILDING INFO POPUP (COMPACT RIGHT SIDE) ================= -->
     <UiCard v-if="activeSelectedBlueprint" variant="default" padding="sm"
       custom-class="fixed right-3 bottom-18 sm:bottom-20 z-40 pointer-events-auto flex flex-col gap-2 w-64 max-w-[calc(100vw-1.5rem)] shadow-2xl backdrop-blur-xl bg-slate-950/95 border-amber-500/40 animate-in slide-in-from-right-3 duration-200"
@@ -207,23 +206,23 @@
       @touchend.stop @touchmove.stop>
       
       <!-- Faction Emblem Button (If 2+ clans exist, click to open/switch Clan modal) -->
-      <button 
+      <!-- <button 
         v-if="towerStore.clans.length > 1 && towerStore.selectedClan"
         type="button"
         @click="towerStore.openClanSelectModal()"
         :class="[
-          'rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 touch-target shadow-md px-2.5 py-1 gap-1.5',
+          
+          'size-15 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 touch-target  px-2.5 py-1 gap-1.5',
           'bg-slate-900/90 border-amber-400/80 hover:bg-slate-800'
         ]"
         :title="`${$t('clans.activeClan')}: ${towerStore.selectedClan.name}`"
       >
         <component 
           :is="getClanIcon(towerStore.selectedClan.iconName)" 
-          class="w-4 h-4"
+          class="size-8"
           :style="{ color: towerStore.selectedClan.color || '#38bdf8' }"
         />
-        <!-- <span class="text-xs font-bold text-amber-300 hidden sm:inline">{{ towerStore.selectedClan.name }}</span> -->
-      </button>
+      </button> -->
 
       <!-- Tower Buttons of the Selected Faction -->
       <button v-for="bp in towerStore.playerClanBlueprints" :key="bp.id" @click="selectTowerToBuild(bp)" :class="[
@@ -234,7 +233,7 @@
         class="rounded-xl border flex items-center gap-2 transition-all cursor-pointer shrink-0 active:scale-95 touch-target"
         :title="`${bp.name} — ${$t('game.cost', { amount: bp.cost })}`">
         <div
-          class="w-10 h-10 sm:w-11 sm:h-11 p-2">
+          class="size-15 p-2">
           <img v-if="getTowerSpriteUrl(bp)" :src="getTowerSpriteUrl(bp)" :alt="bp.name"
             class="w-full h-full object-contain filter drop-shadow scale-110" />
           <ShieldAlert v-else class="w-5 h-5 text-amber-400" />

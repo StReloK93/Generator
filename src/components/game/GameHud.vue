@@ -1,36 +1,14 @@
 <template>
   <div class="pointer-events-none z-30 flex flex-col justify-between select-none w-full gap-1 landscape:gap-0.5">
     <!-- Left & Center: Game Global Indicators + User Indicators -->
-    <div class="flex flex-wrap justify-between gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1">
-      <!-- Right: Unified Action Dock (Menu, Exit, Fullscreen, Center, Language) -->
-      <UiCard class="pointer-events-auto landscape:py-0.5 landscape:px-0.5 flex gap-0.5">
-          <!-- 1. Tactical In-Game Menu Button -->
-          <UiButton
-            variant="ghost"
-            size="sm"
-            :leading-icon="Menu"
-            :title="$t('game.menu')"
-            @click="isMenuOpen = true"
-          />
-
-          <!-- 3. Fullscreen Button -->
-          <UiButton
-            variant="ghost"
-            size="sm"
-            :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
-            :title="$t('game.fullscreen')"
-            @click="handleToggleFullscreen"
-          />
-      </UiCard>
-      <!-- 2. GLOBAL GAME (BASE & WAVE) INDICATORS -->
-
-
+    <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pointer-events-auto px-2 sm:px-4 landscape:py-1 h-full">
       <!-- Singleplayer User Stats -->
       <UiCard v-if="!multiplayerStore.roomId" class="landscape:py-0.5 flex gap-3">
+        <UiButton variant="ghost" size="sm" :leading-icon="Menu" :title="$t('game.menu')" @click="isMenuOpen = true" />
         <!-- Gold -->
         <div class="flex items-center gap-1.5" :title="$t('common.gold')">
           <Coins class="size-4 text-amber-400" />
-          <span class="font-bold text-amber-400">{{ characterStore.gold }}</span>
+          <span class="font-bold text-amber-400">{{ characterStore.gold }}</span> 
         </div>
 
         <!-- Total Kills -->
@@ -92,54 +70,35 @@
     </div>
 
     <!-- In-Game Tactical Menu Modal -->
-    <UiModal
-      :is-open="isMenuOpen"
-      :title="$t('game.pauseMenu')"
-      :subtitle="$t('game.menu')"
-      :icon="Gamepad2"
-      :teleport="true"
-      icon-color="brand"
-      size="sm"
-      body-class="flex flex-col gap-2.5 p-3 sm:p-4"
-      @close="isMenuOpen = false"
-    >
+    <UiModal :is-open="isMenuOpen" :title="$t('game.pauseMenu')" :subtitle="$t('game.menu')" 
+      :teleport="true"  size="sm"
+      @close="isMenuOpen = false">
       <div class="flex flex-col gap-2.5 w-full">
         <!-- Resume Game -->
-        <UiButton
-          variant="game-green"
-          size="md"
-          class="w-full justify-center text-xs sm:text-sm font-bold"
-          :leading-icon="Play"
-          @click="isMenuOpen = false"
-        >
+        <UiButton variant="game-green" size="sm" :leading-icon="Play" @click="isMenuOpen = false">
           {{ $t('game.resumeGame') }}
         </UiButton>
 
         <!-- Restart Game (Singleplayer only) -->
-        <UiButton
-          v-if="!multiplayerStore.roomId"
-          variant="game-amber"
-          size="md"
-          class="w-full justify-center text-xs sm:text-sm font-bold"
-          :leading-icon="RotateCcw"
-          @click="handleRestartGame"
-        >
+        <UiButton v-if="!multiplayerStore.roomId" variant="game-amber" size="sm" :leading-icon="RotateCcw"
+          @click="handleRestartGame">
           {{ $t('common.playAgain') }}
         </UiButton>
 
+        <!-- 3. Fullscreen Button -->
+        <UiButton size="sm" :leading-icon="isFullscreenMode ? Minimize2 : Maximize2" :title="$t('game.fullscreen')"
+          @click="handleToggleFullscreen">
+          {{ $t('game.fullscreen') }}
+        </UiButton>
         <!-- Exit to Home / Editor -->
-        <UiButton
-          variant="secondary"
-          size="md"
-          class="w-full justify-center text-xs sm:text-sm font-bold"
-          :leading-icon="isEditorMode ? Layers : Home"
-          @click="handleExitFromMenu"
-        >
+        <UiButton variant="secondary" size="sm" 
+          :leading-icon="isEditorMode ? Layers : Home" @click="handleExitFromMenu">
           {{ isEditorMode ? $t('game.returnEditor') : $t('game.returnHome') }}
         </UiButton>
 
         <!-- Language Switcher in Menu -->
-        <div class="flex items-center justify-between px-3 py-2 mt-1 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
+        <div
+          class="flex items-center justify-between px-3 py-1 mt-1 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
           <span class="text-slate-300 font-semibold flex items-center gap-1.5">
             <Languages class="w-4 h-4 text-cyan-400" />
             {{ $t('common.settings') }}
@@ -157,12 +116,7 @@
         <span class="flex items-center gap-1.5">
           <Activity class="size-5" /> {{ $t('hud.telemetry') }}
         </span>
-        <UiIconButton 
-          :icon="X"
-          size="xs"
-          variant="ghost"
-          @click="showDiagnostics = false"
-        />
+        <UiIconButton :icon="X" size="xs" variant="ghost" @click="showDiagnostics = false" />
       </div>
 
       <div class="flex justify-between">
@@ -184,7 +138,7 @@
         <div class="flex justify-between">
           <span class="text-slate-400">{{ $t('hud.role') }}</span>
           <span class="text-amber-300 font-bold">{{ multiplayerStore.isHost ? 'Host (Authoritative)' : 'Client (P2P)'
-            }}</span>
+          }}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-400">{{ $t('hud.packets') }}</span>
@@ -203,7 +157,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
-  Heart,  Swords, Skull,  Maximize2, Minimize2, Activity,  X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
+  Heart, Swords, Skull, Maximize2, Minimize2, Activity, X, Menu, Gamepad2, Play, RotateCcw, Layers, Home, Coins, Languages
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiLanguageSwitcher, UiModal } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
@@ -250,6 +204,7 @@ async function handleToggleFullscreen() {
 }
 
 function handleRestartGame() {
+  towerStore.setPlayerClan('')
   isMenuOpen.value = false
   characterStore.restartGame()
 }
