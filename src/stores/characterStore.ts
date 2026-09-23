@@ -15,8 +15,6 @@ export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'D
 export type CharacterModel = 'male' | 'warrior' | (string & {})
 export type { WaveConfig, RouteInfo, Route }
 
-export type DoorInfo = RouteInfo
-
 export interface UnitStatusEffect {
   type: TowerTraitType
   duration: number // remaining seconds
@@ -31,8 +29,6 @@ export interface CharacterUnit {
   id: string
   routeIndex: number
   routeId: string
-  doorIndex?: number
-  doorId?: string
   unitIndex: number
   pairIndex: number
   sideOffset: number // -1 (Left side) or +1 (Right side) for 2 people running side-by-side!
@@ -77,7 +73,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const unitSpeed = ref(2.5) // Unit Walking Speed (tiles per second, 0.8 to 6.0)
   const speed = unitSpeed // Backward-compat alias pointing to unitSpeed
   const spawnCount = ref(10) // Number of people per route (1 to 100)
-  const spawnMode = ref<'all_routes' | 'single_route' | 'all_doors' | 'single_door'>('all_routes')
+  const spawnMode = ref<'all_routes' | 'single_route'>('all_routes')
   const formation = ref<'pairs' | 'single'>('pairs') // 'pairs': 2 people side-by-side in each tile!
   const pairDistance = ref(0.35) // Constant spatial distance in tiles between consecutive pairs (tight and dense!)
   const followCamera = ref(false)
@@ -181,11 +177,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   
   // Routes & Spawns (Authoritative array of RouteInfo objects containing routePoints & playerCameraPoint)
   const routes = ref<RouteInfo[]>([])
-  const detectedDoors = routes
   const selectedRouteIndex = ref<number | null>(null)
-  const selectedDoorIndex = selectedRouteIndex
   const routeCache = ref<Record<number, GridCoord[]>>({})
-  const doorRoutesCache = routeCache
 
   const customWaypoints = computed<Record<string, GridCoord[]>>({
     get: () => {
@@ -233,7 +226,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // Wave distance progress per route
   const routeWaveProgress = ref<Record<number, number>>({})
-  const doorWaveProgress = routeWaveProgress
 
   // Multi-unit Crowd Array
   const units = ref<CharacterUnit[]>([])
@@ -245,7 +237,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const idx = Math.max(0, Math.min(routes.value.length - 1, selectedRouteIndex.value))
     return routes.value[idx] || null
   })
-  const selectedDoor = selectedRoute
 
   const currentActiveRoute = computed<GridCoord[]>(() => {
     if (isDrawingRoute.value) {
@@ -299,7 +290,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (active.length === 0) return 0
     let totalInterp = 0
     for (const u of active) {
-      const route = getRouteForIndex(u.routeIndex ?? u.doorIndex ?? 0)
+      const route = getRouteForIndex(u.routeIndex ?? 0)
       const maxLen = Math.max(1, route.length - 1)
       totalInterp += Math.min(100, Math.round((u.pathIndex / maxLen) * 100))
     }
@@ -384,8 +375,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
     return routes.value
   }
-
-  const detectDoors = syncRoutesFromProject
 
   function addRoute(col: number, row: number, customName?: string): RouteInfo {
     const routeIndex = routes.value.length
@@ -527,8 +516,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
     return [{ col: 2, row: 2 }]
   }
-
-  const getRouteForDoor = getRouteForIndex
 
   const blockedBuildingCellsSet = computed<Set<string>>(() => {
     return RouteManager.computeBlockedCells(
@@ -952,7 +939,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       startingGold: Number(startingGold.value) || 150,
       startingLives: Number(startingLives.value) || 20,
       wavePrepTime: Number(wavePrepDuration.value) || 10,
-      spawnMode: spawnMode.value === 'all_doors' ? 'all_routes' : (spawnMode.value === 'single_door' ? 'single_route' : spawnMode.value),
+      spawnMode: spawnMode.value || 'all_routes',
       formation: formation.value,
       pairDistance: pairDistance.value,
       unitElevation: unitElevation.value,
@@ -967,7 +954,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       startingGold.value = gs.startingGold ?? 150
       startingLives.value = gs.startingLives ?? 20
       wavePrepDuration.value = gs.wavePrepTime ?? 10
-      if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'all_doors' ? 'all_routes' : (gs.spawnMode === 'single_door' ? 'single_route' : gs.spawnMode)
+      if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'single_route' ? 'single_route' : 'all_routes'
       if (gs.formation) formation.value = gs.formation
       if (gs.pairDistance !== undefined) pairDistance.value = gs.pairDistance
       if (gs.unitElevation !== undefined) unitElevation.value = Number(gs.unitElevation) || 0
@@ -1076,7 +1063,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const model: CharacterModel = (waveCfg?.characterModel as CharacterModel) || 'male'
     const initialMaxFrames = getModelActionFrameCount(model, 'Run')
 
-    const activeRoutesToSpawn = ((spawnMode.value === 'all_routes' || spawnMode.value === 'all_doors') && routes.value.length > 1)
+    const activeRoutesToSpawn = (spawnMode.value === 'all_routes' && routes.value.length > 1)
       ? routes.value.map((_, idx) => idx)
       : [selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0 ? selectedRouteIndex.value : 0]
 
@@ -1108,8 +1095,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
           id: `unit-r${rIdx}-${i}-${Date.now()}`,
           routeIndex: rIdx,
           routeId,
-          doorIndex: rIdx,
-          doorId: routeId,
           unitIndex: i,
           pairIndex,
           sideOffset,
@@ -1156,12 +1141,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
     isPlaying.value = false
     const totalCount = units.value.length
     const hpStr = currentWaveConfig.value ? `(HP: ${currentWaveConfig.value.unitHp})` : ''
-    statusMessage.value = (spawnMode.value === 'all_routes' || spawnMode.value === 'all_doors') && routes.value.length > 1
+    statusMessage.value = spawnMode.value === 'all_routes' && routes.value.length > 1
       ? `All ${routes.value.length} routes ready (${totalCount} units ${hpStr})`
       : `${selectedRoute.value?.name || 'Route'} ready (${totalCount} units ${hpStr})`
   }
-
-  const spawnAtDoor = spawnAtRoute
 
   function startTour() {
     if (units.value.length === 0) {
@@ -1264,7 +1247,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     let leaderUnit: CharacterUnit | null = null
 
     for (const unit of units.value) {
-      const route = getRouteForIndex(unit.routeIndex ?? unit.doorIndex ?? 0)
+      const route = getRouteForIndex(unit.routeIndex ?? 0)
       if (!route || route.length <= 1) continue
 
       // Dead unit handling: play bending / collapsing animation and fade out opacity
@@ -1311,7 +1294,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       const speedMultiplier = Math.max(0.15, 1.0 - (Math.min(85, maxSlowPercent) / 100))
 
-      const waveDist = routeWaveProgress.value[unit.routeIndex ?? unit.doorIndex ?? 0] ?? 0
+      const waveDist = routeWaveProgress.value[unit.routeIndex ?? 0] ?? 0
       const targetSpawnDist = unit.pairIndex * spacingInTiles
 
       // Unit has not emerged from route start yet
@@ -1367,7 +1350,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
 
       allCompletedOrDead = false
-      if (!leaderUnit && (unit.routeIndex ?? unit.doorIndex) === selectedRouteIndex.value) {
+      if (!leaderUnit && unit.routeIndex === selectedRouteIndex.value) {
         leaderUnit = unit
       }
 
@@ -1465,7 +1448,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
             gameState.value = 'build_prep'
             prepCountdown.value = wavePrepDuration.value
             isPlaying.value = false
-            spawnAtDoor(0)
+            spawnAtRoute(0)
             if (multiplayerStore.roomId) {
               statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${wavePrepDuration.value}s build prep...`
             } else {
@@ -1508,7 +1491,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     prepCountdown.value = wavePrepDuration.value
     gameSpeed.value = 1.0
     followCamera.value = false
-    spawnAtDoor(0)
+    spawnAtRoute(0)
     isPlaying.value = false
     statusMessage.value = multiplayerStore.roomId 
       ? `Battle starting in ${wavePrepDuration.value}s...` 
@@ -1535,7 +1518,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     towerStore.clearCombatEffects()
     gameState.value = 'wave_running'
     prepCountdown.value = 0
-    spawnAtDoor(0)
+    spawnAtRoute(0)
     startTour()
   }
 
@@ -1571,7 +1554,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     gameState.value = 'build_prep'
     prepCountdown.value = wavePrepDuration.value
     isPlaying.value = false
-    spawnAtDoor(0)
+    spawnAtRoute(0)
     statusMessage.value = 'Match reset to Wave 1 with clean battlefield.'
   }
 
@@ -1606,7 +1589,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     prepCountdown.value = 0
     isPlaying.value = false
     towerStore.clearCombatEffects()
-    spawnAtDoor(0)
+    spawnAtRoute(0)
   }
 
   function devRestartCurrentWave() {
@@ -1614,7 +1597,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     gameState.value = 'build_prep'
     prepCountdown.value = 0
     isPlaying.value = false
-    spawnAtDoor(0)
+    spawnAtRoute(0)
   }
 
   function devClearAllCreeps() {
@@ -1631,7 +1614,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     towerStore.clearCombatEffects()
     gameState.value = 'wave_running'
     prepCountdown.value = 0
-    spawnAtDoor(0)
+    spawnAtRoute(0)
     startTour()
   }
 
@@ -1786,7 +1769,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     mapStore.fillTiles(pathCells, 'sprite-stoneTile_E', 'layer-ground')
     mapStore.pushHistory("Created Warcraft Burbenog TD map (4 Circles & Center)")
 
-    spawnAtDoor(0)
+    spawnAtRoute(0)
   }
 
   return {
@@ -1819,19 +1802,14 @@ export const useCharacterStore = defineStore('characterStore', () => {
     completedUnitsCount,
     lapCount,
     statusMessage,
-    detectedDoors,
     routes,
-    selectedDoorIndex,
     selectedRouteIndex,
-    selectedDoor,
     selectedRoute,
     currentActiveRoute,
     progressPercent,
-    detectDoors,
     syncRoutesFromProject,
     addRoute,
     getRouteForIndex,
-    getRouteForDoor,
     startDrawingCustomRoute,
     selectWaypoint,
     moveSelectedWaypoint,
@@ -1848,7 +1826,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     finishDrawingRoute,
     cancelDrawingRoute,
     spawnAtRoute,
-    spawnAtDoor,
     startTour,
     pauseTour,
     togglePlay,

@@ -48,9 +48,6 @@ export const useAssetStore = defineStore('assetStore', () => {
     }
   }
 
-  // Load automatically on store creation
-  loadBuiltinSprites()
-
   const assetMap = computed(() => {
     const map = new Map<string, AssetItem>()
     for (const a of assets.value) {

@@ -497,152 +497,17 @@
     </UiCard>
 
     <!-- ================= 4. ALL WAVES OVERVIEW MODAL ================= -->
-    <UiModal
-      :is-open="isWaveModalOpen"
-      :title="$t('game.waveList')"
-      :subtitle="`${characterStore.waveConfigs.length} ${$t('game.wave')}`"
-      :teleport="true"
-      size="md"
-      @close="isWaveModalOpen = false"
-    >
-      <div class="flex flex-col gap-2 max-h-[65vh] overflow-y-auto pr-1">
-        <div 
-          v-for="(w, idx) in characterStore.waveConfigs" 
-          :key="w.waveNumber || idx"
-          class="p-2 sm:p-2.5 rounded-2xl border transition-all flex items-center justify-between gap-2.5 text-xs"
-          :class="[
-            idx === characterStore.currentWaveIndex 
-              ? 'bg-slate-900/95 border-amber-500/70 ring-1 ring-amber-500/30 shadow-lg' 
-              : idx < characterStore.currentWaveIndex
-                ? 'bg-slate-950/60 border-slate-800/60 opacity-60'
-                : 'bg-slate-950/90 border-slate-800/90 hover:border-slate-700'
-          ]"
-        >
-          <!-- Left: Enemy Thumbnail & Stats Info -->
-          <div class="flex items-center gap-2.5 min-w-0">
-            <!-- Enemy Sprite Frame -->
-            <div class="size-11 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-              <img 
-                v-if="getWaveEnemySprite(w.characterModel)" 
-                :src="getWaveEnemySprite(w.characterModel)" 
-                :alt="w.name"
-                class="size-9 object-contain filter drop-shadow scale-125" 
-              />
-              <ShieldAlert v-else class="size-5 text-slate-500" />
-            </div>
-
-            <div class="flex flex-col min-w-0 text-left">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-slate-100 truncate text-xs">{{ w.name || `To'lqin ${idx + 1}` }}</span>
-                <UiBadge v-if="w.isBoss" variant="amber" size="xs">
-                  <Crown class="size-2.5 text-amber-400 inline mr-0.5" /> BOSS
-                </UiBadge>
-                <UiBadge v-if="idx < characterStore.currentWaveIndex" variant="emerald" size="xs">
-                  {{ $t('game.cleared') }}
-                </UiBadge>
-                <UiBadge v-else-if="idx === characterStore.currentWaveIndex" variant="amber" size="xs" class="animate-pulse">
-                  {{ $t('game.active') }}
-                </UiBadge>
-                <UiBadge v-else variant="slate" size="xs">
-                  {{ $t('game.upcoming') }}
-                </UiBadge>
-              </div>
-
-              <!-- Stats summary row -->
-              <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
-                <span class="flex items-center gap-0.5 text-rose-300">
-                  <Heart class="size-2.5 text-rose-500 fill-rose-500" /> {{ w.unitHp }}
-                </span>
-                <span>•</span>
-                <span class="flex items-center gap-0.5 text-emerald-300">
-                  <Footprints class="size-2.5 text-emerald-400" /> {{ w.unitSpeed || 2.5 }}
-                </span>
-                <span>•</span>
-                <span class="flex items-center gap-0.5 text-sky-300">
-                  <Users class="size-2.5 text-sky-400" /> {{ w.unitCount }}
-                </span>
-                <span>•</span>
-                <span class="flex items-center gap-0.5 text-amber-300">
-                  <Coins class="size-2.5 text-amber-400" /> +{{ w.goldReward }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Immunities / Traits -->
-          <div v-if="w.immunities && w.immunities.length > 0" class="flex items-center gap-1 shrink-0 flex-wrap max-w-24 justify-end">
-            <span 
-              v-for="immId in w.immunities" 
-              :key="immId"
-              class="px-1.5 py-0.5 rounded text-[8px] font-bold border flex items-center gap-0.5"
-              :class="getTraitDef(immId).badgeClass"
-            >
-              <component :is="getTraitDef(immId).icon" class="size-2.5" />
-              <span>{{ $t(getTraitDef(immId).nameKey) }}</span>
-            </span>
-          </div>
-          <div v-else class="text-[9px] text-slate-500 shrink-0">
-            {{ $t('game.noImmunities') }}
-          </div>
-        </div>
-      </div>
-    </UiModal>
+    <WavesOverviewModal v-model:is-open="isWaveModalOpen" />
 
     <!-- ================= 5. IN-GAME TACTICAL MENU MODAL ================= -->
-    <UiModal
-      :is-open="isMenuOpen"
-      :title="$t('game.pauseMenu')"
-      :subtitle="$t('game.menu')" 
-      :teleport="true" 
-      size="sm"
-      @close="isMenuOpen = false"
-    >
-      <div class="flex flex-col gap-2.5 w-full">
-        <!-- Resume Game -->
-        <UiButton variant="game-green" size="sm" :leading-icon="Play" @click="isMenuOpen = false">
-          {{ $t('game.resumeGame') }}
-        </UiButton>
- 
-        <!-- Restart Game (Singleplayer only) -->
-        <UiButton 
-          v-if="!multiplayerStore.roomId" 
-          variant="game-amber" 
-          size="sm" 
-          :leading-icon="RotateCcw"
-          @click="handleRestartGame"
-        >
-          {{ $t('common.playAgain') }}
-        </UiButton>
-
-        <!-- Exit to Home / Editor -->
-        <UiButton 
-          variant="secondary" 
-          size="sm" 
-          :leading-icon="isEditorMode ? Layers : Home" 
-          @click="handleExitFromMenu"
-        >
-          {{ isEditorMode ? $t('game.returnEditor') : $t('game.returnHome') }}
-        </UiButton>
-
-        <!-- Language Switcher & Fullscreen in Menu -->
-        <div class="flex items-center justify-between px-3 py-1.5 mt-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
-          <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-            <Languages class="size-4 text-cyan-400" />
-            {{ $t('common.settings') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <UiButton 
-              variant="ghost" 
-              size="sm" 
-              :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
-              :title="$t('game.fullscreen')" 
-              @click="handleToggleFullscreen" 
-            />
-            <UiLanguageSwitcher />
-          </div>
-        </div>
-      </div>
-    </UiModal>
+    <InGameMenuModal
+      v-model:is-open="isMenuOpen"
+      :is-editor-mode="isEditorMode"
+      :is-fullscreen-mode="isFullscreenMode"
+      @restart="handleRestartGame"
+      @exit="handleExitFromMenu"
+      @toggle-fullscreen="handleToggleFullscreen"
+    />
   </aside>
 </template>
 
@@ -655,6 +520,8 @@ import {
   X, Check, Users, Footprints, Crown, List
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs, UiLanguageSwitcher, UiModal } from '../ui'
+import WavesOverviewModal from './WavesOverviewModal.vue'
+import InGameMenuModal from './InGameMenuModal.vue'
 import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore, TowerBlueprint, PlacedTower } from '../../stores/towerStore'

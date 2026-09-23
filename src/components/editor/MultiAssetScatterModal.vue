@@ -395,7 +395,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import {
   Boxes,
   Search,
@@ -431,10 +431,6 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 const selectedCategory = ref('All')
-
-onMounted(() => {
-  assetStore.loadBuiltinSprites()
-})
 
 const shapeOptions = computed<TabItem[]>(() => [
   { id: 'box', label: t('editor.scatterBox') || 'To\'rtburchak', icon: Square },

@@ -409,12 +409,12 @@ export class OverlayRenderer {
       characterStore.showPathTrail !== false ||
       isDrawing ||
       Boolean(characterStore.isSettingSpawnPoint)
-    const doorsCount = characterStore.detectedDoors?.length || 0
-    const selectedDoorIdx =
-      characterStore.selectedDoorIndex !== null && characterStore.selectedDoorIndex !== undefined
-        ? characterStore.selectedDoorIndex
+    const routesCount = characterStore.routes?.length || 0
+    const selectedRouteIdx =
+      characterStore.selectedRouteIndex !== null && characterStore.selectedRouteIndex !== undefined
+        ? characterStore.selectedRouteIndex
         : -1
-    const spawnMode = characterStore.spawnMode || 'all_doors'
+    const spawnMode = characterStore.spawnMode || 'all_routes'
     const currentRouteLen = characterStore.currentActiveRoute?.length || 0
 
     const playerHexColors = [
@@ -441,7 +441,7 @@ export class OverlayRenderer {
       })
       .join(';')
 
-    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}_${routesHash}_${Boolean(characterStore.isSettingPlayerStartPoint)}`
+    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${routesCount}_${selectedRouteIdx}_${spawnMode}_${currentRouteLen}_${routesHash}_${Boolean(characterStore.isSettingPlayerStartPoint)}`
 
     if (!isDrawing && trailSignature === this.lastTrailSignature) return
     this.lastTrailSignature = trailSignature
@@ -452,22 +452,20 @@ export class OverlayRenderer {
 
     if (isDrawing) {
       if (routesList.length > 0) {
-        routesList.forEach((_: any, dIdx: number) => {
+        routesList.forEach((_: any, rIdx: number) => {
           if (
-            dIdx === selectedDoorIdx &&
+            rIdx === selectedRouteIdx &&
             characterStore.drawingPath &&
             characterStore.drawingPath.length > 0
           ) {
             return
           }
-          const otherRoute = characterStore.getRouteForIndex
-            ? characterStore.getRouteForIndex(dIdx)
-            : characterStore.getRouteForDoor(dIdx)
+          const otherRoute = characterStore.getRouteForIndex(rIdx)
           if (otherRoute && otherRoute.length > 1) {
             const otherPts = otherRoute.map((p: GridCoord) =>
               gridToScreen(p.col, p.row, tileWidth, tileHeight)
             )
-            const c = playerHexColors[dIdx % playerHexColors.length]
+            const c = playerHexColors[rIdx % playerHexColors.length]
 
             this.pathTrailGraphics.moveTo(otherPts[0].x, otherPts[0].y)
             for (let i = 1; i < otherPts.length; i++) {
@@ -487,7 +485,7 @@ export class OverlayRenderer {
         const screenPts = activeRoute.map((p: GridCoord) =>
           gridToScreen(p.col, p.row, tileWidth, tileHeight)
         )
-        const activeColor = playerHexColors[Math.max(0, selectedDoorIdx) % playerHexColors.length]
+        const activeColor = playerHexColors[Math.max(0, selectedRouteIdx) % playerHexColors.length]
 
         this.pathTrailGraphics.moveTo(screenPts[0].x, screenPts[0].y)
         for (let i = 1; i < screenPts.length; i++) {
@@ -606,23 +604,21 @@ export class OverlayRenderer {
     } else if (showSpawns) {
       if (characterStore.showPathTrail !== false) {
         const routesList = characterStore.routes || []
-        const routesToDraw: { route: GridCoord[]; dIdx: number }[] =
+        const routesToDraw: { route: GridCoord[]; rIdx: number }[] =
           routesList.length > 0
             ? routesList.map((_: any, idx: number) => ({
-                route: characterStore.getRouteForIndex
-                  ? characterStore.getRouteForIndex(idx)
-                  : characterStore.getRouteForDoor(idx),
-                dIdx: idx,
+                route: characterStore.getRouteForIndex(idx),
+                rIdx: idx,
               }))
-            : [{ route: characterStore.currentActiveRoute, dIdx: 0 }]
+            : [{ route: characterStore.currentActiveRoute, rIdx: 0 }]
 
-        const isAnyRouteSelected = selectedDoorIdx >= 0
+        const isAnyRouteSelected = selectedRouteIdx >= 0
 
-        routesToDraw.forEach(({ route, dIdx }) => {
+        routesToDraw.forEach(({ route, rIdx }) => {
           if (!route || route.length <= 1) return
           const pts = route.map((p) => gridToScreen(p.col, p.row, tileWidth, tileHeight))
-          const isSelectedRoute = selectedDoorIdx >= 0 && dIdx === selectedDoorIdx
-          const baseColor = playerHexColors[dIdx % playerHexColors.length]
+          const isSelectedRoute = selectedRouteIdx >= 0 && rIdx === selectedRouteIdx
+          const baseColor = playerHexColors[rIdx % playerHexColors.length]
           const c = baseColor
           const lineAlpha = isSelectedRoute ? 1.0 : isAnyRouteSelected ? 0.35 : 0.8
           const lineWidth = isSelectedRoute ? 4.5 : 2.5
@@ -666,14 +662,14 @@ export class OverlayRenderer {
         })
       }
 
-      const routesList = characterStore.routes || characterStore.detectedDoors || []
+      const routesList = characterStore.routes || []
       if (routesList && routesList.length > 0) {
-        routesList.forEach((route: any, dIdx: number) => {
+        routesList.forEach((route: any, rIdx: number) => {
           const c = route.spawnCol !== undefined ? route.spawnCol : route.col
           const r = route.spawnRow !== undefined ? route.spawnRow : route.row
           const pt = gridToScreen(c, r, tileWidth, tileHeight)
-          const isSelected = selectedDoorIdx >= 0 && selectedDoorIdx === dIdx
-          const playerColor = playerHexColors[dIdx % playerHexColors.length]
+          const isSelected = selectedRouteIdx >= 0 && selectedRouteIdx === rIdx
+          const playerColor = playerHexColors[rIdx % playerHexColors.length]
           const beaconColor = isSelected ? 0xfacc15 : playerColor
           const poly = getCellPolygon(c, r, tileWidth, tileHeight)
 
@@ -701,9 +697,9 @@ export class OverlayRenderer {
             .circle(pt.x, badgeY + 8, 3.5)
             .fill({ color: beaconColor, alpha: 1.0 })
 
-          const rawName = route.name || `Route ${dIdx + 1}`
-          const cleanName = rawName.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${dIdx + 1}`
-          const playerLabel = `P${dIdx + 1}`
+          const rawName = route.name || `Route ${rIdx + 1}`
+          const cleanName = rawName.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${rIdx + 1}`
+          const playerLabel = `P${rIdx + 1}`
           const labelText = `${playerLabel}: ${cleanName} (${c}, ${r})`
           const cardW = Math.max(90, labelText.length * 6.5 + 24)
           const cardH = 22

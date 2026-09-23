@@ -21,9 +21,6 @@ export interface PlayerSlot {
   routeIndex: number
   routeId: string
   routeName: string
-  doorIndex?: number
-  doorId?: string
-  doorName?: string
   spawnCol: number
   spawnRow: number
   playerCol?: number

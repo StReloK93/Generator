@@ -235,8 +235,8 @@ export class EditorController {
         return
       }
     }
-    if (characterStore.selectedDoorIndex !== null) {
-      characterStore.selectedDoorIndex = null
+    if (characterStore.selectedRouteIndex !== null) {
+      characterStore.selectedRouteIndex = null
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }

@@ -133,9 +133,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         routeIndex: i,
         routeId: key,
         routeName,
-        doorIndex: i,
-        doorId: key,
-        doorName: routeName,
         spawnCol: spawnPt.col,
         spawnRow: spawnPt.row,
         playerCol: playerCameraPt?.col,
@@ -363,7 +360,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         emptySlot.player = newPlayer
         players.value.push(newPlayer)
 
-        addSystemMessage(`${newPlayer.name} joined the room (${emptySlot.routeName || emptySlot.doorName})`)
+        addSystemMessage(`${newPlayer.name} joined the room (${emptySlot.routeName})`)
 
         // Send map data to client so client loads exact same map
         networkService.broadcast({

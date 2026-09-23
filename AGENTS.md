@@ -19,8 +19,7 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`mapStore.ts`**: Xarita o'lchami, qatlamlar (`layers`), kataklardagi elementlar (`tiles`), tarix (`undo/redo`), loyiha eksport/importi.
 - **`assetStore.ts`**: Standart sprite kutubxonasi (`src/assets/sprites/*.png`), maxsus rasmlarni yuklash, bounding box tahlili va `reconcileImportedAssets`.
 - **`characterStore.ts`**:
-  - Chiqish nuqtalari (`spawnPoints` / `detectedDoors`).
-  - Maxsus yo'nalishlar (`customRoutes`, chizish rejimi).
+  - Marshrutlar va yo'nalishlar (`routes: RouteInfo[]` - `routePoints` va `playerCameraPoint`).
   - To'lqinlar sozlamalari (`waveConfigs`, har bir to'lqin uchun alohida odam soni, HP, unit yurish tezligi, oltin mukofoti).
   - Harakat tarkibi (`formation`: 2 kishi yonma-yon yoki 1 kishilik; `pairDistance`: oraliq masofa).
   - Simulyatsiya tezligi (`gameSpeed`: 1x dan 50x gacha) va personaj yurish tezligi (`unitSpeed`: 0.8 dan 6.0 k/s) to'liq mustaqil ajratilgan.

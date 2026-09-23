@@ -2108,8 +2108,8 @@ const formationOptions = computed(() => [
 ])
 
 const spawnModeOptions = computed(() => [
-  { id: 'all_routes', label: t('config.allRoutesSimultaneously') || t('config.allDoorsSimultaneously'), icon: Sparkles },
-  { id: 'single_route', label: t('config.selectedRouteOnly') || t('config.selectedDoorOnly'), icon: MapPin },
+  { id: 'all_routes', label: t('config.allRoutesSimultaneously'), icon: Sparkles },
+  { id: 'single_route', label: t('config.selectedRouteOnly'), icon: MapPin },
 ])
 
 // Projectile Selector State (80 Types)

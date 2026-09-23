@@ -123,7 +123,7 @@
       <Castle class="w-4 h-4 text-sky-400 animate-bounce shrink-0" />
       <span class="flex items-center gap-1.5">
         <Crosshair class="w-3.5 h-3.5 text-sky-400" />
-        <strong>{{ $t('editor.playerStartPoint') || 'O\'yinchi start nuqtasi' }} (P{{ (characterStore.selectedDoorIndex ?? 0) + 1 }}):</strong>
+        <strong>{{ $t('editor.playerStartPoint') || 'O\'yinchi start nuqtasi' }} (P{{ (characterStore.selectedRouteIndex ?? 0) + 1 }}):</strong>
         {{ $t('editor.clickCellToSetPlayerStart') || 'Xaritadagi istalgan katakni bosib bino qurish bazasini belgilang' }}
       </span>
       <UiButton
@@ -891,7 +891,6 @@ onMounted(async () => {
   // Load editor assets & structures bundle via central AssetManager
   emit('progress', { percent: 45, message: t('loader.loadTexturesModels') })
   await assetManager.loadEditor()
-  await assetStore.loadBuiltinSprites()
   await new Promise(resolve => setTimeout(resolve, 60))
 
   // Texture load listener for custom dynamic uploads
@@ -1040,8 +1039,7 @@ watch(() => [
   characterStore.isDrawingRoute,
   characterStore.drawingPath.length,
   characterStore.selectedWaypointIndex,
-  characterStore.detectedDoors.length,
-  characterStore.selectedDoorIndex,
+  characterStore.selectedRouteIndex,
   characterStore.spawnMode,
   characterStore.isSettingSpawnPoint,
   characterStore.isSettingPlayerStartPoint,

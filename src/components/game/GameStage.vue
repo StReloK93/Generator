@@ -91,7 +91,6 @@ import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
-import { useAssetStore } from '../../stores/assetStore'
 import { useI18n } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { lockLandscape } from '../../utils/pwaOrientation'
@@ -117,7 +116,6 @@ const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
-const assetStore = useAssetStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -184,7 +182,6 @@ onMounted(async () => {
 
   mapStore.isGameMap = true
   multiplayerStore.setRouter(router)
-  await assetStore.loadBuiltinSprites()
 
   if (isMapLoaded.value) {
     initializeGameSession()
