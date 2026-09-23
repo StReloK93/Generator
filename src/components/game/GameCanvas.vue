@@ -102,26 +102,31 @@ onMounted(async () => {
   // Fast PixiJS 8 Asset Bundle Loading (Core + Game bundles)
   characterStore.setLoadingProgress(50, t('loader.loadTexturesModels'))
   await assetManager.loadGame()
-  await assetStore.loadBuiltinSprites()
-  await new Promise(resolve => setTimeout(resolve, 150))
 
-  // Restore placed towers from map
-  towerStore.restoreFromProject()
-  characterStore.detectDoors()
-
-  // Focus on player's build base point (or player's assigned route start)
-  let targetCol = (mapStore.project.cols - 1) / 2
-  let targetRow = (mapStore.project.rows - 1) / 2
+  // Focus on player's build base / camera start point
+  let targetCol = Math.floor((mapStore.project.cols - 1) / 2)
+  let targetRow = Math.floor((mapStore.project.rows - 1) / 2)
 
   if (multiplayerStore.roomId && multiplayerStore.mySlot) {
-    targetCol = multiplayerStore.mySlot.playerCol ?? multiplayerStore.mySlot.spawnCol
-    targetRow = multiplayerStore.mySlot.playerRow ?? multiplayerStore.mySlot.spawnRow
-  } else if (characterStore.detectedDoors.length > 0) {
-    const doorIdx = characterStore.selectedDoorIndex ?? 0
-    const door = characterStore.detectedDoors[doorIdx] || characterStore.detectedDoors[0]
-    if (door) {
-      targetCol = door.playerCol ?? door.spawnCol ?? door.col
-      targetRow = door.playerRow ?? door.spawnRow ?? door.row
+    if (multiplayerStore.mySlot.playerCol !== undefined && multiplayerStore.mySlot.playerRow !== undefined) {
+      targetCol = multiplayerStore.mySlot.playerCol
+      targetRow = multiplayerStore.mySlot.playerRow
+    } else if (multiplayerStore.mySlot.spawnCol !== undefined && multiplayerStore.mySlot.spawnRow !== undefined) {
+      targetCol = multiplayerStore.mySlot.spawnCol
+      targetRow = multiplayerStore.mySlot.spawnRow
+    }
+  } else {
+    // Singleplayer / Test mode: prioritize camera / player base point
+    const activeDoor = characterStore.selectedDoor || characterStore.detectedDoors[0]
+    if (activeDoor && activeDoor.playerCol !== undefined && activeDoor.playerRow !== undefined) {
+      targetCol = activeDoor.playerCol
+      targetRow = activeDoor.playerRow
+    } else {
+      const savedSpawn = mapStore.project.spawnPoints?.find((s: any) => s.playerCol !== undefined && s.playerRow !== undefined)
+      if (savedSpawn && savedSpawn.playerCol !== undefined && savedSpawn.playerRow !== undefined) {
+        targetCol = savedSpawn.playerCol
+        targetRow = savedSpawn.playerRow
+      }
     }
   }
 

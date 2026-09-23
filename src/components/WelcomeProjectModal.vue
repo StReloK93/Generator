@@ -467,10 +467,6 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     // Restore character custom routes and settings
     if (data.characterData || (project as any).customRoutes || (project as any).customWaypoints || (project as any).characterConfig) {
       const cfg = data.characterData || {}
-      if (cfg.customRoutes || (project as any).customRoutes) {
-        characterStore.customRoutes = JSON.parse(JSON.stringify(cfg.customRoutes || (project as any).customRoutes || {}))
-        ;(mapStore.project as any).customRoutes = JSON.parse(JSON.stringify(characterStore.customRoutes))
-      }
       if (cfg.customWaypoints || (project as any).customWaypoints) {
         characterStore.customWaypoints = JSON.parse(JSON.stringify(cfg.customWaypoints || (project as any).customWaypoints || {}))
         ;(mapStore.project as any).customWaypoints = JSON.parse(JSON.stringify(characterStore.customWaypoints))
@@ -531,7 +527,6 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     }
     characterStore.restoreGameSettingsFromProject()
 
-    characterStore.detectDoors()
     characterStore.spawnAtDoor(characterStore.selectedDoorIndex ?? 0)
 
     assetStore.selectedAssetId = null

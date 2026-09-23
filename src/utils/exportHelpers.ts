@@ -261,7 +261,6 @@ export function buildFullProjectJsonPayload(
       layers: compactedLayers,
       gameSettings: resolvedGameSettings,
       clans: resolvedClans.map((c: any) => ({ ...c })),
-      customRoutes: resolvedCustomRoutes,
       customWaypoints: resolvedCustomWaypoints,
       spawnPoints: resolvedSpawnPoints,
       characterConfig: resolvedCharacterConfig,

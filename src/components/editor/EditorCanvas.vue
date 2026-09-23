@@ -905,9 +905,6 @@ onMounted(async () => {
   }
 
   camera.focusOnCenter(viewportContainerRef.value)
-  if (!characterStore.detectedDoors || characterStore.detectedDoors.length === 0) {
-    characterStore.detectDoors()
-  }
 
   emit('progress', { percent: 75, message: t('loader.syncLayersGrid') })
   updateEngineState()

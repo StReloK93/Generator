@@ -253,9 +253,6 @@ function initEditorMap() {
       return
     }
   }
-
-  // Detect doors for route drawing
-  characterStore.detectDoors()
 }
 
 onMounted(async () => {

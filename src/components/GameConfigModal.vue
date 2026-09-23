@@ -2238,8 +2238,9 @@ function handleTriggerSetPlayerStartPoint() {
 }
 
 function handleStartDrawingRoute() {
+  const currentIdx = characterStore.selectedDoorIndex ?? 0
   toolStore.closeGameConfig()
-  characterStore.startDrawingCustomRoute()
+  characterStore.startDrawingCustomRoute(currentIdx)
 }
 
 function handleStartPlayModeFromModal() {

@@ -113,30 +113,31 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   /**
-   * Initializes player slots based on map detectedDoors
+   * Initializes player slots based on map routes
    */
   function initializeSlotsFromMap(project: MapProject): PlayerSlot[] {
-    const doors = (project as any).spawnPoints || characterStore.detectedDoors || []
-    const count = Math.max(1, Math.min(8, doors.length > 0 ? doors.length : 4))
+    const customRoutes = project.customRoutes || characterStore.customRoutes || {}
+    const routeKeys = Object.keys(customRoutes)
+    const count = Math.max(1, Math.min(8, routeKeys.length > 0 ? routeKeys.length : (project.spawnPoints?.length || 4)))
     maxPlayers.value = count
 
     const newSlots: PlayerSlot[] = []
     for (let i = 0; i < count; i++) {
-      const door = doors[i]
-      const defaultName = `Spawn Point #${i + 1}`
-      const cornerNames = ['North / Top', 'East / Right', 'South / Bottom', 'West / Left']
-      const quadrant = door?.cornerName || cornerNames[i % cornerNames.length]
+      const key = routeKeys[i] || `route-${i}`
+      const route = customRoutes[key] || []
+      const spawnPt = route.length > 0 ? route[0] : (project.spawnPoints?.[i] ? { col: project.spawnPoints[i].col, row: project.spawnPoints[i].row } : { col: 2, row: 2 })
+      const spawnData = project.spawnPoints?.[i]
 
       newSlots.push({
         slotIndex: i,
         doorIndex: i,
-        doorId: door?.id || `door-${i}`,
-        doorName: door?.name || defaultName,
-        spawnCol: door?.spawnCol ?? door?.col ?? 2,
-        spawnRow: door?.spawnRow ?? door?.row ?? 2,
-        playerCol: door?.playerCol,
-        playerRow: door?.playerRow,
-        quadrantName: quadrant,
+        doorId: key,
+        doorName: spawnData?.name || `Route ${i + 1}`,
+        spawnCol: spawnPt.col,
+        spawnRow: spawnPt.row,
+        playerCol: spawnData?.playerCol,
+        playerRow: spawnData?.playerRow,
+        quadrantName: `Slot ${i + 1}`,
         player: null,
       })
     }
@@ -159,9 +160,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
     // Store map project in mapStore
     mapStore.project = JSON.parse(JSON.stringify(mapProject))
-    characterStore.detectDoors()
 
-    // Create slots based on map doors
+    // Create slots based on map routes
     slots.value = initializeSlotsFromMap(mapProject)
 
     const startGold = mapProject.gameSettings?.startingGold || characterStore.startingGold || 150
@@ -398,7 +398,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
         }
         towerStore.restoreFromProject()
-        characterStore.detectDoors()
         break
       }
 
@@ -464,7 +463,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         }
         towerStore.restoreFromProject()
         characterStore.restoreGameSettingsFromProject()
-        characterStore.detectDoors()
 
         resetGameMatchStats()
         roomGameState.value = 'in_game'

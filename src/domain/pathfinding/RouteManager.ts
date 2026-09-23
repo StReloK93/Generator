@@ -1,28 +1,18 @@
 import { GridCoord } from '../../types/map'
-import { DoorInfo } from '../../stores/characterStore'
 
 export class RouteManager {
   /**
-   * Builds the set of blocked cell coordinates that cannot be built on (doors + path cells).
+   * Computes the set of cell coordinates blocked for building (all cells in all routes).
    */
   public static computeBlockedCells(
-    doors: DoorInfo[],
     customRoutes?: Record<string, GridCoord[]> | null,
     projectRoutes?: Record<string, GridCoord[]> | null
   ): Set<string> {
     const set = new Set<string>()
 
-    // 1. Spawn points / doors
-    for (const d of doors) {
-      set.add(`${d.col},${d.row}`)
-      if (d.spawnCol !== undefined && d.spawnRow !== undefined) {
-        set.add(`${d.spawnCol},${d.spawnRow}`)
-      }
-    }
-
-    // 2. Custom routes
-    if (customRoutes) {
-      for (const route of Object.values(customRoutes)) {
+    const addRoutes = (routesMap?: Record<string, GridCoord[]> | null) => {
+      if (!routesMap) return
+      for (const route of Object.values(routesMap)) {
         if (Array.isArray(route)) {
           for (const pt of route) {
             set.add(`${pt.col},${pt.row}`)
@@ -31,50 +21,24 @@ export class RouteManager {
       }
     }
 
-    // 3. Project routes fallback
-    if (projectRoutes) {
-      for (const route of Object.values(projectRoutes)) {
-        if (Array.isArray(route)) {
-          for (const pt of route) {
-            set.add(`${pt.col},${pt.row}`)
-          }
-        }
-      }
-    }
+    addRoutes(customRoutes)
+    addRoutes(projectRoutes)
 
     return set
   }
 
   /**
-   * Resolves the active route for a given door.
+   * Resolves the route by route ID or index.
+   * If not found, returns a default 1-cell route at fallback [2,2].
    */
-  public static getRouteForDoor(
-    door: DoorInfo | undefined,
-    doorIdx: number,
+  public static getRouteByKey(
+    routeKey: string,
     customRoutes: Record<string, GridCoord[]>
   ): GridCoord[] {
-    if (!door) return []
-    const doorKey = door.id || `door-${doorIdx}`
-
-    if (customRoutes && customRoutes[doorKey] && customRoutes[doorKey].length > 0) {
-      return customRoutes[doorKey]
+    if (customRoutes && customRoutes[routeKey] && customRoutes[routeKey].length > 0) {
+      return customRoutes[routeKey]
     }
-
-    if (customRoutes && customRoutes[`door-${doorIdx}`] && customRoutes[`door-${doorIdx}`].length > 0) {
-      return customRoutes[`door-${doorIdx}`]
-    }
-
-    // Fallback: match by index if IDs differ
-    if (customRoutes) {
-      const keys = Object.keys(customRoutes)
-      if (doorIdx >= 0 && doorIdx < keys.length) {
-        const fallbackKey = keys[doorIdx]
-        if (customRoutes[fallbackKey] && customRoutes[fallbackKey].length > 0) {
-          return customRoutes[fallbackKey]
-        }
-      }
-    }
-
-    return [{ col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row }]
+    return [{ col: 2, row: 2 }]
   }
 }
+

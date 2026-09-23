@@ -52,7 +52,7 @@
     <Transition name="controls-slide-bottom">
       <div 
         v-if="isCanvasReady" 
-        class="absolute bottom-0 inset-x-0 z-30 pointer-events-none pb-safe"
+        class="absolute bottom-0 inset-x-0 z-30 pointer-events-none"
       >
         <GameControls />
       </div>
@@ -187,30 +187,25 @@ onMounted(async () => {
   await assetStore.loadBuiltinSprites()
 
   if (isMapLoaded.value) {
-    characterStore.detectDoors()
-    towerStore.initGameClanSelection()
-    if (!multiplayerStore.roomId || multiplayerStore.isHost) {
-      characterStore.startPlayMode()
-    } else {
-      characterStore.isGameMode = true
-      characterStore.isEnabled = true
-      towerStore.clearCombatEffects()
-    }
+    initializeGameSession()
   }
 })
 
-watch(isMapLoaded, async (loaded) => {
-  if (loaded) {
-    await assetStore.loadBuiltinSprites()
-    characterStore.detectDoors()
-    towerStore.initGameClanSelection()
-    if (!multiplayerStore.roomId || multiplayerStore.isHost) {
-      characterStore.startPlayMode()
-    } else {
-      characterStore.isGameMode = true
-      characterStore.isEnabled = true
-      towerStore.clearCombatEffects()
-    }
+function initializeGameSession() {
+  if (!isMapLoaded.value) return
+  towerStore.initGameClanSelection()
+  if (!multiplayerStore.roomId || multiplayerStore.isHost) {
+    characterStore.startPlayMode()
+  } else {
+    characterStore.isGameMode = true
+    characterStore.isEnabled = true
+    towerStore.clearCombatEffects()
+  }
+}
+
+watch(isMapLoaded, (loaded) => {
+  if (loaded && !characterStore.isGameMode) {
+    initializeGameSession()
   }
 })
 
@@ -218,13 +213,6 @@ watch(isMapLoaded, async (loaded) => {
 function cleanupGameSession() {
   isCanvasReady.value = false
   characterStore.exitPlayMode()
-  characterStore.isPlaying = false
-  characterStore.isGameMode = false
-  characterStore.gameState = 'ready'
-  characterStore.units = []
-  characterStore.loadingProgress = 0
-  characterStore.isLoadingGame = false
-  characterStore.loadingMessage = ''
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
 }

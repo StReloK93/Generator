@@ -261,6 +261,7 @@ import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
+import { applyMapPayloadToStores } from '../services/mapManager'
 
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
@@ -343,21 +344,7 @@ async function handleCreateRoom() {
     const rawData = mapData.raw as any
 
     if (rawData) {
-      const proj = rawData.project || rawData
-      mapStore.project = JSON.parse(JSON.stringify(proj))
-      
-      const waves = rawData.waveData?.waveConfigs || rawData.waveConfigs || proj.waveConfigs || []
-      if (waves && waves.length > 0) {
-        characterStore.waveConfigs = waves.map((w: any) => ({ ...w, characterModel: w.characterModel || 'male' }))
-      }
-      
-      const towers = rawData.towerData?.towerBlueprints || rawData.towerBlueprints || proj.towerBlueprints || []
-      if (towers && towers.length > 0) {
-        towerStore.blueprints = towers.map((b: any) => ({ ...b }))
-      }
-      towerStore.restoreFromProject()
-      characterStore.restoreWavesFromProject()
-      characterStore.detectDoors()
+      applyMapPayloadToStores(rawData)
     }
 
     await multiplayerStore.hostNewGame(

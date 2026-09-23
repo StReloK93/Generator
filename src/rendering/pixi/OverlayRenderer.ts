@@ -393,15 +393,10 @@ export class OverlayRenderer {
 
   public renderRouteAndSpawns(characterStore: any, project: MapProject): void {
     const isGame = Boolean(characterStore.isGameMode)
-
-    // In Game Mode (Play / TD Battle), all editor routes, spawns, and start points MUST be hidden!
     if (isGame) {
-      if (this.lastTrailSignature !== 'game_mode') {
-        this.pathTrailGraphics.clear()
-        this.spawnOverlayGraphics.clear()
-        this.spawnMarkersContainer.removeChildren()
-        this.lastTrailSignature = 'game_mode'
-      }
+      this.pathTrailGraphics.clear()
+      this.spawnOverlayGraphics.clear()
+      this.spawnMarkersContainer.removeChildren()
       return
     }
 

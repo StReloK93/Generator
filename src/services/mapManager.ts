@@ -3,6 +3,7 @@ import {
   buildFullProjectJsonPayload, 
   normalizeTileItem 
 } from '../utils/exportHelpers'
+import { extractWaypointsFromPath } from '../utils/isometric'
 import { 
   saveRecentProject, 
   getRecentProjects 
@@ -255,12 +256,21 @@ export function applyMapPayloadToStores(rawPayload: any): void {
     towerStore.placedTowers = []
   }
 
-  // 4. Hydrate Custom Routes & Waypoints
-  const rawRoutes = data.characterData?.customRoutes || project.customRoutes || {}
-  characterStore.customRoutes = JSON.parse(JSON.stringify(rawRoutes))
-
-  const rawWaypoints = data.characterData?.customWaypoints || project.customWaypoints || {}
-  characterStore.customWaypoints = JSON.parse(JSON.stringify(rawWaypoints))
+  // 4. Hydrate Custom Waypoints (Authoritative Routes)
+  const rawWaypoints = data.characterData?.customWaypoints || project.customWaypoints
+  if (rawWaypoints && Object.keys(rawWaypoints).length > 0) {
+    characterStore.customWaypoints = JSON.parse(JSON.stringify(rawWaypoints))
+  } else if (project.customRoutes && Object.keys(project.customRoutes).length > 0) {
+    const extracted: Record<string, any> = {}
+    for (const [k, r] of Object.entries(project.customRoutes as Record<string, any>)) {
+      if (Array.isArray(r) && r.length > 0) {
+        extracted[k] = extractWaypointsFromPath(r)
+      }
+    }
+    characterStore.customWaypoints = extracted
+  } else {
+    characterStore.customWaypoints = {}
+  }
 
   // 5. Hydrate Game Settings
   const settings = project.gameSettings || data.gameSettings
