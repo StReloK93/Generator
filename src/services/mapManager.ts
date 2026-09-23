@@ -3,7 +3,6 @@ import {
   buildFullProjectJsonPayload, 
   normalizeTileItem 
 } from '../utils/exportHelpers'
-import { extractWaypointsFromPath } from '../utils/isometric'
 import { 
   saveRecentProject, 
   getRecentProjects 
@@ -50,8 +49,8 @@ export function getBuiltinMaps(): BuiltinMapSummary[] {
       playersCount: (() => {
         const explicit = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
         if (explicit && typeof explicit === 'number' && explicit > 0) return explicit
-        const spawnPointsCount = project.spawnPoints?.length || Object.keys(project.customRoutes || {}).length || 0
-        if (spawnPointsCount > 0) return spawnPointsCount
+        const routesCount = project.routes?.length || project.spawnPoints?.length || 0
+        if (routesCount > 0) return routesCount
         return project.cols >= 60 ? 4 : 2
       })(),
       wavesCount: waves.length || 24,
@@ -256,33 +255,11 @@ export function applyMapPayloadToStores(rawPayload: any): void {
     towerStore.placedTowers = []
   }
 
-  // 4. Hydrate Custom Waypoints (Authoritative Routes)
-  const rawWaypoints = data.characterData?.customWaypoints || project.customWaypoints
-  if (rawWaypoints && Object.keys(rawWaypoints).length > 0) {
-    characterStore.customWaypoints = JSON.parse(JSON.stringify(rawWaypoints))
-  } else if (project.customRoutes && Object.keys(project.customRoutes).length > 0) {
-    const extracted: Record<string, any> = {}
-    for (const [k, r] of Object.entries(project.customRoutes as Record<string, any>)) {
-      if (Array.isArray(r) && r.length > 0) {
-        extracted[k] = extractWaypointsFromPath(r)
-      }
-    }
-    characterStore.customWaypoints = extracted
-  } else {
-    characterStore.customWaypoints = {}
-  }
+  // 4. Hydrate Routes
+  characterStore.syncRoutesFromProject()
 
   // 5. Hydrate Game Settings
-  const settings = project.gameSettings || data.gameSettings
-  if (settings) {
-    if (settings.startingGold !== undefined) characterStore.startingGold = settings.startingGold
-    if (settings.startingLives !== undefined) characterStore.startingLives = settings.startingLives
-    if (settings.wavePrepTime !== undefined) characterStore.wavePrepDuration = settings.wavePrepTime
-  } else {
-    characterStore.startingGold = 150
-    characterStore.startingLives = 20
-    characterStore.wavePrepDuration = 10
-  }
+  characterStore.restoreGameSettingsFromProject()
 
   // 6. Assets Reconciliation
   if (data.assets && Array.isArray(data.assets) && data.assets.length > 0) {
@@ -292,6 +269,6 @@ export function applyMapPayloadToStores(rawPayload: any): void {
   // 7. Store internal restore hooks
   towerStore.restoreFromProject()
   characterStore.restoreWavesFromProject()
-  characterStore.detectDoors()
+  characterStore.syncRoutesFromProject()
   mapStore.resetHistory(`Map loaded: ${project.name || 'Project'}`)
 }

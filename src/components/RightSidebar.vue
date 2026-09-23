@@ -303,7 +303,7 @@
           <div class="flex items-center justify-between px-1.5 shrink-0 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80">
             <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 pl-1">
               <Footprints class="w-3.5 h-3.5 text-emerald-400" />
-              <span>{{ $t('sidebar.spawnRoutes') }} ({{ characterStore.detectedDoors.length }})</span>
+              <span>{{ $t('sidebar.spawnRoutes') }} ({{ characterStore.routes.length }})</span>
             </div>
 
             <!-- New Route Button -->
@@ -324,7 +324,7 @@
           >
             <div class="flex items-center gap-1.5 text-xs text-amber-300 font-semibold">
               <PenTool class="w-4 h-4 text-amber-400" />
-              <span>{{ $t('sidebar.drawingRoute', { number: (characterStore.selectedDoorIndex ?? 0) + 1 }) }}</span>
+              <span>{{ $t('sidebar.drawingRoute', { number: (characterStore.selectedRouteIndex ?? 0) + 1 }) }}</span>
             </div>
             <UiButton
               variant="secondary"
@@ -338,17 +338,17 @@
 
           <!-- Scrollable Routes List (Route 1, Route 2, Route 3...) -->
           <div 
-            v-if="characterStore.detectedDoors.length > 0"
+            v-if="characterStore.routes.length > 0"
             class="flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar p-0.5"
           >
             <UiCard 
-              v-for="(door, idx) in characterStore.detectedDoors" 
-              :key="door.id || idx"
-              :selected="characterStore.selectedDoorIndex === idx"
+              v-for="(route, idx) in characterStore.routes" 
+              :key="route.id || idx"
+              :selected="characterStore.selectedRouteIndex === idx"
               variant="default"
               padding="sm"
               custom-class="p-2! flex flex-col gap-1.5 cursor-pointer shrink-0 transition-all hover:border-slate-700"
-              :class="{ 'border-emerald-500/80! bg-emerald-950/20! shadow-[0_0_15px_rgba(16,185,129,0.15)]': characterStore.selectedDoorIndex === idx }"
+              :class="{ 'border-emerald-500/80! bg-emerald-950/20! shadow-[0_0_15px_rgba(16,185,129,0.15)]': characterStore.selectedRouteIndex === idx }"
               @click="handleSelectRoute(idx)"
             >
               <!-- Route Top Row: Index Badge, Name, and Draw / Action Buttons -->
@@ -357,7 +357,7 @@
                   <!-- Numbered Badge (1, 2, 3...) -->
                   <div 
                     class="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 border font-mono"
-                    :class="characterStore.selectedDoorIndex === idx 
+                    :class="characterStore.selectedRouteIndex === idx 
                       ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm' 
                       : 'bg-slate-800 text-slate-300 border-slate-700'"
                   >
@@ -367,9 +367,9 @@
                   <!-- Route Name (Clean without duplicated coords) -->
                   <span 
                     class="text-xs font-bold truncate"
-                    :class="characterStore.selectedDoorIndex === idx ? 'text-emerald-300 font-semibold' : 'text-slate-200'"
+                    :class="characterStore.selectedRouteIndex === idx ? 'text-emerald-300 font-semibold' : 'text-slate-200'"
                   >
-                    {{ (door.name || `Route ${idx + 1}`).replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${idx + 1}` }}
+                    {{ (route.name || `Route ${idx + 1}`).replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${idx + 1}` }}
                   </span>
                 </div>
 
@@ -377,7 +377,7 @@
                 <div class="flex items-center gap-1 shrink-0">
                   <!-- Draw Button with Pen Icon -->
                   <UiButton
-                    :variant="characterStore.isDrawingRoute && characterStore.selectedDoorIndex === idx ? 'game-amber' : 'primary'"
+                    :variant="characterStore.isDrawingRoute && characterStore.selectedRouteIndex === idx ? 'game-amber' : 'primary'"
                     size="xs"
                     :leading-icon="PenTool"
                     custom-class="px-2! py-0.5! text-[10px]!"
@@ -394,7 +394,7 @@
                     variant="ghost"
                     :title="$t('sidebar.focusOnStart')"
                     custom-class="p-0.5! w-6! h-6!"
-                    @click.stop="handleFocusRoute(door)"
+                    @click.stop="handleFocusRoute(route)"
                   />
 
                   <!-- Relocate Start Point -->
@@ -419,7 +419,7 @@
 
                   <!-- Delete Route -->
                   <UiIconButton 
-                    v-if="characterStore.detectedDoors.length > 1"
+                    v-if="characterStore.routes.length > 1"
                     :icon="Trash2"
                     size="sm"
                     variant="danger"
@@ -434,14 +434,14 @@
               <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pl-7 flex-wrap gap-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-amber-400/90 font-medium">
-                    {{ $t('sidebar.startCoord') }}: ({{ door.spawnCol ?? door.col }}, {{ door.spawnRow ?? door.row }})
+                    {{ $t('sidebar.startCoord') }}: ({{ route.spawnCol ?? route.col }}, {{ route.spawnRow ?? route.row }})
                   </span>
-                  <span v-if="door.playerCol !== undefined" class="text-sky-400 font-medium bg-sky-950/50 px-1 rounded border border-sky-500/20">
-                    {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ door.playerCol }}, {{ door.playerRow }})
+                  <span v-if="route.playerCol !== undefined" class="text-sky-400 font-medium bg-sky-950/50 px-1 rounded border border-sky-500/20">
+                    {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ route.playerCol }}, {{ route.playerRow }})
                   </span>
                 </div>
                 <span class="text-slate-500">
-                  {{ getRouteStats(door, idx) }}
+                  {{ getRouteStats(route, idx) }}
                 </span>
               </div>
             </UiCard>
@@ -643,7 +643,7 @@ watch([() => assetStore.selectedCategory, () => mapStore.totalTilesCount], ([cat
 const topTabItems = computed<TabItem[]>(() => [
   { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
   { id: 'layers', label: t('common.layers') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
-  { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: characterStore.detectedDoors.length }
+  { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: characterStore.routes.length }
 ])
 
 const assetCategoryItems = computed<TabItem[]>(() => {
@@ -667,49 +667,48 @@ const assetCategoryItems = computed<TabItem[]>(() => {
 function handleAddNewRoute() {
   characterStore.isSettingSpawnPoint = true
   characterStore.spawnPointPlacementMode = 'add'
-  characterStore.statusMessage = t('sidebar.clickPlaceRouteStart', { number: characterStore.detectedDoors.length + 1 })
+  characterStore.statusMessage = t('sidebar.clickPlaceRouteStart', { number: characterStore.routes.length + 1 })
 }
 
 function handleSelectRoute(idx: number) {
-  if (characterStore.selectedDoorIndex === idx) {
-    characterStore.selectedDoorIndex = null
+  if (characterStore.selectedRouteIndex === idx) {
+    characterStore.selectedRouteIndex = null
   } else {
-    characterStore.selectedDoorIndex = idx
-    characterStore.spawnAtDoor(idx)
+    characterStore.selectedRouteIndex = idx
+    characterStore.spawnAtRoute(idx)
   }
 }
 
 function handleStartDrawing(idx: number) {
-  characterStore.selectedDoorIndex = idx
-  characterStore.startDrawingCustomRoute()
+  characterStore.selectedRouteIndex = idx
+  characterStore.startDrawingCustomRoute(idx)
 }
 
-function handleFocusRoute(door: any) {
-  emit('focus-cell', { col: door.spawnCol ?? door.col, row: door.spawnRow ?? door.row })
+function handleFocusRoute(route: any) {
+  emit('focus-cell', { col: route.spawnCol ?? route.col, row: route.spawnRow ?? route.row })
 }
 
 function handleDeleteRoute(idx: number) {
-  characterStore.removeSpawnPoint(idx)
+  characterStore.removeRoute(idx)
 }
 
 function handleRelocateStart(idx: number) {
-  characterStore.selectedDoorIndex = idx
+  characterStore.selectedRouteIndex = idx
   characterStore.spawnPointPlacementMode = 'relocate'
   characterStore.isSettingSpawnPoint = true
   characterStore.statusMessage = t('sidebar.clickRelocateStart', { number: idx + 1 })
 }
 
 function handleSetPlayerStart(idx: number) {
-  characterStore.selectedDoorIndex = idx
+  characterStore.selectedRouteIndex = idx
   characterStore.isSettingPlayerStartPoint = true
   characterStore.statusMessage = t('sidebar.clickSetPlayerStart', { number: idx + 1 })
 }
 
-function getRouteStats(door: any, idx: number): string {
-  const doorKey = door.id || `door-${idx}`
-  const waypoints = characterStore.customWaypoints[doorKey] || []
-  const path = characterStore.customRoutes[doorKey] || []
-  if (waypoints.length > 0) return t('sidebar.routeStatsPoints', { points: waypoints.length, tiles: path.length })
+function getRouteStats(route: any, idx: number): string {
+  const points = route.routePoints || []
+  const path = characterStore.getRouteForIndex(idx) || []
+  if (points.length > 0) return t('sidebar.routeStatsPoints', { points: points.length, tiles: path.length })
   if (path.length > 1) return t('sidebar.routeStatsTiles', { tiles: path.length })
   return t('sidebar.routeStatsDefault')
 }

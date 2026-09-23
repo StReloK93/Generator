@@ -144,39 +144,18 @@ async function handleExport() {
         mapStore.project, 
         assetStore.assets, 
         {
-          customRoutes: characterStore.customRoutes,
-          customWaypoints: characterStore.customWaypoints,
-          spawnPoints: characterStore.detectedDoors,
-          characterConfig: {
-            spawnCount: characterStore.spawnCount,
-            spawnMode: characterStore.spawnMode,
-            formation: characterStore.formation,
-            pairDistance: characterStore.pairDistance,
-            speed: characterStore.speed,
-            selectedDoorIndex: characterStore.selectedDoorIndex,
-            followCamera: characterStore.followCamera,
-            showPathTrail: characterStore.showPathTrail,
-            autoLoop: characterStore.autoLoop,
-          },
-          speed: characterStore.speed,
-          formation: characterStore.formation,
-          pairDistance: characterStore.pairDistance,
-          followCamera: characterStore.followCamera,
-          showPathTrail: characterStore.showPathTrail,
+          routes: characterStore.routes,
         },
         {
           placedTowers: towerStore.placedTowers,
           towerBlueprints: towerStore.blueprints,
+          clans: towerStore.clans,
         },
         {
           waveConfigs: characterStore.waveConfigs,
           currentWaveIndex: characterStore.currentWaveIndex,
         },
-        {
-          startingGold: characterStore.startingGold,
-          startingLives: characterStore.startingLives,
-          wavePrepTime: characterStore.wavePrepDuration,
-        }
+        mapStore.project.gameSettings
       )
       notify.success(`"${mapStore.project.name || 'Loyiha'}" JSON formati muvaffaqiyatli yuklab olindi!`)
       closeModal()

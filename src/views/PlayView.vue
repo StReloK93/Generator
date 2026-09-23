@@ -303,8 +303,8 @@ const availableMaps = Object.entries(mapModules).map(([path, mod]) => {
     playersCount: (() => {
       const explicit = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
       if (explicit && typeof explicit === 'number' && explicit > 0) return explicit
-      const spawnPointsCount = project.spawnPoints?.length || Object.keys(project.customRoutes || {}).length || 0
-      if (spawnPointsCount > 0) return spawnPointsCount
+      const routesCount = project.routes?.length || project.spawnPoints?.length || 0
+      if (routesCount > 0) return routesCount
       return project.cols >= 60 ? 4 : 2
     })(),
     raw,

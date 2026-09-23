@@ -433,11 +433,15 @@ export class OverlayRenderer {
         ? characterStore.drawingWaypoints.map((p: GridCoord) => `${p.col},${p.row}`).join('|')
         : ''
     const showLines = Boolean(characterStore.showPathTrail !== false)
-    const playerBasesHash = (characterStore.detectedDoors || [])
-      .map((d: any) => `${d.spawnCol},${d.spawnRow}->${d.playerCol},${d.playerRow}`)
-      .join('|')
+    const routesList = characterStore.routes || []
+    const routesHash = routesList
+      .map((r: any, idx: number) => {
+        const pts = r.routePoints ? r.routePoints.map((p: any) => `${p.col},${p.row}`).join(',') : ''
+        return `${idx}:${pts}->${r.playerCameraPoint?.col ?? r.playerCol},${r.playerCameraPoint?.row ?? r.playerRow}`
+      })
+      .join(';')
 
-    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}_${playerBasesHash}_${Boolean(characterStore.isSettingPlayerStartPoint)}`
+    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${doorsCount}_${selectedDoorIdx}_${spawnMode}_${currentRouteLen}_${routesHash}_${Boolean(characterStore.isSettingPlayerStartPoint)}`
 
     if (!isDrawing && trailSignature === this.lastTrailSignature) return
     this.lastTrailSignature = trailSignature
@@ -447,8 +451,8 @@ export class OverlayRenderer {
     this.spawnMarkersContainer.removeChildren()
 
     if (isDrawing) {
-      if (characterStore.detectedDoors && characterStore.detectedDoors.length > 0) {
-        characterStore.detectedDoors.forEach((_: any, dIdx: number) => {
+      if (routesList.length > 0) {
+        routesList.forEach((_: any, dIdx: number) => {
           if (
             dIdx === selectedDoorIdx &&
             characterStore.drawingPath &&
@@ -456,9 +460,9 @@ export class OverlayRenderer {
           ) {
             return
           }
-          const otherRoute = characterStore.getRouteForDoor
-            ? characterStore.getRouteForDoor(dIdx)
-            : null
+          const otherRoute = characterStore.getRouteForIndex
+            ? characterStore.getRouteForIndex(dIdx)
+            : characterStore.getRouteForDoor(dIdx)
           if (otherRoute && otherRoute.length > 1) {
             const otherPts = otherRoute.map((p: GridCoord) =>
               gridToScreen(p.col, p.row, tileWidth, tileHeight)
@@ -601,13 +605,13 @@ export class OverlayRenderer {
       }
     } else if (showSpawns) {
       if (characterStore.showPathTrail !== false) {
-        const doors = characterStore.detectedDoors || []
+        const routesList = characterStore.routes || []
         const routesToDraw: { route: GridCoord[]; dIdx: number }[] =
-          doors.length > 0
-            ? doors.map((_: any, idx: number) => ({
-                route: characterStore.getRouteForDoor
-                  ? characterStore.getRouteForDoor(idx)
-                  : characterStore.currentActiveRoute,
+          routesList.length > 0
+            ? routesList.map((_: any, idx: number) => ({
+                route: characterStore.getRouteForIndex
+                  ? characterStore.getRouteForIndex(idx)
+                  : characterStore.getRouteForDoor(idx),
                 dIdx: idx,
               }))
             : [{ route: characterStore.currentActiveRoute, dIdx: 0 }]
@@ -662,10 +666,11 @@ export class OverlayRenderer {
         })
       }
 
-      if (characterStore.detectedDoors && characterStore.detectedDoors.length > 0) {
-        characterStore.detectedDoors.forEach((door: any, dIdx: number) => {
-          const c = door.spawnCol !== undefined ? door.spawnCol : door.col
-          const r = door.spawnRow !== undefined ? door.spawnRow : door.row
+      const routesList = characterStore.routes || characterStore.detectedDoors || []
+      if (routesList && routesList.length > 0) {
+        routesList.forEach((route: any, dIdx: number) => {
+          const c = route.spawnCol !== undefined ? route.spawnCol : route.col
+          const r = route.spawnRow !== undefined ? route.spawnRow : route.row
           const pt = gridToScreen(c, r, tileWidth, tileHeight)
           const isSelected = selectedDoorIdx >= 0 && selectedDoorIdx === dIdx
           const playerColor = playerHexColors[dIdx % playerHexColors.length]
@@ -696,8 +701,8 @@ export class OverlayRenderer {
             .circle(pt.x, badgeY + 8, 3.5)
             .fill({ color: beaconColor, alpha: 1.0 })
 
-          const rawName = door.name || `Spawn ${dIdx + 1}`
-          const cleanName = rawName.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Spawn ${dIdx + 1}`
+          const rawName = route.name || `Route ${dIdx + 1}`
+          const cleanName = rawName.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${dIdx + 1}`
           const playerLabel = `P${dIdx + 1}`
           const labelText = `${playerLabel}: ${cleanName} (${c}, ${r})`
           const cardW = Math.max(90, labelText.length * 6.5 + 24)
@@ -745,9 +750,9 @@ export class OverlayRenderer {
           // -------------------------------------------------------------
           // Render Player Start / Base Point (Independent build point for player)
           // -------------------------------------------------------------
-          if (door.playerCol !== undefined && door.playerRow !== undefined) {
-            const bCol = door.playerCol
-            const bRow = door.playerRow
+          if (route.playerCol !== undefined && route.playerRow !== undefined) {
+            const bCol = route.playerCol
+            const bRow = route.playerRow
             const bPt = gridToScreen(bCol, bRow, tileWidth, tileHeight)
             const bPoly = getCellPolygon(bCol, bRow, tileWidth, tileHeight)
             const baseColor = isSelected ? 0x38bdf8 : playerColor

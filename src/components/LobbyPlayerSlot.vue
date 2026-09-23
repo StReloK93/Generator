@@ -17,13 +17,13 @@
           #{{ slot.slotIndex + 1 }}
         </span>
         <span class="text-[11px] font-bold text-slate-200">
-          {{ slot.doorName }}
+          {{ slot.routeName || slot.doorName }}
         </span>
       </div>
 
       <!-- Quadrant / Location tag -->
       <UiBadge variant="slate" size="xs">
-        {{ slot.quadrantName || `Spawn #${slot.doorIndex + 1}` }}
+        {{ slot.quadrantName || `Route #${(slot.routeIndex ?? slot.doorIndex ?? 0) + 1}` }}
       </UiBadge>
     </div>
 

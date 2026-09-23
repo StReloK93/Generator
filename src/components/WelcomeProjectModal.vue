@@ -1,38 +1,23 @@
 <template>
-  <UiModal
-    :is-open="isOpen"
-    :title="$t('welcome.title')"
-    :subtitle="$t('welcome.subtitle')"
-    :icon="Map"
-    icon-color="brand"
-    size="5xl"
-    :show-close="canClose && !isImporting"
-    :close-on-backdrop="canClose && !isImporting"
-    :close-on-escape="canClose && !isImporting"
-    @close="isOpen = false"
-  >
+  <UiModal :is-open="isOpen" :title="$t('welcome.title')" :subtitle="$t('welcome.subtitle')" :icon="Map"
+    icon-color="brand" size="5xl" :show-close="canClose && !isImporting" :close-on-backdrop="canClose && !isImporting"
+    :close-on-escape="canClose && !isImporting" @close="isOpen = false">
     <!-- Stable wrapper to prevent layout jumps -->
     <div class="flex flex-col gap-4 min-h-100 relative">
       <!-- Mode Selector Tabs (Always mounted to preserve layout height & prevent jumps) -->
-      <UiTabs
-        v-model="activeMode"
-        :items="tabItems"
-        fill
-        size="md"
-        :class="{ 'opacity-40 pointer-events-none': isImporting }"
-      />
+      <UiTabs v-model="activeMode" :items="tabItems" fill size="md"
+        :class="{ 'opacity-40 pointer-events-none': isImporting }" />
 
       <!-- Content Container with fixed min-height -->
       <div class="relative flex-1 flex flex-col">
         <!-- ASYNCHRONOUS IMPORT PROGRESS OVERLAY -->
-        <div 
-          v-if="isImporting" 
-          class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 gap-4 text-center bg-slate-900/90 backdrop-blur-xs rounded-2xl animate-in fade-in duration-200"
-        >
+        <div v-if="isImporting"
+          class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 gap-4 text-center bg-slate-900/90 backdrop-blur-xs rounded-2xl animate-in fade-in duration-200">
           <!-- Elegant glowing icon (calm, no jittery bounce) -->
           <div class="relative flex items-center justify-center">
             <div class="absolute inset-0 rounded-2xl bg-amber-500/20 blur-md animate-pulse"></div>
-            <div class="relative w-16 h-16 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-xl">
+            <div
+              class="relative w-16 h-16 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-xl">
               <Upload class="w-8 h-8 text-amber-400" />
             </div>
           </div>
@@ -50,11 +35,11 @@
           </div>
 
           <!-- Animated Progress Bar with smooth duration -->
-          <div class="w-full max-w-sm bg-slate-950 border border-slate-800 rounded-full h-3 overflow-hidden shadow-inner p-0.5">
-            <div 
+          <div
+            class="w-full max-w-sm bg-slate-950 border border-slate-800 rounded-full h-3 overflow-hidden shadow-inner p-0.5">
+            <div
               class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-300 ease-out rounded-full shadow-sm shadow-amber-500/50"
-              :style="{ width: `${importProgress}%` }"
-            ></div>
+              :style="{ width: `${importProgress}%` }"></div>
           </div>
           <span class="font-mono text-xs text-slate-400 font-bold tracking-wider">
             {{ Math.round(importProgress) }}%
@@ -66,28 +51,18 @@
         <!-- ========================================== -->
         <div v-show="!isImporting && activeMode === 'new'" class="flex flex-col gap-4 flex-1">
           <!-- Project Name Input -->
-          <UiInput
-            v-model="newProjectName"
-            :label="$t('common.name') + ' *'"
-            :placeholder="$t('welcome.projectNamePlaceholder')"
-            :leading-icon="Sparkles"
-            @keyup.enter="handleCreateNew"
-          />
+          <UiInput v-model="newProjectName" :label="$t('common.name') + ' *'"
+            :placeholder="$t('welcome.projectNamePlaceholder')" :leading-icon="Sparkles"
+            @keyup.enter="handleCreateNew" />
 
           <!-- Presets Selection -->
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-slate-300">{{ $t('common.size') }}</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <UiCard
-                v-for="preset in presets" 
-                :key="preset.id"
-                :selected="selectedPreset === preset.id"
-                interactive
-                padding="sm"
-                variant="default"
+              <UiCard v-for="preset in presets" :key="preset.id" :selected="selectedPreset === preset.id" interactive
+                padding="sm" variant="default"
                 custom-class="text-center flex flex-col items-center justify-center gap-0.5"
-                @click="applyPreset(preset)"
-              >
+                @click="applyPreset(preset)">
                 <span class="text-[11px] font-mono opacity-80 text-brand-300">{{ preset.cols }}×{{ preset.rows }}</span>
               </UiCard>
             </div>
@@ -95,37 +70,15 @@
 
           <!-- Custom Sliders -->
           <UiCard variant="subtle" padding="md" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UiSlider
-              v-model="cols"
-              :label="$t('welcome.mapWidth')"
-              :min="10"
-              :max="128"
-              :step="2"
-              unit=" cells"
-              show-min-max
-              @update:model-value="selectedPreset = 'Custom'"
-            />
+            <UiSlider v-model="cols" :label="$t('welcome.mapWidth')" :min="10" :max="128" :step="2" unit=" cells"
+              show-min-max @update:model-value="selectedPreset = 'Custom'" />
 
-            <UiSlider
-              v-model="rows"
-              :label="$t('welcome.mapHeight')"
-              :min="10"
-              :max="128"
-              :step="2"
-              unit=" cells"
-              show-min-max
-              @update:model-value="selectedPreset = 'Custom'"
-            />
+            <UiSlider v-model="rows" :label="$t('welcome.mapHeight')" :min="10" :max="128" :step="2" unit=" cells"
+              show-min-max @update:model-value="selectedPreset = 'Custom'" />
           </UiCard>
 
           <!-- Submit Button -->
-          <UiButton
-            variant="primary"
-            size="lg"
-            block
-            :leading-icon="Sparkles"
-            @click="handleCreateNew"
-          >
+          <UiButton variant="primary" size="lg" block :leading-icon="Sparkles" @click="handleCreateNew">
             {{ $t('common.create') }} ({{ cols }}×{{ rows }})
           </UiButton>
         </div>
@@ -134,35 +87,24 @@
         <!-- TAB 2: IMPORT PROJECT JSON                 -->
         <!-- ========================================== -->
         <div v-show="!isImporting && activeMode === 'import'" class="flex flex-col gap-4 flex-1 justify-center">
-          <div 
-            @click="triggerFileInput"
-            class="border-2 border-dashed border-slate-700/80 hover:border-emerald-500/80 rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center gap-3.5 text-center cursor-pointer transition-all bg-slate-900/40 hover:bg-slate-900/80 group"
-          >
-            <div class="w-16 h-16 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+          <div @click="triggerFileInput"
+            class="border-2 border-dashed border-slate-700/80 hover:border-emerald-500/80 rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center gap-3.5 text-center cursor-pointer transition-all bg-slate-900/40 hover:bg-slate-900/80 group">
+            <div
+              class="w-16 h-16 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
               <Upload class="w-8 h-8" />
             </div>
             <div>
               <h3 class="text-base font-bold text-slate-100">{{ $t('common.import') }}</h3>
               <p class="text-xs text-slate-400 mt-1">{{ $t('welcome.importDesc') }}</p>
             </div>
-            <UiButton
-              type="button"
-              variant="game-green"
-              size="sm"
-              :leading-icon="Upload"
-              custom-class="mt-2 pointer-events-none"
-            >
+            <UiButton type="button" variant="game-green" size="sm" :leading-icon="Upload"
+              custom-class="mt-2 pointer-events-none">
               {{ $t('welcome.chooseFile') }}
             </UiButton>
           </div>
 
-          <input 
-            ref="fileInputRef" 
-            type="file" 
-            accept=".json,.isomap.json" 
-            class="hidden" 
-            @change="handleFileSelected" 
-          />
+          <input ref="fileInputRef" type="file" accept=".json,.isomap.json" class="hidden"
+            @change="handleFileSelected" />
         </div>
 
         <!-- ========================================== -->
@@ -175,15 +117,11 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <UiCard 
-              v-for="rec in recentProjects"
-              :key="rec.id"
-              variant="default"
-              padding="sm"
-              custom-class="flex items-center justify-between gap-3 group hover:border-amber-500/50"
-            >
+            <UiCard v-for="rec in recentProjects" :key="rec.id" variant="default" padding="sm"
+              custom-class="flex items-center justify-between gap-3 group hover:border-amber-500/50">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
+                <div
+                  class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
                   <Map class="w-5 h-5" />
                 </div>
                 <div class="min-w-0">
@@ -204,22 +142,13 @@
               </div>
 
               <div class="flex items-center gap-1.5 shrink-0">
-                <UiButton 
-                  variant="game-amber"
-                  size="sm"
-                  @click="openRecentProject(rec)"
-                >
+                <UiButton variant="game-amber" size="sm" @click="openRecentProject(rec)">
                   {{ $t('common.open') }}
                 </UiButton>
 
-                <UiIconButton 
-                  variant="ghost"
-                  size="sm"
-                  :icon="Trash2"
-                  :title="$t('common.delete')"
+                <UiIconButton variant="ghost" size="sm" :icon="Trash2" :title="$t('common.delete')"
                   custom-class="text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
-                  @click="removeRecent(rec.id)"
-                />
+                  @click="removeRecent(rec.id)" />
               </div>
             </UiCard>
           </div>
@@ -233,16 +162,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Sparkles, Upload, History, Trash2, Map, Package } from 'lucide-vue-next'
-import { 
-  UiModal, 
-  UiTabs, 
-  UiInput, 
-  UiSlider, 
-  UiButton, 
-  UiCard, 
-  UiBadge, 
+import {
+  UiModal,
+  UiTabs,
+  UiInput,
+  UiSlider,
+  UiButton,
+  UiCard,
+  UiBadge,
   UiIconButton,
-  TabItem 
+  TabItem
 } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useAssetStore } from '../stores/assetStore'
@@ -250,15 +179,15 @@ import { useToolStore } from '../stores/toolStore'
 import { useCharacterStore } from '../stores/characterStore'
 import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson, normalizeTileItem, yieldToMain } from '../utils/exportHelpers'
-import { 
-  getRecentProjects, 
-  deleteRecentProject, 
-  formatTimeAgo, 
-  RecentProjectItem 
+import {
+  getRecentProjects,
+  deleteRecentProject,
+  formatTimeAgo,
+  RecentProjectItem
 } from '../services/projectStorage'
-import { 
-  sanitizeMapId, 
-  saveEditorDraft 
+import {
+  sanitizeMapId,
+  saveEditorDraft
 } from '../services/mapManager'
 
 import { useNotificationStore } from '../stores/notificationStore'
@@ -357,27 +286,10 @@ function handleCreateNew() {
   // Save to editor draft and recents
   saveEditorDraft(
     newId,
-    mapStore.project, 
-    assetStore.assets, 
+    mapStore.project,
+    assetStore.assets,
     {
-      customRoutes: characterStore.customRoutes,
-      spawnPoints: characterStore.detectedDoors,
-      characterConfig: {
-        spawnCount: characterStore.spawnCount,
-        spawnMode: characterStore.spawnMode,
-        formation: characterStore.formation,
-        pairDistance: characterStore.pairDistance,
-        speed: characterStore.speed,
-        selectedDoorIndex: characterStore.selectedDoorIndex,
-        followCamera: characterStore.followCamera,
-        showPathTrail: characterStore.showPathTrail,
-        autoLoop: characterStore.autoLoop,
-      },
-      speed: characterStore.speed,
-      formation: characterStore.formation,
-      pairDistance: characterStore.pairDistance,
-      followCamera: characterStore.followCamera,
-      showPathTrail: characterStore.showPathTrail,
+      routes: characterStore.routes,
     },
     { blueprints: towerStore.blueprints, placedTowers: towerStore.placedTowers, clans: towerStore.clans },
     { waveConfigs: characterStore.waveConfigs, currentWaveIndex: characterStore.currentWaveIndex },
@@ -464,21 +376,27 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     mapStore.project = clonedProject
     mapStore.activeLayerId = clonedProject.layers?.[0]?.id || 'layer-ground'
 
-    // Restore character custom routes and settings
-    if (data.characterData || (project as any).customRoutes || (project as any).customWaypoints || (project as any).characterConfig) {
-      const cfg = data.characterData || {}
-      if (cfg.customWaypoints || (project as any).customWaypoints) {
-        characterStore.customWaypoints = JSON.parse(JSON.stringify(cfg.customWaypoints || (project as any).customWaypoints || {}))
-        ;(mapStore.project as any).customWaypoints = JSON.parse(JSON.stringify(characterStore.customWaypoints))
-      }
-      if (cfg.speed !== undefined) characterStore.speed = cfg.speed
-      if (cfg.formation !== undefined) characterStore.formation = cfg.formation
-      if (cfg.pairDistance !== undefined) characterStore.pairDistance = cfg.pairDistance
-      if (cfg.followCamera !== undefined) characterStore.followCamera = cfg.followCamera
-      if (cfg.showPathTrail !== undefined) characterStore.showPathTrail = cfg.showPathTrail
-      if (cfg.autoLoop !== undefined) characterStore.autoLoop = cfg.autoLoop
-      if (cfg.selectedDoorIndex !== undefined) characterStore.selectedDoorIndex = cfg.selectedDoorIndex
+    // Synchronize routes and character waypoints from imported project
+    characterStore.syncRoutesFromProject()
+
+    // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time, formation, etc.)
+    const gSettings = clonedProject.gameSettings || data.gameSettings || (data.characterData && data.characterData.gameSettings) || {
+      startingGold: 150,
+      startingLives: 20,
+      wavePrepTime: 10,
     }
+    mapStore.project.gameSettings = {
+      startingGold: Number(gSettings.startingGold) || 150,
+      startingLives: Number(gSettings.startingLives) || 20,
+      wavePrepTime: Number(gSettings.wavePrepTime) || 10,
+      maxPlayers: gSettings.maxPlayers || undefined,
+      spawnMode: gSettings.spawnMode || 'single',
+      formation: gSettings.formation || 'pair',
+      pairDistance: gSettings.pairDistance !== undefined ? Number(gSettings.pairDistance) : 0.45,
+      unitElevation: gSettings.unitElevation !== undefined ? Number(gSettings.unitElevation) : 0,
+      unitScaleMultiplier: gSettings.unitScaleMultiplier !== undefined ? Number(gSettings.unitScaleMultiplier) : 1.0,
+    }
+    characterStore.restoreGameSettingsFromProject()
 
     // Restore clans, towers & blueprints
     const twrData = data.towerData || {
@@ -486,9 +404,9 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       towerBlueprints: (project as any).towerBlueprints || [],
       clans: (project as any).clans || [],
     }
-    ;(mapStore.project as any).clans = twrData.clans || (project as any).clans || []
-    ;(mapStore.project as any).placedTowers = twrData.placedTowers || []
-    ;(mapStore.project as any).towerBlueprints = twrData.towerBlueprints || []
+      ; (mapStore.project as any).clans = twrData.clans || (project as any).clans || []
+      ; (mapStore.project as any).placedTowers = twrData.placedTowers || []
+      ; (mapStore.project as any).towerBlueprints = twrData.towerBlueprints || []
     towerStore.restoreFromProject()
 
     // Restore wave configs
@@ -510,24 +428,10 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
         immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
       }))
       characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
-      ;(mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
+        ; (mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
     }
 
-    // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time)
-    const gSettings = clonedProject.gameSettings || data.gameSettings || (data.characterData && data.characterData.gameSettings) || {
-      startingGold: 150,
-      startingLives: 20,
-      wavePrepTime: 10,
-    }
-    mapStore.project.gameSettings = {
-      startingGold: Number(gSettings.startingGold) || 150,
-      startingLives: Number(gSettings.startingLives) || 20,
-      wavePrepTime: Number(gSettings.wavePrepTime) || 10,
-      maxPlayers: gSettings.maxPlayers || undefined,
-    }
-    characterStore.restoreGameSettingsFromProject()
-
-    characterStore.spawnAtDoor(characterStore.selectedDoorIndex ?? 0)
+    characterStore.spawnAtRoute(characterStore.selectedRouteIndex ?? 0)
 
     assetStore.selectedAssetId = null
     toolStore.activeTool = 'select'
@@ -544,28 +448,10 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     // Save full identical payload to editor draft and recents
     saveEditorDraft(
       cleanId,
-      mapStore.project, 
-      assetStore.assets, 
+      mapStore.project,
+      assetStore.assets,
       {
-        customRoutes: characterStore.customRoutes,
-        customWaypoints: characterStore.customWaypoints,
-        spawnPoints: characterStore.detectedDoors,
-        characterConfig: {
-          spawnCount: characterStore.spawnCount,
-          spawnMode: characterStore.spawnMode,
-          formation: characterStore.formation,
-          pairDistance: characterStore.pairDistance,
-          speed: characterStore.speed,
-          selectedDoorIndex: characterStore.selectedDoorIndex,
-          followCamera: characterStore.followCamera,
-          showPathTrail: characterStore.showPathTrail,
-          autoLoop: characterStore.autoLoop,
-        },
-        speed: characterStore.speed,
-        formation: characterStore.formation,
-        pairDistance: characterStore.pairDistance,
-        followCamera: characterStore.followCamera,
-        showPathTrail: characterStore.showPathTrail,
+        routes: characterStore.routes,
       },
       twrData,
       wvData,

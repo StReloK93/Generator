@@ -1045,7 +1045,7 @@ watch(() => [
   characterStore.spawnMode,
   characterStore.isSettingSpawnPoint,
   characterStore.isSettingPlayerStartPoint,
-  characterStore.customRoutes,
+  characterStore.routes,
 ], () => {
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
 }, { deep: true })

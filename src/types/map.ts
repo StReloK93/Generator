@@ -132,26 +132,37 @@ export interface MapGameSettings {
   startingGold: number
   startingLives: number
   wavePrepTime: number
+  spawnMode?: 'all_routes' | 'single_route'
+  formation?: string
+  pairDistance?: number
+  unitElevation?: number
+  unitScaleMultiplier?: number
   scoreMultiplier?: number
   maxPlayers?: number
   playerCount?: number
 }
 
-export interface SpawnPointData {
+export interface Route {
+  id?: string
+  name?: string
+  routePoints: GridCoord[]
+  playerCameraPoint?: { col: number, row: number }
+}
+
+export interface RouteInfo {
   id: string
+  name?: string
+  routePoints: GridCoord[]
+  playerCameraPoint?: { col: number, row: number }
   col: number
   row: number
   spawnCol?: number
   spawnRow?: number
   playerCol?: number
   playerRow?: number
-  name?: string
-  quadrant?: number
-  isCorner?: boolean
-  cornerName?: string
-  layerId?: string
-  assetId?: string
 }
+
+export type SpawnPointData = RouteInfo
 
 export interface MapProject {
   id: string
@@ -164,22 +175,7 @@ export interface MapProject {
   showGrid: boolean
   gridColor: string
   layers: Layer[]
-  spawnPoints?: SpawnPointData[]
-  customRoutes?: Record<string, GridCoord[]>
-  customWaypoints?: Record<string, GridCoord[]>
-  characterConfig?: {
-    spawnCount?: number
-    speed?: number
-    spawnMode?: string
-    formation?: string
-    pairDistance?: number
-    followCamera?: boolean
-    showPathTrail?: boolean
-    autoLoop?: boolean
-    selectedDoorIndex?: number | null
-    unitElevation?: number
-    unitScaleMultiplier?: number
-  }
+  routes?: RouteInfo[]
   gameSettings?: MapGameSettings
   clans?: TowerClan[]
   placedTowers?: any[]

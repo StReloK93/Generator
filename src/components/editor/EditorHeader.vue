@@ -228,13 +228,7 @@ function handleStartGame() {
     mapStore.project,
     assetStore.assets,
     {
-      customRoutes: characterStore.customRoutes,
-      spawnPoints: characterStore.detectedDoors,
-      speed: characterStore.speed,
-      formation: characterStore.formation,
-      pairDistance: characterStore.pairDistance,
-      followCamera: characterStore.followCamera,
-      showPathTrail: characterStore.showPathTrail,
+      routes: characterStore.routes,
     },
     {
       placedTowers: towerStore.placedTowers,
@@ -245,11 +239,7 @@ function handleStartGame() {
       waveConfigs: characterStore.waveConfigs,
       currentWaveIndex: characterStore.currentWaveIndex,
     },
-    {
-      startingGold: characterStore.startingGold,
-      startingLives: characterStore.startingLives,
-      wavePrepTime: characterStore.wavePrepDuration,
-    }
+    mapStore.project.gameSettings
   )
 
   // 3. Register as session custom map for game
@@ -257,13 +247,7 @@ function handleStartGame() {
     mapStore.project,
     assetStore.assets,
     {
-      customRoutes: characterStore.customRoutes,
-      spawnPoints: characterStore.detectedDoors,
-      speed: characterStore.speed,
-      formation: characterStore.formation,
-      pairDistance: characterStore.pairDistance,
-      followCamera: characterStore.followCamera,
-      showPathTrail: characterStore.showPathTrail,
+      routes: characterStore.routes,
     },
     {
       placedTowers: towerStore.placedTowers,
@@ -274,11 +258,7 @@ function handleStartGame() {
       waveConfigs: characterStore.waveConfigs,
       currentWaveIndex: characterStore.currentWaveIndex,
     },
-    {
-      startingGold: characterStore.startingGold,
-      startingLives: characterStore.startingLives,
-      wavePrepTime: characterStore.wavePrepDuration,
-    }
+    mapStore.project.gameSettings
   ))
 
   router.push(`/editor-game/${cleanId}`)

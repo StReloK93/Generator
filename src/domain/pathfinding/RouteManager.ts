@@ -1,21 +1,35 @@
-import { GridCoord } from '../../types/map'
+import { GridCoord, RouteInfo } from '../../types/map'
 
 export class RouteManager {
   /**
    * Computes the set of cell coordinates blocked for building (all cells in all routes).
    */
   public static computeBlockedCells(
-    customRoutes?: Record<string, GridCoord[]> | null,
-    projectRoutes?: Record<string, GridCoord[]> | null
+    customRoutes?: Record<string, GridCoord[]> | RouteInfo[] | null,
+    projectRoutes?: Record<string, GridCoord[]> | RouteInfo[] | null
   ): Set<string> {
     const set = new Set<string>()
 
-    const addRoutes = (routesMap?: Record<string, GridCoord[]> | null) => {
-      if (!routesMap) return
-      for (const route of Object.values(routesMap)) {
-        if (Array.isArray(route)) {
-          for (const pt of route) {
-            set.add(`${pt.col},${pt.row}`)
+    const addRoutes = (routesInput?: Record<string, GridCoord[]> | RouteInfo[] | null) => {
+      if (!routesInput) return
+      if (Array.isArray(routesInput)) {
+        for (const item of routesInput) {
+          if (Array.isArray(item)) {
+            for (const pt of item) {
+              set.add(`${pt.col},${pt.row}`)
+            }
+          } else if (item && Array.isArray((item as any).routePoints)) {
+            for (const pt of (item as any).routePoints) {
+              set.add(`${pt.col},${pt.row}`)
+            }
+          }
+        }
+      } else {
+        for (const route of Object.values(routesInput)) {
+          if (Array.isArray(route)) {
+            for (const pt of route) {
+              set.add(`${pt.col},${pt.row}`)
+            }
           }
         }
       }

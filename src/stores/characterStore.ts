@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { GridCoord, UnitVariantType, WaveConfig, TowerTraitType } from '../types/map'
+import { GridCoord, UnitVariantType, WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
@@ -13,23 +13,9 @@ import { CrowdSimulation, WaveManager, GameStateMachine } from '../domain/simula
 
 export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
 export type CharacterModel = 'male' | 'warrior' | (string & {})
-export type { WaveConfig }
+export type { WaveConfig, RouteInfo, Route }
 
-export interface DoorInfo {
-  id: string
-  col: number
-  row: number
-  assetId: string
-  name: string
-  layerId: string
-  quadrant: number // 0: Top, 1: Right, 2: Bottom, 3: Left
-  isCorner: boolean
-  cornerName?: string
-  spawnCol: number
-  spawnRow: number
-  playerCol?: number
-  playerRow?: number
-}
+export type DoorInfo = RouteInfo
 
 export interface UnitStatusEffect {
   type: TowerTraitType
@@ -43,8 +29,10 @@ export interface UnitStatusEffect {
 
 export interface CharacterUnit {
   id: string
-  doorIndex: number
-  doorId: string
+  routeIndex: number
+  routeId: string
+  doorIndex?: number
+  doorId?: string
   unitIndex: number
   pairIndex: number
   sideOffset: number // -1 (Left side) or +1 (Right side) for 2 people running side-by-side!
@@ -88,8 +76,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const gameSpeed = ref(1.0) // Global Game Simulation Speed Multiplier (1x, 2x, 5x, 10x, 20x, 50x)
   const unitSpeed = ref(2.5) // Unit Walking Speed (tiles per second, 0.8 to 6.0)
   const speed = unitSpeed // Backward-compat alias pointing to unitSpeed
-  const spawnCount = ref(10) // Number of people per door (1 to 100)
-  const spawnMode = ref<'all_doors' | 'single_door'>('all_doors') // All doors at once or single door
+  const spawnCount = ref(10) // Number of people per route (1 to 100)
+  const spawnMode = ref<'all_routes' | 'single_route' | 'all_doors' | 'single_door'>('all_routes')
   const formation = ref<'pairs' | 'single'>('pairs') // 'pairs': 2 people side-by-side in each tile!
   const pairDistance = ref(0.35) // Constant spatial distance in tiles between consecutive pairs (tight and dense!)
   const followCamera = ref(false)
@@ -190,16 +178,50 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   // Custom Route Drawing & Undo/Redo State
   const isDrawingRoute = ref(false)
-  const customWaypoints = ref<Record<string, GridCoord[]>>({}) // Single authoritative source of truth for waypoint nodes
-  const customRoutes = computed<Record<string, GridCoord[]>>(() => {
-    const res: Record<string, GridCoord[]> = {}
-    for (const [key, wps] of Object.entries(customWaypoints.value)) {
-      if (Array.isArray(wps) && wps.length > 0) {
-        res[key] = expandWaypointsToPath(wps)
+  
+  // Routes & Spawns (Authoritative array of RouteInfo objects containing routePoints & playerCameraPoint)
+  const routes = ref<RouteInfo[]>([])
+  const detectedDoors = routes
+  const selectedRouteIndex = ref<number | null>(null)
+  const selectedDoorIndex = selectedRouteIndex
+  const routeCache = ref<Record<number, GridCoord[]>>({})
+  const doorRoutesCache = routeCache
+
+  const customWaypoints = computed<Record<string, GridCoord[]>>({
+    get: () => {
+      const res: Record<string, GridCoord[]> = {}
+      routes.value.forEach((r, idx) => {
+        const key = r.id || `route-${idx}`
+        res[key] = r.routePoints || [{ col: r.col, row: r.row }]
+      })
+      return res
+    },
+    set: (val: Record<string, GridCoord[]>) => {
+      if (!val) return
+      for (const [k, wps] of Object.entries(val)) {
+        const found = routes.value.find(r => r.id === k)
+        if (found && Array.isArray(wps) && wps.length > 0) {
+          found.routePoints = [...wps]
+          found.col = wps[0].col
+          found.row = wps[0].row
+          found.spawnCol = wps[0].col
+          found.spawnRow = wps[0].row
+        }
       }
     }
+  })
+
+  const customRoutes = computed<Record<string, GridCoord[]>>(() => {
+    const res: Record<string, GridCoord[]> = {}
+    routes.value.forEach((r, idx) => {
+      const key = r.id || `route-${idx}`
+      if (Array.isArray(r.routePoints) && r.routePoints.length > 0) {
+        res[key] = expandWaypointsToPath(r.routePoints)
+      }
+    })
     return res
   })
+
   const drawingWaypoints = ref<GridCoord[]>([])
   const drawingPath = computed<GridCoord[]>(() => expandWaypointsToPath(drawingWaypoints.value))
   const selectedWaypointIndex = ref<number | null>(null)
@@ -209,33 +231,30 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const canUndoRoute = computed(() => routeUndoStack.value.length > 1)
   const canRedoRoute = computed(() => routeRedoStack.value.length > 0)
 
-  // Wave distance progress per door
-  const doorWaveProgress = ref<Record<number, number>>({})
+  // Wave distance progress per route
+  const routeWaveProgress = ref<Record<number, number>>({})
+  const doorWaveProgress = routeWaveProgress
 
   // Multi-unit Crowd Array
   const units = ref<CharacterUnit[]>([])
   const lapCount = ref(0)
   const statusMessage = ref("Waiting at spawn point")
 
-  // Doors
-  const detectedDoors = ref<DoorInfo[]>([])
-  const selectedDoorIndex = ref<number | null>(null)
-  const doorRoutesCache = ref<Record<number, GridCoord[]>>({})
-
-  const selectedDoor = computed<DoorInfo | null>(() => {
-    if (detectedDoors.value.length === 0 || selectedDoorIndex.value === null || selectedDoorIndex.value < 0) return null
-    const idx = Math.max(0, Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value))
-    return detectedDoors.value[idx] || null
+  const selectedRoute = computed<RouteInfo | null>(() => {
+    if (routes.value.length === 0 || selectedRouteIndex.value === null || selectedRouteIndex.value < 0) return null
+    const idx = Math.max(0, Math.min(routes.value.length - 1, selectedRouteIndex.value))
+    return routes.value[idx] || null
   })
+  const selectedDoor = selectedRoute
 
   const currentActiveRoute = computed<GridCoord[]>(() => {
     if (isDrawingRoute.value) {
       return drawingPath.value
     }
-    if (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) {
-      return getRouteForDoor(selectedDoorIndex.value)
+    if (selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0) {
+      return getRouteForIndex(selectedRouteIndex.value)
     }
-    return detectedDoors.value.length > 0 ? getRouteForDoor(0) : []
+    return routes.value.length > 0 ? getRouteForIndex(0) : []
   })
 
   const spawnedUnitsCount = computed(() => {
@@ -280,7 +299,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     if (active.length === 0) return 0
     let totalInterp = 0
     for (const u of active) {
-      const route = getRouteForDoor(u.doorIndex)
+      const route = getRouteForIndex(u.routeIndex ?? u.doorIndex ?? 0)
       const maxLen = Math.max(1, route.length - 1)
       totalInterp += Math.min(100, Math.round((u.pathIndex / maxLen) * 100))
     }
@@ -294,219 +313,226 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const spawnPointPlacementMode = ref<'add' | 'relocate'>('add')
   const isSettingPlayerStartPoint = ref(false)
 
-  function detectDoors(): DoorInfo[] {
+  function syncRoutesFromProject(): RouteInfo[] {
     const p = mapStore.project as any
+    const rawRoutes = p.routes || p.spawnPoints || []
 
-    // 1. Hydrate from customWaypoints (Authoritative)
-    if (p.customWaypoints && Object.keys(p.customWaypoints).length > 0) {
-      customWaypoints.value = { ...p.customWaypoints }
-    } else if (p.customRoutes && Object.keys(p.customRoutes).length > 0) {
-      // Legacy fallback: extract waypoints from expanded customRoutes
-      const extracted: Record<string, GridCoord[]> = {}
-      for (const [k, r] of Object.entries(p.customRoutes as Record<string, GridCoord[]>)) {
-        if (Array.isArray(r) && r.length > 0) {
-          extracted[k] = extractWaypointsFromPath(r)
+    if (Array.isArray(rawRoutes) && rawRoutes.length > 0) {
+      routes.value = rawRoutes.map((s: any, idx: number) => {
+        let routePoints: GridCoord[] | undefined = Array.isArray(s.routePoints) && s.routePoints.length > 0
+          ? s.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+          : undefined
+
+        if (!routePoints) {
+          const key = s.id || `route-${idx}`
+          const legacyWps = p.customWaypoints?.[key] || p.customRoutes?.[key]
+          if (Array.isArray(legacyWps) && legacyWps.length > 0) {
+            routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+          } else {
+            const c = s.col !== undefined ? s.col : (s.spawnCol ?? 2)
+            const r = s.row !== undefined ? s.row : (s.spawnRow ?? 2)
+            routePoints = [{ col: Number(c), row: Number(r) }]
+          }
         }
-      }
-      customWaypoints.value = extracted
-      mapStore.project.customWaypoints = { ...extracted }
-    } else if (p.spawnPoints && Array.isArray(p.spawnPoints) && p.spawnPoints.length > 0) {
-      const initWps: Record<string, GridCoord[]> = {}
-      p.spawnPoints.forEach((s: any, idx: number) => {
-        const id = s.id || `route-${idx + 1}`
-        const c = s.col !== undefined ? s.col : (s.spawnCol ?? 2)
-        const r = s.row !== undefined ? s.row : (s.spawnRow ?? 2)
-        initWps[id] = [{ col: c, row: r }]
-      })
-      customWaypoints.value = initWps
-      mapStore.project.customWaypoints = { ...initWps }
-    } else {
-      customWaypoints.value = {}
-    }
 
-    // Build doors / route items from customWaypoints
-    const keys = Object.keys(customWaypoints.value)
-    if (keys.length > 0) {
-      detectedDoors.value = keys.map((k, idx) => {
-        const wps = customWaypoints.value[k]
-        const spawn = Array.isArray(wps) && wps.length > 0 ? wps[0] : { col: 2, row: 2 }
-        const saved = p.spawnPoints?.find((s: any) => s.id === k) || p.spawnPoints?.[idx]
+        let playerCameraPoint = s.playerCameraPoint
+        if (!playerCameraPoint && (s.playerCol !== undefined && s.playerRow !== undefined)) {
+          playerCameraPoint = { col: Number(s.playerCol), row: Number(s.playerRow) }
+        }
+
+        const startPt = routePoints && routePoints.length > 0 ? routePoints[0] : { col: 2, row: 2 }
+
+        return {
+          id: s.id || `route-${idx + 1}`,
+          name: s.name ? s.name.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() : `Route ${idx + 1}`,
+          routePoints: routePoints || [startPt],
+          playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
+          col: startPt.col,
+          row: startPt.row,
+          spawnCol: startPt.col,
+          spawnRow: startPt.row,
+          playerCol: playerCameraPoint?.col,
+          playerRow: playerCameraPoint?.row,
+        }
+      })
+    } else if (p.customWaypoints && Object.keys(p.customWaypoints).length > 0) {
+      routes.value = Object.entries(p.customWaypoints as Record<string, GridCoord[]>).map(([k, wps], idx) => {
+        const startPt = Array.isArray(wps) && wps.length > 0 ? wps[0] : { col: 2, row: 2 }
         return {
           id: k,
-          col: spawn.col,
-          row: spawn.row,
-          spawnCol: spawn.col,
-          spawnRow: spawn.row,
-          playerCol: saved?.playerCol,
-          playerRow: saved?.playerRow,
-          name: saved?.name ? saved.name.replace(/\s*\(\d+,\s*\d+\)/g, '').trim() : `Route ${idx + 1}`,
-          layerId: 'layer-ground',
-          assetId: '',
-          quadrant: 0,
-          isCorner: true,
-          cornerName: undefined,
+          name: `Route ${idx + 1}`,
+          routePoints: Array.isArray(wps) ? wps : [startPt],
+          col: startPt.col,
+          row: startPt.row,
+          spawnCol: startPt.col,
+          spawnRow: startPt.row,
         }
       })
     } else {
-      detectedDoors.value = []
+      routes.value = []
     }
 
-    if (selectedDoorIndex.value !== null && (selectedDoorIndex.value >= detectedDoors.value.length || selectedDoorIndex.value < 0)) {
-      selectedDoorIndex.value = detectedDoors.value.length > 0 ? 0 : null
+    if (selectedRouteIndex.value !== null && (selectedRouteIndex.value >= routes.value.length || selectedRouteIndex.value < 0)) {
+      selectedRouteIndex.value = routes.value.length > 0 ? 0 : null
     }
 
-    doorRoutesCache.value = {}
-    if (detectedDoors.value.length > 0) {
-      spawnAtDoor(selectedDoorIndex.value)
+    routeCache.value = {}
+    if (routes.value.length > 0) {
+      spawnAtRoute(selectedRouteIndex.value)
     } else {
       units.value = []
     }
-    return detectedDoors.value
+    return routes.value
   }
 
-  function addSpawnPoint(col: number, row: number, customName?: string) {
-    const routeIndex = detectedDoors.value.length
+  const detectDoors = syncRoutesFromProject
+
+  function addRoute(col: number, row: number, customName?: string): RouteInfo {
+    const routeIndex = routes.value.length
     const routeId = `route-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const newPoint: DoorInfo = {
+    const newPoint: RouteInfo = {
       id: routeId,
+      name: customName || `Route ${routeIndex + 1}`,
+      routePoints: [{ col, row }],
+      playerCameraPoint: { col, row },
       col,
       row,
       spawnCol: col,
       spawnRow: row,
-      assetId: '',
-      name: customName || `Route ${routeIndex + 1}`,
-      layerId: 'layer-ground',
-      quadrant: 0,
-      isCorner: true,
+      playerCol: col,
+      playerRow: row,
     }
 
-    detectedDoors.value.push(newPoint)
-    selectedDoorIndex.value = detectedDoors.value.length - 1
-    customWaypoints.value[routeId] = [{ col, row }]
-    mapStore.project.customWaypoints = { ...customWaypoints.value }
-    syncSpawnPointsToProject()
-    doorRoutesCache.value = {}
-    spawnAtDoor(selectedDoorIndex.value)
+    routes.value.push(newPoint)
+    selectedRouteIndex.value = routes.value.length - 1
+    syncRoutesToProject()
+    routeCache.value = {}
+    spawnAtRoute(selectedRouteIndex.value)
     mapStore.pushHistory(`Added route (${col}, ${row})`)
     return newPoint
   }
 
-  function relocateCurrentSpawnPoint(col: number, row: number) {
-    if (detectedDoors.value.length === 0) {
-      addSpawnPoint(col, row)
+  const addSpawnPoint = addRoute
+
+  function relocateCurrentRouteStart(col: number, row: number) {
+    if (routes.value.length === 0) {
+      addRoute(col, row)
       return
     }
-    const idx = (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) 
-      ? Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value) 
+    const idx = (selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0) 
+      ? Math.min(routes.value.length - 1, selectedRouteIndex.value) 
       : 0
-    const d = detectedDoors.value[idx]
-    if (d) {
-      d.col = col
-      d.row = row
-      d.spawnCol = col
-      d.spawnRow = row
-      const doorKey = d.id || `door-${idx}`
-      if (customWaypoints.value[doorKey] && customWaypoints.value[doorKey].length > 0) {
-        customWaypoints.value[doorKey][0] = { col, row }
-        mapStore.project.customWaypoints = { ...customWaypoints.value }
+    const r = routes.value[idx]
+    if (r) {
+      r.col = col
+      r.row = row
+      r.spawnCol = col
+      r.spawnRow = row
+      if (r.routePoints && r.routePoints.length > 0) {
+        r.routePoints[0] = { col, row }
+      } else {
+        r.routePoints = [{ col, row }]
       }
-      syncSpawnPointsToProject()
-      doorRoutesCache.value = {}
-      spawnAtDoor(idx)
+      syncRoutesToProject()
+      routeCache.value = {}
+      spawnAtRoute(idx)
       mapStore.pushHistory(`Relocated route start to (${col}, ${row})`)
     }
   }
 
-  function setPlayerStartPoint(doorIdx: number, col: number, row: number) {
-    if (doorIdx < 0 || doorIdx >= detectedDoors.value.length) return
-    const d = detectedDoors.value[doorIdx]
-    if (d) {
-      d.playerCol = col
-      d.playerRow = row
-      syncSpawnPointsToProject()
-      mapStore.pushHistory(`Set Player ${doorIdx + 1} start point to (${col}, ${row})`)
+  const relocateCurrentSpawnPoint = relocateCurrentRouteStart
+
+  function setPlayerStartPoint(routeIdx: number, col: number, row: number) {
+    if (routeIdx < 0 || routeIdx >= routes.value.length) return
+    const r = routes.value[routeIdx]
+    if (r) {
+      r.playerCameraPoint = { col, row }
+      r.playerCol = col
+      r.playerRow = row
+      syncRoutesToProject()
+      mapStore.pushHistory(`Set Player ${routeIdx + 1} camera point to (${col}, ${row})`)
     }
   }
 
   function relocateCurrentPlayerStartPoint(col: number, row: number) {
-    const idx = (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0) 
-      ? Math.min(detectedDoors.value.length - 1, selectedDoorIndex.value) 
+    const idx = (selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0) 
+      ? Math.min(routes.value.length - 1, selectedRouteIndex.value) 
       : 0
     setPlayerStartPoint(idx, col, row)
   }
 
-  function clearPlayerStartPoint(doorIdx?: number) {
-    const idx = doorIdx !== undefined
-      ? doorIdx
-      : (selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 ? selectedDoorIndex.value : 0)
-    if (idx < 0 || idx >= detectedDoors.value.length) return
-    const d = detectedDoors.value[idx]
-    if (d) {
-      delete d.playerCol
-      delete d.playerRow
-      syncSpawnPointsToProject()
-      mapStore.pushHistory(`Cleared Player ${idx + 1} start point`)
+  function clearPlayerStartPoint(routeIdx?: number) {
+    const idx = routeIdx !== undefined
+      ? routeIdx
+      : (selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0 ? selectedRouteIndex.value : 0)
+    if (idx < 0 || idx >= routes.value.length) return
+    const r = routes.value[idx]
+    if (r) {
+      delete r.playerCameraPoint
+      delete r.playerCol
+      delete r.playerRow
+      syncRoutesToProject()
+      mapStore.pushHistory(`Cleared Player ${idx + 1} camera point`)
     }
   }
 
-  function removeSpawnPoint(idx: number) {
-    if (idx < 0 || idx >= detectedDoors.value.length) return
-    const removed = detectedDoors.value.splice(idx, 1)[0]
-    if (removed) {
-      delete customWaypoints.value[removed.id]
-      if (mapStore.project.customWaypoints) delete mapStore.project.customWaypoints[removed.id]
-    }
-    if (selectedDoorIndex.value !== null) {
-      if (detectedDoors.value.length === 0) {
-        selectedDoorIndex.value = null
-      } else if (selectedDoorIndex.value >= detectedDoors.value.length) {
-        selectedDoorIndex.value = detectedDoors.value.length - 1
+  function removeRoute(idx: number) {
+    if (idx < 0 || idx >= routes.value.length) return
+    const removed = routes.value.splice(idx, 1)[0]
+    if (selectedRouteIndex.value !== null) {
+      if (routes.value.length === 0) {
+        selectedRouteIndex.value = null
+      } else if (selectedRouteIndex.value >= routes.value.length) {
+        selectedRouteIndex.value = routes.value.length - 1
       }
     }
-    doorRoutesCache.value = {}
-    syncSpawnPointsToProject()
-    if (detectedDoors.value.length > 0) {
-      spawnAtDoor(selectedDoorIndex.value)
+    routeCache.value = {}
+    syncRoutesToProject()
+    if (routes.value.length > 0) {
+      spawnAtRoute(selectedRouteIndex.value)
     } else {
       units.value = []
     }
     mapStore.pushHistory(`Removed route ${removed?.name || ''}`)
   }
 
-  function syncSpawnPointsToProject() {
-    mapStore.project.spawnPoints = detectedDoors.value.map(d => ({
-      id: d.id,
-      col: d.col,
-      row: d.row,
-      spawnCol: d.spawnCol,
-      spawnRow: d.spawnRow,
-      playerCol: d.playerCol,
-      playerRow: d.playerRow,
-      name: d.name,
-      layerId: d.layerId,
-      assetId: d.assetId,
+  const removeSpawnPoint = removeRoute
+
+  function syncRoutesToProject() {
+    mapStore.project.routes = routes.value.map(r => ({
+      id: r.id,
+      name: r.name,
+      routePoints: [...(r.routePoints || [{ col: r.col, row: r.row }])],
+      playerCameraPoint: r.playerCameraPoint ? { ...r.playerCameraPoint } : (r.playerCol !== undefined ? { col: r.playerCol, row: r.playerRow! } : undefined),
+      col: r.col,
+      row: r.row,
+      spawnCol: r.spawnCol ?? r.col,
+      spawnRow: r.spawnRow ?? r.row,
+      playerCol: r.playerCameraPoint?.col ?? r.playerCol,
+      playerRow: r.playerCameraPoint?.row ?? r.playerRow,
     }))
   }
 
-  function getRouteForDoor(doorIdx: number): GridCoord[] {
-    if (detectedDoors.value.length === 0) return [{ col: 2, row: 2 }]
-    const d = detectedDoors.value[doorIdx] || detectedDoors.value[0]
-    if (!d) return [{ col: 2, row: 2 }]
-    const doorKey = d.id || `door-${doorIdx}`
-    const wps = customWaypoints.value[doorKey] || (d.id ? customWaypoints.value[d.id] : undefined) || customWaypoints.value[`door-${doorIdx}`]
-    if (wps && wps.length > 0) {
-      return expandWaypointsToPath(wps)
+  const syncSpawnPointsToProject = syncRoutesToProject
+
+  function getRouteForIndex(routeIdx: number): GridCoord[] {
+    if (routes.value.length === 0) return [{ col: 2, row: 2 }]
+    const r = routes.value[routeIdx] || routes.value[0]
+    if (!r) return [{ col: 2, row: 2 }]
+    if (r.routePoints && r.routePoints.length > 0) {
+      return expandWaypointsToPath(r.routePoints)
     }
-    if (d.spawnCol !== undefined && d.spawnRow !== undefined) {
-      return [{ col: d.spawnCol, row: d.spawnRow }]
+    if (r.spawnCol !== undefined && r.spawnRow !== undefined) {
+      return [{ col: r.spawnCol, row: r.spawnRow }]
     }
     return [{ col: 2, row: 2 }]
   }
 
+  const getRouteForDoor = getRouteForIndex
+
   const blockedBuildingCellsSet = computed<Set<string>>(() => {
     return RouteManager.computeBlockedCells(
-      customRoutes.value,
-      mapStore.project?.customRoutes
+      customRoutes.value
     )
   })
 
@@ -524,7 +550,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     routeRedoStack.value = []
   }
 
-  function startDrawingCustomRoute(targetDoorIndex?: number) {
+  function startDrawingCustomRoute(targetRouteIndex?: number) {
     pauseTour()
     isDrawingRoute.value = true
     selectedWaypointIndex.value = null
@@ -532,42 +558,27 @@ export const useCharacterStore = defineStore('characterStore', () => {
     routeRedoStack.value = []
     toolStore.setTool('select')
 
-    // 1. If an explicit door index was provided, activate it
-    if (typeof targetDoorIndex === 'number' && targetDoorIndex >= 0 && targetDoorIndex < detectedDoors.value.length) {
-      selectedDoorIndex.value = targetDoorIndex
-    } else if (selectedDoorIndex.value === null || selectedDoorIndex.value < 0 || selectedDoorIndex.value >= detectedDoors.value.length) {
-      selectedDoorIndex.value = detectedDoors.value.length > 0 ? 0 : null
+    // 1. If an explicit route index was provided, activate it
+    if (typeof targetRouteIndex === 'number' && targetRouteIndex >= 0 && targetRouteIndex < routes.value.length) {
+      selectedRouteIndex.value = targetRouteIndex
+    } else if (selectedRouteIndex.value === null || selectedRouteIndex.value < 0 || selectedRouteIndex.value >= routes.value.length) {
+      selectedRouteIndex.value = routes.value.length > 0 ? 0 : null
     }
 
-    const currentDoor = selectedDoor.value
-    const idx = selectedDoorIndex.value ?? 0
-    const doorKey = currentDoor ? currentDoor.id : `door-${idx}`
+    const currentRoute = selectedRoute.value
+    const idx = selectedRouteIndex.value ?? 0
+    const startPt = currentRoute && currentRoute.routePoints && currentRoute.routePoints.length > 0
+      ? currentRoute.routePoints[0]
+      : (currentRoute ? { col: currentRoute.spawnCol ?? currentRoute.col, row: currentRoute.spawnRow ?? currentRoute.row } : { col: 2, row: 2 })
 
-    const startPt = currentDoor 
-      ? { col: currentDoor.spawnCol ?? currentDoor.col, row: currentDoor.spawnRow ?? currentDoor.row } 
-      : { col: 2, row: 2 }
-
-    // 2. Load existing waypoints specifically for this door (by ID or index key)
-    let existingWaypoints = customWaypoints.value[doorKey] || customWaypoints.value[`door-${idx}`]
-    if (!existingWaypoints && currentDoor?.id) {
-      existingWaypoints = customWaypoints.value[currentDoor.id]
-    }
-
-    let existingRoute = customRoutes.value[doorKey] || customRoutes.value[`door-${idx}`]
-    if (!existingRoute && currentDoor?.id) {
-      existingRoute = customRoutes.value[currentDoor.id]
-    }
-
-    if (existingWaypoints && existingWaypoints.length > 0) {
-      drawingWaypoints.value = JSON.parse(JSON.stringify(existingWaypoints))
-    } else if (existingRoute && existingRoute.length > 0) {
-      drawingWaypoints.value = extractWaypointsFromPath(existingRoute)
+    if (currentRoute && currentRoute.routePoints && currentRoute.routePoints.length > 0) {
+      drawingWaypoints.value = JSON.parse(JSON.stringify(currentRoute.routePoints))
     } else {
       drawingWaypoints.value = [startPt]
     }
     
     routeUndoStack.value = [JSON.parse(JSON.stringify(drawingWaypoints.value))]
-    statusMessage.value = `Drawing route for ${currentDoor?.name || `Route ${idx + 1}`}. Click map to add points.`
+    statusMessage.value = `Drawing route for ${currentRoute?.name || `Route ${idx + 1}`}. Click map to add points.`
   }
 
   function selectWaypoint(index: number | null) {
@@ -591,13 +602,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
       drawingWaypoints.value[idx] = { col: coord.col, row: coord.row }
       
-      // If moving the first waypoint (the spawn origin), update the door/spawn point immediately
-      if (idx === 0 && selectedDoor.value) {
-        selectedDoor.value.col = coord.col
-        selectedDoor.value.row = coord.row
-        selectedDoor.value.spawnCol = coord.col
-        selectedDoor.value.spawnRow = coord.row
-        syncSpawnPointsToProject()
+      // If moving the first waypoint (the spawn origin), update the route start point immediately
+      if (idx === 0 && selectedRoute.value) {
+        selectedRoute.value.col = coord.col
+        selectedRoute.value.row = coord.row
+        selectedRoute.value.spawnCol = coord.col
+        selectedRoute.value.spawnRow = coord.row
+        syncRoutesToProject()
       }
 
       pushRouteState()
@@ -609,12 +620,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function setWaypointPosition(index: number, coord: GridCoord) {
     if (index >= 0 && index < drawingWaypoints.value.length) {
       drawingWaypoints.value[index] = { col: coord.col, row: coord.row }
-      if (index === 0 && selectedDoor.value) {
-        selectedDoor.value.col = coord.col
-        selectedDoor.value.row = coord.row
-        selectedDoor.value.spawnCol = coord.col
-        selectedDoor.value.spawnRow = coord.row
-        syncSpawnPointsToProject()
+      if (index === 0 && selectedRoute.value) {
+        selectedRoute.value.col = coord.col
+        selectedRoute.value.row = coord.row
+        selectedRoute.value.spawnCol = coord.col
+        selectedRoute.value.spawnRow = coord.row
+        syncRoutesToProject()
       }
     }
   }
@@ -633,13 +644,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
       drawingWaypoints.value.splice(index, 1)
       selectedWaypointIndex.value = null
 
-      if (index === 0 && drawingWaypoints.value.length > 0 && selectedDoor.value) {
+      if (index === 0 && drawingWaypoints.value.length > 0 && selectedRoute.value) {
         const newStart = drawingWaypoints.value[0]
-        selectedDoor.value.col = newStart.col
-        selectedDoor.value.row = newStart.row
-        selectedDoor.value.spawnCol = newStart.col
-        selectedDoor.value.spawnRow = newStart.row
-        syncSpawnPointsToProject()
+        selectedRoute.value.col = newStart.col
+        selectedRoute.value.row = newStart.row
+        selectedRoute.value.spawnCol = newStart.col
+        selectedRoute.value.spawnRow = newStart.row
+        syncRoutesToProject()
       }
 
       pushRouteState()
@@ -685,13 +696,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
       const prev = routeUndoStack.value[routeUndoStack.value.length - 1]
       drawingWaypoints.value = JSON.parse(JSON.stringify(prev))
       selectedWaypointIndex.value = null
-      if (drawingWaypoints.value.length > 0 && selectedDoor.value) {
+      if (drawingWaypoints.value.length > 0 && selectedRoute.value) {
         const startPt = drawingWaypoints.value[0]
-        selectedDoor.value.col = startPt.col
-        selectedDoor.value.row = startPt.row
-        selectedDoor.value.spawnCol = startPt.col
-        selectedDoor.value.spawnRow = startPt.row
-        syncSpawnPointsToProject()
+        selectedRoute.value.col = startPt.col
+        selectedRoute.value.row = startPt.row
+        selectedRoute.value.spawnCol = startPt.col
+        selectedRoute.value.spawnRow = startPt.row
+        syncRoutesToProject()
       }
       statusMessage.value = `Undo route (${drawingWaypoints.value.length} points)`
     }
@@ -703,13 +714,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
       routeUndoStack.value.push(next)
       drawingWaypoints.value = JSON.parse(JSON.stringify(next))
       selectedWaypointIndex.value = null
-      if (drawingWaypoints.value.length > 0 && selectedDoor.value) {
+      if (drawingWaypoints.value.length > 0 && selectedRoute.value) {
         const startPt = drawingWaypoints.value[0]
-        selectedDoor.value.col = startPt.col
-        selectedDoor.value.row = startPt.row
-        selectedDoor.value.spawnCol = startPt.col
-        selectedDoor.value.spawnRow = startPt.row
-        syncSpawnPointsToProject()
+        selectedRoute.value.col = startPt.col
+        selectedRoute.value.row = startPt.row
+        selectedRoute.value.spawnCol = startPt.col
+        selectedRoute.value.spawnRow = startPt.row
+        syncRoutesToProject()
       }
       statusMessage.value = `Redo route (${drawingWaypoints.value.length} points)`
     }
@@ -720,9 +731,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function clearDrawnRoute() {
-    const startPt = selectedDoor.value 
-      ? { col: selectedDoor.value.spawnCol ?? selectedDoor.value.col, row: selectedDoor.value.spawnRow ?? selectedDoor.value.row } 
-      : { col: 2, row: 2 }
+    const startPt = selectedRoute.value && selectedRoute.value.routePoints && selectedRoute.value.routePoints.length > 0
+      ? selectedRoute.value.routePoints[0]
+      : (selectedRoute.value ? { col: selectedRoute.value.spawnCol ?? selectedRoute.value.col, row: selectedRoute.value.spawnRow ?? selectedRoute.value.row } : { col: 2, row: 2 })
     drawingWaypoints.value = [startPt]
     selectedWaypointIndex.value = null
     pushRouteState()
@@ -731,36 +742,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function finishDrawingRoute() {
     if (drawingWaypoints.value.length > 1) {
-      const idx = selectedDoorIndex.value ?? 0
-      const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${idx}`
-      customWaypoints.value[doorKey] = [...drawingWaypoints.value]
-      mapStore.project.customWaypoints = { ...customWaypoints.value }
-
-      // Synchronize the door / spawn point coordinate with the first waypoint of the route
-      const startPt = drawingWaypoints.value[0]
-      if (selectedDoor.value && startPt) {
-        selectedDoor.value.col = startPt.col
-        selectedDoor.value.row = startPt.row
-        selectedDoor.value.spawnCol = startPt.col
-        selectedDoor.value.spawnRow = startPt.row
-        syncSpawnPointsToProject()
+      if (selectedRoute.value) {
+        selectedRoute.value.routePoints = [...drawingWaypoints.value]
+        const startPt = drawingWaypoints.value[0]
+        selectedRoute.value.col = startPt.col
+        selectedRoute.value.row = startPt.row
+        selectedRoute.value.spawnCol = startPt.col
+        selectedRoute.value.spawnRow = startPt.row
+        syncRoutesToProject()
       }
 
-      mapStore.project.characterConfig = {
-        spawnCount: spawnCount.value,
-        speed: speed.value,
-        spawnMode: spawnMode.value,
-        formation: formation.value,
-        pairDistance: pairDistance.value,
-        selectedDoorIndex: selectedDoorIndex.value,
-        followCamera: followCamera.value,
-        showPathTrail: showPathTrail.value,
-        autoLoop: autoLoop.value,
-      }
       isDrawingRoute.value = false
       selectedWaypointIndex.value = null
-      doorRoutesCache.value = {}
-      spawnAtDoor(selectedDoorIndex.value)
+      routeCache.value = {}
+      spawnAtRoute(selectedRouteIndex.value)
       mapStore.pushHistory(`Saved route (${drawingWaypoints.value.length} waypoints)`)
       statusMessage.value = `Route saved (${drawingWaypoints.value.length} points)! Ready to begin.`
     } else {
@@ -777,23 +772,21 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function deleteCurrentRoute() {
-    const idx = selectedDoorIndex.value ?? 0
-    const doorKey = selectedDoor.value ? selectedDoor.value.id : `door-${idx}`
-    delete customWaypoints.value[doorKey]
-    delete customWaypoints.value[`door-${idx}`]
-    if (selectedDoor.value?.id) {
-      delete customWaypoints.value[selectedDoor.value.id]
+    const idx = selectedRouteIndex.value ?? 0
+    if (idx >= 0 && idx < routes.value.length) {
+      routes.value.splice(idx, 1)
+      if (routes.value.length === 0) {
+        selectedRouteIndex.value = null
+      } else if (selectedRouteIndex.value !== null && selectedRouteIndex.value >= routes.value.length) {
+        selectedRouteIndex.value = routes.value.length - 1
+      }
+      syncRoutesToProject()
+      selectedWaypointIndex.value = null
+      routeCache.value = {}
+      spawnAtRoute(selectedRouteIndex.value)
+      mapStore.pushHistory("Route deleted")
+      statusMessage.value = "Route deleted"
     }
-    if (mapStore.project.customWaypoints) {
-      delete mapStore.project.customWaypoints[doorKey]
-      delete mapStore.project.customWaypoints[`door-${idx}`]
-      if (selectedDoor.value?.id) delete mapStore.project.customWaypoints[selectedDoor.value.id]
-    }
-    selectedWaypointIndex.value = null
-    doorRoutesCache.value = {}
-    spawnAtDoor(selectedDoorIndex.value)
-    mapStore.pushHistory("Route deleted")
-    statusMessage.value = "Route deleted"
   }
 
   function setWaveUnitCount(count: number) {
@@ -919,17 +912,16 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   function resetForNewProject() {
     waveConfigs.value = []
-    customWaypoints.value = {}
-    detectedDoors.value = []
-    selectedDoorIndex.value = null
-    doorRoutesCache.value = {}
-    doorWaveProgress.value = {}
+    routes.value = []
+    selectedRouteIndex.value = null
+    routeCache.value = {}
+    routeWaveProgress.value = {}
     routeUndoStack.value = []
     routeRedoStack.value = []
     units.value = []
     unitSpeed.value = 2.5
     spawnCount.value = 10
-    spawnMode.value = 'all_doors'
+    spawnMode.value = 'all_routes'
     formation.value = 'pairs'
     pairDistance.value = 0.35
     followCamera.value = false
@@ -960,16 +952,26 @@ export const useCharacterStore = defineStore('characterStore', () => {
       startingGold: Number(startingGold.value) || 150,
       startingLives: Number(startingLives.value) || 20,
       wavePrepTime: Number(wavePrepDuration.value) || 10,
+      spawnMode: spawnMode.value === 'all_doors' ? 'all_routes' : (spawnMode.value === 'single_door' ? 'single_route' : spawnMode.value),
+      formation: formation.value,
+      pairDistance: pairDistance.value,
+      unitElevation: unitElevation.value,
+      unitScaleMultiplier: unitScaleMultiplier.value,
     }
   }
 
   function restoreGameSettingsFromProject() {
     const p = mapStore.project as any
-    if (p && p.gameSettings) {
-      const gs = p.gameSettings
+    const gs = p?.gameSettings || p?.characterConfig
+    if (gs) {
       startingGold.value = gs.startingGold ?? 150
       startingLives.value = gs.startingLives ?? 20
       wavePrepDuration.value = gs.wavePrepTime ?? 10
+      if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'all_doors' ? 'all_routes' : (gs.spawnMode === 'single_door' ? 'single_route' : gs.spawnMode)
+      if (gs.formation) formation.value = gs.formation
+      if (gs.pairDistance !== undefined) pairDistance.value = gs.pairDistance
+      if (gs.unitElevation !== undefined) unitElevation.value = Number(gs.unitElevation) || 0
+      if (gs.unitScaleMultiplier !== undefined) unitScaleMultiplier.value = Number(gs.unitScaleMultiplier) || 1.0
       gold.value = startingGold.value
       maxLives.value = startingLives.value
       playerLives.value = startingLives.value
@@ -978,6 +980,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
       startingGold.value = 150
       startingLives.value = 20
       wavePrepDuration.value = 10
+      spawnMode.value = 'all_routes'
+      formation.value = 'pairs'
+      pairDistance.value = 0.35
+      unitElevation.value = 0
+      unitScaleMultiplier.value = 1.0
       gold.value = 150
       maxLives.value = 20
       playerLives.value = 20
@@ -985,52 +992,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
   }
 
-  function syncCharacterConfigToProject() {
-    if (!mapStore.project) return
-    mapStore.project.characterConfig = {
-      spawnCount: spawnCount.value,
-      speed: unitSpeed.value,
-      spawnMode: spawnMode.value,
-      formation: formation.value,
-      pairDistance: pairDistance.value,
-      followCamera: followCamera.value,
-      showPathTrail: showPathTrail.value,
-      autoLoop: autoLoop.value,
-      selectedDoorIndex: selectedDoorIndex.value,
-      unitElevation: unitElevation.value,
-      unitScaleMultiplier: unitScaleMultiplier.value,
-    }
-  }
-
-  function restoreCharacterConfigFromProject() {
-    const p = mapStore.project as any
-    if (p && p.characterConfig) {
-      const cfg = p.characterConfig
-      if (cfg.spawnCount !== undefined) spawnCount.value = cfg.spawnCount
-      if (cfg.speed !== undefined) unitSpeed.value = cfg.speed
-      if (cfg.spawnMode !== undefined) spawnMode.value = cfg.spawnMode
-      if (cfg.formation !== undefined) formation.value = cfg.formation
-      if (cfg.pairDistance !== undefined) pairDistance.value = cfg.pairDistance
-      if (cfg.followCamera !== undefined) followCamera.value = cfg.followCamera
-      if (cfg.showPathTrail !== undefined) showPathTrail.value = cfg.showPathTrail
-      if (cfg.autoLoop !== undefined) autoLoop.value = cfg.autoLoop
-      if (cfg.selectedDoorIndex !== undefined) selectedDoorIndex.value = cfg.selectedDoorIndex
-      if (cfg.unitElevation !== undefined) unitElevation.value = Number(cfg.unitElevation) || 0
-      if (cfg.unitScaleMultiplier !== undefined) unitScaleMultiplier.value = Number(cfg.unitScaleMultiplier) || 1.0
-    } else {
-      spawnCount.value = 10
-      unitSpeed.value = 2.5
-      spawnMode.value = 'all_doors'
-      formation.value = 'pairs'
-      pairDistance.value = 0.35
-      followCamera.value = false
-      showPathTrail.value = true
-      autoLoop.value = true
-      selectedDoorIndex.value = null
-      unitElevation.value = 0
-      unitScaleMultiplier.value = 1.0
-    }
-  }
+  const syncCharacterConfigToProject = syncGameSettingsToProject
+  const restoreCharacterConfigFromProject = restoreGameSettingsFromProject
 
   function syncWavesToProject() {
     if (!mapStore.project) return
@@ -1101,7 +1064,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
    * Uses spatial distance spacing (distance in tiles) so units stay tightly packed at any speed!
    */
   function initializeUnits() {
-    if (detectedDoors.value.length === 0) {
+    if (routes.value.length === 0) {
       units.value = []
       return
     }
@@ -1113,20 +1076,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const model: CharacterModel = (waveCfg?.characterModel as CharacterModel) || 'male'
     const initialMaxFrames = getModelActionFrameCount(model, 'Run')
 
-    const activeDoorsToSpawn = (spawnMode.value === 'all_doors' && detectedDoors.value.length > 1)
-      ? detectedDoors.value.map((_, idx) => idx)
-      : [selectedDoorIndex.value !== null && selectedDoorIndex.value >= 0 ? selectedDoorIndex.value : 0]
+    const activeRoutesToSpawn = ((spawnMode.value === 'all_routes' || spawnMode.value === 'all_doors') && routes.value.length > 1)
+      ? routes.value.map((_, idx) => idx)
+      : [selectedRouteIndex.value !== null && selectedRouteIndex.value >= 0 ? selectedRouteIndex.value : 0]
 
     const progressMap: Record<number, number> = {}
     const baseHp = waveCfg ? waveCfg.unitHp : 100
 
-    for (const dIdx of activeDoorsToSpawn) {
-      progressMap[dIdx] = 0 // Leader starts at distance 0
-      const route = getRouteForDoor(dIdx)
+    for (const rIdx of activeRoutesToSpawn) {
+      progressMap[rIdx] = 0 // Leader starts at distance 0
+      const route = getRouteForIndex(rIdx)
       const startPt = route[0] || { col: 2, row: 2 }
       const startScreen = gridToScreen(startPt.col, startPt.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
-      const door = detectedDoors.value[dIdx]
-      const doorId = door ? door.id : `door-${dIdx}`
+      const routeItem = routes.value[rIdx]
+      const routeId = routeItem ? routeItem.id : `route-${rIdx}`
 
       for (let i = 0; i < count; i++) {
         const pairIndex = isPairFormation ? Math.floor(i / 2) : i
@@ -1142,9 +1105,11 @@ export const useCharacterStore = defineStore('characterStore', () => {
         }
 
         list.push({
-          id: `unit-d${dIdx}-${i}-${Date.now()}`,
-          doorIndex: dIdx,
-          doorId,
+          id: `unit-r${rIdx}-${i}-${Date.now()}`,
+          routeIndex: rIdx,
+          routeId,
+          doorIndex: rIdx,
+          doorId: routeId,
           unitIndex: i,
           pairIndex,
           sideOffset,
@@ -1179,22 +1144,24 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
     }
 
-    doorWaveProgress.value = progressMap
+    routeWaveProgress.value = progressMap
     units.value = list
   }
 
-  function spawnAtDoor(doorIdx?: number | null) {
-    if (doorIdx !== undefined) {
-      selectedDoorIndex.value = doorIdx
+  function spawnAtRoute(routeIdx?: number | null) {
+    if (routeIdx !== undefined) {
+      selectedRouteIndex.value = routeIdx
     }
     initializeUnits()
     isPlaying.value = false
     const totalCount = units.value.length
     const hpStr = currentWaveConfig.value ? `(HP: ${currentWaveConfig.value.unitHp})` : ''
-    statusMessage.value = spawnMode.value === 'all_doors' && detectedDoors.value.length > 1
-      ? `All ${detectedDoors.value.length} spawn points ready (${totalCount} units ${hpStr})`
-      : `${selectedDoor.value?.name || 'Spawn point'} ready (${totalCount} units ${hpStr})`
+    statusMessage.value = (spawnMode.value === 'all_routes' || spawnMode.value === 'all_doors') && routes.value.length > 1
+      ? `All ${routes.value.length} routes ready (${totalCount} units ${hpStr})`
+      : `${selectedRoute.value?.name || 'Route'} ready (${totalCount} units ${hpStr})`
   }
+
+  const spawnAtDoor = spawnAtRoute
 
   function startTour() {
     if (units.value.length === 0) {
@@ -1287,18 +1254,17 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const unitBaseSpeed = waveCfg ? waveCfg.unitSpeed : 2.5
     const stepDistance = unitBaseSpeed * deltaSec
     const spacingInTiles = pairDistance.value
-
-    // Advance wave distance along path for each door
-    for (const dIdxStr in doorWaveProgress.value) {
-      const dIdx = Number(dIdxStr)
-      doorWaveProgress.value[dIdx] += stepDistance
+    // Advance wave distance along path for each route
+    for (const rIdxStr in routeWaveProgress.value) {
+      const rIdx = Number(rIdxStr)
+      routeWaveProgress.value[rIdx] += stepDistance
     }
 
     let allCompletedOrDead = true
     let leaderUnit: CharacterUnit | null = null
 
     for (const unit of units.value) {
-      const route = getRouteForDoor(unit.doorIndex)
+      const route = getRouteForIndex(unit.routeIndex ?? unit.doorIndex ?? 0)
       if (!route || route.length <= 1) continue
 
       // Dead unit handling: play bending / collapsing animation and fade out opacity
@@ -1345,10 +1311,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
       const speedMultiplier = Math.max(0.15, 1.0 - (Math.min(85, maxSlowPercent) / 100))
 
-      const waveDist = doorWaveProgress.value[unit.doorIndex] ?? 0
+      const waveDist = routeWaveProgress.value[unit.routeIndex ?? unit.doorIndex ?? 0] ?? 0
       const targetSpawnDist = unit.pairIndex * spacingInTiles
 
-      // Unit has not emerged from door yet
+      // Unit has not emerged from route start yet
       if (waveDist < targetSpawnDist && (unit.distanceTraveled === undefined || unit.distanceTraveled === 0)) {
         unit.isSpawned = false
         unit.action = 'Idle'
@@ -1382,7 +1348,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
             }
           }
         }
-
         unit.pathIndex = route.length - 1
         unit.pathInterpolation = 0
         unit.action = 'Pickup'
@@ -1402,7 +1367,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
       }
 
       allCompletedOrDead = false
-      if (!leaderUnit && unit.doorIndex === selectedDoorIndex.value) {
+      if (!leaderUnit && (unit.routeIndex ?? unit.doorIndex) === selectedRouteIndex.value) {
         leaderUnit = unit
       }
 
@@ -1855,11 +1820,17 @@ export const useCharacterStore = defineStore('characterStore', () => {
     lapCount,
     statusMessage,
     detectedDoors,
+    routes,
     selectedDoorIndex,
+    selectedRouteIndex,
     selectedDoor,
+    selectedRoute,
     currentActiveRoute,
     progressPercent,
     detectDoors,
+    syncRoutesFromProject,
+    addRoute,
+    getRouteForIndex,
     getRouteForDoor,
     startDrawingCustomRoute,
     selectWaypoint,
@@ -1876,6 +1847,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     clearDrawnRoute,
     finishDrawingRoute,
     cancelDrawingRoute,
+    spawnAtRoute,
     spawnAtDoor,
     startTour,
     pauseTour,
@@ -1939,16 +1911,19 @@ export const useCharacterStore = defineStore('characterStore', () => {
     resetForNewProject,
     syncGameSettingsToProject,
     restoreGameSettingsFromProject,
+    syncRoutesToProject,
     syncSpawnPointsToProject,
     isSettingSpawnPoint,
     spawnPointPlacementMode,
     isSettingPlayerStartPoint,
     addSpawnPoint,
+    removeRoute,
+    removeSpawnPoint,
+    relocateCurrentRouteStart,
     relocateCurrentSpawnPoint,
     setPlayerStartPoint,
     relocateCurrentPlayerStartPoint,
     clearPlayerStartPoint,
-    removeSpawnPoint,
     isLoadingGame,
     loadingProgress,
     loadingMapTitle,

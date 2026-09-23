@@ -24911,556 +24911,6 @@
               }
             }
           ],
-          "0,30": [
-            {
-              "id": "item-1789226279955-n9dtoum",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,30": 1
-              }
-            }
-          ],
-          "0,31": [
-            {
-              "id": "item-1789226279955-irkhsze",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,31": 1
-              }
-            }
-          ],
-          "0,43": [
-            {
-              "id": "item-1789226279955-uon45hd",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,43": 1
-              }
-            }
-          ],
-          "0,42": [
-            {
-              "id": "item-1789226279955-gebifpa",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,42": 1
-              }
-            }
-          ],
-          "0,41": [
-            {
-              "id": "item-1789226279955-va1mgd6",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,41": 1
-              }
-            }
-          ],
-          "0,40": [
-            {
-              "id": "item-1789226279955-o6kh95j",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,40": 1
-              }
-            }
-          ],
-          "0,39": [
-            {
-              "id": "item-1789226279955-0jt3prc",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,39": 1
-              }
-            }
-          ],
-          "0,38": [
-            {
-              "id": "item-1789226279955-oov03yb",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,38": 1
-              }
-            }
-          ],
-          "0,37": [
-            {
-              "id": "item-1789226279955-hoqutun",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,37": 1
-              }
-            }
-          ],
-          "0,35": [
-            {
-              "id": "item-1789226279955-nt7xmdf",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,35": 1
-              }
-            }
-          ],
-          "0,32": [
-            {
-              "id": "item-1789226279955-z6rogi8",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,32": 1
-              }
-            }
-          ],
-          "0,33": [
-            {
-              "id": "item-1789226279955-6k9vmy5",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,33": 1
-              }
-            }
-          ],
-          "0,34": [
-            {
-              "id": "item-1789226279955-xdz77xs",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,34": 1
-              }
-            }
-          ],
-          "0,45": [
-            {
-              "id": "item-1789226279955-zcykpgj",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,45": 1
-              }
-            }
-          ],
-          "0,28": [
-            {
-              "id": "item-1789226286441-ldh8os2",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,28": 1
-              }
-            }
-          ],
-          "0,1": [
-            {
-              "id": "item-1789226286441-9819klf",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,1": 1
-              }
-            }
-          ],
-          "0,2": [
-            {
-              "id": "item-1789226286441-ycmjzrx",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,2": 1
-              }
-            }
-          ],
-          "0,3": [
-            {
-              "id": "item-1789226286441-vd21rar",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,3": 1
-              }
-            }
-          ],
-          "0,4": [
-            {
-              "id": "item-1789226286441-pphunws",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,4": 1
-              }
-            }
-          ],
-          "0,5": [
-            {
-              "id": "item-1789226286441-ia3vpd9",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,5": 1
-              }
-            }
-          ],
-          "0,6": [
-            {
-              "id": "item-1789226286441-1ni5bxn",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,6": 1
-              }
-            }
-          ],
-          "0,7": [
-            {
-              "id": "item-1789226286441-kheqp50",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,7": 1
-              }
-            }
-          ],
-          "0,8": [
-            {
-              "id": "item-1789226286441-and5ud4",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,8": 1
-              }
-            }
-          ],
-          "0,9": [
-            {
-              "id": "item-1789226286441-lwa688h",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,9": 1
-              }
-            }
-          ],
-          "0,10": [
-            {
-              "id": "item-1789226286441-nugvttr",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,10": 1
-              }
-            }
-          ],
-          "0,11": [
-            {
-              "id": "item-1789226286441-i8ul8di",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,11": 1
-              }
-            }
-          ],
-          "0,12": [
-            {
-              "id": "item-1789226286441-b44r6zt",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,12": 1
-              }
-            }
-          ],
-          "0,13": [
-            {
-              "id": "item-1789226286441-u2jsdzf",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,13": 1
-              }
-            }
-          ],
-          "0,14": [
-            {
-              "id": "item-1789226286441-zfqqh92",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,14": 1
-              }
-            }
-          ],
-          "0,15": [
-            {
-              "id": "item-1789226286441-7kagsog",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,15": 1
-              }
-            }
-          ],
-          "0,16": [
-            {
-              "id": "item-1789226286441-yev3108",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,16": 1
-              }
-            }
-          ],
-          "0,17": [
-            {
-              "id": "item-1789226286441-zfbrxel",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,17": 1
-              }
-            }
-          ],
-          "0,18": [
-            {
-              "id": "item-1789226286441-hm4vmvm",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,18": 1
-              }
-            }
-          ],
-          "0,19": [
-            {
-              "id": "item-1789226286441-e9qay81",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,19": 1
-              }
-            }
-          ],
-          "0,20": [
-            {
-              "id": "item-1789226286441-pc0ddcf",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,20": 1
-              }
-            }
-          ],
-          "0,21": [
-            {
-              "id": "item-1789226286441-c1zaxza",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,21": 1
-              }
-            }
-          ],
-          "0,22": [
-            {
-              "id": "item-1789226286441-xyn6v0b",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,22": 1
-              }
-            }
-          ],
-          "0,23": [
-            {
-              "id": "item-1789226286441-jv40hzy",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,23": 1
-              }
-            }
-          ],
-          "0,24": [
-            {
-              "id": "item-1789226286441-31e67du",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,24": 1
-              }
-            }
-          ],
-          "0,25": [
-            {
-              "id": "item-1789226286441-s40bxk6",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,25": 1
-              }
-            }
-          ],
-          "0,26": [
-            {
-              "id": "item-1789226286441-vyxde1v",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,26": 1
-              }
-            }
-          ],
-          "0,27": [
-            {
-              "id": "item-1789226286441-vwhcbnt",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,27": 1
-              }
-            }
-          ],
-          "0,46": [
-            {
-              "id": "item-1789226279955-hnk89se",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,46": 1
-              }
-            }
-          ],
-          "0,47": [
-            {
-              "id": "item-1789226279955-cw4vevw",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,47": 1
-              }
-            }
-          ],
-          "0,48": [
-            {
-              "id": "item-1789226279955-6sc4f5x",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,48": 1
-              }
-            }
-          ],
-          "0,49": [
-            {
-              "id": "item-1789226279954-l08y6i6",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,49": 1
-              }
-            }
-          ],
-          "0,50": [
-            {
-              "id": "item-1789226279954-esmqrmz",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,50": 1
-              }
-            }
-          ],
-          "0,51": [
-            {
-              "id": "item-1789226279954-o6nhosf",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,51": 1
-              }
-            }
-          ],
-          "0,52": [
-            {
-              "id": "item-1789226279954-ckq6uhk",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,52": 1
-              }
-            }
-          ],
-          "0,53": [
-            {
-              "id": "item-1789226279954-xtg5c6q",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,53": 1
-              }
-            }
-          ],
-          "0,54": [
-            {
-              "id": "item-1789226279954-6izcpo9",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,54": 1
-              }
-            }
-          ],
-          "0,55": [
-            {
-              "id": "item-1789226279954-tuq2omy",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,55": 1
-              }
-            }
-          ],
-          "0,56": [
-            {
-              "id": "item-1789226279954-ru0nswo",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,56": 1
-              }
-            }
-          ],
-          "0,57": [
-            {
-              "id": "item-1789226279954-pl49a7r",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,57": 1
-              }
-            }
-          ],
-          "0,58": [
-            {
-              "id": "item-1789226279954-n2uwu42",
-              "assetId": "sprite-stoneWall_E",
-              "zIndex": 1,
-              "cellZIndex": {
-                "0,58": 1
-              }
-            }
-          ],
           "0,29": [
             {
               "id": "item-1789226138019-i296398",
@@ -25481,796 +24931,10 @@
               }
             }
           ],
-          "1,0": [
-            {
-              "id": "item-1789226318025-q7trvy9",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "1,0": 1
-              }
-            }
-          ],
-          "2,0": [
-            {
-              "id": "item-1789226318025-o76mar0",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "2,0": 1
-              }
-            }
-          ],
-          "3,0": [
-            {
-              "id": "item-1789226318025-jc1k4m4",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "3,0": 1
-              }
-            }
-          ],
-          "4,0": [
-            {
-              "id": "item-1789226318025-6qs6it4",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "4,0": 1
-              }
-            }
-          ],
-          "5,0": [
-            {
-              "id": "item-1789226318025-531dvow",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "5,0": 1
-              }
-            }
-          ],
-          "6,0": [
-            {
-              "id": "item-1789226318025-18oiuxj",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "6,0": 1
-              }
-            }
-          ],
-          "7,0": [
-            {
-              "id": "item-1789226318025-97ms4kc",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "7,0": 1
-              }
-            }
-          ],
-          "8,0": [
-            {
-              "id": "item-1789226318025-zkx0i94",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "8,0": 1
-              }
-            }
-          ],
-          "9,0": [
-            {
-              "id": "item-1789226318025-w3qzqzp",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "9,0": 1
-              }
-            }
-          ],
-          "10,0": [
-            {
-              "id": "item-1789226318025-starbnh",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "10,0": 1
-              }
-            }
-          ],
-          "11,0": [
-            {
-              "id": "item-1789226318025-05y6m3a",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "11,0": 1
-              }
-            }
-          ],
-          "12,0": [
-            {
-              "id": "item-1789226318025-u8qdpfg",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "12,0": 1
-              }
-            }
-          ],
-          "13,0": [
-            {
-              "id": "item-1789226318025-e2qwsgh",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "13,0": 1
-              }
-            }
-          ],
-          "14,0": [
-            {
-              "id": "item-1789226318025-xa35b1j",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "14,0": 1
-              }
-            }
-          ],
-          "15,0": [
-            {
-              "id": "item-1789226318025-ujrbmht",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "15,0": 1
-              }
-            }
-          ],
-          "16,0": [
-            {
-              "id": "item-1789226318025-18redi6",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "16,0": 1
-              }
-            }
-          ],
-          "17,0": [
-            {
-              "id": "item-1789226318025-1nujsmg",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "17,0": 1
-              }
-            }
-          ],
-          "18,0": [
-            {
-              "id": "item-1789226318025-6nribo3",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "18,0": 1
-              }
-            }
-          ],
-          "19,0": [
-            {
-              "id": "item-1789226318025-y7n0540",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "19,0": 1
-              }
-            }
-          ],
-          "20,0": [
-            {
-              "id": "item-1789226318025-c6rcq4i",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "20,0": 1
-              }
-            }
-          ],
-          "21,0": [
-            {
-              "id": "item-1789226318025-h21gpun",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "21,0": 1
-              }
-            }
-          ],
-          "22,0": [
-            {
-              "id": "item-1789226318025-9wugodf",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "22,0": 1
-              }
-            }
-          ],
-          "23,0": [
-            {
-              "id": "item-1789226318025-kwtrwjb",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "23,0": 1
-              }
-            }
-          ],
-          "24,0": [
-            {
-              "id": "item-1789226318025-3th3g32",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "24,0": 1
-              }
-            }
-          ],
-          "25,0": [
-            {
-              "id": "item-1789226318025-5fsw357",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "25,0": 1
-              }
-            }
-          ],
-          "26,0": [
-            {
-              "id": "item-1789226318025-kkztyf6",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "26,0": 1
-              }
-            }
-          ],
-          "27,0": [
-            {
-              "id": "item-1789226318025-e8qt7z2",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "27,0": 1
-              }
-            }
-          ],
-          "28,0": [
-            {
-              "id": "item-1789226318026-xjf7d3w",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "28,0": 1
-              }
-            }
-          ],
-          "29,0": [
-            {
-              "id": "item-1789226318026-5a9g407",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "29,0": 1
-              }
-            }
-          ],
-          "30,0": [
-            {
-              "id": "item-1789226318026-g6dh6wj",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "30,0": 1
-              }
-            }
-          ],
-          "31,0": [
-            {
-              "id": "item-1789226318026-a6he7j3",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "31,0": 1
-              }
-            }
-          ],
-          "32,0": [
-            {
-              "id": "item-1789226318026-od9tayj",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "32,0": 1
-              }
-            }
-          ],
-          "33,0": [
-            {
-              "id": "item-1789226318026-ylrap5n",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "33,0": 1
-              }
-            }
-          ],
-          "34,0": [
-            {
-              "id": "item-1789226318026-dvmyocr",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "34,0": 1
-              }
-            }
-          ],
-          "35,0": [
-            {
-              "id": "item-1789226318026-mxuric9",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "35,0": 1
-              }
-            }
-          ],
-          "36,0": [
-            {
-              "id": "item-1789226318026-z9j17pc",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "36,0": 1
-              }
-            }
-          ],
-          "37,0": [
-            {
-              "id": "item-1789226318026-lw2s6p0",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "37,0": 1
-              }
-            }
-          ],
-          "38,0": [
-            {
-              "id": "item-1789226318026-sjc8uej",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "38,0": 1
-              }
-            }
-          ],
-          "39,0": [
-            {
-              "id": "item-1789226318026-cam7g9l",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "39,0": 1
-              }
-            }
-          ],
-          "40,0": [
-            {
-              "id": "item-1789226318026-sbku5rs",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "40,0": 1
-              }
-            }
-          ],
-          "41,0": [
-            {
-              "id": "item-1789226318026-a5nta8o",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "41,0": 1
-              }
-            }
-          ],
-          "42,0": [
-            {
-              "id": "item-1789226318026-f310g10",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "42,0": 1
-              }
-            }
-          ],
-          "43,0": [
-            {
-              "id": "item-1789226318026-ybmt4jv",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "43,0": 1
-              }
-            }
-          ],
-          "44,0": [
-            {
-              "id": "item-1789226318026-8bcs8st",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "44,0": 1
-              }
-            }
-          ],
-          "45,0": [
-            {
-              "id": "item-1789226318026-0dfg6qr",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "45,0": 1
-              }
-            }
-          ],
-          "46,0": [
-            {
-              "id": "item-1789226322993-fsbusz3",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "46,0": 1
-              }
-            }
-          ],
-          "47,0": [
-            {
-              "id": "item-1789226322993-mw1f9yz",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "47,0": 1
-              }
-            }
-          ],
-          "48,0": [
-            {
-              "id": "item-1789226322993-9pj34mj",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "48,0": 1
-              }
-            }
-          ],
-          "49,0": [
-            {
-              "id": "item-1789226322993-wplw0k2",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "49,0": 1
-              }
-            }
-          ],
-          "50,0": [
-            {
-              "id": "item-1789226322993-ga5df7v",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "50,0": 1
-              }
-            }
-          ],
-          "51,0": [
-            {
-              "id": "item-1789226322993-6g2poeh",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "51,0": 1
-              }
-            }
-          ],
-          "52,0": [
-            {
-              "id": "item-1789226322993-roknoim",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "52,0": 1
-              }
-            }
-          ],
-          "53,0": [
-            {
-              "id": "item-1789226322993-vwqrwlr",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "53,0": 1
-              }
-            }
-          ],
-          "54,0": [
-            {
-              "id": "item-1789226322993-3wvxma3",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "54,0": 1
-              }
-            }
-          ],
-          "55,0": [
-            {
-              "id": "item-1789226322993-hcupppp",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "55,0": 1
-              }
-            }
-          ],
-          "56,0": [
-            {
-              "id": "item-1789226322993-99cm0vg",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "56,0": 1
-              }
-            }
-          ],
-          "57,0": [
-            {
-              "id": "item-1789226322993-ku8evxf",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "57,0": 1
-              }
-            }
-          ],
-          "58,0": [
-            {
-              "id": "item-1789226322993-nqqx21j",
-              "assetId": "sprite-stoneWallAged_S",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "58,0": 1
-              }
-            }
-          ],
           "59,0": [
             {
               "id": "item-1789226338218-3ffftnq",
-              "assetId": "sprite-stoneWallCorner_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,0": 1
-              }
-            }
-          ],
-          "59,1": [
-            {
-              "id": "item-1789226331611-he3hdzl",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,1": 1
-              }
-            }
-          ],
-          "59,2": [
-            {
-              "id": "item-1789226331611-b9lb2pf",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,2": 1
-              }
-            }
-          ],
-          "59,3": [
-            {
-              "id": "item-1789226331611-qxgnhdc",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,3": 1
-              }
-            }
-          ],
-          "59,4": [
-            {
-              "id": "item-1789226331611-5zskzhp",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,4": 1
-              }
-            }
-          ],
-          "59,5": [
-            {
-              "id": "item-1789226331611-ce8cgdi",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,5": 1
-              }
-            }
-          ],
-          "59,6": [
-            {
-              "id": "item-1789226331611-tak3atg",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,6": 1
-              }
-            }
-          ],
-          "59,7": [
-            {
-              "id": "item-1789226331611-qg7xmu7",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,7": 1
-              }
-            }
-          ],
-          "59,8": [
-            {
-              "id": "item-1789226331611-sxgyq79",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,8": 1
-              }
-            }
-          ],
-          "59,9": [
-            {
-              "id": "item-1789226331611-ohzd4e5",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,9": 1
-              }
-            }
-          ],
-          "59,10": [
-            {
-              "id": "item-1789226331611-hcaal9u",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,10": 1
-              }
-            }
-          ],
-          "59,11": [
-            {
-              "id": "item-1789226331611-r870kjp",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,11": 1
-              }
-            }
-          ],
-          "59,12": [
-            {
-              "id": "item-1789226331611-fddajme",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,12": 1
-              }
-            }
-          ],
-          "59,13": [
-            {
-              "id": "item-1789226331611-tpeksq5",
-              "assetId": "sprite-stoneWallAged_W",
-              "zIndex": 1,
-              "depthOffset": 1,
-              "cellZIndex": {
-                "59,13": 1
-              }
+              "assetId": "sprite-stoneWallCorner_W"
             }
           ],
           "59,14": [
@@ -26940,22 +25604,10 @@
               "assetId": "sprite-stoneWallAgedRight_N"
             }
           ],
-          "12,9": [
-            {
-              "id": "item-1789298774726-dr9htou",
-              "assetId": "sprite-stoneWall_E"
-            }
-          ],
           "12,8": [
             {
               "id": "item-1789298863643-x4kdflh",
               "assetId": "sprite-stoneWallWindow_E"
-            }
-          ],
-          "12,7": [
-            {
-              "id": "item-1789298776542-dp5z3q3",
-              "assetId": "sprite-stoneWall_E"
             }
           ],
           "12,6": [
@@ -26970,12 +25622,6 @@
               "cellZIndex": {
                 "12,6": 1
               }
-            }
-          ],
-          "12,5": [
-            {
-              "id": "item-1789298778334-14g45sj",
-              "assetId": "sprite-stoneWall_E"
             }
           ],
           "12,4": [
@@ -27044,12 +25690,6 @@
               "assetId": "sprite-stoneWallCorner_W"
             }
           ],
-          "21,4": [
-            {
-              "id": "item-1789299048604-19w5c8o",
-              "assetId": "sprite-stoneWallAged_S"
-            }
-          ],
           "22,5": [
             {
               "id": "item-1789299085315-nwnf5ob",
@@ -27078,15 +25718,6 @@
             {
               "id": "item-1789299958919-b2kkpto",
               "assetId": "sprite-bookcaseFallen_S"
-            }
-          ],
-          "0,44": [
-            {
-              "id": "item-1789226279955-lzk8q2r",
-              "assetId": "sprite-stoneWall_E",
-              "cellZIndex": {
-                "0,44": 1
-              }
             }
           ],
           "0,36": [
@@ -33615,6 +32246,1224 @@
               "offsetX": 6,
               "offsetY": -7
             }
+          ],
+          "0,30": [
+            {
+              "id": "item-1790160142065-wef6f8c",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,30": 1
+              }
+            }
+          ],
+          "0,31": [
+            {
+              "id": "item-1790160142065-9f0fq8v",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,31": 1
+              }
+            }
+          ],
+          "0,35": [
+            {
+              "id": "item-1790160142065-smul2st",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,35": 1
+              }
+            }
+          ],
+          "0,32": [
+            {
+              "id": "item-1790160142065-dcze2g1",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,32": 1
+              }
+            }
+          ],
+          "0,33": [
+            {
+              "id": "item-1790160142065-tzgbivp",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,33": 1
+              }
+            }
+          ],
+          "0,34": [
+            {
+              "id": "item-1790160142065-ue0cm98",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,34": 1
+              }
+            }
+          ],
+          "0,28": [
+            {
+              "id": "item-1790160144929-ikuekh8",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,28": 1
+              }
+            }
+          ],
+          "0,47": [
+            {
+              "id": "item-1790160138930-wpcpk94",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,47": 1
+              }
+            }
+          ],
+          "0,48": [
+            {
+              "id": "item-1790160138930-rag6nx0",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,48": 1
+              }
+            }
+          ],
+          "0,49": [
+            {
+              "id": "item-1790160138930-3h1g0t6",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,49": 1
+              }
+            }
+          ],
+          "0,50": [
+            {
+              "id": "item-1790160138930-332qpnu",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,50": 1
+              }
+            }
+          ],
+          "0,51": [
+            {
+              "id": "item-1790160138930-cragfrm",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,51": 1
+              }
+            }
+          ],
+          "0,52": [
+            {
+              "id": "item-1790160138930-eb0tqzb",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,52": 1
+              }
+            }
+          ],
+          "0,53": [
+            {
+              "id": "item-1790160138929-yzoyov5",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,53": 1
+              }
+            }
+          ],
+          "0,54": [
+            {
+              "id": "item-1790160138929-genpr6h",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,54": 1
+              }
+            }
+          ],
+          "0,55": [
+            {
+              "id": "item-1790160138929-tr7aka1",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,55": 1
+              }
+            }
+          ],
+          "0,56": [
+            {
+              "id": "item-1790160138929-5cemsia",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,56": 1
+              }
+            }
+          ],
+          "0,57": [
+            {
+              "id": "item-1790160138929-1o0orzi",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,57": 1
+              }
+            }
+          ],
+          "0,58": [
+            {
+              "id": "item-1790160138929-5or3uih",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,58": 1
+              }
+            }
+          ],
+          "0,46": [
+            {
+              "id": "item-1790160138930-6yujek9",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,46": 1
+              }
+            }
+          ],
+          "0,37": [
+            {
+              "id": "item-1790160138930-h81w8c5",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,37": 1
+              }
+            }
+          ],
+          "0,38": [
+            {
+              "id": "item-1790160138930-8n3wfst",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,38": 1
+              }
+            }
+          ],
+          "0,39": [
+            {
+              "id": "item-1790160138930-9w9bfi8",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,39": 1
+              }
+            }
+          ],
+          "0,40": [
+            {
+              "id": "item-1790160138930-0nltanh",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,40": 1
+              }
+            }
+          ],
+          "0,41": [
+            {
+              "id": "item-1790160138930-j2uruoc",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,41": 1
+              }
+            }
+          ],
+          "0,42": [
+            {
+              "id": "item-1790160138930-yklq63l",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,42": 1
+              }
+            }
+          ],
+          "0,43": [
+            {
+              "id": "item-1790160138930-mq1gbg0",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,43": 1
+              }
+            }
+          ],
+          "0,44": [
+            {
+              "id": "item-1790160138930-wc3014w",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,44": 1
+              }
+            }
+          ],
+          "0,45": [
+            {
+              "id": "item-1790160138930-8uxw050",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,45": 1
+              }
+            }
+          ],
+          "0,16": [
+            {
+              "id": "item-1790160144930-er1627k",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,16": 1
+              }
+            }
+          ],
+          "0,17": [
+            {
+              "id": "item-1790160144930-23601nh",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,17": 1
+              }
+            }
+          ],
+          "0,15": [
+            {
+              "id": "item-1790160144930-qtzpo4j",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,15": 1
+              }
+            }
+          ],
+          "0,27": [
+            {
+              "id": "item-1790160144929-gwo6a17",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,27": 1
+              }
+            }
+          ],
+          "0,18": [
+            {
+              "id": "item-1790160144930-avf513j",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,18": 1
+              }
+            }
+          ],
+          "0,14": [
+            {
+              "id": "item-1790160144930-o5d3f4f",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,14": 1
+              }
+            }
+          ],
+          "0,26": [
+            {
+              "id": "item-1790160144929-gio1u2t",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,26": 1
+              }
+            }
+          ],
+          "0,19": [
+            {
+              "id": "item-1790160144930-letpkv2",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,19": 1
+              }
+            }
+          ],
+          "0,13": [
+            {
+              "id": "item-1790160144930-p43ywhv",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,13": 1
+              }
+            }
+          ],
+          "0,25": [
+            {
+              "id": "item-1790160144930-4p1odez",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,25": 1
+              }
+            }
+          ],
+          "0,20": [
+            {
+              "id": "item-1790160144930-x6ig4kt",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,20": 1
+              }
+            }
+          ],
+          "0,12": [
+            {
+              "id": "item-1790160144930-sfenpcj",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,12": 1
+              }
+            }
+          ],
+          "0,24": [
+            {
+              "id": "item-1790160144930-plodpu4",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,24": 1
+              }
+            }
+          ],
+          "0,21": [
+            {
+              "id": "item-1790160144930-zjy3gau",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,21": 1
+              }
+            }
+          ],
+          "0,11": [
+            {
+              "id": "item-1790160144930-wuasgln",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,11": 1
+              }
+            }
+          ],
+          "0,23": [
+            {
+              "id": "item-1790160144930-yanbcqx",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,23": 1
+              }
+            }
+          ],
+          "0,22": [
+            {
+              "id": "item-1790160144930-n737ya0",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,22": 1
+              }
+            }
+          ],
+          "0,10": [
+            {
+              "id": "item-1790160144930-ei7omh1",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,10": 1
+              }
+            }
+          ],
+          "0,9": [
+            {
+              "id": "item-1790160144930-aao1xcn",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,9": 1
+              }
+            }
+          ],
+          "0,8": [
+            {
+              "id": "item-1790160144930-fxlrqhq",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,8": 1
+              }
+            }
+          ],
+          "0,7": [
+            {
+              "id": "item-1790160144930-qn6g58v",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,7": 1
+              }
+            }
+          ],
+          "0,6": [
+            {
+              "id": "item-1790160144930-w00984b",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,6": 1
+              }
+            }
+          ],
+          "0,5": [
+            {
+              "id": "item-1790160144930-pytl17x",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,5": 1
+              }
+            }
+          ],
+          "0,3": [
+            {
+              "id": "item-1790160144930-7ayf1kf",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,3": 1
+              }
+            }
+          ],
+          "0,4": [
+            {
+              "id": "item-1790160144930-bkp0slv",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,4": 1
+              }
+            }
+          ],
+          "0,2": [
+            {
+              "id": "item-1790160144930-dt2mnwh",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,2": 1
+              }
+            }
+          ],
+          "0,1": [
+            {
+              "id": "item-1790160144930-srdj6b2",
+              "assetId": "sprite-stoneWallAged_E",
+              "zIndex": 1,
+              "cellZIndex": {
+                "0,1": 1
+              }
+            }
+          ],
+          "31,0": [
+            {
+              "id": "item-1790160116378-uo7koqg",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "31,0": 1
+              }
+            }
+          ],
+          "32,0": [
+            {
+              "id": "item-1790160116378-svky0yo",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "32,0": 1
+              }
+            }
+          ],
+          "30,0": [
+            {
+              "id": "item-1790160116378-vbrfaev",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "30,0": 1
+              }
+            }
+          ],
+          "33,0": [
+            {
+              "id": "item-1790160116378-uuglydg",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "33,0": 1
+              }
+            }
+          ],
+          "29,0": [
+            {
+              "id": "item-1790160116378-arflv9g",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "29,0": 1
+              }
+            }
+          ],
+          "34,0": [
+            {
+              "id": "item-1790160116378-9ebcxmh",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "34,0": 1
+              }
+            }
+          ],
+          "28,0": [
+            {
+              "id": "item-1790160116378-8hvgkfb",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "28,0": 1
+              }
+            }
+          ],
+          "35,0": [
+            {
+              "id": "item-1790160116378-3h4fz1g",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "35,0": 1
+              }
+            }
+          ],
+          "27,0": [
+            {
+              "id": "item-1790160116378-hktvtc3",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "27,0": 1
+              }
+            }
+          ],
+          "36,0": [
+            {
+              "id": "item-1790160116378-sj4tamr",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "36,0": 1
+              }
+            }
+          ],
+          "26,0": [
+            {
+              "id": "item-1790160116378-neu44bj",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "26,0": 1
+              }
+            }
+          ],
+          "37,0": [
+            {
+              "id": "item-1790160121176-q09peid",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "37,0": 1
+              }
+            }
+          ],
+          "25,0": [
+            {
+              "id": "item-1790160116378-sv6ab8r",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "25,0": 1
+              }
+            }
+          ],
+          "38,0": [
+            {
+              "id": "item-1790160121176-pszqzgf",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "38,0": 1
+              }
+            }
+          ],
+          "24,0": [
+            {
+              "id": "item-1790160116378-4tvecl1",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "24,0": 1
+              }
+            }
+          ],
+          "39,0": [
+            {
+              "id": "item-1790160121176-9xha0qi",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "39,0": 1
+              }
+            }
+          ],
+          "23,0": [
+            {
+              "id": "item-1790160116378-usrxmdd",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "23,0": 1
+              }
+            }
+          ],
+          "40,0": [
+            {
+              "id": "item-1790160121176-syd5wa4",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "40,0": 1
+              }
+            }
+          ],
+          "22,0": [
+            {
+              "id": "item-1790160116378-vj593dx",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "22,0": 1
+              }
+            }
+          ],
+          "41,0": [
+            {
+              "id": "item-1790160121176-4du9fhq",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "41,0": 1
+              }
+            }
+          ],
+          "21,0": [
+            {
+              "id": "item-1790160116378-vv9mkdo",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "21,0": 1
+              }
+            }
+          ],
+          "42,0": [
+            {
+              "id": "item-1790160121176-40ty2fb",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "42,0": 1
+              }
+            }
+          ],
+          "20,0": [
+            {
+              "id": "item-1790160116378-fuloz6l",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "20,0": 1
+              }
+            }
+          ],
+          "43,0": [
+            {
+              "id": "item-1790160121176-nzcqpy1",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "43,0": 1
+              }
+            }
+          ],
+          "19,0": [
+            {
+              "id": "item-1790160116378-ylvygut",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "19,0": 1
+              }
+            }
+          ],
+          "44,0": [
+            {
+              "id": "item-1790160121176-v7lvz7x",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "44,0": 1
+              }
+            }
+          ],
+          "18,0": [
+            {
+              "id": "item-1790160116378-xolsf4a",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "18,0": 1
+              }
+            }
+          ],
+          "45,0": [
+            {
+              "id": "item-1790160121176-1ihh0i3",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "45,0": 1
+              }
+            }
+          ],
+          "17,0": [
+            {
+              "id": "item-1790160116378-82iyir8",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "17,0": 1
+              }
+            }
+          ],
+          "46,0": [
+            {
+              "id": "item-1790160121176-9onlt0w",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "46,0": 1
+              }
+            }
+          ],
+          "16,0": [
+            {
+              "id": "item-1790160116378-5i7as9j",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "16,0": 1
+              }
+            }
+          ],
+          "47,0": [
+            {
+              "id": "item-1790160121176-edovik4",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "47,0": 1
+              }
+            }
+          ],
+          "15,0": [
+            {
+              "id": "item-1790160116378-5rvb2if",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "15,0": 1
+              }
+            }
+          ],
+          "48,0": [
+            {
+              "id": "item-1790160121176-16zg4pj",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "48,0": 1
+              }
+            }
+          ],
+          "14,0": [
+            {
+              "id": "item-1790160116378-4ueer0i",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "14,0": 1
+              }
+            }
+          ],
+          "49,0": [
+            {
+              "id": "item-1790160121176-m5lqvye",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "49,0": 1
+              }
+            }
+          ],
+          "13,0": [
+            {
+              "id": "item-1790160116378-x4y2rrv",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "13,0": 1
+              }
+            }
+          ],
+          "50,0": [
+            {
+              "id": "item-1790160121176-39g0fpc",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "50,0": 1
+              }
+            }
+          ],
+          "12,0": [
+            {
+              "id": "item-1790160116378-cecor60",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "12,0": 1
+              }
+            }
+          ],
+          "51,0": [
+            {
+              "id": "item-1790160121176-if6drw9",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "51,0": 1
+              }
+            }
+          ],
+          "11,0": [
+            {
+              "id": "item-1790160116378-1651ba2",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "11,0": 1
+              }
+            }
+          ],
+          "52,0": [
+            {
+              "id": "item-1790160121176-m87k5sx",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "52,0": 1
+              }
+            }
+          ],
+          "10,0": [
+            {
+              "id": "item-1790160116378-hm51yey",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "10,0": 1
+              }
+            }
+          ],
+          "53,0": [
+            {
+              "id": "item-1790160121176-28glbqz",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "53,0": 1
+              }
+            }
+          ],
+          "9,0": [
+            {
+              "id": "item-1790160116378-zona3l2",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "9,0": 1
+              }
+            }
+          ],
+          "54,0": [
+            {
+              "id": "item-1790160121176-358qfnn",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "54,0": 1
+              }
+            }
+          ],
+          "8,0": [
+            {
+              "id": "item-1790160116378-jon519h",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "8,0": 1
+              }
+            }
+          ],
+          "55,0": [
+            {
+              "id": "item-1790160121176-7wzuw2f",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "55,0": 1
+              }
+            }
+          ],
+          "7,0": [
+            {
+              "id": "item-1790160116378-meamr3m",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "7,0": 1
+              }
+            }
+          ],
+          "56,0": [
+            {
+              "id": "item-1790160121176-lxk56cv",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "56,0": 1
+              }
+            }
+          ],
+          "6,0": [
+            {
+              "id": "item-1790160116378-ttaim1f",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "6,0": 1
+              }
+            }
+          ],
+          "57,0": [
+            {
+              "id": "item-1790160121176-wfxdnib",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "57,0": 1
+              }
+            }
+          ],
+          "5,0": [
+            {
+              "id": "item-1790160116378-2a395zb",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "5,0": 1
+              }
+            }
+          ],
+          "58,0": [
+            {
+              "id": "item-1790160121176-p813udm",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "58,0": 1
+              }
+            }
+          ],
+          "4,0": [
+            {
+              "id": "item-1790160116378-03t8pvu",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "4,0": 1
+              }
+            }
+          ],
+          "3,0": [
+            {
+              "id": "item-1790160116378-tupiycy",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "3,0": 1
+              }
+            }
+          ],
+          "2,0": [
+            {
+              "id": "item-1790160116378-8uqas6g",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "2,0": 1
+              }
+            }
+          ],
+          "1,0": [
+            {
+              "id": "item-1790160116378-2cm7r9u",
+              "assetId": "sprite-stoneWall_S",
+              "zIndex": 1,
+              "cellZIndex": {
+                "1,0": 1
+              }
+            }
+          ],
+          "59,1": [
+            {
+              "id": "item-1790160256105-1olngl2",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,2": [
+            {
+              "id": "item-1790160256223-3sunwrf",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,3": [
+            {
+              "id": "item-1790160256275-dya6del",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,4": [
+            {
+              "id": "item-1790160256321-vvmyon0",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,5": [
+            {
+              "id": "item-1790160256336-lse7bok",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,7": [
+            {
+              "id": "item-1790160256383-yz1grkc",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,8": [
+            {
+              "id": "item-1790160256430-3qqyic7",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,9": [
+            {
+              "id": "item-1790160256444-av9u0st",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,10": [
+            {
+              "id": "item-1790160256487-zah9ywr",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,11": [
+            {
+              "id": "item-1790160256546-8qx4l67",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,12": [
+            {
+              "id": "item-1790160256560-vmh2qrz",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,13": [
+            {
+              "id": "item-1790160256694-t6gggi1",
+              "assetId": "sprite-stoneWall_W"
+            }
+          ],
+          "59,6": [
+            {
+              "id": "item-1790160258416-x1w6vqs",
+              "assetId": "sprite-stoneWall_W"
+            }
           ]
         }
       }
@@ -33622,7 +33471,13 @@
     "gameSettings": {
       "startingGold": 30,
       "startingLives": 25,
-      "wavePrepTime": 20
+      "wavePrepTime": 20,
+      "spawnMode": "all_routes",
+      "formation": "pairs",
+      "pairDistance": 0.35,
+      "unitElevation": 0,
+      "unitScaleMultiplier": 1,
+      "scoreMultiplier": 1
     },
     "clans": [
       {
@@ -33652,133 +33507,104 @@
         "isDefault": false
       }
     ],
-    "customWaypoints": {
-      "spawn-1789020406337-lxk9": [
-        {
-          "col": 0,
-          "row": 36
-        },
-        {
-          "col": 10,
-          "row": 36
-        },
-        {
-          "col": 10,
-          "row": 29
-        },
-        {
-          "col": 43,
-          "row": 29
-        },
-        {
-          "col": 43,
-          "row": 23
-        },
-        {
-          "col": 50,
-          "row": 23
-        },
-        {
-          "col": 50,
-          "row": 30
-        },
-        {
-          "col": 59,
-          "row": 30
-        }
-      ],
-      "spawn-1789020614483-6o0v": [
-        {
-          "col": 59,
-          "row": 23
-        },
-        {
-          "col": 51,
-          "row": 23
-        },
-        {
-          "col": 50,
-          "row": 23
-        },
-        {
-          "col": 50,
-          "row": 30
-        },
-        {
-          "col": 43,
-          "row": 30
-        },
-        {
-          "col": 29,
-          "row": 30
-        },
-        {
-          "col": 17,
-          "row": 30
-        },
-        {
-          "col": 17,
-          "row": 36
-        },
-        {
-          "col": 10,
-          "row": 36
-        },
-        {
-          "col": 10,
-          "row": 29
-        },
-        {
-          "col": 0,
-          "row": 29
-        }
-      ]
-    },
-    "spawnPoints": [
+    "routes": [
       {
-        "id": "spawn-1",
-        "col": 0,
-        "row": 36,
-        "spawnCol": 0,
-        "spawnRow": 36,
-        "playerCol": 13,
-        "playerRow": 32,
-        "assetId": "",
+        "id": "route-1",
         "name": "Route 1",
-        "layerId": "layer-ground",
-        "quadrant": 3,
-        "isCorner": true,
-        "cornerName": "Circle 4 (West)"
+        "routePoints": [
+          {
+            "col": 0,
+            "row": 36
+          },
+          {
+            "col": 10,
+            "row": 36
+          },
+          {
+            "col": 10,
+            "row": 29
+          },
+          {
+            "col": 43,
+            "row": 29
+          },
+          {
+            "col": 43,
+            "row": 23
+          },
+          {
+            "col": 50,
+            "row": 23
+          },
+          {
+            "col": 50,
+            "row": 30
+          },
+          {
+            "col": 59,
+            "row": 30
+          }
+        ],
+        "playerCameraPoint": {
+          "col": 13,
+          "row": 32
+        }
       },
       {
-        "id": "spawn-2",
-        "col": 59,
-        "row": 23,
-        "spawnCol": 59,
-        "spawnRow": 23,
-        "playerCol": 46,
-        "playerRow": 26,
-        "assetId": "",
+        "id": "route-2",
         "name": "Route 2",
-        "layerId": "layer-ground",
-        "quadrant": 1,
-        "isCorner": true,
-        "cornerName": "Circle 2 (East)"
+        "routePoints": [
+          {
+            "col": 59,
+            "row": 23
+          },
+          {
+            "col": 51,
+            "row": 23
+          },
+          {
+            "col": 50,
+            "row": 23
+          },
+          {
+            "col": 50,
+            "row": 30
+          },
+          {
+            "col": 43,
+            "row": 30
+          },
+          {
+            "col": 29,
+            "row": 30
+          },
+          {
+            "col": 17,
+            "row": 30
+          },
+          {
+            "col": 17,
+            "row": 36
+          },
+          {
+            "col": 10,
+            "row": 36
+          },
+          {
+            "col": 10,
+            "row": 29
+          },
+          {
+            "col": 0,
+            "row": 29
+          }
+        ],
+        "playerCameraPoint": {
+          "col": 46,
+          "row": 26
+        }
       }
     ],
-    "characterConfig": {
-      "spawnCount": 20,
-      "speed": 2,
-      "spawnMode": "all_doors",
-      "formation": "pairs",
-      "pairDistance": 0.35,
-      "followCamera": false,
-      "showPathTrail": true,
-      "autoLoop": true,
-      "selectedDoorIndex": 1,
-      "unitElevation": 0,
-      "unitScaleMultiplier": 1
-    },
     "placedTowers": [],
     "towerBlueprints": [
       {
@@ -35265,11 +35091,9 @@
     ],
     "waterCells": [],
     "buildMode": "custom",
-    "customProjectiles": [],
     "createdAt": 1789020267344,
-    "updatedAt": 1790069568569
+    "updatedAt": 1790160289222
   },
-  "customProjectiles": [],
   "assets": [],
-  "savedAt": "2026-09-22T09:32:48.569Z"
+  "savedAt": "2026-09-23T10:44:49.222Z"
 }

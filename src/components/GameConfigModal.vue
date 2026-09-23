@@ -1283,13 +1283,13 @@
         </div>
 
         <UiBadge variant="emerald" size="sm">
-          {{ $t('config.doorsCount', { count: characterStore.detectedDoors.length }) }}
+          {{ $t('config.routesCount', { count: characterStore.routes.length }) }}
         </UiBadge>
       </UiCard>
 
       <!-- Empty State for Spawn Points -->
       <UiCard 
-        v-if="characterStore.detectedDoors.length === 0" 
+        v-if="characterStore.routes.length === 0" 
         variant="subtle"
         padding="lg"
         custom-class="text-center flex flex-col items-center gap-3 my-2"
@@ -1313,12 +1313,12 @@
 
       <!-- Active Spawn Points Section -->
       <div v-else class="flex flex-col gap-3">
-        <!-- Spawn Doors Buttons List -->
+        <!-- Spawn Routes Buttons List -->
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
           <div class="flex items-center justify-between pb-1 border-b border-slate-800">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
               <MapPin class="w-4 h-4 text-emerald-400" />
-              <span>{{ $t('config.selectSpawnDoor') }}</span>
+              <span>{{ $t('config.selectSpawnRoute') }}</span>
             </span>
 
             <UiButton 
@@ -1327,35 +1327,35 @@
               :leading-icon="Plus"
               @click="handleTriggerAddSpawnPoint"
             >
-              {{ $t('config.placeNewDoor') }}
+              {{ $t('config.placeNewRoute') }}
             </UiButton>
           </div>
 
-          <!-- Door Buttons Grid -->
+          <!-- Route Buttons Grid -->
           <div class="flex items-center gap-2 flex-wrap">
             <UiButton 
-              v-for="(door, idx) in characterStore.detectedDoors" 
-              :key="door.id || idx"
-              :variant="characterStore.selectedDoorIndex === idx ? 'game-amber' : 'secondary'"
+              v-for="(route, idx) in characterStore.routes" 
+              :key="route.id || idx"
+              :variant="characterStore.selectedRouteIndex === idx ? 'game-amber' : 'secondary'"
               size="sm"
               :leading-icon="Flag"
-              @click="characterStore.selectedDoorIndex = idx"
+              @click="characterStore.selectedRouteIndex = idx"
             >
-              <span>{{ door.name }} ({{ door.col }}, {{ door.row }})</span>
+              <span>{{ route.name }} ({{ route.col }}, {{ route.row }})</span>
             </UiButton>
           </div>
 
-          <!-- Selected Door Action Toolbar -->
+          <!-- Selected Route Action Toolbar -->
           <div 
-            v-if="characterStore.selectedDoor" 
+            v-if="characterStore.selectedRoute" 
             class="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800"
           >
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2 text-xs flex-wrap">
-                <UiBadge variant="amber" size="xs">{{ $t('config.activeDoor', { name: characterStore.selectedDoor.name }) }}</UiBadge>
-                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedDoor.spawnCol ?? characterStore.selectedDoor.col }}, {{ characterStore.selectedDoor.spawnRow ?? characterStore.selectedDoor.row }}]</span>
-                <span v-if="characterStore.selectedDoor.playerCol !== undefined" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
-                  Base: [{{ characterStore.selectedDoor.playerCol }}, {{ characterStore.selectedDoor.playerRow }}]
+                <UiBadge variant="amber" size="xs">{{ $t('config.activeRoute', { name: characterStore.selectedRoute.name || 'Route' }) }}</UiBadge>
+                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedRoute.spawnCol ?? characterStore.selectedRoute.col }}, {{ characterStore.selectedRoute.spawnRow ?? characterStore.selectedRoute.row }}]</span>
+                <span v-if="characterStore.selectedRoute.playerCol !== undefined" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
+                  Base: [{{ characterStore.selectedRoute.playerCol }}, {{ characterStore.selectedRoute.playerRow }}]
                 </span>
               </div>
 
@@ -1367,7 +1367,7 @@
                   :leading-icon="MapPin"
                   @click="handleTriggerRelocateSpawnPoint"
                 >
-                  {{ $t('config.relocateDoor') }}
+                  {{ $t('config.relocateRouteStart') }}
                 </UiButton>
 
                 <!-- Set / Relocate Player Base Point -->
@@ -1378,26 +1378,26 @@
                   custom-class="text-sky-300 hover:text-sky-200 border-sky-500/40 hover:bg-sky-500/20"
                   @click="handleTriggerSetPlayerStartPoint"
                 >
-                  {{ characterStore.selectedDoor.playerCol !== undefined ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
+                  {{ characterStore.selectedRoute.playerCol !== undefined ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
                 </UiButton>
 
                 <!-- Clear Player Base Point -->
                 <UiButton 
-                  v-if="characterStore.selectedDoor.playerCol !== undefined"
+                  v-if="characterStore.selectedRoute.playerCol !== undefined"
                   variant="ghost"
                   size="xs"
                   custom-class="text-slate-400 hover:text-slate-200 text-[11px]"
-                  @click="characterStore.clearPlayerStartPoint(characterStore.selectedDoorIndex ?? 0)"
+                  @click="characterStore.clearPlayerStartPoint(characterStore.selectedRouteIndex ?? 0)"
                 >
                   {{ $t('common.clear') }}
                 </UiButton>
 
-                <!-- Delete Door -->
+                <!-- Delete Route -->
                 <UiButton 
                   variant="danger"
                   size="xs"
                   :leading-icon="Trash2"
-                  @click="characterStore.removeSpawnPoint(characterStore.selectedDoorIndex ?? 0)"
+                  @click="characterStore.removeRoute(characterStore.selectedRouteIndex ?? 0)"
                 >
                   {{ $t('common.delete') }}
                 </UiButton>
@@ -1943,7 +1943,7 @@ const configTabItems = computed<TabItem[]>(() => [
   { id: 'towers', label: t('clans.title') || 'Clans & Towers', icon: Swords, count: towerStore.clans.length },
   { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: ShieldAlert, count: characterStore.waveConfigs.length },
   { id: 'balance', label: t('config.tabRules') || 'Map Balance', icon: Coins },
-  { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: characterStore.detectedDoors.length },
+  { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: characterStore.routes.length },
 ])
 
 const selectedBp = computed(() => towerStore.selectedBlueprint)
@@ -2108,8 +2108,8 @@ const formationOptions = computed(() => [
 ])
 
 const spawnModeOptions = computed(() => [
-  { id: 'all_doors', label: t('config.allDoorsSimultaneously'), icon: Sparkles },
-  { id: 'single_door', label: t('config.selectedDoorOnly'), icon: MapPin },
+  { id: 'all_routes', label: t('config.allRoutesSimultaneously') || t('config.allDoorsSimultaneously'), icon: Sparkles },
+  { id: 'single_route', label: t('config.selectedRouteOnly') || t('config.selectedDoorOnly'), icon: MapPin },
 ])
 
 // Projectile Selector State (80 Types)
@@ -2238,7 +2238,7 @@ function handleTriggerSetPlayerStartPoint() {
 }
 
 function handleStartDrawingRoute() {
-  const currentIdx = characterStore.selectedDoorIndex ?? 0
+  const currentIdx = characterStore.selectedRouteIndex ?? 0
   toolStore.closeGameConfig()
   characterStore.startDrawingCustomRoute(currentIdx)
 }

@@ -116,27 +116,30 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    * Initializes player slots based on map routes
    */
   function initializeSlotsFromMap(project: MapProject): PlayerSlot[] {
-    const customRoutes = project.customRoutes || characterStore.customRoutes || {}
-    const routeKeys = Object.keys(customRoutes)
-    const count = Math.max(1, Math.min(8, routeKeys.length > 0 ? routeKeys.length : (project.spawnPoints?.length || 4)))
+    const routesList = project.routes || characterStore.routes || []
+    const count = Math.max(1, Math.min(8, routesList.length > 0 ? routesList.length : 4))
     maxPlayers.value = count
 
     const newSlots: PlayerSlot[] = []
     for (let i = 0; i < count; i++) {
-      const key = routeKeys[i] || `route-${i}`
-      const route = customRoutes[key] || []
-      const spawnPt = route.length > 0 ? route[0] : (project.spawnPoints?.[i] ? { col: project.spawnPoints[i].col, row: project.spawnPoints[i].row } : { col: 2, row: 2 })
-      const spawnData = project.spawnPoints?.[i]
+      const routeData = routesList[i]
+      const key = routeData?.id || `route-${i}`
+      const spawnPt = routeData?.routePoints?.[0] || (routeData ? { col: routeData.col, row: routeData.row } : { col: 2, row: 2 })
+      const routeName = routeData?.name || `Route ${i + 1}`
+      const playerCameraPt = routeData?.playerCameraPoint || (routeData?.playerCol !== undefined ? { col: routeData.playerCol, row: routeData.playerRow! } : undefined)
 
       newSlots.push({
         slotIndex: i,
+        routeIndex: i,
+        routeId: key,
+        routeName,
         doorIndex: i,
         doorId: key,
-        doorName: spawnData?.name || `Route ${i + 1}`,
+        doorName: routeName,
         spawnCol: spawnPt.col,
         spawnRow: spawnPt.row,
-        playerCol: spawnData?.playerCol,
-        playerRow: spawnData?.playerRow,
+        playerCol: playerCameraPt?.col,
+        playerRow: playerCameraPt?.row,
         quadrantName: `Slot ${i + 1}`,
         player: null,
       })
@@ -360,7 +363,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         emptySlot.player = newPlayer
         players.value.push(newPlayer)
 
-        addSystemMessage(`${newPlayer.name} joined the room (${emptySlot.doorName})`)
+        addSystemMessage(`${newPlayer.name} joined the room (${emptySlot.routeName || emptySlot.doorName})`)
 
         // Send map data to client so client loads exact same map
         networkService.broadcast({

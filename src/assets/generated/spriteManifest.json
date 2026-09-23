@@ -8947,52 +8947,6 @@
     "isSample": true
   },
   {
-    "id": "sprite-stoneWall_E",
-    "name": "Stone Wall (E)",
-    "baseName": "stoneWall_E",
-    "fileRelativePath": "stoneWall_E.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 161,
-    "trimHeight": 237,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 227,
-      "maxX": 160,
-      "maxY": 463
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-stoneWall_N",
-    "name": "Stone Wall (N)",
-    "baseName": "stoneWall_N",
-    "fileRelativePath": "stoneWall_N.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 161,
-    "trimHeight": 236,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 0,
-      "minY": 276,
-      "maxX": 160,
-      "maxY": 511
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
     "id": "sprite-stoneWall_S",
     "name": "Stone Wall (S)",
     "baseName": "stoneWall_S",
@@ -9077,52 +9031,6 @@
       "minX": 0,
       "minY": 276,
       "maxX": 160,
-      "maxY": 511
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-stoneWallAged_S",
-    "name": "Stone Wall Aged (S)",
-    "baseName": "stoneWallAged_S",
-    "fileRelativePath": "stoneWallAged_S.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 161,
-    "trimHeight": 237,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 95,
-      "minY": 227,
-      "maxX": 255,
-      "maxY": 463
-    },
-    "spanX": 1,
-    "spanY": 1,
-    "scale": 1,
-    "isSample": true
-  },
-  {
-    "id": "sprite-stoneWallAged_W",
-    "name": "Stone Wall Aged (W)",
-    "baseName": "stoneWallAged_W",
-    "fileRelativePath": "stoneWallAged_W.png",
-    "category": "Walls",
-    "width": 256,
-    "height": 512,
-    "trimWidth": 161,
-    "trimHeight": 236,
-    "anchorX": 0.5,
-    "anchorY": 0.88,
-    "contentBounds": {
-      "minX": 95,
-      "minY": 276,
-      "maxX": 255,
       "maxY": 511
     },
     "spanX": 1,

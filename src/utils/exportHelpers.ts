@@ -77,16 +77,14 @@ export function buildFullProjectJsonPayload(
   project: MapProject, 
   assets: AssetItem[],
   characterData?: {
-    customRoutes?: Record<string, any>
-    characterConfig?: Record<string, any>
-    spawnPoints?: any[]
-    speed?: number
+    routes?: any[]
+    spawnMode?: string
     formation?: string
     pairDistance?: number
-    followCamera?: boolean
-    showPathTrail?: boolean
-    autoLoop?: boolean
-    selectedDoorIndex?: number | null
+    unitElevation?: number
+    unitScaleMultiplier?: number
+    selectedRouteIndex?: number | null
+    [key: string]: any
   },
   towerData?: {
     placedTowers?: any[]
@@ -102,30 +100,55 @@ export function buildFullProjectJsonPayload(
     startingLives: number
     wavePrepTime: number
     scoreMultiplier?: number
+    spawnMode?: 'all_routes' | 'single_route'
+    formation?: string
+    pairDistance?: number
+    unitElevation?: number
+    unitScaleMultiplier?: number
   }
 ): any {
-  const resolvedGameSettings = gameSettings || project.gameSettings || {
-    startingGold: 150,
-    startingLives: 20,
-    wavePrepTime: 10,
+  const resolvedGameSettings = {
+    startingGold: gameSettings?.startingGold ?? project.gameSettings?.startingGold ?? 150,
+    startingLives: gameSettings?.startingLives ?? project.gameSettings?.startingLives ?? 20,
+    wavePrepTime: gameSettings?.wavePrepTime ?? project.gameSettings?.wavePrepTime ?? 10,
+    spawnMode: gameSettings?.spawnMode ?? project.gameSettings?.spawnMode ?? characterData?.spawnMode ?? 'all_routes',
+    formation: gameSettings?.formation ?? project.gameSettings?.formation ?? characterData?.formation ?? 'single',
+    pairDistance: gameSettings?.pairDistance ?? project.gameSettings?.pairDistance ?? characterData?.pairDistance ?? 0.6,
+    unitElevation: gameSettings?.unitElevation ?? project.gameSettings?.unitElevation ?? (characterData as any)?.unitElevation ?? 0,
+    unitScaleMultiplier: gameSettings?.unitScaleMultiplier ?? project.gameSettings?.unitScaleMultiplier ?? (characterData as any)?.unitScaleMultiplier ?? 1.0,
+    scoreMultiplier: gameSettings?.scoreMultiplier ?? project.gameSettings?.scoreMultiplier ?? 1.0,
   }
 
-  const resolvedCustomRoutes = characterData?.customRoutes || project.customRoutes || {}
-  const resolvedCustomWaypoints = (characterData as any)?.customWaypoints || (project as any).customWaypoints || {}
-  const resolvedSpawnPoints = characterData?.spawnPoints || (project as any).spawnPoints || []
-  const resolvedCharacterConfig = {
-    ...(project.characterConfig || {}),
-    ...(characterData?.characterConfig || {}),
-    speed: characterData?.speed ?? characterData?.characterConfig?.speed ?? project.characterConfig?.speed ?? 1.5,
-    formation: characterData?.formation ?? characterData?.characterConfig?.formation ?? project.characterConfig?.formation ?? 'single',
-    pairDistance: characterData?.pairDistance ?? characterData?.characterConfig?.pairDistance ?? project.characterConfig?.pairDistance ?? 0.6,
-    followCamera: characterData?.followCamera ?? characterData?.characterConfig?.followCamera ?? project.characterConfig?.followCamera ?? false,
-    showPathTrail: characterData?.showPathTrail ?? characterData?.characterConfig?.showPathTrail ?? project.characterConfig?.showPathTrail ?? true,
-    autoLoop: characterData?.autoLoop ?? characterData?.characterConfig?.autoLoop ?? project.characterConfig?.autoLoop ?? false,
-    selectedDoorIndex: characterData?.selectedDoorIndex !== undefined ? characterData.selectedDoorIndex : (characterData?.characterConfig?.selectedDoorIndex ?? project.characterConfig?.selectedDoorIndex ?? null),
-    unitElevation: characterData?.characterConfig?.unitElevation ?? (characterData as any)?.unitElevation ?? project.characterConfig?.unitElevation ?? 0,
-    unitScaleMultiplier: characterData?.characterConfig?.unitScaleMultiplier ?? (characterData as any)?.unitScaleMultiplier ?? project.characterConfig?.unitScaleMultiplier ?? 1.0,
-  }
+  const rawRoutes = characterData?.routes || (project as any).routes || (project as any).spawnPoints || []
+  const resolvedRoutes = (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
+    let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
+      ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      : undefined
+
+    if (!routePoints) {
+      const key = r.id || `route-${idx}`
+      const legacyWps = characterData?.customWaypoints?.[key] || (project as any)?.customWaypoints?.[key]
+      if (Array.isArray(legacyWps) && legacyWps.length > 0) {
+        routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      } else {
+        const c = r.col !== undefined ? r.col : (r.spawnCol ?? 2)
+        const row = r.row !== undefined ? r.row : (r.spawnRow ?? 2)
+        routePoints = [{ col: Number(c), row: Number(row) }]
+      }
+    }
+
+    let playerCameraPoint = r.playerCameraPoint
+    if (!playerCameraPoint && (r.playerCol !== undefined && r.playerRow !== undefined)) {
+      playerCameraPoint = { col: Number(r.playerCol), row: Number(r.playerRow) }
+    }
+
+    return {
+      id: r.id || `route-${idx + 1}`,
+      name: r.name || `Route ${idx + 1}`,
+      routePoints,
+      playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
+    }
+  })
 
   const resolvedClans = (project as any).clans || towerData?.clans || []
   const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
@@ -261,20 +284,16 @@ export function buildFullProjectJsonPayload(
       layers: compactedLayers,
       gameSettings: resolvedGameSettings,
       clans: resolvedClans.map((c: any) => ({ ...c })),
-      customWaypoints: resolvedCustomWaypoints,
-      spawnPoints: resolvedSpawnPoints,
-      characterConfig: resolvedCharacterConfig,
+      routes: resolvedRoutes,
       placedTowers: resolvedPlacedTowers,
       towerBlueprints: resolvedTowerBlueprints,
       waveConfigs: resolvedWaveConfigs,
       buildableCells: project.buildableCells || [],
       waterCells: project.waterCells || [],
       buildMode: project.buildMode || 'all',
-      customProjectiles: getAllProjectilesUnified().filter(p => p.isCustom),
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
     },
-    customProjectiles: getAllProjectilesUnified().filter(p => p.isCustom),
     assets: customAssetsOnly,
     savedAt: new Date().toISOString(),
   }
@@ -335,9 +354,8 @@ export async function importProjectFromJson(
   assets: AssetItem[]
   gameSettings?: any
   characterData?: {
-    customRoutes?: Record<string, any>
-    characterConfig?: Record<string, any>
-    spawnPoints?: any[]
+    routes?: any[]
+    [key: string]: any
   }
   towerData?: {
     placedTowers?: any[]
@@ -398,11 +416,48 @@ export async function importProjectFromJson(
   onProgress?.(90, 'import.hydratingTD')
   await yieldToMain()
 
-  const characterData = data.characterData || {
-    customRoutes: project.customRoutes || {},
-    customWaypoints: project.customWaypoints || (data.characterData as any)?.customWaypoints || {},
-    spawnPoints: project.spawnPoints || [],
-    characterConfig: project.characterConfig || {},
+  const rawRoutes = project.routes || (data.characterData as any)?.routes || project.spawnPoints || (data.characterData as any)?.spawnPoints || []
+  const resolvedImportedRoutes = (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
+    let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
+      ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      : undefined
+
+    if (!routePoints) {
+      const key = r.id || `route-${idx}`
+      const legacyWps = project.customWaypoints?.[key] || (data.characterData as any)?.customWaypoints?.[key]
+      if (Array.isArray(legacyWps) && legacyWps.length > 0) {
+        routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      } else {
+        const c = r.col !== undefined ? r.col : (r.spawnCol ?? 2)
+        const row = r.row !== undefined ? r.row : (r.spawnRow ?? 2)
+        routePoints = [{ col: Number(c), row: Number(row) }]
+      }
+    }
+
+    let playerCameraPoint = r.playerCameraPoint
+    if (!playerCameraPoint && (r.playerCol !== undefined && r.playerRow !== undefined)) {
+      playerCameraPoint = { col: Number(r.playerCol), row: Number(r.playerRow) }
+    }
+
+    const startPt = routePoints && routePoints.length > 0 ? routePoints[0] : { col: 2, row: 2 }
+
+    return {
+      id: r.id || `route-${idx + 1}`,
+      name: r.name || `Route ${idx + 1}`,
+      routePoints: routePoints || [startPt],
+      playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
+      col: startPt.col,
+      row: startPt.row,
+      spawnCol: startPt.col,
+      spawnRow: startPt.row,
+      playerCol: playerCameraPoint?.col,
+      playerRow: playerCameraPoint?.row,
+    }
+  })
+  project.routes = resolvedImportedRoutes
+
+  const characterData = {
+    routes: resolvedImportedRoutes,
   }
 
   const towerData = data.towerData || {

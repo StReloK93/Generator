@@ -117,15 +117,16 @@ onMounted(async () => {
     }
   } else {
     // Singleplayer / Test mode: prioritize camera / player base point
-    const activeDoor = characterStore.selectedDoor || characterStore.detectedDoors[0]
-    if (activeDoor && activeDoor.playerCol !== undefined && activeDoor.playerRow !== undefined) {
-      targetCol = activeDoor.playerCol
-      targetRow = activeDoor.playerRow
+    const activeRoute = characterStore.selectedRoute || characterStore.routes[0]
+    const camPt = activeRoute?.playerCameraPoint || (activeRoute?.playerCol !== undefined ? { col: activeRoute.playerCol, row: activeRoute.playerRow! } : undefined)
+    if (camPt) {
+      targetCol = camPt.col
+      targetRow = camPt.row
     } else {
-      const savedSpawn = mapStore.project.spawnPoints?.find((s: any) => s.playerCol !== undefined && s.playerRow !== undefined)
-      if (savedSpawn && savedSpawn.playerCol !== undefined && savedSpawn.playerRow !== undefined) {
-        targetCol = savedSpawn.playerCol
-        targetRow = savedSpawn.playerRow
+      const savedRoute = mapStore.project.routes?.find((s: any) => s.playerCameraPoint || s.playerCol !== undefined)
+      if (savedRoute) {
+        targetCol = savedRoute.playerCameraPoint?.col ?? savedRoute.playerCol ?? targetCol
+        targetRow = savedRoute.playerCameraPoint?.row ?? savedRoute.playerRow ?? targetRow
       }
     }
   }

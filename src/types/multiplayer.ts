@@ -18,9 +18,12 @@ export interface PlayerInfo {
 
 export interface PlayerSlot {
   slotIndex: number
-  doorIndex: number
-  doorId: string
-  doorName: string
+  routeIndex: number
+  routeId: string
+  routeName: string
+  doorIndex?: number
+  doorId?: string
+  doorName?: string
   spawnCol: number
   spawnRow: number
   playerCol?: number
