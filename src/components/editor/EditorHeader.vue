@@ -219,7 +219,7 @@ function handleStartGame() {
   // 1. Sync store state to project
   characterStore.syncGameSettingsToProject()
   characterStore.syncWavesToProject()
-  characterStore.syncSpawnPointsToProject()
+  characterStore.syncRoutesToProject()
   towerStore.syncToProject()
 
   // 2. Save editor draft so it is 100% updated in localStorage

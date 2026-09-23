@@ -1,0 +1,297 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useMapStore } from './mapStore'
+import { useTowerStore } from './towerStore'
+import { useWaveStore } from './waveStore'
+import { useMultiplayerStore } from './multiplayerStore'
+
+export const useGameStore = defineStore('gameStore', () => {
+  const mapStore = useMapStore()
+  const towerStore = useTowerStore()
+  const waveStore = useWaveStore()
+  const multiplayerStore = useMultiplayerStore()
+
+  // --- GAME MODE & ECONOMY STATE ---
+  const isGameMode = ref(false)
+  const entrySource = ref<'editor' | 'home' | 'play' | 'lobby'>('home')
+  const gameSpeed = ref(1.0)
+  const totalKills = ref(0)
+  const totalGoldEarned = ref(0)
+  const playerLives = ref(20)
+  const maxLives = ref(20)
+  const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
+  const prepCountdown = ref(10)
+  const gold = ref(150)
+  const spawnMode = ref<'all_routes' | 'single_route'>('all_routes')
+
+  // --- PER-MAP TD SETTINGS COMPUTEDS ---
+  const startingGold = computed({
+    get: () => mapStore.project.gameSettings?.startingGold ?? 150,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: v, startingLives: 20, wavePrepTime: 10 }
+      } else {
+        mapStore.project.gameSettings.startingGold = v
+      }
+      gold.value = v
+    }
+  })
+
+  const startingLives = computed({
+    get: () => mapStore.project.gameSettings?.startingLives ?? 20,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: v, wavePrepTime: 10 }
+      } else {
+        mapStore.project.gameSettings.startingLives = v
+      }
+      maxLives.value = v
+      playerLives.value = v
+    }
+  })
+
+  const wavePrepDuration = computed({
+    get: () => mapStore.project.gameSettings?.wavePrepTime ?? 10,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: v }
+      } else {
+        mapStore.project.gameSettings.wavePrepTime = v
+      }
+      prepCountdown.value = v
+    }
+  })
+
+  // --- LOADING SCREEN / PRELOADER STATE ---
+  const isLoadingGame = ref(false)
+  const loadingProgress = ref(0)
+  const loadingMapTitle = ref('')
+  const loadingMessage = ref('')
+  const loadingAssetsCount = ref(0)
+
+  function startLoadingScreen(mapTitle = 'Game Map') {
+    isLoadingGame.value = true
+    loadingProgress.value = 0
+    loadingMapTitle.value = mapTitle
+    loadingMessage.value = 'Preparing graphic assets and textures...'
+    loadingAssetsCount.value = 0
+  }
+
+  function setLoadingProgress(progress: number, message?: string, loadedCount?: number) {
+    loadingProgress.value = Math.max(0, Math.min(100, progress))
+    if (message) loadingMessage.value = message
+    if (loadedCount !== undefined) loadingAssetsCount.value = loadedCount
+  }
+
+  function finishLoadingScreen() {
+    loadingProgress.value = 100
+    loadingMessage.value = 'All textures loaded! Starting game...'
+    setTimeout(() => {
+      isLoadingGame.value = false
+    }, 280)
+  }
+
+  // --- SYNCHRONIZATION ---
+  function syncGameSettingsToProject() {
+    if (!mapStore.project) return
+    mapStore.project.gameSettings = {
+      startingGold: Number(startingGold.value) || 150,
+      startingLives: Number(startingLives.value) || 20,
+      wavePrepTime: Number(wavePrepDuration.value) || 10,
+      spawnMode: spawnMode.value || 'all_routes',
+    }
+  }
+
+  function restoreGameSettingsFromProject() {
+    const p = mapStore.project as any
+    const gs = p?.gameSettings || p?.characterConfig
+    if (gs) {
+      startingGold.value = gs.startingGold ?? 150
+      startingLives.value = gs.startingLives ?? 20
+      wavePrepDuration.value = gs.wavePrepTime ?? 10
+      if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'single_route' ? 'single_route' : 'all_routes'
+      gold.value = startingGold.value
+      maxLives.value = startingLives.value
+      playerLives.value = startingLives.value
+      prepCountdown.value = wavePrepDuration.value
+    } else {
+      startingGold.value = 150
+      startingLives.value = 20
+      wavePrepDuration.value = 10
+      spawnMode.value = 'all_routes'
+      gold.value = 150
+      maxLives.value = 20
+      playerLives.value = 20
+      prepCountdown.value = 10
+    }
+  }
+
+  // --- GAME LIFECYCLE CONTROLS ---
+  function startPlayMode() {
+    restoreGameSettingsFromProject()
+    waveStore.restoreWavesFromProject()
+    towerStore.saveEditorTowersSnapshot()
+    towerStore.clearCombatEffects()
+    isGameMode.value = true
+    const initLives = startingLives.value
+    maxLives.value = initLives
+    playerLives.value = initLives
+    gold.value = startingGold.value
+    totalKills.value = 0
+    totalGoldEarned.value = 0
+    waveStore.currentWaveIndex = 0
+    gameState.value = 'build_prep'
+    prepCountdown.value = wavePrepDuration.value
+    gameSpeed.value = 1.0
+  }
+
+  function setGameSpeed(speed: number) {
+    gameSpeed.value = speed
+  }
+
+  function exitPlayMode() {
+    isGameMode.value = false
+    gameState.value = 'ready'
+    isLoadingGame.value = false
+    loadingProgress.value = 0
+    loadingMessage.value = ''
+    towerStore.restoreEditorTowersSnapshot()
+  }
+
+  function startNextWaveInGame() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'wave_running'
+    prepCountdown.value = 0
+  }
+
+  function restartGame() {
+    towerStore.restoreEditorTowersSnapshot()
+    startPlayMode()
+  }
+
+  // --- DEV & SANDBOX TEST CONTROLS ---
+  function devResetGame(customStartingGold?: number, clearTowers: boolean = true) {
+    if (clearTowers) {
+      towerStore.clearAllTowers()
+    } else {
+      towerStore.restoreEditorTowersSnapshot()
+    }
+    towerStore.clearCombatEffects()
+    waveStore.currentWaveIndex = 0
+    if (customStartingGold !== undefined) {
+      startingGold.value = Math.max(0, customStartingGold)
+      gold.value = startingGold.value
+      syncGameSettingsToProject()
+    } else {
+      gold.value = startingGold.value
+    }
+    const initLives = startingLives.value || 20
+    maxLives.value = initLives
+    playerLives.value = initLives
+    totalKills.value = 0
+    totalGoldEarned.value = 0
+    gameState.value = 'build_prep'
+    prepCountdown.value = wavePrepDuration.value
+  }
+
+  function devAddGold(amount: number) {
+    gold.value = Math.max(0, gold.value + amount)
+  }
+
+  function devSetGold(amount: number) {
+    gold.value = Math.max(0, amount)
+  }
+
+  function devSetStartingGold(amount: number) {
+    startingGold.value = Math.max(0, amount)
+    syncGameSettingsToProject()
+  }
+
+  function devAddLives(amount: number) {
+    playerLives.value = Math.min(999, playerLives.value + amount)
+    maxLives.value = Math.max(maxLives.value, playerLives.value)
+  }
+
+  function devSetLives(amount: number) {
+    playerLives.value = Math.max(1, amount)
+    maxLives.value = Math.max(maxLives.value, playerLives.value)
+  }
+
+  function devJumpToWave(waveIdx: number) {
+    if (waveStore.waveConfigs.length === 0) return
+    const targetIdx = Math.max(0, Math.min(waveStore.waveConfigs.length - 1, waveIdx))
+    waveStore.currentWaveIndex = targetIdx
+    gameState.value = 'build_prep'
+    prepCountdown.value = 0
+    towerStore.clearCombatEffects()
+  }
+
+  function devRestartCurrentWave() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'build_prep'
+    prepCountdown.value = 0
+  }
+
+  function devSpawnWaveNow() {
+    towerStore.clearCombatEffects()
+    gameState.value = 'wave_running'
+    prepCountdown.value = 0
+  }
+
+  function resetForNewProject() {
+    startingGold.value = 150
+    startingLives.value = 20
+    wavePrepDuration.value = 10
+    gold.value = 150
+    maxLives.value = 20
+    playerLives.value = 20
+    prepCountdown.value = 10
+    totalKills.value = 0
+    totalGoldEarned.value = 150
+    spawnMode.value = 'all_routes'
+    isGameMode.value = false
+    gameState.value = 'ready'
+  }
+
+  return {
+    isGameMode,
+    entrySource,
+    gameSpeed,
+    setGameSpeed,
+    totalKills,
+    totalGoldEarned,
+    playerLives,
+    maxLives,
+    gameState,
+    prepCountdown,
+    gold,
+    spawnMode,
+    startingGold,
+    startingLives,
+    wavePrepDuration,
+    isLoadingGame,
+    loadingProgress,
+    loadingMapTitle,
+    loadingMessage,
+    loadingAssetsCount,
+    startLoadingScreen,
+    setLoadingProgress,
+    finishLoadingScreen,
+    syncGameSettingsToProject,
+    restoreGameSettingsFromProject,
+    startPlayMode,
+    exitPlayMode,
+    startNextWaveInGame,
+    restartGame,
+    devResetGame,
+    devAddGold,
+    devSetGold,
+    devSetStartingGold,
+    devAddLives,
+    devSetLives,
+    devJumpToWave,
+    devRestartCurrentWave,
+    devSpawnWaveNow,
+    resetForNewProject,
+  }
+})

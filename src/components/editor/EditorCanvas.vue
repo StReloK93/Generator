@@ -5,8 +5,8 @@
       'cursor-grab!': toolStore.activeTool === 'pan' && !camera.isPanning.value,
       'cursor-grabbing!': camera.isPanning.value,
       'cursor-cell!': toolStore.activeTool === 'picker',
-      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingSpawnPoint || characterStore.isSettingPlayerStartPoint,
-      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingSpawnPoint && !characterStore.isSettingPlayerStartPoint,
+      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingRouteStart || characterStore.isSettingPlayerStartPoint,
+      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingRouteStart && !characterStore.isSettingPlayerStartPoint,
       'cursor-move!': toolStore.isMovingElement,
       'cursor-not-allowed!': mapStore.activeLayer?.locked
     }" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
@@ -98,20 +98,20 @@
 
     </div>
 
-    <!-- Floating HUD when Setting Spawn Point -->
-    <div v-if="characterStore.isSettingSpawnPoint"
+    <!-- Floating HUD when Setting Route Start Point -->
+    <div v-if="characterStore.isSettingRouteStart"
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2">
       <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
       <span class="flex items-center gap-1.5">
-        <component :is="characterStore.spawnPointPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
-        <strong>{{ characterStore.spawnPointPlacementMode === 'add' ? $t('editor.newSpawnPoint') : $t('editor.relocateSpawnPoint') }}:</strong>
+        <component :is="characterStore.routeStartPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
+        <strong>{{ characterStore.routeStartPlacementMode === 'add' ? $t('editor.newSpawnPoint') : $t('editor.relocateSpawnPoint') }}:</strong>
         {{ $t('editor.clickAnyCell') }}
       </span>
       <UiButton
         variant="secondary"
         size="xs"
         :title="`${$t('common.cancel')} (Esc)`"
-        @click="characterStore.isSettingSpawnPoint = false"
+        @click="characterStore.isSettingRouteStart = false"
       >
         {{ $t('common.cancel') }}
       </UiButton>
@@ -1041,7 +1041,7 @@ watch(() => [
   characterStore.selectedWaypointIndex,
   characterStore.selectedRouteIndex,
   characterStore.spawnMode,
-  characterStore.isSettingSpawnPoint,
+  characterStore.isSettingRouteStart,
   characterStore.isSettingPlayerStartPoint,
   characterStore.routes,
 ], () => {
@@ -1292,8 +1292,8 @@ function handleKeyDown(e: KeyboardEvent) {
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (characterStore.isSettingSpawnPoint) {
-      characterStore.isSettingSpawnPoint = false
+    if (characterStore.isSettingRouteStart) {
+      characterStore.isSettingRouteStart = false
       return
     }
     if (characterStore.isSettingPlayerStartPoint) {

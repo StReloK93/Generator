@@ -148,7 +148,7 @@ function autoSaveCurrentState() {
   // 1. Synchronize all reactive store values into project
   characterStore.syncGameSettingsToProject()
   characterStore.syncWavesToProject()
-  characterStore.syncSpawnPointsToProject()
+  characterStore.syncRoutesToProject()
   towerStore.syncToProject()
 
   const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')

@@ -25,6 +25,6 @@ export interface RenderOverlayOptions {
   previewCells?: { col: number; row: number; valid?: boolean; color?: number }[]
   previewColor?: number
   isDrawingRoute?: boolean
-  isSettingSpawnPoint?: boolean
+  isSettingRouteStart?: boolean
   isSettingPlayerStartPoint?: boolean
 }

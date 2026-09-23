@@ -119,7 +119,7 @@ export function buildFullProjectJsonPayload(
     scoreMultiplier: gameSettings?.scoreMultiplier ?? project.gameSettings?.scoreMultiplier ?? 1.0,
   }
 
-  const rawRoutes = characterData?.routes || (project as any).routes || (project as any).spawnPoints || []
+  const rawRoutes = characterData?.routes || (project as any).routes || []
   const resolvedRoutes = (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
     let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
       ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
@@ -344,6 +344,46 @@ export function yieldToMain(): Promise<void> {
 }
 
 /**
+ * LEGACY IMPORT / MIGRATION BOUNDARY ONLY:
+ * Normalizes legacy project schemas (e.g. `spawnPoints`, `customWaypoints`, `customRoutes`, `playerCol`)
+ * into the canonical runtime `RouteInfo[]` format.
+ */
+export function normalizeLegacyImportRoutes(project: any, data?: any): any[] {
+  const rawRoutes = project?.routes || data?.characterData?.routes || project?.spawnPoints || data?.characterData?.spawnPoints || []
+  return (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
+    let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
+      ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      : undefined
+
+    if (!routePoints) {
+      const key = r.id || `route-${idx}`
+      const legacyWps = project?.customWaypoints?.[key] || data?.characterData?.customWaypoints?.[key] || project?.customRoutes?.[key]
+      if (Array.isArray(legacyWps) && legacyWps.length > 0) {
+        routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
+      } else {
+        const c = r.col !== undefined ? r.col : (r.spawnCol ?? 2)
+        const row = r.row !== undefined ? r.row : (r.spawnRow ?? 2)
+        routePoints = [{ col: Number(c), row: Number(row) }]
+      }
+    }
+
+    let playerCameraPoint = r.playerCameraPoint
+    if (!playerCameraPoint && (r.playerCol !== undefined && r.playerRow !== undefined)) {
+      playerCameraPoint = { col: Number(r.playerCol), row: Number(r.playerRow) }
+    }
+
+    const startPt = routePoints && routePoints.length > 0 ? routePoints[0] : { col: 2, row: 2 }
+
+    return {
+      id: r.id || `route-${idx + 1}`,
+      name: r.name || `Route ${idx + 1}`,
+      routePoints: routePoints || [startPt],
+      playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
+    }
+  })
+}
+
+/**
  * Imports project and assets from JSON file asynchronously without blocking the browser thread
  */
 export async function importProjectFromJson(
@@ -416,44 +456,7 @@ export async function importProjectFromJson(
   onProgress?.(90, 'import.hydratingTD')
   await yieldToMain()
 
-  const rawRoutes = project.routes || (data.characterData as any)?.routes || project.spawnPoints || (data.characterData as any)?.spawnPoints || []
-  const resolvedImportedRoutes = (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
-    let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
-      ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
-      : undefined
-
-    if (!routePoints) {
-      const key = r.id || `route-${idx}`
-      const legacyWps = project.customWaypoints?.[key] || (data.characterData as any)?.customWaypoints?.[key]
-      if (Array.isArray(legacyWps) && legacyWps.length > 0) {
-        routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
-      } else {
-        const c = r.col !== undefined ? r.col : (r.spawnCol ?? 2)
-        const row = r.row !== undefined ? r.row : (r.spawnRow ?? 2)
-        routePoints = [{ col: Number(c), row: Number(row) }]
-      }
-    }
-
-    let playerCameraPoint = r.playerCameraPoint
-    if (!playerCameraPoint && (r.playerCol !== undefined && r.playerRow !== undefined)) {
-      playerCameraPoint = { col: Number(r.playerCol), row: Number(r.playerRow) }
-    }
-
-    const startPt = routePoints && routePoints.length > 0 ? routePoints[0] : { col: 2, row: 2 }
-
-    return {
-      id: r.id || `route-${idx + 1}`,
-      name: r.name || `Route ${idx + 1}`,
-      routePoints: routePoints || [startPt],
-      playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
-      col: startPt.col,
-      row: startPt.row,
-      spawnCol: startPt.col,
-      spawnRow: startPt.row,
-      playerCol: playerCameraPoint?.col,
-      playerRow: playerCameraPoint?.row,
-    }
-  })
+  const resolvedImportedRoutes = normalizeLegacyImportRoutes(project, data)
   project.routes = resolvedImportedRoutes
 
   const characterData = {

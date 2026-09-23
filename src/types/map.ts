@@ -154,15 +154,7 @@ export interface RouteInfo {
   name?: string
   routePoints: GridCoord[]
   playerCameraPoint?: { col: number, row: number }
-  col: number
-  row: number
-  spawnCol?: number
-  spawnRow?: number
-  playerCol?: number
-  playerRow?: number
 }
-
-export type SpawnPointData = RouteInfo
 
 export interface MapProject {
   id: string

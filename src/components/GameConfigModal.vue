@@ -1341,7 +1341,7 @@
               :leading-icon="Flag"
               @click="characterStore.selectedRouteIndex = idx"
             >
-              <span>{{ route.name }} ({{ route.col }}, {{ route.row }})</span>
+              <span>{{ route.name }} ({{ route.routePoints?.[0]?.col ?? 2 }}, {{ route.routePoints?.[0]?.row ?? 2 }})</span>
             </UiButton>
           </div>
 
@@ -1353,9 +1353,9 @@
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2 text-xs flex-wrap">
                 <UiBadge variant="amber" size="xs">{{ $t('config.activeRoute', { name: characterStore.selectedRoute.name || 'Route' }) }}</UiBadge>
-                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedRoute.spawnCol ?? characterStore.selectedRoute.col }}, {{ characterStore.selectedRoute.spawnRow ?? characterStore.selectedRoute.row }}]</span>
-                <span v-if="characterStore.selectedRoute.playerCol !== undefined" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
-                  Base: [{{ characterStore.selectedRoute.playerCol }}, {{ characterStore.selectedRoute.playerRow }}]
+                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedRoute.routePoints?.[0]?.col ?? 2 }}, {{ characterStore.selectedRoute.routePoints?.[0]?.row ?? 2 }}]</span>
+                <span v-if="characterStore.selectedRoute.playerCameraPoint" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
+                  Base: [{{ characterStore.selectedRoute.playerCameraPoint.col }}, {{ characterStore.selectedRoute.playerCameraPoint.row }}]
                 </span>
               </div>
 
@@ -1378,12 +1378,12 @@
                   custom-class="text-sky-300 hover:text-sky-200 border-sky-500/40 hover:bg-sky-500/20"
                   @click="handleTriggerSetPlayerStartPoint"
                 >
-                  {{ characterStore.selectedRoute.playerCol !== undefined ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
+                  {{ characterStore.selectedRoute.playerCameraPoint ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
                 </UiButton>
 
                 <!-- Clear Player Base Point -->
                 <UiButton 
-                  v-if="characterStore.selectedRoute.playerCol !== undefined"
+                  v-if="characterStore.selectedRoute.playerCameraPoint"
                   variant="ghost"
                   size="xs"
                   custom-class="text-slate-400 hover:text-slate-200 text-[11px]"
@@ -2222,14 +2222,14 @@ function changeBlueprintAsset(bpId: string, asset: AssetItem) {
 
 function handleTriggerAddSpawnPoint() {
   toolStore.closeGameConfig()
-  characterStore.isSettingSpawnPoint = true
-  characterStore.spawnPointPlacementMode = 'add'
+  characterStore.isSettingRouteStart = true
+  characterStore.routeStartPlacementMode = 'add'
 }
 
 function handleTriggerRelocateSpawnPoint() {
   toolStore.closeGameConfig()
-  characterStore.isSettingSpawnPoint = true
-  characterStore.spawnPointPlacementMode = 'relocate'
+  characterStore.isSettingRouteStart = true
+  characterStore.routeStartPlacementMode = 'relocate'
 }
 
 function handleTriggerSetPlayerStartPoint() {

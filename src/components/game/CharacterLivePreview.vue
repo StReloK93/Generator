@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full rounded-xl bg-slate-900 border border-slate-700/80 overflow-hidden shadow-xl select-none flex flex-col">
     <!-- Main Live Canvas Viewport -->
-    <div ref="containerRef" class="relative w-full h-40 sm:h-50 bg-slate-800 overflow-hidden">
+    <div ref="containerRef" class="relative w-full bg-slate-800 overflow-hidden" :class="heightClass || 'h-40 sm:h-50'">
       <canvas ref="canvasRef" class="w-full h-full block"></canvas>
 
       <!-- Absolute Top-Left Asset Badge -->
@@ -26,7 +26,7 @@
     </div>
 
     <!-- 8 Directions Control Bar (Beneath Canvas) -->
-    <div class="flex items-center justify-center flex-wrap gap-1.5 px-2 py-1.5 bg-slate-800/95 border-t border-slate-700/80">
+    <div v-if="showDirectionBar" class="flex items-center justify-center flex-wrap gap-1.5 px-2 py-1.5 bg-slate-800/95 border-t border-slate-700/80">
       <UiButton
         v-for="d in directionItems"
         :key="d.dir"
@@ -40,7 +40,7 @@
     </div>
 
     <!-- Bottom Dynamic Animation Action Tester Buttons -->
-    <div class="flex items-center justify-center gap-1.5 p-2 bg-slate-800/90 border-t border-slate-700/80 flex-wrap">
+    <div v-if="showActionButtons" class="flex items-center justify-center gap-1.5 p-2 bg-slate-800/90 border-t border-slate-700/80 flex-wrap">
       <UiButton
         v-for="act in currentModelActions"
         :key="act.id"
@@ -75,6 +75,9 @@ const props = withDefaults(
     modelValue?: CharacterModel
     initialAction?: CharacterAction
     showModelSelector?: boolean
+    showDirectionBar?: boolean
+    showActionButtons?: boolean
+    heightClass?: string
     animSpeed?: number
     offsetY?: number
     unitScale?: number
@@ -85,6 +88,9 @@ const props = withDefaults(
     modelValue: 'male',
     initialAction: 'Run',
     showModelSelector: true,
+    showDirectionBar: true,
+    showActionButtons: true,
+    heightClass: 'h-40 sm:h-50',
     animSpeed: 1.0,
     offsetY: 0,
     unitScale: 1.0,

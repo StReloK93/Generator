@@ -408,7 +408,7 @@ export class OverlayRenderer {
     const showSpawns =
       characterStore.showPathTrail !== false ||
       isDrawing ||
-      Boolean(characterStore.isSettingSpawnPoint)
+      Boolean(characterStore.isSettingRouteStart)
     const routesCount = characterStore.routes?.length || 0
     const selectedRouteIdx =
       characterStore.selectedRouteIndex !== null && characterStore.selectedRouteIndex !== undefined
@@ -665,8 +665,9 @@ export class OverlayRenderer {
       const routesList = characterStore.routes || []
       if (routesList && routesList.length > 0) {
         routesList.forEach((route: any, rIdx: number) => {
-          const c = route.spawnCol !== undefined ? route.spawnCol : route.col
-          const r = route.spawnRow !== undefined ? route.spawnRow : route.row
+          const start = (route.routePoints && route.routePoints.length > 0) ? route.routePoints[0] : { col: 2, row: 2 }
+          const c = start.col
+          const r = start.row
           const pt = gridToScreen(c, r, tileWidth, tileHeight)
           const isSelected = selectedRouteIdx >= 0 && selectedRouteIdx === rIdx
           const playerColor = playerHexColors[rIdx % playerHexColors.length]

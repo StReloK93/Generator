@@ -434,10 +434,10 @@
               <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pl-7 flex-wrap gap-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-amber-400/90 font-medium">
-                    {{ $t('sidebar.startCoord') }}: ({{ route.spawnCol ?? route.col }}, {{ route.spawnRow ?? route.row }})
+                    {{ $t('sidebar.startCoord') }}: ({{ route.routePoints?.[0]?.col ?? 2 }}, {{ route.routePoints?.[0]?.row ?? 2 }})
                   </span>
-                  <span v-if="route.playerCol !== undefined" class="text-sky-400 font-medium bg-sky-950/50 px-1 rounded border border-sky-500/20">
-                    {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ route.playerCol }}, {{ route.playerRow }})
+                  <span v-if="route.playerCameraPoint" class="text-sky-400 font-medium bg-sky-950/50 px-1 rounded border border-sky-500/20">
+                    {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ route.playerCameraPoint.col }}, {{ route.playerCameraPoint.row }})
                   </span>
                 </div>
                 <span class="text-slate-500">
@@ -665,8 +665,8 @@ const assetCategoryItems = computed<TabItem[]>(() => {
 })
 
 function handleAddNewRoute() {
-  characterStore.isSettingSpawnPoint = true
-  characterStore.spawnPointPlacementMode = 'add'
+  characterStore.isSettingRouteStart = true
+  characterStore.routeStartPlacementMode = 'add'
   characterStore.statusMessage = t('sidebar.clickPlaceRouteStart', { number: characterStore.routes.length + 1 })
 }
 
@@ -685,7 +685,8 @@ function handleStartDrawing(idx: number) {
 }
 
 function handleFocusRoute(route: any) {
-  emit('focus-cell', { col: route.spawnCol ?? route.col, row: route.spawnRow ?? route.row })
+  const start = route.routePoints?.[0] || { col: 2, row: 2 }
+  emit('focus-cell', { col: start.col, row: start.row })
 }
 
 function handleDeleteRoute(idx: number) {
@@ -694,8 +695,8 @@ function handleDeleteRoute(idx: number) {
 
 function handleRelocateStart(idx: number) {
   characterStore.selectedRouteIndex = idx
-  characterStore.spawnPointPlacementMode = 'relocate'
-  characterStore.isSettingSpawnPoint = true
+  characterStore.routeStartPlacementMode = 'relocate'
+  characterStore.isSettingRouteStart = true
   characterStore.statusMessage = t('sidebar.clickRelocateStart', { number: idx + 1 })
 }
 

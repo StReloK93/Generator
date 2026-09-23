@@ -49,7 +49,7 @@ export function getBuiltinMaps(): BuiltinMapSummary[] {
       playersCount: (() => {
         const explicit = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
         if (explicit && typeof explicit === 'number' && explicit > 0) return explicit
-        const routesCount = project.routes?.length || project.spawnPoints?.length || 0
+        const routesCount = project.routes?.length || 0
         if (routesCount > 0) return routesCount
         return project.cols >= 60 ? 4 : 2
       })(),

@@ -137,7 +137,7 @@ async function handleExport() {
     if (exportType.value === 'json') {
       towerStore.syncToProject()
       characterStore.syncWavesToProject()
-      characterStore.syncSpawnPointsToProject()
+      characterStore.syncRoutesToProject()
       characterStore.syncGameSettingsToProject()
 
       exportProjectJson(

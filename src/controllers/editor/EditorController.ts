@@ -70,14 +70,14 @@ export class EditorController {
     if (mapStore.activeLayer?.locked) return
     if (!isInsideGrid(coord.col, coord.row, mapStore.project.cols, mapStore.project.rows)) return
 
-    // 1. Spawn Point Setting
-    if (characterStore.isSettingSpawnPoint) {
-      if (characterStore.spawnPointPlacementMode === 'add') {
-        characterStore.addSpawnPoint(coord.col, coord.row)
+    // 1. Route Start Setting
+    if (characterStore.isSettingRouteStart) {
+      if (characterStore.routeStartPlacementMode === 'add') {
+        characterStore.addRoute(coord.col, coord.row)
       } else {
-        characterStore.relocateCurrentSpawnPoint(coord.col, coord.row)
+        characterStore.relocateCurrentRouteStart(coord.col, coord.row)
       }
-      characterStore.isSettingSpawnPoint = false
+      characterStore.isSettingRouteStart = false
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -240,8 +240,8 @@ export class EditorController {
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (characterStore.isSettingSpawnPoint) {
-      characterStore.isSettingSpawnPoint = false
+    if (characterStore.isSettingRouteStart) {
+      characterStore.isSettingRouteStart = false
       return
     }
     if (characterStore.isSettingPlayerStartPoint) {

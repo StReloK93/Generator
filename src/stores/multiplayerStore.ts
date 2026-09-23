@@ -124,9 +124,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     for (let i = 0; i < count; i++) {
       const routeData = routesList[i]
       const key = routeData?.id || `route-${i}`
-      const spawnPt = routeData?.routePoints?.[0] || (routeData ? { col: routeData.col, row: routeData.row } : { col: 2, row: 2 })
+      const spawnPt = routeData?.routePoints?.[0] || { col: 2, row: 2 }
       const routeName = routeData?.name || `Route ${i + 1}`
-      const playerCameraPt = routeData?.playerCameraPoint || (routeData?.playerCol !== undefined ? { col: routeData.playerCol, row: routeData.playerRow! } : undefined)
+      const playerCameraPt = routeData?.playerCameraPoint
 
       newSlots.push({
         slotIndex: i,
