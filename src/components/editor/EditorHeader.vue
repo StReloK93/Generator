@@ -88,7 +88,7 @@
         variant="ghost"
         size="sm"
         :icon="Undo2"
-        :disabled="characterStore.isDrawingRoute ? !characterStore.canUndoRoute : !mapStore.canUndo"
+        :disabled="routeStore.isDrawingRoute ? !routeStore.canUndoRoute : !mapStore.canUndo"
         :title="`${$t('header.undo')} (Ctrl+Z)`"
         @click="handleUndo"
       />
@@ -98,7 +98,7 @@
         variant="ghost"
         size="sm"
         :icon="Redo2"
-        :disabled="characterStore.isDrawingRoute ? !characterStore.canRedoRoute : !mapStore.canRedo"
+        :disabled="routeStore.isDrawingRoute ? !routeStore.canRedoRoute : !mapStore.canRedo"
         :title="`${$t('header.redo')} (Ctrl+Y)`"
         @click="handleRedo"
       />
@@ -175,7 +175,9 @@ import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useToolStore } from '../../stores/toolStore'
-import { useCharacterStore } from '../../stores/characterStore'
+import { useRouteStore } from '../../stores/routeStore'
+import { useWaveStore } from '../../stores/waveStore'
+import { useGameStore } from '../../stores/gameStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useI18nStore } from '../../stores/i18nStore'
 import { sanitizeMapId, saveEditorDraft, registerSessionCustomMap } from '../../services/mapManager'
@@ -185,7 +187,9 @@ const router = useRouter()
 const mapStore = useMapStore()
 const assetStore = useAssetStore()
 const toolStore = useToolStore()
-const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const { t } = useI18nStore()
 
@@ -195,31 +199,31 @@ const emit = defineEmits<{
 }>()
 
 function handleUndo() {
-  if (characterStore.isDrawingRoute) {
-    characterStore.undoRoute()
+  if (routeStore.isDrawingRoute) {
+    routeStore.undoRoute()
   } else {
     mapStore.undo()
   }
 }
 
 function handleRedo() {
-  if (characterStore.isDrawingRoute) {
-    characterStore.redoRoute()
+  if (routeStore.isDrawingRoute) {
+    routeStore.redoRoute()
   } else {
     mapStore.redo()
   }
 }
 
 function handleStartGame() {
-  characterStore.entrySource = 'editor'
-  characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
+  gameStore.entrySource = 'editor'
+  gameStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
   mapStore.project.id = cleanId
 
   // 1. Sync store state to project
-  characterStore.syncGameSettingsToProject()
-  characterStore.syncWavesToProject()
-  characterStore.syncRoutesToProject()
+  gameStore.syncGameSettingsToProject()
+  waveStore.syncWavesToProject()
+  routeStore.syncRoutesToProject()
   towerStore.syncToProject()
 
   // 2. Save editor draft so it is 100% updated in localStorage
@@ -228,7 +232,7 @@ function handleStartGame() {
     mapStore.project,
     assetStore.assets,
     {
-      routes: characterStore.routes,
+      routes: routeStore.routes,
     },
     {
       placedTowers: towerStore.placedTowers,
@@ -236,8 +240,8 @@ function handleStartGame() {
       clans: towerStore.clans,
     },
     {
-      waveConfigs: characterStore.waveConfigs,
-      currentWaveIndex: characterStore.currentWaveIndex,
+      waveConfigs: waveStore.waveConfigs,
+      currentWaveIndex: waveStore.currentWaveIndex,
     },
     mapStore.project.gameSettings
   )
@@ -247,7 +251,7 @@ function handleStartGame() {
     mapStore.project,
     assetStore.assets,
     {
-      routes: characterStore.routes,
+      routes: routeStore.routes,
     },
     {
       placedTowers: towerStore.placedTowers,
@@ -255,8 +259,8 @@ function handleStartGame() {
       clans: towerStore.clans,
     },
     {
-      waveConfigs: characterStore.waveConfigs,
-      currentWaveIndex: characterStore.currentWaveIndex,
+      waveConfigs: waveStore.waveConfigs,
+      currentWaveIndex: waveStore.currentWaveIndex,
     },
     mapStore.project.gameSettings
   ))

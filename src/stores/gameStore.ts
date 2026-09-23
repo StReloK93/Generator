@@ -4,6 +4,7 @@ import { useMapStore } from './mapStore'
 import { useTowerStore } from './towerStore'
 import { useWaveStore } from './waveStore'
 import { useMultiplayerStore } from './multiplayerStore'
+import { useCharacterStore } from './characterStore'
 
 export const useGameStore = defineStore('gameStore', () => {
   const mapStore = useMapStore()
@@ -143,6 +144,9 @@ export const useGameStore = defineStore('gameStore', () => {
     gameState.value = 'build_prep'
     prepCountdown.value = wavePrepDuration.value
     gameSpeed.value = 1.0
+
+    // Always reset character units to 1st Wave at the spawn point!
+    useCharacterStore().resetTour()
   }
 
   function setGameSpeed(speed: number) {
@@ -156,6 +160,7 @@ export const useGameStore = defineStore('gameStore', () => {
     loadingProgress.value = 0
     loadingMessage.value = ''
     towerStore.restoreEditorTowersSnapshot()
+    useCharacterStore().resetTour()
   }
 
   function startNextWaveInGame() {
@@ -192,6 +197,10 @@ export const useGameStore = defineStore('gameStore', () => {
     totalGoldEarned.value = 0
     gameState.value = 'build_prep'
     prepCountdown.value = wavePrepDuration.value
+    gameSpeed.value = 1.0
+
+    // Reset character units to 1st Wave!
+    useCharacterStore().resetTour()
   }
 
   function devAddGold(amount: number) {

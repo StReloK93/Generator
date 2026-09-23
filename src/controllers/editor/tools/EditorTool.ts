@@ -5,6 +5,8 @@ export interface EditorToolContext {
   toolStore: any
   assetStore: any
   characterStore: any
+  routeStore?: any
+  gameStore?: any
   notify: any
   t: (key: string, params?: any) => string
   engine: any

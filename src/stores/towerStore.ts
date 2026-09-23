@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { useMapStore } from './mapStore'
 import { useToolStore } from './toolStore'
 import { useCharacterStore } from './characterStore'
+import { useRouteStore } from './routeStore'
+import { useWaveStore } from './waveStore'
+import { useGameStore } from './gameStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { combatEvents } from '../services/combatEvents'
@@ -142,6 +145,9 @@ export const useTowerStore = defineStore('towerStore', () => {
   const mapStore = useMapStore()
   const toolStore = useToolStore()
   const characterStore = useCharacterStore()
+  const routeStore = useRouteStore()
+  const waveStore = useWaveStore()
+  const gameStore = useGameStore()
   const multiplayerStore = useMultiplayerStore()
 
   const blueprintMap = computed<Map<string, TowerBlueprint>>(() => {
@@ -581,14 +587,14 @@ export const useTowerStore = defineStore('towerStore', () => {
       return null
     }
 
-    if (characterStore.isCellBlockedForBuilding(col, row)) {
+    if (routeStore.isCellBlockedForBuilding(col, row)) {
       console.warn(`[Tower Placement Blocked]: Cell (${col}, ${row}) is a spawn point or path route.`)
       return null
     }
 
     // 3. In Game Mode: check gold balance and deduct only upon valid placement
-    if (characterStore.isGameMode) {
-      let currentGold = characterStore.gold
+    if (gameStore.isGameMode) {
+      let currentGold = gameStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
         if (myPl) currentGold = myPl.gold ?? 0
@@ -601,12 +607,12 @@ export const useTowerStore = defineStore('towerStore', () => {
         if (myPl) {
           myPl.gold -= bp.cost
           myPl.towersBuilt = (myPl.towersBuilt || 0) + 1
-          characterStore.gold = myPl.gold
+          gameStore.gold = myPl.gold
         } else {
-          characterStore.gold -= bp.cost
+          gameStore.gold -= bp.cost
         }
       } else {
-        characterStore.gold -= bp.cost
+        gameStore.gold -= bp.cost
       }
     }
 
@@ -665,7 +671,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     placedTowers.value.push(newTower)
     selectedPlacedTowerId.value = null
     syncToProject()
-    if (!characterStore.isGameMode) {
+    if (!gameStore.isGameMode) {
       mapStore.pushHistory(`Built ${bp.name} at (${col}, ${row})`)
     }
 
@@ -724,12 +730,12 @@ export const useTowerStore = defineStore('towerStore', () => {
       const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
       if (myPl) {
         myPl.gold += refund
-        characterStore.gold = myPl.gold
+        gameStore.gold = myPl.gold
       } else {
-        characterStore.gold += refund
+        gameStore.gold += refund
       }
     } else {
-      characterStore.gold += refund
+      gameStore.gold += refund
     }
 
     removePlacedTower(towerId)
@@ -784,8 +790,8 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     const cost = nextLvl.cost || 0
-    if (characterStore.isGameMode) {
-      let currentGold = characterStore.gold
+    if (gameStore.isGameMode) {
+      let currentGold = gameStore.gold
       if (multiplayerStore.roomId) {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
         if (myPl) currentGold = myPl.gold ?? 0
@@ -796,12 +802,12 @@ export const useTowerStore = defineStore('towerStore', () => {
         const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
         if (myPl) {
           myPl.gold = Math.max(0, (myPl.gold ?? 0) - cost)
-          characterStore.gold = myPl.gold
+          gameStore.gold = myPl.gold
         } else {
-          characterStore.gold = Math.max(0, characterStore.gold - cost)
+          gameStore.gold = Math.max(0, gameStore.gold - cost)
         }
       } else {
-        characterStore.gold = Math.max(0, characterStore.gold - cost)
+        gameStore.gold = Math.max(0, gameStore.gold - cost)
       }
     }
 
@@ -837,7 +843,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     tower.voidDuration = nextLvl.voidDuration
 
     syncToProject()
-    if (!characterStore.isGameMode) {
+    if (!gameStore.isGameMode) {
       mapStore.pushHistory(`Upgraded ${tower.name} to Level ${tower.level}`)
     }
 
@@ -1303,7 +1309,7 @@ export const useTowerStore = defineStore('towerStore', () => {
 
     // Ensure unit has HP properties initialized
     if (unit.maxHp === undefined) {
-      unit.maxHp = (characterStore as any).currentWaveHp || 100
+      unit.maxHp = waveStore.currentWaveConfig?.unitHp || 100
       unit.currentHp = unit.maxHp
     }
 
@@ -1394,9 +1400,9 @@ export const useTowerStore = defineStore('towerStore', () => {
       unit.frameIndex = 0
       unit.animTimer = 0
       unit.deathFade = 1.0
-      characterStore.totalKills++
+      gameStore.totalKills++
 
-      const waveCfg = characterStore.currentWaveConfig
+      const waveCfg = waveStore.currentWaveConfig
       const killGold = Math.max(0, Number(waveCfg?.unitBonus ?? waveCfg?.goldReward) ?? 1)
 
       if (sourceTower) {
@@ -1409,9 +1415,9 @@ export const useTowerStore = defineStore('towerStore', () => {
         multiplayerStore.recordPlayerKill(killerPlayerId, killGold)
       } else {
         // Single Player Game Mode:
-        if (characterStore.isGameMode) {
-          characterStore.gold += killGold
-          characterStore.totalGoldEarned += killGold
+        if (gameStore.isGameMode) {
+          gameStore.gold += killGold
+          gameStore.totalGoldEarned += killGold
         }
       }
 

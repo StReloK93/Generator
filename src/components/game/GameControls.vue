@@ -33,8 +33,8 @@
       <div class="flex items-center gap-1.5 p-1.5">
         <!-- Speed Multiplier (ONLY in Preview / Singleplayer Test Mode) -->
         <div v-if="!multiplayerStore.roomId" class="shrink-0">
-          <UiTabs :model-value="characterStore.gameSpeed" :items="speedTabs" size="xs" variant="amber"
-            @update:model-value="characterStore.setGameSpeed(Number($event))" />
+          <UiTabs :model-value="gameStore.gameSpeed" :items="speedTabs" size="xs" variant="amber"
+            @update:model-value="gameStore.setGameSpeed(Number($event))" />
         </div>
       </div>
     </UiCard>
@@ -44,12 +44,12 @@
 <script setup lang="ts">
 import { ShieldAlert, Coins } from 'lucide-vue-next'
 import { UiCard, UiTabs } from '../ui'
-import { useCharacterStore } from '../../stores/characterStore'
+import { useGameStore } from '../../stores/gameStore'
 import { useTowerStore, TowerBlueprint } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useAssetStore } from '../../stores/assetStore'
 
-const characterStore = useCharacterStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
@@ -57,6 +57,7 @@ const assetStore = useAssetStore()
 const speedTabs = [
   { id: 1, label: '1x' },
   { id: 2, label: '2x' },
+  { id: 3, label: '3x' },
   { id: 5, label: '5x' },
 ]
 

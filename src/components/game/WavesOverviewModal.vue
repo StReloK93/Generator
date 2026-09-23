@@ -29,7 +29,7 @@
               <Crown class="size-3 text-amber-400 inline mr-0.5" /> BOSS
             </UiBadge>
 
-            <UiBadge v-if="activeCarouselIndex === characterStore.currentWaveIndex" variant="amber" size="xs" class="animate-pulse">
+            <UiBadge v-if="activeCarouselIndex === waveStore.currentWaveIndex" variant="amber" size="xs" class="animate-pulse">
               {{ $t('game.active') }}
             </UiBadge>
           </div>
@@ -158,9 +158,9 @@
             :class="[
               activeCarouselIndex === idx
                 ? 'bg-amber-400 text-slate-950 shadow-sm scale-105'
-                : idx === characterStore.currentWaveIndex
+                : idx === waveStore.currentWaveIndex
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30'
-                  : idx < characterStore.currentWaveIndex
+                  : idx < waveStore.currentWaveIndex
                     ? 'bg-slate-800/40 text-slate-500 hover:bg-slate-800 hover:text-slate-300'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
             ]"
@@ -200,7 +200,6 @@ import {
   Droplet
 } from 'lucide-vue-next'
 import { UiModal, UiBadge, UiButton } from '../ui'
-import { useCharacterStore } from '../../stores/characterStore'
 import { useWaveStore } from '../../stores/waveStore'
 import { getTraitDef } from '../../utils/towerTraits'
 import { getVariantDef } from '../../utils/unitVariants'
@@ -214,7 +213,6 @@ const emit = defineEmits<{
   (e: 'update:isOpen', value: boolean): void
 }>()
 
-const characterStore = useCharacterStore()
 const waveStore = useWaveStore()
 
 // Active carousel index (defaults to active match wave, or 0)
@@ -224,7 +222,7 @@ watch(() => props.isOpen, (open) => {
   if (open) {
     activeCarouselIndex.value = Math.max(
       0, 
-      Math.min(waveStore.waveConfigs.length - 1, characterStore.currentWaveIndex || 0)
+      Math.min(waveStore.waveConfigs.length - 1, waveStore.currentWaveIndex || 0)
     )
   }
 })

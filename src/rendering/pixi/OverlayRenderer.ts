@@ -1,5 +1,7 @@
 import { Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js'
 import { MapProject, AssetItem, GridCoord, SelectedElementRef } from '../../types/map'
+import { useRouteStore } from '../../stores/routeStore'
+import { useGameStore } from '../../stores/gameStore'
 import {
   gridToScreen,
   getCellPolygon,
@@ -392,7 +394,10 @@ export class OverlayRenderer {
   }
 
   public renderRouteAndSpawns(characterStore: any, project: MapProject): void {
-    const isGame = Boolean(characterStore.isGameMode)
+    const routeStore = useRouteStore()
+    const gameStore = useGameStore()
+
+    const isGame = Boolean(gameStore.isGameMode)
     if (isGame) {
       this.pathTrailGraphics.clear()
       this.spawnOverlayGraphics.clear()
@@ -401,21 +406,21 @@ export class OverlayRenderer {
     }
 
     const { tileWidth, tileHeight } = project
-    const isDrawing = Boolean(characterStore.isDrawingRoute)
-    const drawingPathLen = characterStore.drawingPath?.length || 0
-    const drawingWpLen = characterStore.drawingWaypoints?.length || 0
-    const selectedWpIdx = characterStore.selectedWaypointIndex ?? -1
+    const isDrawing = Boolean(routeStore.isDrawingRoute)
+    const drawingPathLen = routeStore.drawingPath?.length || 0
+    const drawingWpLen = routeStore.drawingWaypoints?.length || 0
+    const selectedWpIdx = routeStore.selectedWaypointIndex ?? -1
     const showSpawns =
-      characterStore.showPathTrail !== false ||
+      characterStore?.showPathTrail !== false ||
       isDrawing ||
-      Boolean(characterStore.isSettingRouteStart)
-    const routesCount = characterStore.routes?.length || 0
+      Boolean(routeStore.isSettingRouteStart)
+    const routesCount = routeStore.routes?.length || 0
     const selectedRouteIdx =
-      characterStore.selectedRouteIndex !== null && characterStore.selectedRouteIndex !== undefined
-        ? characterStore.selectedRouteIndex
+      routeStore.selectedRouteIndex !== null && routeStore.selectedRouteIndex !== undefined
+        ? routeStore.selectedRouteIndex
         : -1
-    const spawnMode = characterStore.spawnMode || 'all_routes'
-    const currentRouteLen = characterStore.currentActiveRoute?.length || 0
+    const spawnMode = gameStore.spawnMode || 'all_routes'
+    const currentRouteLen = routeStore.currentActiveRoute?.length || 0
 
     const playerHexColors = [
       0xef4444, // Slot 1 - Red (P1)
@@ -429,11 +434,11 @@ export class OverlayRenderer {
     ]
 
     const wpHash =
-      isDrawing && characterStore.drawingWaypoints
-        ? characterStore.drawingWaypoints.map((p: GridCoord) => `${p.col},${p.row}`).join('|')
+      isDrawing && routeStore.drawingWaypoints
+        ? routeStore.drawingWaypoints.map((p: GridCoord) => `${p.col},${p.row}`).join('|')
         : ''
-    const showLines = Boolean(characterStore.showPathTrail !== false)
-    const routesList = characterStore.routes || []
+    const showLines = Boolean(characterStore?.showPathTrail !== false)
+    const routesList = routeStore.routes || []
     const routesHash = routesList
       .map((r: any, idx: number) => {
         const pts = r.routePoints ? r.routePoints.map((p: any) => `${p.col},${p.row}`).join(',') : ''
@@ -441,7 +446,7 @@ export class OverlayRenderer {
       })
       .join(';')
 
-    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${routesCount}_${selectedRouteIdx}_${spawnMode}_${currentRouteLen}_${routesHash}_${Boolean(characterStore.isSettingPlayerStartPoint)}`
+    const trailSignature = `${isGame}_${isDrawing}_${showLines}_${drawingPathLen}_${drawingWpLen}_${selectedWpIdx}_${wpHash}_${showSpawns}_${routesCount}_${selectedRouteIdx}_${spawnMode}_${currentRouteLen}_${routesHash}_${Boolean(routeStore.isSettingPlayerStartPoint)}`
 
     if (!isDrawing && trailSignature === this.lastTrailSignature) return
     this.lastTrailSignature = trailSignature
@@ -455,12 +460,12 @@ export class OverlayRenderer {
         routesList.forEach((_: any, rIdx: number) => {
           if (
             rIdx === selectedRouteIdx &&
-            characterStore.drawingPath &&
-            characterStore.drawingPath.length > 0
+            routeStore.drawingPath &&
+            routeStore.drawingPath.length > 0
           ) {
             return
           }
-          const otherRoute = characterStore.getRouteForIndex(rIdx)
+          const otherRoute = routeStore.getRouteForIndex(rIdx)
           if (otherRoute && otherRoute.length > 1) {
             const otherPts = otherRoute.map((p: GridCoord) =>
               gridToScreen(p.col, p.row, tileWidth, tileHeight)
@@ -480,7 +485,7 @@ export class OverlayRenderer {
         })
       }
 
-      const activeRoute = characterStore.drawingPath
+      const activeRoute = routeStore.drawingPath
       if (activeRoute && activeRoute.length > 1) {
         const screenPts = activeRoute.map((p: GridCoord) =>
           gridToScreen(p.col, p.row, tileWidth, tileHeight)
@@ -507,7 +512,7 @@ export class OverlayRenderer {
         }
       }
 
-      const waypoints: GridCoord[] = characterStore.drawingWaypoints || []
+      const waypoints: GridCoord[] = routeStore.drawingWaypoints || []
       for (let i = 0; i < waypoints.length; i++) {
         const wp = waypoints[i]
         const pt = gridToScreen(wp.col, wp.row, tileWidth, tileHeight)
@@ -602,15 +607,15 @@ export class OverlayRenderer {
         }
       }
     } else if (showSpawns) {
-      if (characterStore.showPathTrail !== false) {
-        const routesList = characterStore.routes || []
+      if (characterStore?.showPathTrail !== false) {
+        const routesList = routeStore.routes || []
         const routesToDraw: { route: GridCoord[]; rIdx: number }[] =
           routesList.length > 0
             ? routesList.map((_: any, idx: number) => ({
-                route: characterStore.getRouteForIndex(idx),
+                route: routeStore.getRouteForIndex(idx),
                 rIdx: idx,
               }))
-            : [{ route: characterStore.currentActiveRoute, rIdx: 0 }]
+            : [{ route: routeStore.currentActiveRoute, rIdx: 0 }]
 
         const isAnyRouteSelected = selectedRouteIdx >= 0
 
@@ -662,7 +667,7 @@ export class OverlayRenderer {
         })
       }
 
-      const routesList = characterStore.routes || []
+      const routesList = routeStore.routes || []
       if (routesList && routesList.length > 0) {
         routesList.forEach((route: any, rIdx: number) => {
           const start = (route.routePoints && route.routePoints.length > 0) ? route.routePoints[0] : { col: 2, row: 2 }

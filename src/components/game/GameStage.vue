@@ -25,18 +25,18 @@
             </h2>
             <p class="text-xs font-semibold text-amber-400 mb-6 tracking-widest uppercase flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-              <span>{{ characterStore.loadingMessage || $t('home.loadingMap') }}</span>
+              <span>{{ gameStore.loadingMessage || $t('home.loadingMap') }}</span>
             </p>
 
             <!-- Minimal Linear Progress Bar -->
             <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-2.5 overflow-hidden shadow-inner mb-2 p-0.5">
               <div 
                 class="h-full bg-linear-to-r from-amber-500 via-orange-400 to-amber-300 transition-all duration-300 ease-out rounded-full shadow-sm shadow-amber-500/50"
-                :style="{ width: `${characterStore.loadingProgress}%` }"
+                :style="{ width: `${gameStore.loadingProgress}%` }"
               ></div>
             </div>
             <span class="font-mono text-xs text-slate-500 font-bold">
-              {{ Math.round(characterStore.loadingProgress) }}%
+              {{ Math.round(gameStore.loadingProgress) }}%
             </span>
           </div>
         </div>
@@ -66,12 +66,16 @@
       <LobbyChat />
     </div>
 
-    <!-- 5. Game Over, Victory & Clan Select Modals -->
+    <!-- 5. Game Over, Victory, Clan Select & TD Config Modals -->
     <GameOverModal />
     <GameVictoryModal />
     <ClanSelectModal />
+    <GameConfigModal />
 
-    <!-- 6. Slot for Editor-Only Test Tools & Overlays -->
+    <!-- 6. Developer Test & Sandbox Toolbar (Only in Redactor/Editor Playtest Mode) -->
+    <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode" />
+
+    <!-- 7. Slot for Editor-Only Overlays -->
     <slot name="editor-tools" v-if="isCanvasReady" />
   </div>
 </template>
@@ -83,12 +87,15 @@ import { Shield } from 'lucide-vue-next'
 import GameCanvas from './GameCanvas.vue'
 import GameHud from './GameHud.vue'
 import GameControls from './GameControls.vue'
+import DevTestSandboxToolbar from './DevTestSandboxToolbar.vue'
 import GameOverModal from './GameOverModal.vue'
 import GameVictoryModal from './GameVictoryModal.vue'
 import ClanSelectModal from './ClanSelectModal.vue'
+import GameConfigModal from '../GameConfigModal.vue'
 import LobbyChat from '../LobbyChat.vue'
 import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useGameStore } from '../../stores/gameStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
@@ -97,7 +104,8 @@ import { lockLandscape } from '../../utils/pwaOrientation'
 import { 
   getGameMapDataById, 
   getEditorMapDataById,
-  applyMapPayloadToStores 
+  applyMapPayloadToStores,
+  sanitizeMapId
 } from '../../services/mapManager'
 import { useNotificationStore } from '../../stores/notificationStore'
 
@@ -114,10 +122,15 @@ const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
+
+const isEditorPlaytestMode = computed(() => {
+  return props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game'
+})
 
 const canvasRef = ref<any>(null)
 const isCanvasReady = ref(false)
@@ -139,25 +152,29 @@ onMounted(async () => {
 
   // Track entry source explicitly based on mode
   if (props.isEditorMode) {
-    characterStore.entrySource = 'editor'
-  } else if (!characterStore.entrySource || characterStore.entrySource === 'editor') {
-    characterStore.entrySource = multiplayerStore.roomId ? 'lobby' : 'play'
+    gameStore.entrySource = 'editor'
+  } else if (!gameStore.entrySource || gameStore.entrySource === 'editor') {
+    gameStore.entrySource = multiplayerStore.roomId ? 'lobby' : 'play'
   }
 
   // 1. Resolve Map or Multiplayer Room from route params
-  const rawId = (route.params.mapId as string) || (route.params.roomId as string) || ''
+  let rawId = (route.params.mapId as string) || (route.params.roomId as string) || ''
   
-  // DIRECT ACCESS FORBIDDEN: without mapId or roomId redirects to home
   if (!rawId) {
-    router.replace('/')
-    return
+    if (props.isEditorMode || route.name === 'editor-game' || gameStore.entrySource === 'editor') {
+      rawId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+    } else {
+      // DIRECT ACCESS FORBIDDEN: without mapId or roomId redirects to home
+      router.replace('/')
+      return
+    }
   }
 
   const isRoomCode = rawId && /^[A-Za-z0-9]{6}$/.test(rawId) && !getGameMapDataById(rawId)
 
   // 2. Single Player game / Editor game:
   if (!isRoomCode && (!multiplayerStore.roomId || multiplayerStore.roomId === '')) {
-    if (props.isEditorMode || characterStore.entrySource === 'editor') {
+    if (props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game') {
       const editorData = getEditorMapDataById(rawId) || getGameMapDataById(rawId)
       if (editorData) {
         applyMapPayloadToStores(editorData.payload)
@@ -167,7 +184,7 @@ onMounted(async () => {
         return
       }
     } else {
-      const mapData = getGameMapDataById(rawId)
+      const mapData = getGameMapDataById(rawId) || getEditorMapDataById(rawId)
       if (!mapData) {
         notify.error(t('common.error') || 'Xarita topilmadi')
         router.replace('/')
@@ -178,7 +195,7 @@ onMounted(async () => {
   }
 
   isCanvasReady.value = false
-  characterStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
+  gameStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
 
   mapStore.isGameMap = true
   multiplayerStore.setRouter(router)
@@ -192,16 +209,17 @@ function initializeGameSession() {
   if (!isMapLoaded.value) return
   towerStore.initGameClanSelection()
   if (!multiplayerStore.roomId || multiplayerStore.isHost) {
-    characterStore.startPlayMode()
+    characterStore.resetTour()
+    gameStore.startPlayMode()
   } else {
-    characterStore.isGameMode = true
+    gameStore.isGameMode = true
     characterStore.isEnabled = true
     towerStore.clearCombatEffects()
   }
 }
 
 watch(isMapLoaded, (loaded) => {
-  if (loaded && !characterStore.isGameMode) {
+  if (loaded && !gameStore.isGameMode) {
     initializeGameSession()
   }
 })
@@ -209,7 +227,8 @@ watch(isMapLoaded, (loaded) => {
 // Full lifecycle teardown when leaving the game
 function cleanupGameSession() {
   isCanvasReady.value = false
-  characterStore.exitPlayMode()
+  characterStore.resetTour()
+  gameStore.exitPlayMode()
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
 }

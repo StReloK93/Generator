@@ -66,33 +66,34 @@ export class EditorController {
 
   public handlePointerDown(coord: GridCoord, e: MouseEvent | TouchEvent): void {
     const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
+    const routeStore = this.ctx.routeStore || characterStore
 
     if (mapStore.activeLayer?.locked) return
     if (!isInsideGrid(coord.col, coord.row, mapStore.project.cols, mapStore.project.rows)) return
 
     // 1. Route Start Setting
-    if (characterStore.isSettingRouteStart) {
-      if (characterStore.routeStartPlacementMode === 'add') {
-        characterStore.addRoute(coord.col, coord.row)
+    if (routeStore.isSettingRouteStart) {
+      if (routeStore.routeStartPlacementMode === 'add') {
+        routeStore.addRoute(coord.col, coord.row)
       } else {
-        characterStore.relocateCurrentRouteStart(coord.col, coord.row)
+        routeStore.relocateCurrentRouteStart(coord.col, coord.row)
       }
-      characterStore.isSettingRouteStart = false
+      routeStore.isSettingRouteStart = false
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
 
     // 1.1 Player Base / Start Point Setting
-    if (characterStore.isSettingPlayerStartPoint) {
-      characterStore.relocateCurrentPlayerStartPoint(coord.col, coord.row)
-      characterStore.isSettingPlayerStartPoint = false
+    if (routeStore.isSettingPlayerStartPoint) {
+      routeStore.relocateCurrentPlayerStartPoint(coord.col, coord.row)
+      routeStore.isSettingPlayerStartPoint = false
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
 
     // 2. Custom Route Drawing & Point Selection/Relocation Dragging
-    if (characterStore.isDrawingRoute) {
-      const wpList = characterStore.drawingWaypoints || []
+    if (routeStore.isDrawingRoute) {
+      const wpList = routeStore.drawingWaypoints || []
       const clickedWpIdx = wpList.findIndex(
         (p: GridCoord) => p.col === coord.col && p.row === coord.row
       )
@@ -100,18 +101,18 @@ export class EditorController {
       if (clickedWpIdx !== -1) {
         this.isDraggingWaypoint = true
         this.draggedWaypointIndex = clickedWpIdx
-        characterStore.selectWaypoint(clickedWpIdx)
+        routeStore.selectWaypoint(clickedWpIdx)
         engine.renderCharacter(characterStore, mapStore.project)
         return
       }
 
-      if (characterStore.selectedWaypointIndex !== null) {
-        characterStore.moveSelectedWaypoint(coord)
+      if (routeStore.selectedWaypointIndex !== null) {
+        routeStore.moveSelectedWaypoint(coord)
         engine.renderCharacter(characterStore, mapStore.project)
         return
       }
 
-      characterStore.addWaypoint(coord)
+      routeStore.addWaypoint(coord)
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -151,20 +152,21 @@ export class EditorController {
 
   public handlePointerMove(coord: GridCoord, e: MouseEvent | TouchEvent): void {
     const { characterStore, mapStore, engine, toolStore } = this.ctx
+    const routeStore = this.ctx.routeStore || characterStore
 
     toolStore.setHoveredCell(coord)
 
     // Waypoint dragging during route drawing
     if (
-      characterStore.isDrawingRoute &&
+      routeStore.isDrawingRoute &&
       this.isDraggingWaypoint &&
       this.draggedWaypointIndex !== null
     ) {
       const idx = this.draggedWaypointIndex
-      if (idx >= 0 && idx < characterStore.drawingWaypoints.length) {
-        const current = characterStore.drawingWaypoints[idx]
+      if (idx >= 0 && idx < routeStore.drawingWaypoints.length) {
+        const current = routeStore.drawingWaypoints[idx]
         if (current.col !== coord.col || current.row !== coord.row) {
-          characterStore.setWaypointPosition(idx, coord)
+          routeStore.setWaypointPosition(idx, coord)
           engine.renderCharacter(characterStore, mapStore.project)
         }
       }
@@ -177,11 +179,12 @@ export class EditorController {
 
   public handlePointerUp(coord: GridCoord, e: MouseEvent | TouchEvent): void {
     const { characterStore, mapStore, engine } = this.ctx
+    const routeStore = this.ctx.routeStore || characterStore
 
     if (this.isDraggingWaypoint) {
       this.isDraggingWaypoint = false
       this.draggedWaypointIndex = null
-      characterStore.commitRouteState()
+      routeStore.commitRouteState()
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -192,6 +195,7 @@ export class EditorController {
 
   public handleContextMenu(): void {
     const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
+    const routeStore = this.ctx.routeStore || characterStore
 
     // 1. Cancel active multi-point operations first (Line, Box, Eraser, etc.)
     if (this.lineTool.lineStartPoint) {
@@ -228,24 +232,24 @@ export class EditorController {
       toolStore.setTool('brush')
       return
     }
-    if (characterStore.isDrawingRoute) {
-      if (characterStore.selectedWaypointIndex !== null) {
-        characterStore.selectedWaypointIndex = null
+    if (routeStore.isDrawingRoute) {
+      if (routeStore.selectedWaypointIndex !== null) {
+        routeStore.selectedWaypointIndex = null
         engine.renderCharacter(characterStore, mapStore.project)
         return
       }
     }
-    if (characterStore.selectedRouteIndex !== null) {
-      characterStore.selectedRouteIndex = null
+    if (routeStore.selectedRouteIndex !== null) {
+      routeStore.selectedRouteIndex = null
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (characterStore.isSettingRouteStart) {
-      characterStore.isSettingRouteStart = false
+    if (routeStore.isSettingRouteStart) {
+      routeStore.isSettingRouteStart = false
       return
     }
-    if (characterStore.isSettingPlayerStartPoint) {
-      characterStore.isSettingPlayerStartPoint = false
+    if (routeStore.isSettingPlayerStartPoint) {
+      routeStore.isSettingPlayerStartPoint = false
       return
     }
     if (toolStore.isMovingElement) {

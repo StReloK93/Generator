@@ -8,6 +8,8 @@ export interface GameControllerDependencies {
   toolStore: any
   towerStore: any
   characterStore: any
+  gameStore?: any
+  routeStore?: any
   multiplayerStore: any
   notify: any
   t: (key: string, params?: any) => string
@@ -24,16 +26,24 @@ export class GameController {
   }
 
   public setupSimulationLoop(): void {
-    const { engine, characterStore, towerStore, multiplayerStore, mapStore, toolStore } = this.deps
+    const { engine, characterStore, gameStore, towerStore, multiplayerStore, mapStore, toolStore } = this.deps
 
     engine.onTick = (rawDeltaSec: number) => {
-      characterStore.fps = engine.currentFps
-      const simSpeed = Math.max(0.1, Math.min(50.0, characterStore.gameSpeed || 1.0))
+      const simSpeed = Math.max(0.1, Math.min(50.0, gameStore?.gameSpeed || 1.0))
       const effectiveDelta = rawDeltaSec * simSpeed
 
       if (!multiplayerStore.roomId || multiplayerStore.isHost) {
         characterStore.updateTick(effectiveDelta)
-        towerStore.updateCombatTick(effectiveDelta)
+
+        if (gameStore?.isGameMode) {
+          if (gameStore.gameState === 'wave_running') {
+            towerStore.updateCombatTick(effectiveDelta)
+          }
+        } else {
+          if (characterStore.isPlaying) {
+            towerStore.updateCombatTick(effectiveDelta)
+          }
+        }
 
         if (multiplayerStore.roomId && multiplayerStore.isHost) {
           multiplayerStore.broadcastGameTick()
@@ -58,7 +68,7 @@ export class GameController {
   }
 
   public handleCellClick(gridCoord: GridCoord): void {
-    const { mapStore, towerStore, characterStore, multiplayerStore, toolStore, notify, t } =
+    const { mapStore, towerStore, gameStore, routeStore, multiplayerStore, toolStore, notify, t } =
       this.deps
 
     if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
@@ -81,7 +91,11 @@ export class GameController {
       }
 
       // Check if cell is blocked by spawn point or route
-      if (characterStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)) {
+      const isBlocked = routeStore?.isCellBlockedForBuilding
+        ? routeStore.isCellBlockedForBuilding(gridCoord.col, gridCoord.row)
+        : false
+
+      if (isBlocked) {
         notify.warning(t('game.cannotBuildSpawnWalk'), t('game.cannotBuildSpawnTitle'))
         return
       }
@@ -108,7 +122,7 @@ export class GameController {
       // 1.2 Second tap on the SAME active cell: Validate and place the tower!
       const bp = towerStore.blueprints.find((b: any) => b.id === towerStore.activeBuildTowerId)
       if (bp) {
-        let currentGold = characterStore.gold
+        let currentGold = gameStore?.gold ?? 0
         if (multiplayerStore.roomId) {
           const myPl = multiplayerStore.players.find(
             (p: any) => p.id === multiplayerStore.myPlayerId

@@ -1,8 +1,8 @@
 <template>
   <UiModal
-    :is-open="characterStore.gameState === 'victory'"
+    :is-open="gameStore.gameState === 'victory'"
     :title="$t('game.victoryTitle')"
-    :subtitle="$t('game.victoryDesc', { waves: characterStore.waveConfigs.length || 0 })"
+    :subtitle="$t('game.victoryDesc', { waves: waveStore.waveConfigs.length || 0 })"
     :icon="Trophy"
     icon-color="amber"
     size="sm"
@@ -24,7 +24,7 @@
     >
       <div class="text-[11px] font-bold text-slate-300 flex items-center justify-between px-1 pb-1 border-b border-slate-800/80">
         <span>{{ $t('lobby.playersList') || 'Players' }}</span>
-        <span class="text-amber-300 font-mono text-[10px]">{{ $t('game.wavesCompleted', { count: characterStore.waveConfigs.length }) || 'All Waves Cleared!' }}</span>
+        <span class="text-amber-300 font-mono text-[10px]">{{ $t('game.wavesCompleted', { count: waveStore.waveConfigs.length }) || 'All Waves Cleared!' }}</span>
       </div>
 
       <div class="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar">
@@ -74,8 +74,8 @@
       v-else 
       class="flex items-center gap-3 sm:gap-4 bg-slate-900/80 px-3 sm:px-4 py-2 rounded-xl border border-slate-800 font-mono text-xs"
     >
-      <span class="flex items-center gap-1">{{ $t('game.goldEarned') }}: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ characterStore.totalGoldEarned || characterStore.gold }}</strong></span>
-      <span class="flex items-center gap-1">{{ $t('game.kills') }}: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ characterStore.totalKills }}</strong></span>
+      <span class="flex items-center gap-1">{{ $t('game.goldEarned') }}: <Coins class="w-3.5 h-3.5 text-amber-400" /><strong class="text-amber-400">{{ gameStore.totalGoldEarned || gameStore.gold }}</strong></span>
+      <span class="flex items-center gap-1">{{ $t('game.kills') }}: <Skull class="w-3.5 h-3.5 text-rose-400" /><strong class="text-rose-400">{{ gameStore.totalKills }}</strong></span>
     </div>
 
     <!-- Action Buttons Footer -->
@@ -107,17 +107,17 @@
             variant="game-amber"
             size="sm"
             :leading-icon="RotateCcw"
-            @click="characterStore.restartGame()"
+            @click="handleRestartGame"
           >
             {{ $t('common.playAgain') }}
           </UiButton>
           <UiButton
             variant="secondary"
             size="sm"
-            :leading-icon="characterStore.entrySource === 'editor' || route.name === 'editor-game' ? Layers : Home"
+            :leading-icon="gameStore.entrySource === 'editor' || route.name === 'editor-game' ? Layers : Home"
             @click="handleExit"
           >
-            {{ characterStore.entrySource === 'editor' || route.name === 'editor-game' ? $t('game.returnEditor') : $t('game.returnHome') }}
+            {{ gameStore.entrySource === 'editor' || route.name === 'editor-game' ? $t('game.returnEditor') : $t('game.returnHome') }}
           </UiButton>
         </template>
       </div>
@@ -131,6 +131,8 @@ import { Trophy, Coins, Skull, Home, LogOut, RotateCcw, Layers, Castle } from 'l
 import { UiModal, UiButton } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useGameStore } from '../../stores/gameStore'
+import { useWaveStore } from '../../stores/waveStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { sanitizeMapId } from '../../services/mapManager'
 
@@ -138,11 +140,19 @@ const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
+const gameStore = useGameStore()
+const waveStore = useWaveStore()
 const multiplayerStore = useMultiplayerStore()
 
+function handleRestartGame() {
+  characterStore.resetTour()
+  gameStore.restartGame()
+}
+
 function handleExit() {
-  characterStore.exitPlayMode()
-  if (characterStore.entrySource === 'editor' || route.name === 'editor-game') {
+  characterStore.resetTour()
+  gameStore.exitPlayMode()
+  if (gameStore.entrySource === 'editor' || route.name === 'editor-game') {
     const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
     router.push(`/editor/${cleanId}`)
   } else {

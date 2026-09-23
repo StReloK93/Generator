@@ -103,7 +103,7 @@
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span class="text-amber-400 font-semibold block text-[11px]">{{ characterStore.waveConfigs.length || 10 }} {{ $t('game.wave') }}</span>
+            <span class="text-amber-400 font-semibold block text-[11px]">{{ waveStore.waveConfigs.length || 10 }} {{ $t('game.wave') }}</span>
             <span class="text-[9px] text-slate-500">{{ $t('common.ready') }}</span>
           </div>
         </UiCard>
@@ -210,7 +210,8 @@ import { ArrowLeft, Users, Copy, Check, Play, BellRing, Map, Crown, Radio, Clock
 import { UiButton, UiIconButton, UiBadge, UiCard, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
-import { useCharacterStore } from '../stores/characterStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
 import { lockLandscape } from '../utils/pwaOrientation'
@@ -221,7 +222,8 @@ const route = useRoute()
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
-const characterStore = useCharacterStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -251,7 +253,7 @@ watch(
   (state) => {
     if (state === 'in_game') {
       lockLandscape()
-      characterStore.entrySource = 'lobby'
+      gameStore.entrySource = 'lobby'
       const code = multiplayerStore.roomId || (route.params.roomId as string)
       router.push(`/game/${code}`)
     }

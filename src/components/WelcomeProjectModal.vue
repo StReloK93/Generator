@@ -177,6 +177,9 @@ import { useMapStore } from '../stores/mapStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useToolStore } from '../stores/toolStore'
 import { useCharacterStore } from '../stores/characterStore'
+import { useRouteStore } from '../stores/routeStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 import { importProjectFromJson, normalizeTileItem, yieldToMain } from '../utils/exportHelpers'
 import {
@@ -198,6 +201,9 @@ const mapStore = useMapStore()
 const assetStore = useAssetStore()
 const toolStore = useToolStore()
 const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
@@ -264,11 +270,13 @@ function applyPreset(preset: Preset) {
 }
 
 function handleCreateNew() {
-  characterStore.exitPlayMode()
+  gameStore.exitPlayMode()
+  characterStore.resetTour()
   characterStore.isPlaying = false
-  characterStore.isGameMode = false
-  characterStore.gameState = 'ready'
   towerStore.clearCombatEffects()
+  gameStore.resetForNewProject()
+  routeStore.resetForNewProject()
+  waveStore.resetForNewProject()
   characterStore.resetForNewProject()
   towerStore.resetForNewProject()
 
@@ -289,10 +297,10 @@ function handleCreateNew() {
     mapStore.project,
     assetStore.assets,
     {
-      routes: characterStore.routes,
+      routes: routeStore.routes,
     },
     { blueprints: towerStore.blueprints, placedTowers: towerStore.placedTowers, clans: towerStore.clans },
-    { waveConfigs: characterStore.waveConfigs, currentWaveIndex: characterStore.currentWaveIndex },
+    { waveConfigs: waveStore.waveConfigs, currentWaveIndex: waveStore.currentWaveIndex },
     mapStore.project.gameSettings
   )
 
@@ -320,10 +328,9 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       throw new Error("Invalid map format")
     }
 
-    characterStore.exitPlayMode()
+    gameStore.exitPlayMode()
+    characterStore.resetTour()
     characterStore.isPlaying = false
-    characterStore.isGameMode = false
-    characterStore.gameState = 'ready'
     towerStore.clearCombatEffects()
 
     if (!options.isAlreadyNormalized) {
@@ -377,7 +384,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     mapStore.activeLayerId = clonedProject.layers?.[0]?.id || 'layer-ground'
 
     // Synchronize routes and character waypoints from imported project
-    characterStore.syncRoutesFromProject()
+    routeStore.syncRoutesFromProject()
 
     // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time, formation, etc.)
     const gSettings = clonedProject.gameSettings || data.gameSettings || (data.characterData && data.characterData.gameSettings) || {
@@ -396,7 +403,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       unitElevation: gSettings.unitElevation !== undefined ? Number(gSettings.unitElevation) : 0,
       unitScaleMultiplier: gSettings.unitScaleMultiplier !== undefined ? Number(gSettings.unitScaleMultiplier) : 1.0,
     }
-    characterStore.restoreGameSettingsFromProject()
+    gameStore.restoreGameSettingsFromProject()
 
     // Restore clans, towers & blueprints
     const twrData = data.towerData || {
@@ -415,7 +422,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       currentWaveIndex: (project as any).currentWaveIndex ?? 0,
     }
     if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
-      characterStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({
+      waveStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({
         ...w,
         unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
         endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
@@ -427,11 +434,12 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
         variantTint: w.variantTint,
         immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
       }))
-      characterStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
-        ; (mapStore.project as any).waveConfigs = [...characterStore.waveConfigs]
+      waveStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
+        ; (mapStore.project as any).waveConfigs = [...waveStore.waveConfigs]
     }
+    waveStore.restoreWavesFromProject()
 
-    characterStore.spawnAtRoute(characterStore.selectedRouteIndex ?? 0)
+    characterStore.spawnAtRoute(routeStore.selectedRouteIndex ?? 0)
 
     assetStore.selectedAssetId = null
     toolStore.activeTool = 'select'
@@ -451,7 +459,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       mapStore.project,
       assetStore.assets,
       {
-        routes: characterStore.routes,
+        routes: routeStore.routes,
       },
       twrData,
       wvData,

@@ -3,26 +3,6 @@
     <!-- Main Live Canvas Viewport -->
     <div ref="containerRef" class="relative w-full bg-slate-800 overflow-hidden" :class="heightClass || 'h-40 sm:h-50'">
       <canvas ref="canvasRef" class="w-full h-full block"></canvas>
-
-      <!-- Absolute Top-Left Asset Badge -->
-      <div class="absolute top-2.5 left-2.5 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-slate-200">
-        <span class="text-[11px] font-mono font-bold truncate max-w-40 sm:max-w-48 text-purple-300 capitalize">
-          {{ currentModel }}
-        </span>
-        <span 
-          v-if="unitVariant && unitVariant !== 'normal'" 
-          class="text-[10px] font-bold px-1.5 py-0.5 rounded border capitalize flex items-center gap-1"
-          :style="{ color: activeVariantDef.color, borderColor: activeVariantDef.color + '60', backgroundColor: activeVariantDef.color + '20' }"
-        >
-          {{ unitVariant }}
-        </span>
-        <span v-if="unitScale && unitScale !== 1" class="text-[10px] font-mono text-purple-300 bg-purple-950/70 px-1 py-0.2 rounded border border-purple-800/60">
-          {{ unitScale }}x
-        </span>
-        <span v-if="offsetY" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1 py-0.2 rounded border border-cyan-800/60">
-          +{{ offsetY }}px
-        </span>
-      </div>
     </div>
 
     <!-- 8 Directions Control Bar (Beneath Canvas) -->
@@ -62,7 +42,7 @@ import {
   ArrowUpLeft, ArrowUp, ArrowUpRight, ArrowLeft, ArrowRight, 
   ArrowDownLeft, ArrowDown, ArrowDownRight,
 } from 'lucide-vue-next'
-import { UiButton,  UiTabs, } from '../ui'
+import { UiButton } from '../ui'
 import { CharacterAction, CharacterModel } from '../../stores/characterStore'
 import { UnitVariantType } from '../../types/map'
 import { getVariantDef } from '../../utils/unitVariants'

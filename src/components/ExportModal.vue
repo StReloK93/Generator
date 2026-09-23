@@ -92,7 +92,9 @@ import { UiModal, UiTabs, UiButton, UiSwitch, TabItem } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
-import { useCharacterStore } from '../stores/characterStore'
+import { useRouteStore } from '../stores/routeStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { exportProjectJson, downloadDataUrl } from '../utils/exportHelpers'
@@ -109,7 +111,9 @@ const emit = defineEmits<{
 const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
-const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
@@ -136,15 +140,15 @@ async function handleExport() {
   try {
     if (exportType.value === 'json') {
       towerStore.syncToProject()
-      characterStore.syncWavesToProject()
-      characterStore.syncRoutesToProject()
-      characterStore.syncGameSettingsToProject()
+      waveStore.syncWavesToProject()
+      routeStore.syncRoutesToProject()
+      gameStore.syncGameSettingsToProject()
 
       exportProjectJson(
         mapStore.project, 
         assetStore.assets, 
         {
-          routes: characterStore.routes,
+          routes: routeStore.routes,
         },
         {
           placedTowers: towerStore.placedTowers,
@@ -152,8 +156,8 @@ async function handleExport() {
           clans: towerStore.clans,
         },
         {
-          waveConfigs: characterStore.waveConfigs,
-          currentWaveIndex: characterStore.currentWaveIndex,
+          waveConfigs: waveStore.waveConfigs,
+          currentWaveIndex: waveStore.currentWaveIndex,
         },
         mapStore.project.gameSettings
       )

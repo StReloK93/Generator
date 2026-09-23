@@ -1,5 +1,6 @@
 import { Graphics, Sprite } from 'pixi.js'
 import { GridCoord, MapProject } from '../../types/map'
+import { useRouteStore } from '../../stores/routeStore'
 import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
@@ -172,9 +173,10 @@ export class CombatRenderer {
       const isNotBuildable =
         isCustomBuild &&
         !project.buildableCells?.includes(`${hoveredGridCoord.col},${hoveredGridCoord.row}`)
+      const routeStore = useRouteStore()
       const isBlocked =
-        (characterStore.isCellBlockedForBuilding &&
-          characterStore.isCellBlockedForBuilding(hoveredGridCoord.col, hoveredGridCoord.row)) ||
+        (routeStore.isCellBlockedForBuilding &&
+          routeStore.isCellBlockedForBuilding(hoveredGridCoord.col, hoveredGridCoord.row)) ||
         towerStore.placedTowers.some(
           (t) => t.col === hoveredGridCoord.col && t.row === hoveredGridCoord.row
         ) ||

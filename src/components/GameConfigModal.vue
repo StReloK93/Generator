@@ -810,11 +810,11 @@
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80 shrink-0">
         <div class="flex flex-wrap items-center gap-1.5 py-0.5">
           <UiButton 
-            v-for="(w, idx) in characterStore.waveConfigs" 
+            v-for="(w, idx) in waveStore.waveConfigs" 
             :key="w.waveNumber"
-            :variant="characterStore.currentWaveIndex === idx ? 'primary' : 'secondary'"
+            :variant="waveStore.currentWaveIndex === idx ? 'primary' : 'secondary'"
             size="sm"
-            @click="characterStore.selectWave(idx)"
+            @click="waveStore.selectWave(idx)"
           >
             <span class="font-bold font-mono">{{ idx + 1 }}</span>
             <UiBadge variant="brand" size="xs" custom-class="ml-1">{{ w.unitCount }}x</UiBadge>
@@ -826,7 +826,7 @@
           size="sm"
           :leading-icon="Plus"
           custom-class="ml-auto"
-          @click="characterStore.addNewWave()"
+          @click="waveStore.addNewWave()"
         >
           {{ $t('config.newWave') }}
         </UiButton>
@@ -834,7 +834,7 @@
 
       <!-- No Waves State -->
       <UiCard 
-        v-if="characterStore.waveConfigs.length === 0" 
+        v-if="waveStore.waveConfigs.length === 0" 
         variant="subtle"
         padding="lg"
         custom-class="flex flex-col items-center text-center gap-3 my-4"
@@ -850,7 +850,7 @@
           variant="primary"
           size="md"
           :leading-icon="Plus"
-          @click="characterStore.addNewWave()"
+          @click="waveStore.addNewWave()"
         >
           {{ $t('common.create') }}
         </UiButton>
@@ -887,7 +887,7 @@
                 v-for="v in UNIT_VARIANTS"
                 :key="v.id"
                 type="button"
-                @click="characterStore.setWaveUnitVariant(v.id)"
+                @click="waveStore.setWaveUnitVariant(v.id)"
                 :title="$t(v.nameKey) + ' - ' + $t(v.descKey)"
                 class="flex flex-col items-center justify-center p-1.5 rounded-xl border transition-all cursor-pointer select-none group"
                 :class="(selectedWave.unitVariant || 'normal') === v.id
@@ -926,16 +926,16 @@
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3 lg:col-span-2">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-purple-300 text-sm">{{ $t('config.waveSettings', { num: characterStore.currentWaveIndex + 1 }) }}</span>
+              <span class="font-bold text-purple-300 text-sm">{{ $t('config.waveSettings', { num: waveStore.currentWaveIndex + 1 }) }}</span>
               <UiBadge variant="emerald" size="xs">{{ $t('config.enemiesCount', { count: selectedWave.unitCount }) }}</UiBadge>
             </div>
 
             <UiButton 
-              v-if="characterStore.waveConfigs.length > 1"
+              v-if="waveStore.waveConfigs.length > 1"
               variant="danger"
               size="xs"
               :leading-icon="Trash2"
-              @click="characterStore.deleteWave(characterStore.currentWaveIndex)"
+              @click="waveStore.deleteWave(waveStore.currentWaveIndex)"
             >
               {{ $t('common.delete') }}
             </UiButton>
@@ -952,7 +952,7 @@
                 :max="100"
                 :step="1"
                 unit=" units"
-                @update:model-value="(val) => characterStore.setWaveUnitCount(val || 1)"
+                @update:model-value="(val) => waveStore.setWaveUnitCount(val || 1)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.enemiesCountDesc') }}</span>
             </UiCard>
@@ -966,7 +966,7 @@
                 :max="20000"
                 :step="5"
                 unit=" HP"
-                @update:model-value="(val) => characterStore.setWaveUnitHp(val || 20)"
+                @update:model-value="(val) => waveStore.setWaveUnitHp(val || 20)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.healthHpDesc') }}</span>
             </UiCard>
@@ -980,7 +980,7 @@
                 :max="5.0"
                 :step="0.1"
                 unit=" c/s"
-                @update:model-value="(val) => characterStore.setWaveSpeed(val || 1.0)"
+                @update:model-value="(val) => waveStore.setWaveSpeed(val || 1.0)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.moveSpeedDesc') }}</span>
             </UiCard>
@@ -994,7 +994,7 @@
                 :max="50"
                 :step="1"
                 unit=" gold"
-                @update:model-value="(val) => characterStore.setWaveUnitBonus(val ?? 1)"
+                @update:model-value="(val) => waveStore.setWaveUnitBonus(val ?? 1)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.unitBonusDesc') }}</span>
             </UiCard>
@@ -1008,7 +1008,7 @@
                 :max="500"
                 :step="5"
                 unit=" gold"
-                @update:model-value="(val) => characterStore.setWaveEndBonus(val ?? 50)"
+                @update:model-value="(val) => waveStore.setWaveEndBonus(val ?? 50)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.endWaveBonusDesc') }}</span>
             </UiCard>
@@ -1022,7 +1022,7 @@
                 :max="3.0"
                 :step="0.1"
                 unit="x"
-                @update:model-value="(val) => characterStore.setWaveAnimSpeed(val || 1.0)"
+                @update:model-value="(val) => waveStore.setWaveAnimSpeed(val || 1.0)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.animSpeedDesc') }}</span>
             </UiCard>
@@ -1036,7 +1036,7 @@
                 :max="40"
                 :step="1"
                 unit="px"
-                @update:model-value="(val) => characterStore.setWaveOffsetY(val || 0)"
+                @update:model-value="(val) => waveStore.setWaveOffsetY(val || 0)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.elevationOffsetDesc') }}</span>
             </UiCard>
@@ -1050,7 +1050,7 @@
                 :max="3.0"
                 :step="0.05"
                 unit="x"
-                @update:model-value="(val) => characterStore.setWaveUnitScale(val || 1.0)"
+                @update:model-value="(val) => waveStore.setWaveUnitScale(val || 1.0)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.unitScaleDesc') }}</span>
             </UiCard>
@@ -1163,13 +1163,13 @@
               <Coins class="w-4 h-4 text-yellow-400" />
               {{ $t('common.startingGold') }}
             </span>
-            <UiBadge variant="amber" size="sm">{{ characterStore.startingGold }} gold</UiBadge>
+            <UiBadge variant="amber" size="sm">{{ gameStore.startingGold }} gold</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
             {{ $t('config.startingGoldDesc') }}
           </p>
           <UiSlider 
-            v-model="characterStore.startingGold"
+            v-model="gameStore.startingGold"
             :min="10"
             :max="1000"
             :step="10"
@@ -1179,9 +1179,9 @@
             <UiButton 
               v-for="preset in [50, 100, 150, 250, 500, 1000]"
               :key="preset"
-              :variant="characterStore.startingGold === preset ? 'game-amber' : 'secondary'"
+              :variant="gameStore.startingGold === preset ? 'game-amber' : 'secondary'"
               size="xs"
-              @click="characterStore.startingGold = preset"
+              @click="gameStore.startingGold = preset"
             >
               {{ preset }}
             </UiButton>
@@ -1195,13 +1195,13 @@
               <Heart class="w-4 h-4 text-rose-400" />
               {{ $t('common.startingLives') }}
             </span>
-            <UiBadge variant="rose" size="sm">{{ characterStore.startingLives }} lives</UiBadge>
+            <UiBadge variant="rose" size="sm">{{ gameStore.startingLives }} lives</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
             {{ $t('config.baseLivesDesc') }}
           </p>
           <UiSlider 
-            v-model="characterStore.startingLives"
+            v-model="gameStore.startingLives"
             :min="1"
             :max="100"
             :step="1"
@@ -1211,9 +1211,9 @@
             <UiButton 
               v-for="preset in [5, 10, 20, 50, 100]"
               :key="preset"
-              :variant="characterStore.startingLives === preset ? 'danger' : 'secondary'"
+              :variant="gameStore.startingLives === preset ? 'danger' : 'secondary'"
               size="xs"
-              @click="characterStore.startingLives = preset"
+              @click="gameStore.startingLives = preset"
             >
               {{ preset }}
             </UiButton>
@@ -1227,13 +1227,13 @@
               <Timer class="w-4 h-4 text-indigo-400" />
               {{ $t('config.wavePrepTimer') }}
             </span>
-            <UiBadge variant="brand" size="sm">{{ characterStore.wavePrepDuration }}s</UiBadge>
+            <UiBadge variant="brand" size="sm">{{ gameStore.wavePrepDuration }}s</UiBadge>
           </div>
           <p class="text-[11px] text-slate-400 leading-tight">
             {{ $t('config.wavePrepTimerDesc') }}
           </p>
           <UiSlider 
-            v-model="characterStore.wavePrepDuration"
+            v-model="gameStore.wavePrepDuration"
             :min="3"
             :max="60"
             :step="1"
@@ -1243,9 +1243,9 @@
             <UiButton 
               v-for="preset in [5, 10, 15, 20, 30]"
               :key="preset"
-              :variant="characterStore.wavePrepDuration === preset ? 'primary' : 'secondary'"
+              :variant="gameStore.wavePrepDuration === preset ? 'primary' : 'secondary'"
               size="xs"
-              @click="characterStore.wavePrepDuration = preset"
+              @click="gameStore.wavePrepDuration = preset"
             >
               {{ preset }}s
             </UiButton>
@@ -1283,13 +1283,13 @@
         </div>
 
         <UiBadge variant="emerald" size="sm">
-          {{ $t('config.routesCount', { count: characterStore.routes.length }) }}
+          {{ $t('config.routesCount', { count: routeStore.routes.length }) }}
         </UiBadge>
       </UiCard>
 
       <!-- Empty State for Spawn Points -->
       <UiCard 
-        v-if="characterStore.routes.length === 0" 
+        v-if="routeStore.routes.length === 0" 
         variant="subtle"
         padding="lg"
         custom-class="text-center flex flex-col items-center gap-3 my-2"
@@ -1334,12 +1334,12 @@
           <!-- Route Buttons Grid -->
           <div class="flex items-center gap-2 flex-wrap">
             <UiButton 
-              v-for="(route, idx) in characterStore.routes" 
+              v-for="(route, idx) in routeStore.routes" 
               :key="route.id || idx"
-              :variant="characterStore.selectedRouteIndex === idx ? 'game-amber' : 'secondary'"
+              :variant="routeStore.selectedRouteIndex === idx ? 'game-amber' : 'secondary'"
               size="sm"
               :leading-icon="Flag"
-              @click="characterStore.selectedRouteIndex = idx"
+              @click="routeStore.selectedRouteIndex = idx"
             >
               <span>{{ route.name }} ({{ route.routePoints?.[0]?.col ?? 2 }}, {{ route.routePoints?.[0]?.row ?? 2 }})</span>
             </UiButton>
@@ -1347,15 +1347,15 @@
 
           <!-- Selected Route Action Toolbar -->
           <div 
-            v-if="characterStore.selectedRoute" 
+            v-if="routeStore.selectedRoute" 
             class="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800"
           >
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2 text-xs flex-wrap">
-                <UiBadge variant="amber" size="xs">{{ $t('config.activeRoute', { name: characterStore.selectedRoute.name || 'Route' }) }}</UiBadge>
-                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ characterStore.selectedRoute.routePoints?.[0]?.col ?? 2 }}, {{ characterStore.selectedRoute.routePoints?.[0]?.row ?? 2 }}]</span>
-                <span v-if="characterStore.selectedRoute.playerCameraPoint" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
-                  Base: [{{ characterStore.selectedRoute.playerCameraPoint.col }}, {{ characterStore.selectedRoute.playerCameraPoint.row }}]
+                <UiBadge variant="amber" size="xs">{{ $t('config.activeRoute', { name: routeStore.selectedRoute.name || 'Route' }) }}</UiBadge>
+                <span class="text-slate-400 font-mono text-[11px]">Spawn: [{{ routeStore.selectedRoute.routePoints?.[0]?.col ?? 2 }}, {{ routeStore.selectedRoute.routePoints?.[0]?.row ?? 2 }}]</span>
+                <span v-if="routeStore.selectedRoute.playerCameraPoint" class="text-sky-400 font-mono text-[11px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
+                  Base: [{{ routeStore.selectedRoute.playerCameraPoint.col }}, {{ routeStore.selectedRoute.playerCameraPoint.row }}]
                 </span>
               </div>
 
@@ -1378,16 +1378,16 @@
                   custom-class="text-sky-300 hover:text-sky-200 border-sky-500/40 hover:bg-sky-500/20"
                   @click="handleTriggerSetPlayerStartPoint"
                 >
-                  {{ characterStore.selectedRoute.playerCameraPoint ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
+                  {{ routeStore.selectedRoute.playerCameraPoint ? $t('config.changePlayerBase') : $t('config.setPlayerBase') }}
                 </UiButton>
 
                 <!-- Clear Player Base Point -->
                 <UiButton 
-                  v-if="characterStore.selectedRoute.playerCameraPoint"
+                  v-if="routeStore.selectedRoute.playerCameraPoint"
                   variant="ghost"
                   size="xs"
                   custom-class="text-slate-400 hover:text-slate-200 text-[11px]"
-                  @click="characterStore.clearPlayerStartPoint(characterStore.selectedRouteIndex ?? 0)"
+                  @click="routeStore.clearPlayerStartPoint(routeStore.selectedRouteIndex ?? 0)"
                 >
                   {{ $t('common.clear') }}
                 </UiButton>
@@ -1397,7 +1397,7 @@
                   variant="danger"
                   size="xs"
                   :leading-icon="Trash2"
-                  @click="characterStore.removeRoute(characterStore.selectedRouteIndex ?? 0)"
+                  @click="routeStore.removeRoute(routeStore.selectedRouteIndex ?? 0)"
                 >
                   {{ $t('common.delete') }}
                 </UiButton>
@@ -1415,7 +1415,7 @@
               <span>{{ $t('config.spawnDistributionMode') }}</span>
             </span>
             <UiTabs 
-              v-model="characterStore.spawnMode"
+              v-model="gameStore.spawnMode"
               :items="spawnModeOptions"
               fill
               size="sm"
@@ -1443,7 +1443,7 @@
                 variant="secondary"
                 size="sm"
                 :leading-icon="RotateCcw"
-                @click="characterStore.deleteCurrentRoute()"
+                @click="routeStore.deleteCurrentRoute()"
               >
                 {{ $t('common.clear') }}
               </UiButton>
@@ -1823,6 +1823,9 @@ import {
 import { useToolStore } from '../stores/toolStore'
 import { useTowerStore } from '../stores/towerStore'
 import { useCharacterStore } from '../stores/characterStore'
+import { useRouteStore } from '../stores/routeStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
 import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevelConfig } from '../types/map'
@@ -1842,6 +1845,9 @@ const router = useRouter()
 const toolStore = useToolStore()
 const towerStore = useTowerStore()
 const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
 const { t } = useI18n()
@@ -1941,13 +1947,13 @@ function getVariantIcon(iconName: string) {
 
 const configTabItems = computed<TabItem[]>(() => [
   { id: 'towers', label: t('clans.title') || 'Clans & Towers', icon: Swords, count: towerStore.clans.length },
-  { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: ShieldAlert, count: characterStore.waveConfigs.length },
+  { id: 'waves', label: t('config.tabWaves') || 'Waves', icon: ShieldAlert, count: waveStore.waveConfigs.length },
   { id: 'balance', label: t('config.tabRules') || 'Map Balance', icon: Coins },
-  { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: characterStore.routes.length },
+  { id: 'spawns', label: t('config.tabRoutes') || 'Spawn Points', icon: MapPin, count: routeStore.routes.length },
 ])
 
 const selectedBp = computed(() => towerStore.selectedBlueprint)
-const selectedWave = computed(() => characterStore.currentWaveConfig)
+const selectedWave = computed(() => waveStore.currentWaveConfig)
 
 const splashTypeOptions = computed(() => [
   { id: 'falloff', label: t('traits.splashFalloff'), icon: TrendingDown },
@@ -2037,7 +2043,7 @@ function toggleWaveImmunity(traitId: TowerTraitType) {
     currentImmunities.push(traitId)
   }
   selectedWave.value.immunities = currentImmunities
-  characterStore.syncWavesToProject()
+  waveStore.syncWavesToProject()
 }
 
 // Change Unit Appearance Modal State
@@ -2094,10 +2100,10 @@ function openChangeUnitModal() {
 
 function saveUnitSelection() {
   if (tempSelectedUnitModel.value) {
-    characterStore.setWaveCharacterModel(tempSelectedUnitModel.value)
+    waveStore.setWaveCharacterModel(tempSelectedUnitModel.value)
   }
   if (tempSelectedVariant.value) {
-    characterStore.setWaveUnitVariant(tempSelectedVariant.value)
+    waveStore.setWaveUnitVariant(tempSelectedVariant.value)
   }
   isChangeUnitModalOpen.value = false
 }
@@ -2222,31 +2228,31 @@ function changeBlueprintAsset(bpId: string, asset: AssetItem) {
 
 function handleTriggerAddSpawnPoint() {
   toolStore.closeGameConfig()
-  characterStore.isSettingRouteStart = true
-  characterStore.routeStartPlacementMode = 'add'
+  routeStore.isSettingRouteStart = true
+  routeStore.routeStartPlacementMode = 'add'
 }
 
 function handleTriggerRelocateSpawnPoint() {
   toolStore.closeGameConfig()
-  characterStore.isSettingRouteStart = true
-  characterStore.routeStartPlacementMode = 'relocate'
+  routeStore.isSettingRouteStart = true
+  routeStore.routeStartPlacementMode = 'relocate'
 }
 
 function handleTriggerSetPlayerStartPoint() {
   toolStore.closeGameConfig()
-  characterStore.isSettingPlayerStartPoint = true
+  routeStore.isSettingPlayerStartPoint = true
 }
 
 function handleStartDrawingRoute() {
-  const currentIdx = characterStore.selectedRouteIndex ?? 0
+  const currentIdx = routeStore.selectedRouteIndex ?? 0
   toolStore.closeGameConfig()
-  characterStore.startDrawingCustomRoute(currentIdx)
+  routeStore.startDrawingCustomRoute(currentIdx)
 }
 
 function handleStartPlayModeFromModal() {
   toolStore.closeGameConfig()
-  characterStore.entrySource = 'editor'
-  characterStore.startLoadingScreen(mapStore.project.name || 'Map')
+  gameStore.entrySource = 'editor'
+  gameStore.startLoadingScreen(mapStore.project.name || 'Map')
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
   router.push(`/editor-game/${cleanId}`)
   requestAppFullscreen()

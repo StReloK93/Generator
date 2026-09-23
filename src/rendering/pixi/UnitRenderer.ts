@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite } from 'pixi.js'
 import { MapProject, UnitVariantType } from '../../types/map'
+import { useWaveStore } from '../../stores/waveStore'
 import { assetManager } from '../../services/assetManager'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { getVariantTint } from '../../utils/unitVariants'
@@ -75,9 +76,10 @@ export class UnitRenderer {
 
       const actionPrefix = unit.action || 'Idle'
       const frame = actionPrefix === 'Idle' ? '0' : unit.frameIndex || 0
+      const waveStore = useWaveStore()
       const currentWaveCfg =
-        characterStore?.currentWaveConfig ||
-        characterStore?.waveConfigs?.[characterStore?.currentWaveIndex ?? 0] ||
+        waveStore?.currentWaveConfig ||
+        waveStore?.waveConfigs?.[waveStore?.currentWaveIndex ?? 0] ||
         null
 
       const effectiveModel = unit.characterModel || currentWaveCfg?.characterModel || 'male'

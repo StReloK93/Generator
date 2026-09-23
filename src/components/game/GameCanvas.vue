@@ -27,6 +27,8 @@ import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useRouteStore } from '../../stores/routeStore'
+import { useGameStore } from '../../stores/gameStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
@@ -41,6 +43,8 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
@@ -55,6 +59,8 @@ const gameController = new GameController({
   toolStore,
   towerStore,
   characterStore,
+  routeStore,
+  gameStore,
   multiplayerStore,
   notify,
   t,
@@ -95,13 +101,21 @@ onMounted(async () => {
   camera.updateViewportRect(viewportContainerRef.value)
   const rect = camera.getViewportRect(viewportContainerRef.value)
   
-  characterStore.setLoadingProgress(15, t('loader.initShaders'))
+  gameStore.setLoadingProgress(15, t('loader.initShaders'))
   await engine.init(viewportContainerRef.value, rect.width, rect.height)
   await new Promise(resolve => setTimeout(resolve, 150))
 
-  // Fast PixiJS 8 Asset Bundle Loading (Core + Game bundles)
-  characterStore.setLoadingProgress(50, t('loader.loadTexturesModels'))
+  // Fast PixiJS 8 Asset Bundle Loading (Core + Game + Props + Sprites)
+  gameStore.setLoadingProgress(50, t('loader.loadTexturesModels'))
+  if (!assetStore.isLoaded || assetStore.assets.length === 0) {
+    await assetStore.loadBuiltinSprites()
+  }
   await assetManager.loadGame()
+  try {
+    await assetManager.loadBundle('props')
+  } catch (e) {
+    console.warn('[GameCanvas] Props bundle preload:', e)
+  }
 
   // Focus on player's build base / camera start point
   let targetCol = Math.floor((mapStore.project.cols - 1) / 2)
@@ -117,7 +131,7 @@ onMounted(async () => {
     }
   } else {
     // Singleplayer / Test mode: prioritize camera / player base point
-    const activeRoute = characterStore.selectedRoute || characterStore.routes[0]
+    const activeRoute = routeStore.selectedRoute || routeStore.routes[0]
     const camPt = activeRoute?.playerCameraPoint
     if (camPt) {
       targetCol = camPt.col
@@ -134,7 +148,7 @@ onMounted(async () => {
   camera.focusOnCell(targetCol, targetRow, viewportContainerRef.value)
   updateEngineState()
 
-  characterStore.setLoadingProgress(85, t('loader.syncLayersGrid'))
+  gameStore.setLoadingProgress(85, t('loader.syncLayersGrid'))
   await new Promise(resolve => setTimeout(resolve, 150))
 
   // Render initial frame to eliminate initial WebGL pipeline compile hiccups
@@ -149,12 +163,12 @@ onMounted(async () => {
   // Hook up 60 FPS Game Simulation Ticker via GameController
   gameController.setupSimulationLoop()
 
-  characterStore.setLoadingProgress(100, t('loader.battlefieldReady'))
+  gameStore.setLoadingProgress(100, t('loader.battlefieldReady'))
   // Double requestAnimationFrame ensures that GPU has completed drawing the frame buffer
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   await new Promise(resolve => setTimeout(resolve, 250))
 
-  characterStore.finishLoadingScreen()
+  gameStore.finishLoadingScreen()
   emit('ready')
 
   function onZoomIn() {
@@ -188,6 +202,12 @@ onMounted(async () => {
       }
     })
     resizeObserver.observe(viewportContainerRef.value)
+  }
+})
+
+watch(() => [assetStore.isLoaded, assetManager.atlasRevision.value], () => {
+  if (engine.isInitialized) {
+    updateEngineState()
   }
 })
 

@@ -141,7 +141,7 @@ import {
 } from 'lucide-vue-next'
 import { UiButton, UiLanguageSwitcher } from '../components/ui'
 import { canInstallPwa, promptPwaInstall, lockLandscape } from '../utils/pwaOrientation'
-import { useCharacterStore } from '../stores/characterStore'
+import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
@@ -151,12 +151,12 @@ import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
 import { 
   getBuiltinMaps, 
   sanitizeMapId, 
-  applyMapPayloadToStores,
+  applyMapPayloadToStores, 
   registerSessionCustomMap
 } from '../services/mapManager'
 
 const router = useRouter()
-const characterStore = useCharacterStore()
+const gameStore = useGameStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -244,8 +244,8 @@ async function selectAndStartMap(mapData: any) {
 
   try {
     const cleanId = sanitizeMapId(mapData.id || mapData.name || 'julion')
-    characterStore.entrySource = 'home'
-    characterStore.startLoadingScreen(mapData?.name || t('game.battlefield'))
+    gameStore.entrySource = 'home'
+    gameStore.startLoadingScreen(mapData?.name || t('game.battlefield'))
     
     if (mapData.raw) {
       applyMapPayloadToStores(mapData.raw)

@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="fixed top-14 right-3 z-40 pointer-events-auto select-none font-sans max-w-[calc(100vw-1.5rem)] sm:max-w-sm"
+    class="fixed top-2.5 left-3 z-40 pointer-events-auto select-none font-sans max-w-[calc(100vw-1.5rem)] sm:max-w-sm"
     @mousedown.stop 
     @mouseup.stop 
     @click.stop 
@@ -9,7 +9,7 @@
     @touchmove.stop
   >
     <!-- Collapsed Toggle Button -->
-    <div v-if="!isExpanded" class="flex justify-end">
+    <div v-if="!isExpanded" class="flex justify-start">
       <button
         type="button"
         @click="isExpanded = true"
@@ -173,12 +173,12 @@
               <Coins class="w-3.5 h-3.5 text-yellow-400" />
               <span>{{ $t('sandbox.currentGold') }}</span>
             </span>
-            <UiBadge variant="amber" size="xs">{{ characterStore.gold }} {{ $t('common.gold') }}</UiBadge>
+            <UiBadge variant="amber" size="xs">{{ gameStore.gold }} {{ $t('common.gold') }}</UiBadge>
           </div>
 
           <!-- Direct Input for Live Gold -->
           <UiNumberInput
-            v-model="characterStore.gold"
+            v-model="gameStore.gold"
             :min="0"
             :max="999999"
             :step="100"
@@ -192,7 +192,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddGold(-500)"
+              @click="gameStore.devAddGold(-500)"
             >
               -500
             </UiButton>
@@ -200,7 +200,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddGold(-100)"
+              @click="gameStore.devAddGold(-100)"
             >
               -100
             </UiButton>
@@ -208,7 +208,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddGold(100)"
+              @click="gameStore.devAddGold(100)"
             >
               +100
             </UiButton>
@@ -216,7 +216,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddGold(500)"
+              @click="gameStore.devAddGold(500)"
             >
               +500
             </UiButton>
@@ -224,7 +224,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddGold(2000)"
+              @click="gameStore.devAddGold(2000)"
             >
               +2k
             </UiButton>
@@ -232,7 +232,7 @@
               variant="game-amber"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devSetGold(99999)"
+              @click="gameStore.devSetGold(99999)"
             >
               {{ $t('common.max') }} (99k)
             </UiButton>
@@ -246,11 +246,11 @@
               <Heart class="w-3.5 h-3.5 text-rose-400" />
               <span>{{ $t('sandbox.currentLives') }}</span>
             </span>
-            <UiBadge variant="rose" size="xs">{{ characterStore.playerLives }} {{ $t('common.lives') }}</UiBadge>
+            <UiBadge variant="rose" size="xs">{{ gameStore.playerLives }} {{ $t('common.lives') }}</UiBadge>
           </div>
 
           <UiNumberInput
-            v-model="characterStore.playerLives"
+            v-model="gameStore.playerLives"
             :min="1"
             :max="999"
             :step="1"
@@ -263,7 +263,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddLives(-5)"
+              @click="gameStore.devAddLives(-5)"
             >
               -5
             </UiButton>
@@ -271,7 +271,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddLives(-1)"
+              @click="gameStore.devAddLives(-1)"
             >
               -1
             </UiButton>
@@ -279,7 +279,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddLives(1)"
+              @click="gameStore.devAddLives(1)"
             >
               +1
             </UiButton>
@@ -287,7 +287,7 @@
               variant="secondary"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devAddLives(5)"
+              @click="gameStore.devAddLives(5)"
             >
               +5
             </UiButton>
@@ -295,7 +295,7 @@
               variant="danger"
               size="xs"
               class="px-1! text-[10px]!"
-              @click="characterStore.devSetLives(99)"
+              @click="gameStore.devSetLives(99)"
             >
               {{ $t('sandbox.max99') }}
             </UiButton>
@@ -332,7 +332,7 @@
           <div class="flex items-center justify-between gap-1 flex-wrap">
             <span class="text-[11px] font-bold text-sky-300 flex items-center gap-1">
               <ShieldAlert class="w-3.5 h-3.5 text-sky-400" />
-              <span>{{ $t('config.tabWaves') }} ({{ characterStore.currentWaveIndex + 1 }} / {{ characterStore.waveConfigs.length }})</span>
+              <span>{{ $t('config.tabWaves') }} ({{ waveStore.currentWaveIndex + 1 }} / {{ waveStore.waveConfigs.length }})</span>
             </span>
 
             <UiButton
@@ -348,16 +348,16 @@
           <!-- Wave Jump Pills -->
           <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5 max-h-18">
             <button
-              v-for="(w, idx) in characterStore.waveConfigs"
+              v-for="(w, idx) in waveStore.waveConfigs"
               :key="idx"
               type="button"
               :class="[
                 'px-2 py-1 rounded-lg border text-[11px] font-bold transition-all cursor-pointer shrink-0',
-                characterStore.currentWaveIndex === idx
+                waveStore.currentWaveIndex === idx
                   ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm ring-1 ring-sky-400/40'
                   : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
               ]"
-              @click="characterStore.devJumpToWave(idx)"
+              @click="handleJumpToWave(idx)"
             >
               W{{ idx + 1 }}
             </button>
@@ -369,7 +369,7 @@
               variant="game-amber"
               size="xs"
               :leading-icon="Play"
-              @click="characterStore.devSpawnWaveNow()"
+              @click="handleSpawnWaveNow()"
             >
               {{ $t('sandbox.spawnNow') }}
             </UiButton>
@@ -377,7 +377,7 @@
               variant="secondary"
               size="xs"
               :leading-icon="RotateCcw"
-              @click="characterStore.devRestartCurrentWave()"
+              @click="handleRestartCurrentWave()"
             >
               {{ $t('sandbox.restart') }}
             </UiButton>
@@ -407,7 +407,7 @@
             :max="5000"
             :step="20"
             unit=" HP"
-            @update:model-value="(val) => characterStore.devUpdateActiveWaveHp(val)"
+            @update:model-value="(val) => waveStore.devUpdateActiveWaveHp(val)"
           />
 
           <!-- Unit Speed -->
@@ -418,7 +418,7 @@
             :max="6.0"
             :step="0.1"
             :unit="' ' + $t('common.tilesPerSec')"
-            @update:model-value="(val) => characterStore.devUpdateActiveWaveSpeed(val)"
+            @update:model-value="(val) => waveStore.devUpdateActiveWaveSpeed(val)"
           />
 
           <!-- Unit Count -->
@@ -429,7 +429,7 @@
             :max="50"
             :step="1"
             :unit="' ' + $t('common.units')"
-            @update:model-value="(val) => characterStore.devUpdateActiveWaveCount(val)"
+            @update:model-value="(val) => waveStore.devUpdateActiveWaveCount(val)"
           />
 
           <!-- Live Immunities Toggle Pills -->
@@ -446,7 +446,7 @@
                     ? 'bg-rose-500/20 border-rose-400 text-rose-300 shadow-sm'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
                 ]"
-                @click="characterStore.devToggleActiveWaveImmunity(trait.id)"
+                @click="waveStore.devToggleActiveWaveImmunity(trait.id)"
               >
                 <component :is="trait.icon" class="w-3 h-3" :style="{ color: isTraitImmune(trait.id) ? trait.color : '#94a3b8' }" />
                 <span class="truncate">{{ $t(trait.nameKey) }}</span>
@@ -485,6 +485,8 @@ import {
   TabItem,
 } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useGameStore } from '../../stores/gameStore'
+import { useWaveStore } from '../../stores/waveStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useNotificationStore } from '../../stores/notificationStore'
@@ -493,6 +495,8 @@ import { TOWER_TRAITS } from '../../utils/towerTraits'
 import { TowerTraitType } from '../../types/map'
 
 const characterStore = useCharacterStore()
+const gameStore = useGameStore()
+const waveStore = useWaveStore()
 const towerStore = useTowerStore()
 const toolStore = useToolStore()
 const notify = useNotificationStore()
@@ -502,9 +506,9 @@ const isExpanded = ref(false)
 const activeTab = ref('economy')
 
 // Local editable test starting gold, default from store
-const testStartingGold = ref(characterStore.startingGold || 250)
+const testStartingGold = ref(gameStore.startingGold || 250)
 
-watch(() => characterStore.startingGold, (newVal) => {
+watch(() => gameStore.startingGold, (newVal) => {
   if (newVal !== undefined && newVal !== testStartingGold.value) {
     testStartingGold.value = newVal
   }
@@ -515,7 +519,7 @@ const sandboxTabs = computed<TabItem[]>(() => [
   { id: 'waves', label: t('config.tabWaves'), icon: ShieldAlert },
 ])
 
-const activeWave = computed(() => characterStore.currentWaveConfig)
+const activeWave = computed(() => waveStore.currentWaveConfig)
 
 function isTraitImmune(traitId: TowerTraitType): boolean {
   return activeWave.value?.immunities?.includes(traitId) ?? false
@@ -523,16 +527,32 @@ function isTraitImmune(traitId: TowerTraitType): boolean {
 
 function handleStartingGoldChange(val: number) {
   testStartingGold.value = Math.max(0, val)
-  characterStore.devSetStartingGold(testStartingGold.value)
+  gameStore.devSetStartingGold(testStartingGold.value)
 }
 
 function adjustStartingGold(delta: number) {
   testStartingGold.value = Math.max(0, testStartingGold.value + delta)
-  characterStore.devSetStartingGold(testStartingGold.value)
+  gameStore.devSetStartingGold(testStartingGold.value)
+}
+
+function handleJumpToWave(idx: number) {
+  gameStore.devJumpToWave(idx)
+  characterStore.spawnAtRoute(0)
+}
+
+function handleSpawnWaveNow() {
+  gameStore.devSpawnWaveNow()
+  characterStore.startTour()
+}
+
+function handleRestartCurrentWave() {
+  gameStore.devRestartCurrentWave()
+  characterStore.spawnAtRoute(0)
 }
 
 function handleRestartTestGame() {
-  characterStore.devResetGame(testStartingGold.value, true)
+  characterStore.resetTour()
+  gameStore.devResetGame(testStartingGold.value, true)
   notify.success(t('sandbox.resetSuccess'), t('sandbox.restartGame'))
 }
 
@@ -542,9 +562,9 @@ function handleClearTowers() {
 }
 
 function handleAddNewWave() {
-  const newWave = characterStore.devAddWave()
+  const newWave = waveStore.devAddWave()
   if (newWave) {
-    characterStore.devJumpToWave(characterStore.waveConfigs.length - 1)
+    waveStore.selectWave(waveStore.waveConfigs.length - 1)
   }
 }
 

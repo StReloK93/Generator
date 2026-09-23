@@ -86,7 +86,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const autoLoop = ref(true)
   const unitElevation = ref(0)
   const unitScaleMultiplier = ref(1.0)
-  const fps = ref(60)
 
   // Units array & crowd tracking
   const units = ref<CharacterUnit[]>([])
@@ -222,7 +221,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
           animTimer: 0,
           pathIndex: 0,
           pathInterpolation: 0,
-          isSpawned: pairIndex === 0, // First pair visible immediately
+          isSpawned: pairIndex === 0, // First pair visible standing at spawn point
           hasReachedEnd: false,
           celebrationTimer: 0,
           maxHp: baseHp,
@@ -289,6 +288,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
   function resetTour() {
     pauseTour()
     lapCount.value = 0
+    routeWaveProgress.value = {}
+    units.value = []
     initializeUnits()
     statusMessage.value = 'Reset to spawn point and ready'
   }
@@ -312,14 +313,36 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     // Building & prep phase in Play Mode
     if (gameStore.isGameMode && gameStore.gameState === 'build_prep') {
-      if (multiplayerStore.roomId) {
-        gameStore.prepCountdown -= deltaSec
-        if (gameStore.prepCountdown <= 0) {
-          gameStore.prepCountdown = 0
-          startNextWaveInGame()
+      // Countdown timer ONLY runs automatically in Multiplayer rooms
+      if (multiplayerStore.roomId && multiplayerStore.isHost) {
+        if (gameStore.prepCountdown > 0) {
+          gameStore.prepCountdown -= deltaSec
+          if (gameStore.prepCountdown <= 0) {
+            gameStore.prepCountdown = 0
+            gameStore.startNextWaveInGame()
+            startTour()
+          }
+        }
+      }
+
+      // Animate idle pose for preview units standing at the spawn point
+      for (const unit of units.value) {
+        if (unit.isSpawned && !unit.isDead && !unit.hasReachedEnd) {
+          unit.action = 'Idle'
+          unit.animTimer += deltaSec
+          if (unit.animTimer >= 0.15) {
+            unit.animTimer = 0
+            const maxIdle = getModelActionFrameCount(unit.characterModel, 'Idle')
+            unit.frameIndex = (unit.frameIndex + 1) % maxIdle
+          }
         }
       }
       return
+    }
+
+    // Auto-start unit movement if game state transitioned to wave_running
+    if (gameStore.isGameMode && gameStore.gameState === 'wave_running' && !isPlaying.value) {
+      startTour()
     }
 
     if (!isPlaying.value) {
@@ -565,34 +588,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     networkSyncBuffer.interpolate(deltaSec)
   }
 
-  function startPlayMode() {
-    gameStore.startPlayMode()
-    followCamera.value = false
-    spawnAtRoute(0)
-    isPlaying.value = false
-    statusMessage.value = multiplayerStore.roomId 
-      ? `Battle starting in ${gameStore.wavePrepDuration}s...` 
-      : 'Ready! Place defense towers and click Start to begin.'
-  }
-
-  function exitPlayMode() {
-    gameStore.exitPlayMode()
-    isPlaying.value = false
-    followCamera.value = false
-    resetTour()
-  }
-
-  function startNextWaveInGame() {
-    gameStore.startNextWaveInGame()
-    spawnAtRoute(0)
-    startTour()
-  }
-
-  function restartGame() {
-    gameStore.restartGame()
-    startPlayMode()
-  }
-
   function devClearAllCreeps() {
     for (const u of units.value) {
       u.isDead = true
@@ -604,9 +599,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
   }
 
   function resetForNewProject() {
-    routeStore.resetForNewProject()
-    waveStore.resetForNewProject()
-    gameStore.resetForNewProject()
     units.value = []
     unitSpeed.value = 2.5
     spawnCount.value = 10
@@ -621,7 +613,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     statusMessage.value = 'Waiting at spawn point'
   }
 
-  // --- RE-EXPORTS & BRIDGES FOR COMPATIBILITY ---
   return {
     // Unit state
     units,
@@ -638,7 +629,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     autoLoop,
     unitElevation,
     unitScaleMultiplier,
-    fps,
     lapCount,
     statusMessage,
     spawnedUnitsCount,
@@ -660,120 +650,5 @@ export const useCharacterStore = defineStore('characterStore', () => {
     updateClientInterpolation,
     devClearAllCreeps,
     resetForNewProject,
-    // Game lifecycle bridge
-    isGameMode: computed({ get: () => gameStore.isGameMode, set: v => { gameStore.isGameMode = v } }),
-    entrySource: computed({ get: () => gameStore.entrySource, set: v => { gameStore.entrySource = v } }),
-    gameState: computed({ get: () => gameStore.gameState, set: v => { gameStore.gameState = v } }),
-    prepCountdown: computed({ get: () => gameStore.prepCountdown, set: v => { gameStore.prepCountdown = v } }),
-    gold: computed({ get: () => gameStore.gold, set: v => { gameStore.gold = v } }),
-    playerLives: computed({ get: () => gameStore.playerLives, set: v => { gameStore.playerLives = v } }),
-    maxLives: computed({ get: () => gameStore.maxLives, set: v => { gameStore.maxLives = v } }),
-    totalKills: computed({ get: () => gameStore.totalKills, set: v => { gameStore.totalKills = v } }),
-    totalGoldEarned: computed({ get: () => gameStore.totalGoldEarned, set: v => { gameStore.totalGoldEarned = v } }),
-    gameSpeed: computed({ get: () => gameStore.gameSpeed, set: v => { gameStore.setGameSpeed(v) } }),
-    setGameSpeed: gameStore.setGameSpeed,
-    startingGold: computed({ get: () => gameStore.startingGold, set: v => { gameStore.startingGold = v } }),
-    startingLives: computed({ get: () => gameStore.startingLives, set: v => { gameStore.startingLives = v } }),
-    wavePrepDuration: computed({ get: () => gameStore.wavePrepDuration, set: v => { gameStore.wavePrepDuration = v } }),
-    spawnMode: computed({ get: () => gameStore.spawnMode, set: v => { gameStore.spawnMode = v } }),
-    isLoadingGame: computed({ get: () => gameStore.isLoadingGame, set: v => { gameStore.isLoadingGame = v } }),
-    loadingProgress: computed({ get: () => gameStore.loadingProgress, set: v => { gameStore.loadingProgress = v } }),
-    loadingMapTitle: computed({ get: () => gameStore.loadingMapTitle, set: v => { gameStore.loadingMapTitle = v } }),
-    loadingMessage: computed({ get: () => gameStore.loadingMessage, set: v => { gameStore.loadingMessage = v } }),
-    loadingAssetsCount: computed({ get: () => gameStore.loadingAssetsCount, set: v => { gameStore.loadingAssetsCount = v } }),
-    startLoadingScreen: gameStore.startLoadingScreen,
-    setLoadingProgress: gameStore.setLoadingProgress,
-    finishLoadingScreen: gameStore.finishLoadingScreen,
-    syncGameSettingsToProject: gameStore.syncGameSettingsToProject,
-    restoreGameSettingsFromProject: gameStore.restoreGameSettingsFromProject,
-    syncCharacterConfigToProject: gameStore.syncGameSettingsToProject,
-    restoreCharacterConfigFromProject: gameStore.restoreGameSettingsFromProject,
-    startPlayMode,
-    exitPlayMode,
-    startNextWaveInGame,
-    restartGame,
-    devResetGame: gameStore.devResetGame,
-    devAddGold: gameStore.devAddGold,
-    devSetGold: gameStore.devSetGold,
-    devSetStartingGold: gameStore.devSetStartingGold,
-    devAddLives: gameStore.devAddLives,
-    devSetLives: gameStore.devSetLives,
-    devJumpToWave: gameStore.devJumpToWave,
-    devRestartCurrentWave: gameStore.devRestartCurrentWave,
-    devSpawnWaveNow: gameStore.devSpawnWaveNow,
-    // Wave bridge
-    waveConfigs: computed({ get: () => waveStore.waveConfigs, set: v => { waveStore.waveConfigs = v } }),
-    currentWaveIndex: computed({ get: () => waveStore.currentWaveIndex, set: v => { waveStore.currentWaveIndex = v } }),
-    currentWaveConfig: computed(() => waveStore.currentWaveConfig),
-    isWaveSaveFeedback: computed(() => waveStore.isWaveSaveFeedback),
-    syncWavesToProject: waveStore.syncWavesToProject,
-    restoreWavesFromProject: waveStore.restoreWavesFromProject,
-    selectWave: waveStore.selectWave,
-    addNewWave: waveStore.addNewWave,
-    deleteWave: waveStore.deleteWave,
-    saveCurrentWave: waveStore.saveCurrentWave,
-    updateWaveConfig: waveStore.updateWaveConfig,
-    setWaveUnitCount: waveStore.setWaveUnitCount,
-    setWaveUnitHp: waveStore.setWaveUnitHp,
-    setWaveSpeed: waveStore.setWaveSpeed,
-    setWaveUnitBonus: waveStore.setWaveUnitBonus,
-    setWaveEndBonus: waveStore.setWaveEndBonus,
-    setWaveGoldReward: waveStore.setWaveGoldReward,
-    setWaveCharacterModel: waveStore.setWaveCharacterModel,
-    setWaveAnimSpeed: waveStore.setWaveAnimSpeed,
-    setWaveOffsetY: waveStore.setWaveOffsetY,
-    setWaveUnitScale: waveStore.setWaveUnitScale,
-    setWaveUnitVariant: waveStore.setWaveUnitVariant,
-    setWaveVariantTint: waveStore.setWaveVariantTint,
-    devAddWave: waveStore.devAddWave,
-    devUpdateActiveWaveHp: waveStore.devUpdateActiveWaveHp,
-    devUpdateActiveWaveSpeed: waveStore.devUpdateActiveWaveSpeed,
-    devUpdateActiveWaveCount: waveStore.devUpdateActiveWaveCount,
-    devToggleActiveWaveImmunity: waveStore.devToggleActiveWaveImmunity,
-    // Route bridge
-    routes: computed({ get: () => routeStore.routes, set: v => { routeStore.routes = v } }),
-    selectedRouteIndex: computed({ get: () => routeStore.selectedRouteIndex, set: v => { routeStore.selectedRouteIndex = v } }),
-    selectedRoute: computed(() => routeStore.selectedRoute),
-    currentActiveRoute: computed(() => routeStore.currentActiveRoute),
-    customRoutes: computed(() => routeStore.customRoutes),
-    isDrawingRoute: computed({ get: () => routeStore.isDrawingRoute, set: v => { routeStore.isDrawingRoute = v } }),
-    drawingWaypoints: computed({ get: () => routeStore.drawingWaypoints, set: v => { routeStore.drawingWaypoints = v } }),
-    drawingPath: computed(() => routeStore.drawingPath),
-    selectedWaypointIndex: computed({ get: () => routeStore.selectedWaypointIndex, set: v => { routeStore.selectedWaypointIndex = v } }),
-    routeUndoStack: computed({ get: () => routeStore.routeUndoStack, set: v => { routeStore.routeUndoStack = v } }),
-    routeRedoStack: computed({ get: () => routeStore.routeRedoStack, set: v => { routeStore.routeRedoStack = v } }),
-    canUndoRoute: computed(() => routeStore.canUndoRoute),
-    canRedoRoute: computed(() => routeStore.canRedoRoute),
-    isSettingRouteStart: computed({ get: () => routeStore.isSettingRouteStart, set: v => { routeStore.isSettingRouteStart = v } }),
-    routeStartPlacementMode: computed({ get: () => routeStore.routeStartPlacementMode, set: v => { routeStore.routeStartPlacementMode = v } }),
-    isSettingPlayerStartPoint: computed({ get: () => routeStore.isSettingPlayerStartPoint, set: v => { routeStore.isSettingPlayerStartPoint = v } }),
-    blockedBuildingCellsSet: computed(() => routeStore.blockedBuildingCellsSet),
-    isCellBlockedForBuilding: routeStore.isCellBlockedForBuilding,
-    syncRoutesFromProject: routeStore.syncRoutesFromProject,
-    syncRoutesToProject: routeStore.syncRoutesToProject,
-    addRoute: routeStore.addRoute,
-    relocateCurrentRouteStart: routeStore.relocateCurrentRouteStart,
-    setPlayerStartPoint: routeStore.setPlayerStartPoint,
-    relocateCurrentPlayerStartPoint: routeStore.relocateCurrentPlayerStartPoint,
-    clearPlayerStartPoint: routeStore.clearPlayerStartPoint,
-    removeRoute: routeStore.removeRoute,
-    deleteCurrentRoute: routeStore.deleteCurrentRoute,
-    getRouteForIndex: routeStore.getRouteForIndex,
-    pushRouteState: routeStore.pushRouteState,
-    startDrawingCustomRoute: routeStore.startDrawingCustomRoute,
-    selectWaypoint: routeStore.selectWaypoint,
-    moveSelectedWaypoint: routeStore.moveSelectedWaypoint,
-    setWaypointPosition: routeStore.setWaypointPosition,
-    commitRouteState: routeStore.commitRouteState,
-    deleteSelectedWaypoint: routeStore.deleteSelectedWaypoint,
-    deleteWaypoint: routeStore.deleteWaypoint,
-    addWaypoint: routeStore.addWaypoint,
-    addPathTile: routeStore.addPathTile,
-    undoRoute: routeStore.undoRoute,
-    redoRoute: routeStore.redoRoute,
-    undoLastPathTile: routeStore.undoLastPathTile,
-    clearDrawnRoute: routeStore.clearDrawnRoute,
-    finishDrawingRoute: routeStore.finishDrawingRoute,
-    cancelDrawingRoute: routeStore.cancelDrawingRoute,
   }
 })

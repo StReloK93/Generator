@@ -162,6 +162,31 @@ PixiJS (SpriteFactory, MapRenderer, UnitRenderer, TowerRenderer, CombatRenderer)
 
 ---
 
+## 📋 PROJECT CODE QUALITY RULES (MAJBURIY)
+
+1. **Prefer existing code over creating wrappers**: Har doim mavjud funksiyalardan foydalaning, keraksiz qo'shimcha wrapperlar yaratmang.
+2. **Do not create compatibility aliases unless external data/API requires them**: Tashqi API talab qilmasa, keraksiz nom moslashtiruvchi aliaslar qo'shilmasin.
+3. **Do not re-export another store's state or methods through a different store**: Bir store boshqa store holatini yoki metodlarini o'zi orqali qayta eksport qilmasin.
+4. **Do not keep old names just to avoid updating callers**: Chaqiruvchilarni yangilashdan qochish uchun eski eskirgan nomlar saqlanib qolmasin.
+5. **One responsibility must have one owner**: Har bir vazifa va mas'uliyatning yagona egasi bo'lishi shart.
+6. **One piece of state must have one source of truth**: Har bir holat qiymatining faqat bitta haqiqat manbai (Single Source of Truth) bo'lsin.
+7. **Do not duplicate the same data in multiple objects**: Bir xil ma'lumotni bir nechta obyekt yoki store'da takrorlamang.
+8. **Do not create abstractions for one simple function**: Bitta oddiy funksiya uchun ortiqcha murakkab abstraksiyalar qurmang.
+9. **Do not create Manager/Service/Helper classes unless there is real reusable domain logic**: Haqiqiy qayta ishlatiladigan domain logikasi bo'lmasa, sun'iy Manager/Service/Helper klasslar yaratmang.
+10. **Remove dead code instead of commenting it out**: Ishlatilmaydigan kodni izoh (comment) qilib qoldirmang, butunlay o'chirib tashlang.
+11. **Never use `any`, `@ts-ignore`, or eslint-disable to hide architectural problems**: Arxitektura muammolarini yashirish uchun hech qachon `any`, `@ts-ignore` yoki eslint-disable ishlatmang.
+12. **When moving functionality, update all callers instead of creating a bridge**: Funksionallik boshqa joyga ko'chirilganda, ko'prik (bridge) yasamasdan barcha chaqiruvchi joylarni to'g'ridan-to'g'ri yangilang.
+13. **Do not preserve internal APIs merely for backward compatibility**: Faqat "moslik" vajidan ichki keraksiz API'larni saqlab yurmang.
+14. **Before adding code, search whether an existing function already solves the problem**: Yangi kod yozishdan oldin loyihada xuddi shu muammoni hal qiluvchi tayyor funksiya bor-yo'qligini qidiring.
+15. **Prefer direct dependencies over indirection**: To'g'ridan-to'g'ri bog'liqlikni vositachilar orqali aylanib o'tishdan ustun qo'ying.
+16. **Keep stores focused on one domain**: Har bir Pinia store faqat o'zining bitta sohasiga (domain) e'tibor qaratishi kerak.
+17. **Components should use the store that owns the data directly**: Vue komponentlari ma'lumotga ega bo'lgan store'dan to'g'ridan-to'g'ri foydalansin.
+18. **Do not create a second source of truth**: Hech qachon ma'lumotning ikkinchi parallel manbasini yaratmang.
+19. **Do not make a refactor larger than necessary**: Refaktoringni keragidan ortiq kengaytirib, asossiz butun tizimni buzib yubormang.
+20. **After refactoring, remove obsolete code and verify repository-wide usage**: Refaktoringdan so'ng eskirgan kodlarni tozalang va loyiha bo'ylab barcha chaqiruvlarni build orqali to'liq tekshiring.
+
+---
+
 ## 🚀 Ishga Tushirish (Quick Start)
 
 ```bash

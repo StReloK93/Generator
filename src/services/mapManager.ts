@@ -9,7 +9,9 @@ import {
 } from './projectStorage'
 import { useMapStore } from '../stores/mapStore'
 import { useAssetStore } from '../stores/assetStore'
-import { useCharacterStore } from '../stores/characterStore'
+import { useRouteStore } from '../stores/routeStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 
 export interface BuiltinMapSummary {
@@ -196,7 +198,9 @@ export function applyMapPayloadToStores(rawPayload: any): void {
 
   const mapStore = useMapStore()
   const assetStore = useAssetStore()
-  const characterStore = useCharacterStore()
+  const routeStore = useRouteStore()
+  const waveStore = useWaveStore()
+  const gameStore = useGameStore()
   const towerStore = useTowerStore()
 
   const data = rawPayload.payload || rawPayload
@@ -221,7 +225,7 @@ export function applyMapPayloadToStores(rawPayload: any): void {
   // 2. Hydrate Waves
   const rawWaves = data.waveData?.waveConfigs || data.waveConfigs || project.waveConfigs || []
   if (rawWaves && rawWaves.length > 0) {
-    characterStore.waveConfigs = rawWaves.map((w: any) => ({
+    waveStore.waveConfigs = rawWaves.map((w: any) => ({
       ...w,
       characterModel: w.characterModel || 'male',
       unitSpeed: Number(w.unitSpeed) || 2.5,
@@ -230,7 +234,7 @@ export function applyMapPayloadToStores(rawPayload: any): void {
       goldReward: Number(w.goldReward) || (Number(w.unitBonus) || 1),
     }))
   } else {
-    characterStore.waveConfigs = []
+    waveStore.waveConfigs = []
   }
 
   // 3. Hydrate Towers & Clans
@@ -256,10 +260,10 @@ export function applyMapPayloadToStores(rawPayload: any): void {
   }
 
   // 4. Hydrate Routes
-  characterStore.syncRoutesFromProject()
+  routeStore.syncRoutesFromProject()
 
   // 5. Hydrate Game Settings
-  characterStore.restoreGameSettingsFromProject()
+  gameStore.restoreGameSettingsFromProject()
 
   // 6. Assets Reconciliation
   if (data.assets && Array.isArray(data.assets) && data.assets.length > 0) {
@@ -268,7 +272,7 @@ export function applyMapPayloadToStores(rawPayload: any): void {
 
   // 7. Store internal restore hooks
   towerStore.restoreFromProject()
-  characterStore.restoreWavesFromProject()
-  characterStore.syncRoutesFromProject()
+  waveStore.restoreWavesFromProject()
+  routeStore.syncRoutesFromProject()
   mapStore.resetHistory(`Map loaded: ${project.name || 'Project'}`)
 }

@@ -5,8 +5,8 @@
       'cursor-grab!': toolStore.activeTool === 'pan' && !camera.isPanning.value,
       'cursor-grabbing!': camera.isPanning.value,
       'cursor-cell!': toolStore.activeTool === 'picker',
-      'cursor-crosshair!': characterStore.isDrawingRoute || characterStore.isSettingRouteStart || characterStore.isSettingPlayerStartPoint,
-      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !characterStore.isDrawingRoute && !characterStore.isSettingRouteStart && !characterStore.isSettingPlayerStartPoint,
+      'cursor-crosshair!': routeStore.isDrawingRoute || routeStore.isSettingRouteStart || routeStore.isSettingPlayerStartPoint,
+      'cursor-pointer!': (!assetStore.selectedAssetId || toolStore.activeTool === 'select') && !routeStore.isDrawingRoute && !routeStore.isSettingRouteStart && !routeStore.isSettingPlayerStartPoint,
       'cursor-move!': toolStore.isMovingElement,
       'cursor-not-allowed!': mapStore.activeLayer?.locked
     }" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
@@ -99,38 +99,38 @@
     </div>
 
     <!-- Floating HUD when Setting Route Start Point -->
-    <div v-if="characterStore.isSettingRouteStart"
+    <div v-if="routeStore.isSettingRouteStart"
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-amber-200 animate-in fade-in slide-in-from-top-2">
       <MapPin class="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
       <span class="flex items-center gap-1.5">
-        <component :is="characterStore.routeStartPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
-        <strong>{{ characterStore.routeStartPlacementMode === 'add' ? $t('editor.newSpawnPoint') : $t('editor.relocateSpawnPoint') }}:</strong>
+        <component :is="routeStore.routeStartPlacementMode === 'add' ? Plus : MapPin" class="w-3.5 h-3.5 text-amber-400" />
+        <strong>{{ routeStore.routeStartPlacementMode === 'add' ? $t('editor.newSpawnPoint') : $t('editor.relocateSpawnPoint') }}:</strong>
         {{ $t('editor.clickAnyCell') }}
       </span>
       <UiButton
         variant="secondary"
         size="xs"
         :title="`${$t('common.cancel')} (Esc)`"
-        @click="characterStore.isSettingRouteStart = false"
+        @click="routeStore.isSettingRouteStart = false"
       >
         {{ $t('common.cancel') }}
       </UiButton>
     </div>
 
     <!-- Floating HUD when Setting Player Start / Base Point -->
-    <div v-if="characterStore.isSettingPlayerStartPoint"
+    <div v-if="routeStore.isSettingPlayerStartPoint"
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2.5 rounded-2xl border border-sky-500/60 shadow-2xl flex items-center gap-3 text-xs bg-slate-900/95 text-sky-200 animate-in fade-in slide-in-from-top-2">
       <Castle class="w-4 h-4 text-sky-400 animate-bounce shrink-0" />
       <span class="flex items-center gap-1.5">
         <Crosshair class="w-3.5 h-3.5 text-sky-400" />
-        <strong>{{ $t('editor.playerStartPoint') || 'O\'yinchi start nuqtasi' }} (P{{ (characterStore.selectedRouteIndex ?? 0) + 1 }}):</strong>
+        <strong>{{ $t('editor.playerStartPoint') || 'O\'yinchi start nuqtasi' }} (P{{ (routeStore.selectedRouteIndex ?? 0) + 1 }}):</strong>
         {{ $t('editor.clickCellToSetPlayerStart') || 'Xaritadagi istalgan katakni bosib bino qurish bazasini belgilang' }}
       </span>
       <UiButton
         variant="secondary"
         size="xs"
         :title="`${$t('common.cancel')} (Esc)`"
-        @click="characterStore.isSettingPlayerStartPoint = false"
+        @click="routeStore.isSettingPlayerStartPoint = false"
       >
         {{ $t('common.cancel') }}
       </UiButton>
@@ -507,21 +507,21 @@
     </div>
 
     <!-- Floating HUD when Drawing Custom Route -->
-    <div v-if="characterStore.isDrawingRoute"
+    <div v-if="routeStore.isDrawingRoute"
       class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-3.5 py-2 rounded-2xl border border-brand-500/60 shadow-2xl flex items-center flex-wrap gap-2 text-xs bg-slate-900/95 text-brand-200 animate-in fade-in slide-in-from-top-2">
       
       <!-- Icon & Status text -->
       <div class="flex items-center gap-2 pr-1">
         <PenTool class="w-4 h-4 text-brand-400 animate-pulse shrink-0" />
-        <template v-if="characterStore.selectedWaypointIndex !== null">
+        <template v-if="routeStore.selectedWaypointIndex !== null">
           <span class="font-medium text-amber-300">
-            <strong>{{ $t('editor.pointSelected', { num: characterStore.selectedWaypointIndex + 1 }) }}</strong> {{ $t('editor.clickMapToMove') }}
+            <strong>{{ $t('editor.pointSelected', { num: routeStore.selectedWaypointIndex + 1 }) }}</strong> {{ $t('editor.clickMapToMove') }}
           </span>
           <UiButton
             variant="ghost"
             size="xs"
             :title="`${$t('editor.deselectPoint')} (Esc)`"
-            @click="characterStore.selectedWaypointIndex = null; engine.renderCharacter(characterStore, mapStore.project)"
+            @click="routeStore.selectedWaypointIndex = null; engine.renderCharacter(characterStore, mapStore.project)"
           >
             {{ $t('editor.deselect') }}
           </UiButton>
@@ -530,12 +530,12 @@
             size="xs"
             :icon="Trash2"
             :title="`${$t('editor.deleteWaypoint')} (Del)`"
-            @click="characterStore.deleteSelectedWaypoint(); engine.renderCharacter(characterStore, mapStore.project)"
+            @click="routeStore.deleteSelectedWaypoint(); engine.renderCharacter(characterStore, mapStore.project)"
           />
         </template>
         <template v-else>
           <span>
-            <strong>{{ $t('editor.waypoints') }}</strong> {{ characterStore.drawingWaypoints.length }} <span class="text-slate-400 font-mono">({{ $t('editor.tilesCount', { count: characterStore.drawingPath.length }) }})</span>
+            <strong>{{ $t('editor.waypoints') }}</strong> {{ routeStore.drawingWaypoints.length }} <span class="text-slate-400 font-mono">({{ $t('editor.tilesCount', { count: routeStore.drawingPath.length }) }})</span>
           </span>
         </template>
       </div>
@@ -548,24 +548,24 @@
           variant="ghost"
           size="xs"
           :icon="Undo2"
-          :disabled="!characterStore.canUndoRoute"
+          :disabled="!routeStore.canUndoRoute"
           :title="`${$t('editor.undoStep')} (Ctrl+Z)`"
-          @click="characterStore.undoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+          @click="routeStore.undoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
         />
         <UiIconButton
           variant="ghost"
           size="xs"
           :icon="Redo2"
-          :disabled="!characterStore.canRedoRoute"
+          :disabled="!routeStore.canRedoRoute"
           :title="`${$t('editor.redoStep')} (Ctrl+Y)`"
-          @click="characterStore.redoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+          @click="routeStore.redoRoute(); engine.renderCharacter(characterStore, mapStore.project)"
         />
         <UiIconButton
           variant="ghost"
           size="xs"
           :icon="RotateCcw"
           :title="$t('editor.resetStartPoint')"
-          @click="characterStore.clearDrawnRoute(); engine.renderCharacter(characterStore, mapStore.project)"
+          @click="routeStore.clearDrawnRoute(); engine.renderCharacter(characterStore, mapStore.project)"
         />
       </div>
 
@@ -578,7 +578,7 @@
           size="xs"
           :leading-icon="Check"
           :title="`${$t('editor.finish')} (P / Enter)`"
-          @click="characterStore.finishDrawingRoute()"
+          @click="routeStore.finishDrawingRoute()"
         >
           {{ $t('editor.finish') }}
         </UiButton>
@@ -586,7 +586,7 @@
           variant="secondary"
           size="xs"
           :title="`${$t('common.cancel')} (Esc)`"
-          @click="characterStore.cancelDrawingRoute()"
+          @click="routeStore.cancelDrawingRoute()"
         >
           {{ $t('common.cancel') }}
         </UiButton>
@@ -711,6 +711,8 @@ import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useRouteStore } from '../../stores/routeStore'
+import { useGameStore } from '../../stores/gameStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
@@ -729,6 +731,8 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const gameStore = useGameStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -1036,14 +1040,14 @@ watch(() => [
   characterStore.isEnabled,
   characterStore.showSpawnPoints,
   characterStore.showPathTrail,
-  characterStore.isDrawingRoute,
-  characterStore.drawingPath.length,
-  characterStore.selectedWaypointIndex,
-  characterStore.selectedRouteIndex,
-  characterStore.spawnMode,
-  characterStore.isSettingRouteStart,
-  characterStore.isSettingPlayerStartPoint,
-  characterStore.routes,
+  routeStore.isDrawingRoute,
+  routeStore.drawingPath.length,
+  routeStore.selectedWaypointIndex,
+  routeStore.selectedRouteIndex,
+  gameStore.spawnMode,
+  routeStore.isSettingRouteStart,
+  routeStore.isSettingPlayerStartPoint,
+  routeStore.routes,
 ], () => {
   if (engine.isInitialized) engine.renderCharacter(characterStore, mapStore.project)
 }, { deep: true })
@@ -1287,17 +1291,17 @@ function handleKeyDown(e: KeyboardEvent) {
       editorController.eraserTool.onCancel(editorController.ctx)
       return
     }
-    if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
-      characterStore.selectedWaypointIndex = null
+    if (routeStore.isDrawingRoute && routeStore.selectedWaypointIndex !== null) {
+      routeStore.selectedWaypointIndex = null
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (characterStore.isSettingRouteStart) {
-      characterStore.isSettingRouteStart = false
+    if (routeStore.isSettingRouteStart) {
+      routeStore.isSettingRouteStart = false
       return
     }
-    if (characterStore.isSettingPlayerStartPoint) {
-      characterStore.isSettingPlayerStartPoint = false
+    if (routeStore.isSettingPlayerStartPoint) {
+      routeStore.isSettingPlayerStartPoint = false
       return
     }
     if (toolStore.activeTool === 'buildable') {
@@ -1339,9 +1343,9 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 
   // 3. Enter key: Finish route if drawing
-  if ((code === 'Enter' || code === 'NumpadEnter') && characterStore.isDrawingRoute) {
+  if ((code === 'Enter' || code === 'NumpadEnter') && routeStore.isDrawingRoute) {
     e.preventDefault()
-    characterStore.finishDrawingRoute()
+    routeStore.finishDrawingRoute()
     return
   }
 
@@ -1350,8 +1354,8 @@ function handleKeyDown(e: KeyboardEvent) {
     // Redo: Ctrl+Y or Ctrl+Shift+Z
     if (code === 'KeyY' || key === 'y' || (e.shiftKey && (code === 'KeyZ' || key === 'z'))) {
       e.preventDefault()
-      if (characterStore.isDrawingRoute) {
-        characterStore.redoRoute()
+      if (routeStore.isDrawingRoute) {
+        routeStore.redoRoute()
         engine.renderCharacter(characterStore, mapStore.project)
       } else {
         mapStore.redo()
@@ -1365,8 +1369,8 @@ function handleKeyDown(e: KeyboardEvent) {
     // Undo: Ctrl+Z
     if (!e.shiftKey && (code === 'KeyZ' || key === 'z')) {
       e.preventDefault()
-      if (characterStore.isDrawingRoute) {
-        characterStore.undoRoute()
+      if (routeStore.isDrawingRoute) {
+        routeStore.undoRoute()
         engine.renderCharacter(characterStore, mapStore.project)
       } else {
         mapStore.undo()
@@ -1387,9 +1391,9 @@ function handleKeyDown(e: KeyboardEvent) {
 
   // 5. Delete / Backspace: delete selected item(s) / waypoint
   if (code === 'Delete' || code === 'Backspace' || key === 'delete' || key === 'backspace') {
-    if (characterStore.isDrawingRoute && characterStore.selectedWaypointIndex !== null) {
+    if (routeStore.isDrawingRoute && routeStore.selectedWaypointIndex !== null) {
       e.preventDefault()
-      characterStore.deleteSelectedWaypoint()
+      routeStore.deleteSelectedWaypoint()
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -1443,8 +1447,8 @@ function handleKeyDown(e: KeyboardEvent) {
     // Route / Creeps simulation: P
     if (code === 'KeyP' || key === 'p') {
       e.preventDefault()
-      if (characterStore.isDrawingRoute) {
-        characterStore.finishDrawingRoute()
+      if (routeStore.isDrawingRoute) {
+        routeStore.finishDrawingRoute()
       } else {
         characterStore.isEnabled = !characterStore.isEnabled
       }

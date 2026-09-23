@@ -17,6 +17,9 @@ import { networkService } from '../services/networkService'
 import { networkSyncBuffer } from '../services/networkSync'
 import { useMapStore } from './mapStore'
 import { useCharacterStore } from './characterStore'
+import { useRouteStore } from './routeStore'
+import { useWaveStore } from './waveStore'
+import { useGameStore } from './gameStore'
 import { useTowerStore } from './towerStore'
 import { useNotificationStore } from './notificationStore'
 import { MapProject } from '../types/map'
@@ -25,6 +28,9 @@ import { gridToScreen } from '../utils/isometric'
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const mapStore = useMapStore()
   const characterStore = useCharacterStore()
+  const routeStore = useRouteStore()
+  const waveStore = useWaveStore()
+  const gameStore = useGameStore()
   const towerStore = useTowerStore()
   const notify = useNotificationStore()
 
@@ -116,7 +122,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    * Initializes player slots based on map routes
    */
   function initializeSlotsFromMap(project: MapProject): PlayerSlot[] {
-    const routesList = project.routes || characterStore.routes || []
+    const routesList = project.routes || routeStore.routes || []
     const count = Math.max(1, Math.min(8, routesList.length > 0 ? routesList.length : 4))
     maxPlayers.value = count
 
@@ -164,7 +170,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // Create slots based on map routes
     slots.value = initializeSlotsFromMap(mapProject)
 
-    const startGold = mapProject.gameSettings?.startingGold || characterStore.startingGold || 150
+    const startGold = mapProject.gameSettings?.startingGold || gameStore.startingGold || 150
 
     // Setup Host Player (Slot 0 is Slot 1 = Red)
     const hostPlayer: PlayerInfo = {
@@ -316,7 +322,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
         // If game was started while we received lobby update
         if (state.gameState === 'in_game' && globalRouter) {
-          characterStore.startPlayMode()
+          gameStore.startPlayMode()
+          characterStore.spawnAtRoute(0)
+          characterStore.startTour()
           globalRouter.push(`/game/${roomId.value}`)
         }
         break
@@ -341,7 +349,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         // Slot-based authoritative color
         const assignedColor = getSlotColor(emptySlot.slotIndex)
 
-        const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+        const startGold = mapStore.project.gameSettings?.startingGold || gameStore.startingGold || 150
 
         const newPlayer: PlayerInfo = {
           id: applicant.id,
@@ -367,7 +375,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           type: 'MAP_DATA',
           payload: {
             project: mapStore.project,
-            waveConfigs: characterStore.waveConfigs,
+            waveConfigs: waveStore.waveConfigs,
             towerBlueprints: (mapStore.project as any).towerBlueprints || [],
           },
           senderId: myPlayerId.value,
@@ -384,7 +392,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
+          waveStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
             ...w,
             characterModel: w.characterModel || 'male',
             animSpeed: Number(w.animSpeed) || 1.0,
@@ -446,7 +454,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         if (msg.payload?.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          characterStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
+          waveStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
             ...w,
             unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
             endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
@@ -462,13 +470,16 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
         }
         towerStore.restoreFromProject()
-        characterStore.restoreGameSettingsFromProject()
+        gameStore.restoreGameSettingsFromProject()
+        waveStore.restoreWavesFromProject()
 
         resetGameMatchStats()
         roomGameState.value = 'in_game'
         isNudgeModalOpen.value = false
         isReadyButtonGlowing.value = false
-        characterStore.startPlayMode()
+        gameStore.startPlayMode()
+        characterStore.spawnAtRoute(0)
+        characterStore.startTour()
 
         if (globalRouter) {
           globalRouter.push(`/game/${roomId.value}`)
@@ -479,7 +490,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       case 'RETURN_TO_LOBBY': {
         resetGameMatchStats()
         roomGameState.value = 'lobby'
-        characterStore.exitPlayMode()
+        gameStore.exitPlayMode()
+        characterStore.resetTour()
         towerStore.clearAllTowers()
         players.value.forEach(p => {
           if (!p.isHost) p.isReady = false
@@ -596,7 +608,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           const snapshot = msg.payload
           if (snapshot) {
             networkSyncBuffer.pushSnapshot(snapshot)
-            characterStore.isGameMode = true
+            gameStore.isGameMode = true
             characterStore.isEnabled = true
           }
         }
@@ -617,11 +629,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (!isHost.value) {
           const state = msg.payload
           if (!state) return
-          characterStore.gameState = state.gameState
-          characterStore.prepCountdown = state.prepCountdown
-          characterStore.currentWaveIndex = state.currentWaveIndex
-          characterStore.playerLives = state.playerLives
-          characterStore.isGameMode = true
+          gameStore.gameState = state.gameState
+          gameStore.prepCountdown = state.prepCountdown
+          waveStore.currentWaveIndex = state.currentWaveIndex
+          gameStore.playerLives = state.playerLives
+          gameStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = state.gameState === 'wave_running'
 
@@ -662,9 +674,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
                   p.totalGoldEarned = stat.totalGoldEarned
                 }
                 if (p.id === myPlayerId.value) {
-                  characterStore.gold = p.gold
-                  characterStore.totalKills = p.killsCount
-                  characterStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
+                  gameStore.gold = p.gold
+                  gameStore.totalKills = p.killsCount
+                  gameStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
                 }
               }
             }
@@ -677,11 +689,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (!isHost.value) {
           const tick = msg.payload
           if (!tick) return
-          characterStore.gameState = tick.gameState
-          characterStore.prepCountdown = tick.prepCountdown
-          characterStore.currentWaveIndex = tick.currentWaveIndex
-          characterStore.playerLives = tick.playerLives
-          characterStore.isGameMode = true
+          gameStore.gameState = tick.gameState
+          gameStore.prepCountdown = tick.prepCountdown
+          waveStore.currentWaveIndex = tick.currentWaveIndex
+          gameStore.playerLives = tick.playerLives
+          gameStore.isGameMode = true
           characterStore.isEnabled = true
           characterStore.isPlaying = tick.gameState === 'wave_running'
 
@@ -698,9 +710,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
                   p.totalGoldEarned = stat.totalGoldEarned
                 }
                 if (p.id === myPlayerId.value) {
-                  characterStore.gold = p.gold
-                  characterStore.totalKills = p.killsCount
-                  characterStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
+                  gameStore.gold = p.gold
+                  gameStore.totalKills = p.killsCount
+                  gameStore.totalGoldEarned = p.totalGoldEarned ?? p.gold
                 }
               }
             }
@@ -733,7 +745,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'ROOM_CLOSED': {
         notify.warning(msg.payload?.message || "Host left the room. Room closed.", "Room Closed")
-        characterStore.exitPlayMode()
+        gameStore.exitPlayMode()
+        characterStore.resetTour()
         towerStore.clearAllTowers()
         leaveRoom(globalRouter)
         break
@@ -941,14 +954,14 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // 3. Low-frequency 1Hz Game State Sync (with Placed Towers state check)
     if (now - lastGameStateBroadcastTime >= 800) {
       lastGameStateBroadcastTime = now
-      const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
+      const defaultGold = mapStore.project.gameSettings?.startingGold ?? gameStore.startingGold ?? 150
       networkService.broadcast({
         type: 'GAME_STATE_SYNC',
         payload: {
-          gameState: characterStore.gameState,
-          prepCountdown: Math.ceil(characterStore.prepCountdown),
-          currentWaveIndex: characterStore.currentWaveIndex,
-          playerLives: characterStore.playerLives,
+          gameState: gameStore.gameState,
+          prepCountdown: Math.ceil(gameStore.prepCountdown),
+          currentWaveIndex: waveStore.currentWaveIndex,
+          playerLives: gameStore.playerLives,
           score: 0,
           placedTowers: towerStore.placedTowers.map(t => ({ ...t })),
           playerStats: players.value.map(p => ({
@@ -972,15 +985,15 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function recordPlayerKill(playerId: string, killGold: number) {
     const p = players.value.find(x => x.id === playerId)
     if (p) {
-      const defaultGold = mapStore.project.gameSettings?.startingGold ?? characterStore.startingGold ?? 150
+      const defaultGold = mapStore.project.gameSettings?.startingGold ?? gameStore.startingGold ?? 150
       p.killsCount = (p.killsCount || 0) + 1
       p.gold = (p.gold !== undefined ? p.gold : defaultGold) + killGold
       p.totalGoldEarned = (p.totalGoldEarned !== undefined ? p.totalGoldEarned : defaultGold) + killGold
       p.score = (p.score || 0) + killGold * 10
       if (p.id === myPlayerId.value) {
-        characterStore.gold = p.gold
-        characterStore.totalKills = p.killsCount
-        characterStore.totalGoldEarned = p.totalGoldEarned
+        gameStore.gold = p.gold
+        gameStore.totalKills = p.killsCount
+        gameStore.totalGoldEarned = p.totalGoldEarned
       }
     }
   }
@@ -1099,7 +1112,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   function resetGameMatchStats() {
-    const startGold = mapStore.project.gameSettings?.startingGold || characterStore.startingGold || 150
+    const startGold = mapStore.project.gameSettings?.startingGold || gameStore.startingGold || 150
     players.value.forEach(p => {
       p.gold = startGold
       p.totalGoldEarned = startGold
@@ -1107,12 +1120,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       p.score = 0
       p.towersBuilt = 0
     })
-    characterStore.gold = startGold
-    characterStore.totalGoldEarned = startGold
-    characterStore.totalKills = 0
-    characterStore.currentWaveIndex = 0
-    characterStore.playerLives = characterStore.startingLives
-    characterStore.prepCountdown = characterStore.wavePrepDuration
+    gameStore.gold = startGold
+    gameStore.totalGoldEarned = startGold
+    gameStore.totalKills = 0
+    waveStore.currentWaveIndex = 0
+    gameStore.playerLives = gameStore.startingLives
+    gameStore.prepCountdown = gameStore.wavePrepDuration
     towerStore.placedTowers = []
     towerStore.clearCombatEffects()
   }
@@ -1135,7 +1148,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       payload: {
         roomId: roomId.value,
         mapProject: JSON.parse(JSON.stringify(mapStore.project)),
-        waveConfigs: JSON.parse(JSON.stringify(characterStore.waveConfigs)),
+        waveConfigs: JSON.parse(JSON.stringify(waveStore.waveConfigs)),
         towerBlueprints: JSON.parse(JSON.stringify(towerStore.blueprints)),
         timestamp: Date.now(),
       },
@@ -1144,7 +1157,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     })
 
     resetGameMatchStats()
-    characterStore.startPlayMode()
+    gameStore.startPlayMode()
+    characterStore.spawnAtRoute(0)
+    characterStore.startTour()
 
     if (globalRouter) {
       globalRouter.push(`/game/${roomId.value}`)
@@ -1158,7 +1173,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
     if (isHost.value) {
       roomGameState.value = 'lobby'
-      characterStore.exitPlayMode()
+      gameStore.exitPlayMode()
+      characterStore.resetTour()
       towerStore.clearAllTowers()
       players.value.forEach(p => {
         if (!p.isHost) p.isReady = false
@@ -1186,7 +1202,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         timestamp: Date.now(),
       })
       roomGameState.value = 'lobby'
-      characterStore.exitPlayMode()
+      gameStore.exitPlayMode()
+      characterStore.resetTour()
       towerStore.clearAllTowers()
       if (globalRouter) {
         globalRouter.push(`/lobby/${roomId.value}`)
@@ -1227,7 +1244,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     isNudgeModalOpen.value = false
     isReadyButtonGlowing.value = false
     teammateHovers.value.clear()
-    characterStore.exitPlayMode()
+    gameStore.exitPlayMode()
+    characterStore.resetTour()
     towerStore.clearAllTowers()
 
     refreshDiscovery()

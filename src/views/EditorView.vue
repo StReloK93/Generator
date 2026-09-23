@@ -94,6 +94,9 @@ import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useCharacterStore } from '../stores/characterStore'
+import { useRouteStore } from '../stores/routeStore'
+import { useWaveStore } from '../stores/waveStore'
+import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { 
@@ -109,6 +112,9 @@ const mapStore = useMapStore()
 const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const characterStore = useCharacterStore()
+const routeStore = useRouteStore()
+const waveStore = useWaveStore()
+const gameStore = useGameStore()
 const towerStore = useTowerStore()
 
 const viewportRef = ref<any>(null)
@@ -146,9 +152,9 @@ function autoSaveCurrentState() {
   }
 
   // 1. Synchronize all reactive store values into project
-  characterStore.syncGameSettingsToProject()
-  characterStore.syncWavesToProject()
-  characterStore.syncRoutesToProject()
+  gameStore.syncGameSettingsToProject()
+  waveStore.syncWavesToProject()
+  routeStore.syncRoutesToProject()
   towerStore.syncToProject()
 
   const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
@@ -160,13 +166,13 @@ function autoSaveCurrentState() {
     mapStore.project,
     assetStore.assets,
     {
-      routes: characterStore.routes,
-      spawnMode: characterStore.spawnMode,
+      routes: routeStore.routes,
+      spawnMode: gameStore.spawnMode,
       formation: characterStore.formation,
       pairDistance: characterStore.pairDistance,
       unitElevation: characterStore.unitElevation,
       unitScaleMultiplier: characterStore.unitScaleMultiplier,
-      selectedRouteIndex: characterStore.selectedRouteIndex,
+      selectedRouteIndex: routeStore.selectedRouteIndex,
     },
     {
       placedTowers: towerStore.placedTowers,
@@ -174,14 +180,14 @@ function autoSaveCurrentState() {
       clans: towerStore.clans,
     },
     {
-      waveConfigs: characterStore.waveConfigs,
-      currentWaveIndex: characterStore.currentWaveIndex,
+      waveConfigs: waveStore.waveConfigs,
+      currentWaveIndex: waveStore.currentWaveIndex,
     },
     {
-      startingGold: characterStore.startingGold,
-      startingLives: characterStore.startingLives,
-      wavePrepTime: characterStore.wavePrepDuration,
-      spawnMode: characterStore.spawnMode,
+      startingGold: gameStore.startingGold,
+      startingLives: gameStore.startingLives,
+      wavePrepTime: gameStore.wavePrepDuration,
+      spawnMode: gameStore.spawnMode,
       formation: characterStore.formation,
       pairDistance: characterStore.pairDistance,
       unitElevation: characterStore.unitElevation,
@@ -194,12 +200,12 @@ watch(
   () => [
     mapStore.project.updatedAt,
     assetStore.assets.length,
-    characterStore.waveConfigs,
-    characterStore.routes,
-    characterStore.startingGold,
-    characterStore.startingLives,
-    characterStore.wavePrepDuration,
-    characterStore.spawnMode,
+    waveStore.waveConfigs,
+    routeStore.routes,
+    gameStore.startingGold,
+    gameStore.startingLives,
+    gameStore.wavePrepDuration,
+    gameStore.spawnMode,
     characterStore.formation,
     characterStore.pairDistance,
     towerStore.blueprints,
@@ -257,10 +263,10 @@ onMounted(async () => {
   mapStore.isGameMap = false
 
   // STRICT CLEANUP: Always stop any previous game simulation & network snapshots when entering editor
-  characterStore.exitPlayMode()
+  gameStore.exitPlayMode()
   characterStore.isPlaying = false
-  characterStore.isGameMode = false
-  characterStore.gameState = 'ready'
+  gameStore.isGameMode = false
+  gameStore.gameState = 'ready'
   characterStore.units = []
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
