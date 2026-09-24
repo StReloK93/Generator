@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { CrowdSimulation } from '@/domain/simulation/CrowdSimulation'
-import { CharacterUnit } from '@/stores/characterStore'
+import { CharacterUnit } from '@/types/unit'
 
 describe('CrowdSimulation Domain Logic', () => {
   const tileWidth = 128
@@ -59,40 +59,54 @@ describe('CrowdSimulation Domain Logic', () => {
   it('processStatusEffects should tick DoT damage, apply slow, and trigger death when HP reaches 0', () => {
     const unit: CharacterUnit = {
       id: 'unit-dot',
-      name: 'Mob',
-      characterModel: 'male',
-      direction: 2,
-      action: 'Run',
-      frameIndex: 0,
-      animTimer: 0,
-      pathIndex: 0,
-      pathInterpolation: 0,
-      currentCol: 5,
-      currentRow: 5,
-      screenX: 100,
-      screenY: 100,
-      speed: 3.5,
-      isSpawned: true,
-      isDead: false,
-      hasReachedEnd: false,
-      currentHp: 10,
-      maxHp: 100,
-      spawnDelay: 0,
-      totalDistance: 10,
-      distanceTraveled: 0,
-      routeId: 'route-1',
-      statusEffects: [
-        {
-          type: 'fire',
-          duration: 2.0,
-          dps: 20, // 20 DPS -> in 0.5s ticks 10 dmg
-        },
-        {
-          type: 'frost',
-          duration: 3.0,
-          slowPercent: 50,
-        },
-      ],
+      identity: {
+        routeId: 'route-1',
+        routeIndex: 0,
+        unitIndex: 0,
+        pairIndex: 0,
+        sideOffset: 0,
+        model: 'male',
+        variant: 'normal',
+      },
+      movement: {
+        currentCol: 5,
+        currentRow: 5,
+        direction: 2,
+        pathIndex: 0,
+        pathInterpolation: 0,
+        distanceTraveled: 0,
+      },
+      combat: {
+        currentHp: 10,
+        maxHp: 100,
+        immunities: [],
+        consecutiveHits: {},
+        statusEffects: [
+          {
+            type: 'fire',
+            duration: 2.0,
+            dps: 20, // 20 DPS -> in 0.5s ticks 10 dmg
+          },
+          {
+            type: 'frost',
+            duration: 3.0,
+            slowPercent: 50,
+          },
+        ],
+      },
+      animation: {
+        action: 'Run',
+        frameIndex: 0,
+        animTimer: 0,
+        animSpeed: 1.0,
+      },
+      lifecycle: {
+        isSpawned: true,
+        isDead: false,
+        hasReachedEnd: false,
+        deathFade: 1.0,
+        celebrationTimer: 0,
+      },
     }
 
     // Process 0.5s of game time
@@ -101,8 +115,8 @@ describe('CrowdSimulation Domain Logic', () => {
     expect(result.maxSlowPercent).toBe(50)
     expect(result.dotDamage).toBe(10)
     expect(result.unitDied).toBe(true)
-    expect(unit.isDead).toBe(true)
-    expect(unit.currentHp).toBe(0)
-    expect(unit.action).toBe('Pickup') // death animation action
+    expect(unit.lifecycle.isDead).toBe(true)
+    expect(unit.combat.currentHp).toBe(0)
+    expect(unit.animation.action).toBe('Pickup') // death animation action
   })
 })

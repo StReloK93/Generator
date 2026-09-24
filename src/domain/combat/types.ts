@@ -41,6 +41,7 @@ export interface DamageCalculationResult {
     dps?: number
     slowPercent?: number
     amplification?: number
+    sourceTowerId?: string
   }>
   stackCount?: number
 }

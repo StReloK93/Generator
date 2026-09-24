@@ -511,11 +511,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (tower) {
           const existing = towerStore.placedTowers.find(t => t.id === tower.id || (t.col === tower.col && t.row === tower.row))
           if (!existing) {
-            if (tower.screenX === undefined || tower.screenY === undefined) {
-              const pt = gridToScreen(tower.col, tower.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
-              tower.screenX = pt.x
-              tower.screenY = pt.y
-            }
             towerStore.placedTowers.push(tower)
             addSystemMessage(`${tower.builderName || 'Player'} built a tower at (${tower.col}, ${tower.row})!`)
 
@@ -646,11 +641,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
             // Add or update towers from host
             for (const hostTower of state.placedTowers) {
-              if (hostTower.screenX === undefined || hostTower.screenY === undefined) {
-                const pt = gridToScreen(hostTower.col, hostTower.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
-                hostTower.screenX = pt.x
-                hostTower.screenY = pt.y
-              }
               const existingIdx = towerStore.placedTowers.findIndex(t => t.id === hostTower.id)
               if (existingIdx === -1) {
                 towerStore.placedTowers.push({ ...hostTower })
@@ -894,35 +884,46 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       const compactUnits: CompactUnitSnapshot[] = []
       const sourceUnits = characterStore.units
+      const tileWidth = mapStore.project.tileWidth || 128
+      const tileHeight = mapStore.project.tileHeight || 64
 
       for (let i = 0; i < sourceUnits.length; i++) {
         const u = sourceUnits[i]
-        if (!u.isSpawned && !u.isDead) continue
+        if (!u.lifecycle.isSpawned && !u.lifecycle.isDead) continue
 
         let fl = 0
-        if (u.isSpawned) fl |= 1
-        if (u.hasReachedEnd) fl |= 2
-        if (u.isDead) fl |= 4
+        if (u.lifecycle.isSpawned) fl |= 1
+        if (u.lifecycle.hasReachedEnd) fl |= 2
+        if (u.lifecycle.isDead) fl |= 4
+
+        const screenPos = gridToScreen(
+          u.movement.currentCol,
+          u.movement.currentRow,
+          tileWidth,
+          tileHeight
+        )
+        const screenX = screenPos.x + u.identity.sideOffset
+        const screenY = screenPos.y
 
         compactUnits.push({
           id: u.id,
-          x: Math.round(u.screenX * 10) / 10,
-          y: Math.round(u.screenY * 10) / 10,
-          col: Math.round(u.currentCol * 100) / 100,
-          row: Math.round(u.currentRow * 100) / 100,
-          d: u.direction,
-          a: u.action,
-          f: u.frameIndex,
-          hp: Math.round(u.currentHp),
-          mhp: Math.round(u.maxHp || 100),
-          m: u.characterModel || 'male',
-          oy: u.offsetY || 0,
-          as: u.animSpeed || 1.0,
-          us: (u as any).unitScale || 1.0,
+          x: Math.round(screenX * 10) / 10,
+          y: Math.round(screenY * 10) / 10,
+          col: Math.round(u.movement.currentCol * 100) / 100,
+          row: Math.round(u.movement.currentRow * 100) / 100,
+          d: u.movement.direction,
+          a: u.animation.action,
+          f: u.animation.frameIndex,
+          hp: Math.round(u.combat.currentHp),
+          mhp: Math.round(u.combat.maxHp || 100),
+          m: u.identity.model || 'male',
+          oy: u.identity.offsetY || 0,
+          as: u.animation.animSpeed || 1.0,
+          us: u.identity.scale || 1.0,
           fl,
-          df: u.deathFade,
-          uv: (u.unitVariant as any) || 'normal',
-          vt: u.variantTint,
+          df: u.lifecycle.deathFade,
+          uv: (u.identity.variant as any) || 'normal',
+          vt: u.identity.variantTint,
         })
       }
 

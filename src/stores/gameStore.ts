@@ -63,6 +63,50 @@ export const useGameStore = defineStore('gameStore', () => {
     }
   })
 
+  const formation = computed({
+    get: () => (mapStore.project.gameSettings?.formation as 'pairs' | 'single') || 'pairs',
+    set: (v: 'pairs' | 'single') => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, formation: v }
+      } else {
+        mapStore.project.gameSettings.formation = v
+      }
+    }
+  })
+
+  const pairDistance = computed({
+    get: () => mapStore.project.gameSettings?.pairDistance ?? 0.35,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, pairDistance: v }
+      } else {
+        mapStore.project.gameSettings.pairDistance = v
+      }
+    }
+  })
+
+  const unitElevation = computed({
+    get: () => mapStore.project.gameSettings?.unitElevation ?? 0,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, unitElevation: v }
+      } else {
+        mapStore.project.gameSettings.unitElevation = v
+      }
+    }
+  })
+
+  const unitScaleMultiplier = computed({
+    get: () => mapStore.project.gameSettings?.unitScaleMultiplier ?? 1.0,
+    set: (v: number) => {
+      if (!mapStore.project.gameSettings) {
+        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, unitScaleMultiplier: v }
+      } else {
+        mapStore.project.gameSettings.unitScaleMultiplier = v
+      }
+    }
+  })
+
   // --- LOADING SCREEN / PRELOADER STATE ---
   const isLoadingGame = ref(false)
   const loadingProgress = ref(0)
@@ -100,6 +144,10 @@ export const useGameStore = defineStore('gameStore', () => {
       startingLives: Number(startingLives.value) || 20,
       wavePrepTime: Number(wavePrepDuration.value) || 10,
       spawnMode: spawnMode.value || 'all_routes',
+      formation: formation.value || 'pairs',
+      pairDistance: Number(pairDistance.value) || 0.35,
+      unitElevation: Number(unitElevation.value) || 0,
+      unitScaleMultiplier: Number(unitScaleMultiplier.value) || 1.0,
     }
   }
 
@@ -111,6 +159,10 @@ export const useGameStore = defineStore('gameStore', () => {
       startingLives.value = gs.startingLives ?? 20
       wavePrepDuration.value = gs.wavePrepTime ?? 10
       if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'single_route' ? 'single_route' : 'all_routes'
+      formation.value = gs.formation || 'pairs'
+      pairDistance.value = gs.pairDistance !== undefined ? Number(gs.pairDistance) : 0.35
+      unitElevation.value = gs.unitElevation !== undefined ? Number(gs.unitElevation) : 0
+      unitScaleMultiplier.value = gs.unitScaleMultiplier !== undefined ? Number(gs.unitScaleMultiplier) : 1.0
       gold.value = startingGold.value
       maxLives.value = startingLives.value
       playerLives.value = startingLives.value
@@ -120,6 +172,10 @@ export const useGameStore = defineStore('gameStore', () => {
       startingLives.value = 20
       wavePrepDuration.value = 10
       spawnMode.value = 'all_routes'
+      formation.value = 'pairs'
+      pairDistance.value = 0.35
+      unitElevation.value = 0
+      unitScaleMultiplier.value = 1.0
       gold.value = 150
       maxLives.value = 20
       playerLives.value = 20
@@ -275,6 +331,10 @@ export const useGameStore = defineStore('gameStore', () => {
     prepCountdown,
     gold,
     spawnMode,
+    formation,
+    pairDistance,
+    unitElevation,
+    unitScaleMultiplier,
     startingGold,
     startingLives,
     wavePrepDuration,

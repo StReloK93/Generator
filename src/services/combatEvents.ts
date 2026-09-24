@@ -7,6 +7,15 @@ export interface ImpactSparkEvent {
   count?: number
 }
 
+export interface StrikeVisualEvent {
+  x: number
+  y: number
+  startX?: number
+  startY?: number
+  projectileType: string
+  duration?: number
+}
+
 export interface FloatingTextEvent {
   x: number
   y: number
@@ -19,6 +28,7 @@ export type CombatEventListener<T> = (data: T) => void
 
 class CombatEventBus {
   private impactListeners = new Set<CombatEventListener<ImpactSparkEvent>>()
+  private strikeListeners = new Set<CombatEventListener<StrikeVisualEvent>>()
   private textListeners = new Set<CombatEventListener<FloatingTextEvent>>()
 
   public onImpact(listener: CombatEventListener<ImpactSparkEvent>): () => void {
@@ -28,6 +38,17 @@ class CombatEventBus {
 
   public emitImpact(event: ImpactSparkEvent): void {
     for (const listener of this.impactListeners) {
+      listener(event)
+    }
+  }
+
+  public onStrike(listener: CombatEventListener<StrikeVisualEvent>): () => void {
+    this.strikeListeners.add(listener)
+    return () => this.strikeListeners.delete(listener)
+  }
+
+  public emitStrike(event: StrikeVisualEvent): void {
+    for (const listener of this.strikeListeners) {
       listener(event)
     }
   }

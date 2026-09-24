@@ -26,6 +26,8 @@ export const useRouteStore = defineStore('routeStore', () => {
   const isSettingRouteStart = ref(false)
   const routeStartPlacementMode = ref<'add' | 'relocate'>('add')
   const isSettingPlayerStartPoint = ref(false)
+  const showPathTrail = ref(true)
+  const showSpawnPoints = ref(true)
 
   // Status message for route actions
   const statusMessage = ref('Waiting at spawn point')
@@ -452,6 +454,8 @@ export const useRouteStore = defineStore('routeStore', () => {
     isDrawingRoute.value = false
     isSettingRouteStart.value = false
     isSettingPlayerStartPoint.value = false
+    showPathTrail.value = true
+    showSpawnPoints.value = true
     statusMessage.value = 'Waiting at spawn point'
   }
 
@@ -473,6 +477,8 @@ export const useRouteStore = defineStore('routeStore', () => {
     isSettingRouteStart,
     routeStartPlacementMode,
     isSettingPlayerStartPoint,
+    showPathTrail,
+    showSpawnPoints,
     statusMessage,
     blockedBuildingCellsSet,
     isCellBlockedForBuilding,

@@ -419,14 +419,18 @@ export function renderPixiUnitEffect(opts: PixiUnitEffectOptions): void {
     animTime
   } = opts
 
-  if (opts.shadow && !opts.shadow.destroyed) {
+  if (opts.shadow && !(opts.shadow as any).destroyed && typeof opts.shadow.clear === 'function') {
     opts.shadow.clear()
     opts.shadow.visible = false
   }
-  marker.clear()
+  if (marker && !(marker as any).destroyed && typeof marker.clear === 'function') {
+    marker.clear()
+  }
 
   if (!variant || variant === 'normal') {
-    marker.visible = false
+    if (marker && !(marker as any).destroyed) {
+      marker.visible = false
+    }
     return
   }
 

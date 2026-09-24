@@ -89,7 +89,13 @@ function updateEngineState() {
     false,
     false
   )
-  engine.buildableOverlayGraphics.clear()
+  try {
+    if (engine.buildableOverlayGraphics && !engine.buildableOverlayGraphics.destroyed) {
+      engine.buildableOverlayGraphics.clear()
+    }
+  } catch {
+    // Ignored
+  }
 }
 
 const emit = defineEmits<{

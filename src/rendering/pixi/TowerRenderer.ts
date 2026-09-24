@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite, Texture, ImageSource } from 'pixi.js'
 import { assetManager } from '../../services/assetManager'
+import { gridToScreen } from '../../utils/isometric'
 
 export class TowerRenderer {
   public towerTextures = new Map<string, Texture>()
@@ -103,13 +104,25 @@ export class TowerRenderer {
       }
 
       container.visible = true
-      const sprite = container.getChildAt(0) as Sprite
-      const selection = container.getChildAt(1) as Graphics
+      let sprite = (container.children[0] as Sprite) || null
+      let selection = (container.children[1] as Graphics) || null
+
+      if (!sprite || (sprite as any).destroyed) {
+        sprite = new Sprite()
+        sprite.zIndex = 1
+        container.addChildAt(sprite, 0)
+      }
+
+      if (!selection || (selection as any).destroyed) {
+        selection = new Graphics()
+        selection.zIndex = 2
+        container.addChild(selection)
+      }
 
       const bp = blueprints?.find((b: any) => b.id === tower.blueprintId)
       const texture = this.getBlueprintTexture(bp)
 
-      if (texture) {
+      if (texture && sprite) {
         if (sprite.texture !== texture) {
           sprite.texture = texture
         }
@@ -138,20 +151,22 @@ export class TowerRenderer {
         wasBuilderColor !== builderColor ||
         wasLevel !== tower.level
       ) {
-        selection.clear()
-        const colHex = parseInt(builderColor.replace('#', '0x'), 16) || 0x38bdf8
+        if (selection && !(selection as any).destroyed && typeof selection.clear === 'function') {
+          selection.clear()
+          const colHex = parseInt(builderColor.replace('#', '0x'), 16) || 0x38bdf8
 
-        // Base Ring under tower
-        if (isSelected) {
-          selection
-            .ellipse(0, 0, tileWidth * 0.4, tileHeight * 0.4)
-            .fill({ color: colHex, alpha: 0.2 })
-            .stroke({ width: 3, color: 0x38bdf8, alpha: 0.95 })
-        } else {
-          selection
-            .ellipse(0, 0, tileWidth * 0.34, tileHeight * 0.34)
-            .fill({ color: colHex, alpha: 0.12 })
-            .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
+          // Base Ring under tower
+          if (isSelected) {
+            selection
+              .ellipse(0, 0, tileWidth * 0.4, tileHeight * 0.4)
+              .fill({ color: colHex, alpha: 0.2 })
+              .stroke({ width: 3, color: 0x38bdf8, alpha: 0.95 })
+          } else {
+            selection
+              .ellipse(0, 0, tileWidth * 0.34, tileHeight * 0.34)
+              .fill({ color: colHex, alpha: 0.12 })
+              .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
+          }
         }
 
         ;(container as any)._wasSelected = isSelected
@@ -159,7 +174,8 @@ export class TowerRenderer {
         ;(container as any)._wasLevel = tower.level
       }
 
-      container.position.set(tower.screenX, tower.screenY)
+      const pos = gridToScreen(tower.col, tower.row, tileWidth, tileHeight)
+      container.position.set(pos.x, pos.y)
       const towerSpanX = (tower as any).spanX || 1
       const towerSpanY = (tower as any).spanY || 1
       const effectiveTowerDepth = tower.col + towerSpanX - 1 + (tower.row + towerSpanY - 1)

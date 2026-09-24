@@ -33,19 +33,16 @@ import { Layers } from 'lucide-vue-next'
 import { UiButton } from '../components/ui'
 import GameStage from '../components/game/GameStage.vue'
 import { useMapStore } from '../stores/mapStore'
-import { useCharacterStore } from '../stores/characterStore'
 import { useGameStore } from '../stores/gameStore'
 import { sanitizeMapId } from '../services/mapManager'
 
 const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
-const characterStore = useCharacterStore()
 const gameStore = useGameStore()
 
 function handleReturnToEditor() {
   gameStore.exitPlayMode()
-  characterStore.resetTour()
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
   router.push(`/editor/${cleanId}`)
 }

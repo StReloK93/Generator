@@ -14,7 +14,7 @@ export interface TowerTraitDef {
   bgClass: string
   borderClass: string
   textClass: string
-  defaultValues: Partial<TowerTraitsConfig>
+  defaultValues: Record<string, any>
 }
 
 export const TOWER_TRAITS: TowerTraitDef[] = [

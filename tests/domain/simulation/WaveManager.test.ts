@@ -22,6 +22,7 @@ describe('WaveManager Domain Logic', () => {
       goldReward: 2,
       unitBonus: 2,
       endWaveBonus: 40,
+      isBoss: false,
     }
 
     const wave2 = WaveManager.createNextWave([wave1])
@@ -33,10 +34,10 @@ describe('WaveManager Domain Logic', () => {
 
   it('createNextWave should mark every 5th wave as Boss wave', () => {
     const waves: WaveConfig[] = [
-      { waveNumber: 1, name: 'W1', unitHp: 100, unitCount: 10, unitSpeed: 3.5 },
-      { waveNumber: 2, name: 'W2', unitHp: 150, unitCount: 12, unitSpeed: 3.5 },
-      { waveNumber: 3, name: 'W3', unitHp: 200, unitCount: 14, unitSpeed: 3.5 },
-      { waveNumber: 4, name: 'W4', unitHp: 250, unitCount: 16, unitSpeed: 3.5 },
+      { waveNumber: 1, name: 'W1', unitHp: 100, unitCount: 10, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
+      { waveNumber: 2, name: 'W2', unitHp: 150, unitCount: 12, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
+      { waveNumber: 3, name: 'W3', unitHp: 200, unitCount: 14, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
+      { waveNumber: 4, name: 'W4', unitHp: 250, unitCount: 16, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
     ]
 
     const wave5 = WaveManager.createNextWave(waves)
@@ -46,9 +47,9 @@ describe('WaveManager Domain Logic', () => {
 
   it('reindexWaves should sequentially re-number all waves from 1', () => {
     const waves: WaveConfig[] = [
-      { waveNumber: 1, name: 'W1', unitHp: 100, unitCount: 10, unitSpeed: 3.5 },
-      { waveNumber: 4, name: 'W4', unitHp: 250, unitCount: 16, unitSpeed: 3.5 },
-      { waveNumber: 9, name: 'W9', unitHp: 500, unitCount: 20, unitSpeed: 3.5 },
+      { waveNumber: 1, name: 'W1', unitHp: 100, unitCount: 10, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
+      { waveNumber: 4, name: 'W4', unitHp: 250, unitCount: 16, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
+      { waveNumber: 9, name: 'W9', unitHp: 500, unitCount: 20, unitSpeed: 3.5, isBoss: false, goldReward: 1 },
     ]
 
     WaveManager.reindexWaves(waves)

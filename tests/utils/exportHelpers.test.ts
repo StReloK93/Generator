@@ -80,6 +80,8 @@ describe('ExportHelpers (JSON serialization & backward compatibility)', () => {
     const project: MapProject = {
       id: 'proj-test',
       name: 'Siege Arena',
+      createdAt: 1000,
+      updatedAt: 1000,
       cols: 25,
       rows: 25,
       tileWidth: 128,
@@ -93,6 +95,7 @@ describe('ExportHelpers (JSON serialization & backward compatibility)', () => {
           name: 'Ground',
           visible: true,
           locked: false,
+          opacity: 1.0,
           tiles: {
             '0,0': [{ id: 't1', x: 0, y: 0, assetId: 'sprite-grass.png', zIndex: 0, scale: 1 }],
           },
@@ -111,6 +114,7 @@ describe('ExportHelpers (JSON serialization & backward compatibility)', () => {
           unitCount: 15,
           unitSpeed: 3.5,
           goldReward: 2,
+          isBoss: false,
         },
       ],
     }

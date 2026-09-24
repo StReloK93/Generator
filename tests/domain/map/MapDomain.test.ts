@@ -10,6 +10,7 @@ describe('Map Domain Logic (Queries & Mutations)', () => {
       name: 'Ground',
       visible: true,
       locked: false,
+      opacity: 1.0,
       tiles: {
         '0,0': [
           {
@@ -42,6 +43,7 @@ describe('Map Domain Logic (Queries & Mutations)', () => {
       name: 'Objects',
       visible: true,
       locked: false,
+      opacity: 1.0,
       tiles: {
         '0,0': [
           {
@@ -82,7 +84,7 @@ describe('Map Domain Logic (Queries & Mutations)', () => {
       2,
       2,
       'new-asset',
-      { id: 'new-asset', name: 'New Asset', spanX: 2, spanY: 2, anchorX: 0.5, anchorY: 0.8 },
+      { id: 'new-asset', name: 'New Asset', spanX: 2, spanY: 2, anchorX: 0.5, anchorY: 0.8, src: '', category: 'terrain', width: 128, height: 64 },
       'stack',
       existing
     )

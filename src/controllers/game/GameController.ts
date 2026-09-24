@@ -35,15 +35,7 @@ export class GameController {
       if (!multiplayerStore.roomId || multiplayerStore.isHost) {
         characterStore.updateTick(effectiveDelta)
 
-        if (gameStore?.isGameMode) {
-          if (gameStore.gameState === 'wave_running') {
-            towerStore.updateCombatTick(effectiveDelta)
-          }
-        } else {
-          if (characterStore.isPlaying) {
-            towerStore.updateCombatTick(effectiveDelta)
-          }
-        }
+        towerStore.updateCombatTick(effectiveDelta)
 
         if (multiplayerStore.roomId && multiplayerStore.isHost) {
           multiplayerStore.broadcastGameTick()

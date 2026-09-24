@@ -26,7 +26,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
   "include": [
     "src/**/*.ts",
@@ -35,6 +35,8 @@
     "src/**/*.vue",
     "src/env.d.ts",
     "src/shims-vue.d.ts",
-    "src/vite-env.d.ts"
+    "src/vite-env.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.d.ts"
   ]
 }

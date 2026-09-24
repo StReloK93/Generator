@@ -1,6 +1,6 @@
 import { gridToScreen } from '../../utils/isometric'
-import { GridCoord, TowerTraitType } from '../../types/map'
-import { CharacterUnit, UnitStatusEffect } from '../../stores/characterStore'
+import { GridCoord } from '../../types/map'
+import { CharacterUnit } from '../../types/unit'
 
 export interface ProcessStatusEffectsResult {
   maxSlowPercent: number
@@ -10,9 +10,21 @@ export interface ProcessStatusEffectsResult {
   unitDied: boolean
 }
 
+export interface UnitAdvanceResult {
+  hasReachedEnd: boolean
+  isJustReachedEnd: boolean
+}
+
+/**
+ * CrowdSimulation — Pure Domain Logic for Unit and Crowd Simulation.
+ * 
+ * SOLID: Single Responsibility Principle (SRP)
+ * Pure domain calculations: isometric direction angles, side offsets, route progress interpolation,
+ * animation updates, and DoT/slow status tick processing.
+ */
 export class CrowdSimulation {
   /**
-   * Calculates the 0..7 isometric angle direction between two grid cells.
+   * Calculates 0..7 isometric direction angle between two points.
    */
   public static calculateDirection(
     fromCol: number,
@@ -39,7 +51,7 @@ export class CrowdSimulation {
   }
 
   /**
-   * Calculates perpendicular offset for 2 units marching side-by-side.
+   * Calculates side offset perpendicular to the movement segment for pairs formation.
    */
   public static calculateSideOffset(
     baseScreenX: number,
@@ -70,7 +82,7 @@ export class CrowdSimulation {
   }
 
   /**
-   * Processes DoT ticks, slows, and effect expirations for a unit.
+   * Processes status effects (DoT: burn, poison, bleed and Slow: frost) on a unit.
    */
   public static processStatusEffects(
     unit: CharacterUnit,
@@ -82,21 +94,22 @@ export class CrowdSimulation {
     let dotText: string | undefined
     let unitDied = false
 
-    if (!unit.statusEffects || unit.statusEffects.length === 0) {
+    const effects = unit.combat.statusEffects
+    if (!effects || effects.length === 0) {
       return { maxSlowPercent: 0, dotDamage: 0, unitDied: false }
     }
 
     let activeCount = 0
-    for (let i = 0; i < unit.statusEffects.length; i++) {
-      const effect = unit.statusEffects[i]
+    for (let i = 0; i < effects.length; i++) {
+      const effect = effects[i]
       effect.duration -= deltaSec
 
       if (effect.slowPercent && effect.slowPercent > maxSlowPercent) {
         maxSlowPercent = effect.slowPercent
       }
 
-      // DoT tick damage
-      if (effect.dps && effect.dps > 0 && !unit.isDead) {
+      // DoT damage tick (every 0.5 seconds)
+      if (effect.dps && effect.dps > 0 && !unit.lifecycle.isDead) {
         effect.tickTimer = (effect.tickTimer || 0) + deltaSec
         if (effect.tickTimer >= 0.5) {
           const tickDmg = Math.max(1, Math.round(effect.dps * effect.tickTimer))
@@ -112,20 +125,20 @@ export class CrowdSimulation {
       }
 
       if (effect.duration > 0) {
-        unit.statusEffects[activeCount++] = effect
+        effects[activeCount++] = effect
       }
     }
-    unit.statusEffects.length = activeCount
+    effects.length = activeCount
 
     if (dotDamage > 0) {
-      unit.currentHp = Math.max(0, unit.currentHp - dotDamage)
-      if (unit.currentHp <= 0) {
+      unit.combat.currentHp = Math.max(0, unit.combat.currentHp - dotDamage)
+      if (unit.combat.currentHp <= 0) {
         unitDied = true
-        unit.isDead = true
-        unit.action = 'Pickup'
-        unit.frameIndex = 0
-        unit.animTimer = 0
-        unit.deathFade = 1.0
+        unit.lifecycle.isDead = true
+        unit.animation.action = 'Pickup'
+        unit.animation.frameIndex = 0
+        unit.animation.animTimer = 0
+        unit.lifecycle.deathFade = 1.0
       }
     }
 
@@ -135,6 +148,83 @@ export class CrowdSimulation {
       dotColor,
       dotText,
       unitDied,
+    }
+  }
+
+  /**
+   * Advances the unit position along the route using authoritative grid interpolation.
+   */
+  public static advanceUnitPosition(
+    unit: CharacterUnit,
+    route: GridCoord[],
+    deltaSec: number,
+    baseSpeed: number,
+    speedMultiplier: number,
+    formation: 'single' | 'pairs',
+    tileWidth: number,
+    tileHeight: number
+  ): UnitAdvanceResult {
+    unit.movement.distanceTraveled += (baseSpeed * speedMultiplier) * deltaSec
+
+    const unitDist = unit.movement.distanceTraveled
+    const maxRouteIndex = route.length - 1
+
+    // Route end reached (Base / Target reached)
+    if (unitDist >= maxRouteIndex) {
+      const isJustReached = !unit.lifecycle.hasReachedEnd
+      unit.lifecycle.hasReachedEnd = true
+      unit.movement.pathIndex = maxRouteIndex
+      unit.movement.pathInterpolation = 0
+      unit.animation.action = 'Pickup'
+      unit.movement.currentCol = route[maxRouteIndex].col
+      unit.movement.currentRow = route[maxRouteIndex].row
+      return { hasReachedEnd: true, isJustReachedEnd: isJustReached }
+    }
+
+    // Moving along the path
+    unit.lifecycle.hasReachedEnd = false
+    unit.animation.action = 'Run'
+    unit.movement.pathIndex = Math.floor(unitDist)
+    unit.movement.pathInterpolation = unitDist - unit.movement.pathIndex
+
+    const idxA = unit.movement.pathIndex
+    const idxB = Math.min(maxRouteIndex, idxA + 1)
+    const ptA = route[idxA]
+    const ptB = route[idxB]
+
+    const t = unit.movement.pathInterpolation
+    unit.movement.currentCol = ptA.col + (ptB.col - ptA.col) * t
+    unit.movement.currentRow = ptA.row + (ptB.row - ptA.row) * t
+
+    if (idxA !== idxB) {
+      unit.movement.direction = this.calculateDirection(
+        ptA.col,
+        ptA.row,
+        ptB.col,
+        ptB.row,
+        tileWidth,
+        tileHeight
+      )
+    }
+
+    return { hasReachedEnd: false, isJustReachedEnd: false }
+  }
+
+  /**
+   * Updates unit animation frame progression over time.
+   */
+  public static updateUnitAnimation(
+    unit: CharacterUnit,
+    deltaSec: number,
+    maxFrames: number,
+    baseSpeed: number = 2.5
+  ): void {
+    unit.animation.animTimer += deltaSec
+    const animMultiplier = unit.animation.animSpeed || 1.0
+    const frameDuration = ((maxFrames > 15 ? 0.04 : 0.07) / Math.min(5, baseSpeed / 2.5)) / Math.max(0.1, animMultiplier)
+    if (unit.animation.animTimer >= frameDuration) {
+      unit.animation.animTimer = 0
+      unit.animation.frameIndex = (unit.animation.frameIndex + 1) % maxFrames
     }
   }
 }

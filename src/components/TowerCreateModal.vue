@@ -189,12 +189,15 @@
             <div 
               class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
               :style="{ 
-                backgroundColor: `${activeProjectileDef.colorCss}20`, 
-                borderColor: `${activeProjectileDef.colorCss}60`,
-                color: activeProjectileDef.colorCss
+                backgroundColor: `${activeProjectileDef.visual.colorCss}20`, 
+                borderColor: `${activeProjectileDef.visual.colorCss}60`,
+                color: activeProjectileDef.visual.colorCss
               }"
             >
-              <component :is="activeProjectileDef.icon" class="w-4.5 h-4.5" />
+              <div 
+                class="w-3.5 h-3.5 rounded-full shadow-md"
+                :style="{ backgroundColor: activeProjectileDef.visual.colorCss }"
+              />
             </div>
             <div class="flex flex-col min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -204,19 +207,22 @@
                 <span 
                   class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
                   :style="{
-                    color: activeProjectileDef.colorCss,
-                    borderColor: `${activeProjectileDef.colorCss}40`,
-                    backgroundColor: `${activeProjectileDef.colorCss}15`
+                    color: activeProjectileDef.visual.colorCss,
+                    borderColor: `${activeProjectileDef.visual.colorCss}40`,
+                    backgroundColor: `${activeProjectileDef.visual.colorCss}15`
                   }"
                 >
-                  {{ activeProjectileDef.category }}
+                  {{ activeProjectileDef.identity.category }}
                 </span>
-                <span v-if="activeProjectileDef.isLaser" class="text-[9px] font-mono text-purple-300 bg-purple-950/60 px-1 py-0.2 rounded border border-purple-800/60">
-                  Beam
+                <span 
+                  class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border"
+                  :class="getProjectileArchetypeMeta(activeProjectileDef).badgeClass"
+                >
+                  {{ getProjectileArchetypeMeta(activeProjectileDef).nameUz.split(' ')[0] }}
                 </span>
               </div>
               <span class="text-[10px] text-slate-400 truncate mt-0.5">
-                {{ activeProjectileDef.description }}
+                {{ activeProjectileDef.identity.description }}
               </span>
             </div>
           </div>
@@ -229,25 +235,6 @@
           >
             {{ $t('common.change') || 'Tanlash' }}
           </UiButton>
-        </div>
-
-        <!-- Quick Selector for this Element Category -->
-        <div class="flex flex-wrap items-center gap-1 pt-1">
-          <button
-            v-for="quickP in currentCategoryProjectiles"
-            :key="quickP.id"
-            type="button"
-            :class="[
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-all cursor-pointer shrink-0',
-              (form.projectileType || 'fireball') === quickP.id
-                ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/40'
-                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-            ]"
-            @click="form.projectileType = quickP.id"
-          >
-            <component :is="quickP.icon" class="w-3 h-3" :style="{ color: quickP.colorCss }" />
-            <span>{{ getLocalizedProjectileName(quickP) }}</span>
-          </button>
         </div>
       </div>
 
@@ -548,11 +535,11 @@
     </template>
   </UiModal>
 
-  <!-- SELECT PROJECTILE TYPE MODAL (80 Types) -->
+  <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :model-value="form.projectileType || 'fireball'"
-    @update:model-value="(val) => form.projectileType = val"
+    :current-projectile-id="form.projectileId || form.projectileType || 'fireball'"
+    @select="(val: string) => { form.projectileId = val; form.projectileType = val as ProjectileType }"
     @close="isProjectileModalOpen = false"
   />
 </template>
@@ -568,8 +555,9 @@ import { useI18n } from '../stores/i18nStore'
 import { AssetItem, TowerTraitType } from '../types/map'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon } from '../utils/towerClans'
+import { getProjectileDefinition, getProjectileArchetype, PROJECTILE_ARCHETYPES } from '../utils/projectileCatalog'
+import { TowerBlueprintManager } from '../domain/tower/TowerBlueprintManager'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
-import { getProjectileDef, getProjectilesByCategory } from '../utils/projectileCatalog'
 
 const towerStore = useTowerStore()
 const assetStore = useAssetStore()
@@ -578,18 +566,21 @@ const { t, currentLocale } = useI18n()
 
 function getLocalizedProjectileName(p: any): string {
   if (!p) return ''
-  if (currentLocale.value === 'uz' && p.nameUz) return p.nameUz
-  if (currentLocale.value === 'ru' && p.nameRu) return p.nameRu
-  return p.name || p.nameUz || p.id
+  if (currentLocale.value === 'uz' && p.identity?.nameUz) return p.identity.nameUz
+  return p.identity?.name || p.name || p.id
+}
+
+function getProjectileArchetypeMeta(def: any) {
+  const arch = getProjectileArchetype(def)
+  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
 }
 
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
 
-// Projectile Selector State (80 Types)
+// Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDef(form.value.projectileType || 'fireball'))
-const currentCategoryProjectiles = computed(() => getProjectilesByCategory(activeProjectileDef.value.category))
+const activeProjectileDef = computed(() => getProjectileDefinition(form.value.projectileId || form.value.projectileType || 'fireball'))
 
 const categories = computed(() => {
   const items = [
@@ -660,8 +651,9 @@ const form = ref({
   damage: 60,
   attackSpeed: 0.5,
   range: 4.0,
+  projectileId: 'fireball',
   projectileType: 'fireball' as ProjectileType,
-  isSplash: true,
+  isSplash: false,
   splashRadius: 1.5,
   splashType: 'falloff' as SplashType,
   cost: 100,
@@ -797,7 +789,7 @@ function handleCreateTower() {
     voidDuration: form.value.voidDuration,
   }
 
-  towerStore.addNewBlueprint(newBlueprint)
+  towerStore.addNewBlueprint(TowerBlueprintManager.normalizeBlueprint(newBlueprint))
   notify.success(t('towers.towerCreatedSuccess', { name: newBlueprint.name }))
   closeModal()
 }

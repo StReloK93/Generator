@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { TargetingSystem } from '@/domain/combat/TargetingSystem'
-import { CombatUnitTarget } from '@/domain/combat/types'
+import { CharacterUnit } from '@/types/unit'
 
 describe('TargetingSystem Domain Logic', () => {
   const towerCol = 5
@@ -11,20 +11,53 @@ describe('TargetingSystem Domain Logic', () => {
     id: string,
     col: number,
     row: number,
-    opts: Partial<CombatUnitTarget> = {}
-  ): CombatUnitTarget => ({
+    opts: {
+      currentHp?: number
+      maxHp?: number
+      isSpawned?: boolean
+      isDead?: boolean
+      hasReachedEnd?: boolean
+      distanceTraveled?: number
+    } = {}
+  ): CharacterUnit => ({
     id,
-    currentCol: col,
-    currentRow: row,
-    currentHp: opts.currentHp ?? 100,
-    maxHp: opts.maxHp ?? 100,
-    isSpawned: opts.isSpawned ?? true,
-    isDead: opts.isDead ?? false,
-    hasReachedEnd: opts.hasReachedEnd ?? false,
-    pathIndex: opts.pathIndex ?? 0,
-    pathInterpolation: opts.pathInterpolation ?? 0,
-    distanceTraveled: opts.distanceTraveled ?? 0,
-    ...opts,
+    identity: {
+      routeId: 'route-1',
+      routeIndex: 0,
+      unitIndex: 0,
+      pairIndex: 0,
+      sideOffset: 0,
+      model: 'male',
+      variant: 'normal',
+    },
+    movement: {
+      currentCol: col,
+      currentRow: row,
+      direction: 2,
+      pathIndex: 0,
+      pathInterpolation: 0,
+      distanceTraveled: opts.distanceTraveled ?? 0,
+    },
+    combat: {
+      currentHp: opts.currentHp ?? 100,
+      maxHp: opts.maxHp ?? 100,
+      immunities: [],
+      consecutiveHits: {},
+      statusEffects: [],
+    },
+    animation: {
+      action: 'Run',
+      frameIndex: 0,
+      animTimer: 0,
+      animSpeed: 1.0,
+    },
+    lifecycle: {
+      isSpawned: opts.isSpawned ?? true,
+      isDead: opts.isDead ?? false,
+      hasReachedEnd: opts.hasReachedEnd ?? false,
+      deathFade: 1.0,
+      celebrationTimer: 0,
+    },
   })
 
   it('should ignore units that are dead, unspawned, or have reached end', () => {

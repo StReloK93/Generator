@@ -673,13 +673,13 @@
         <UiIconButton
           variant="tool"
           size="sm"
-          :active="characterStore.showPathTrail !== false"
+          :active="routeStore.showPathTrail !== false"
           :icon="Footprints"
-          :title="characterStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
+          :title="routeStore.showPathTrail !== false ? $t('editor.hideRouteLines') : $t('editor.showRouteLines')"
           @click="() => {
-            const next = characterStore.showPathTrail === false
-            characterStore.showPathTrail = next
-            characterStore.showSpawnPoints = next
+            const next = routeStore.showPathTrail === false
+            routeStore.showPathTrail = next
+            routeStore.showSpawnPoints = next
           }"
         />
 
@@ -825,6 +825,8 @@ const editorController = new EditorController({
   toolStore,
   assetStore,
   characterStore,
+  routeStore,
+  gameStore,
   notify,
   t,
   engine,
@@ -1038,8 +1040,8 @@ watch(() => [toolStore.selectedElement, toolStore.selectedElements.length], () =
 
 watch(() => [
   characterStore.isEnabled,
-  characterStore.showSpawnPoints,
-  characterStore.showPathTrail,
+  routeStore.showSpawnPoints,
+  routeStore.showPathTrail,
   routeStore.isDrawingRoute,
   routeStore.drawingPath.length,
   routeStore.selectedWaypointIndex,

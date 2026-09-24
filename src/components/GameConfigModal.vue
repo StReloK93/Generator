@@ -192,7 +192,7 @@
           </div>
 
           <!-- Live Combat & Range Simulator (Tower sprite + centered firing animation) -->
-          <TowerLivePreview :blueprint="selectedBp" />
+          <TowerLivePreview :blueprint="selectedBp" :level-config="activeLevelConfig" />
 
           <!-- Action Buttons -->
           <div class="flex flex-col gap-2 mt-auto">
@@ -382,34 +382,40 @@
                 <div 
                   class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
                   :style="{ 
-                    backgroundColor: `${activeProjectileDef.colorCss}20`, 
-                    borderColor: `${activeProjectileDef.colorCss}60`,
-                    color: activeProjectileDef.colorCss
+                    backgroundColor: `${activeProjectileDef.visual.colorCss}20`, 
+                    borderColor: `${activeProjectileDef.visual.colorCss}60`,
+                    color: activeProjectileDef.visual.colorCss
                   }"
                 >
-                  <component :is="activeProjectileDef.icon" class="w-4.5 h-4.5" />
+                  <div 
+                    class="w-3.5 h-3.5 rounded-full shadow-md"
+                    :style="{ backgroundColor: activeProjectileDef.visual.colorCss }"
+                  />
                 </div>
                 <div class="flex flex-col min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-xs font-bold text-slate-100 truncate">
-                      {{ activeProjectileDef.name }}
+                      {{ (currentLocale === 'uz' && activeProjectileDef.identity.nameUz) ? activeProjectileDef.identity.nameUz : activeProjectileDef.identity.name }}
                     </span>
                     <span 
                       class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
                       :style="{
-                        color: activeProjectileDef.colorCss,
-                        borderColor: `${activeProjectileDef.colorCss}40`,
-                        backgroundColor: `${activeProjectileDef.colorCss}15`
+                        color: activeProjectileDef.visual.colorCss,
+                        borderColor: `${activeProjectileDef.visual.colorCss}40`,
+                        backgroundColor: `${activeProjectileDef.visual.colorCss}15`
                       }"
                     >
-                      {{ activeProjectileDef.category }}
+                      {{ activeProjectileDef.identity.category }}
                     </span>
-                    <span v-if="activeProjectileDef.isLaser" class="text-[9px] font-mono text-purple-300 bg-purple-950/60 px-1 py-0.2 rounded border border-purple-800/60">
-                      Beam
+                    <span 
+                      class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border"
+                      :class="getProjectileArchetypeMeta(activeProjectileDef).badgeClass"
+                    >
+                      {{ getProjectileArchetypeMeta(activeProjectileDef).nameUz.split(' ')[0] }}
                     </span>
                   </div>
                   <span class="text-[10px] text-slate-400 truncate mt-0.5">
-                    {{ activeProjectileDef.description }}
+                    {{ activeProjectileDef.identity.description }}
                   </span>
                 </div>
               </div>
@@ -422,25 +428,6 @@
               >
                 {{ $t('common.change') || 'Tanlash' }}
               </UiButton>
-            </div>
-
-            <!-- Quick Selector for this Element Category -->
-            <div class="flex flex-wrap items-center gap-1 pt-1">
-              <button
-                v-for="quickP in currentCategoryProjectiles"
-                :key="quickP.id"
-                type="button"
-                :class="[
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] font-medium transition-all cursor-pointer shrink-0',
-                  (activeLevelConfig.projectileType || 'fireball') === quickP.id
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/40'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                ]"
-                @click="updateActiveLevel({ projectileType: quickP.id })"
-              >
-                <component :is="quickP.icon" class="w-3 h-3" :style="{ color: quickP.colorCss }" />
-                <span>{{ quickP.name }}</span>
-              </button>
             </div>
           </div>
 
@@ -1110,7 +1097,7 @@
             <div class="flex flex-col gap-1.5">
               <span class="text-[11px] font-semibold text-slate-300">{{ $t('config.marchFormation') }}</span>
               <UiTabs 
-                v-model="characterStore.formation"
+                v-model="gameStore.formation"
                 :items="formationOptions"
                 fill
                 size="sm"
@@ -1119,7 +1106,7 @@
 
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
-                v-model="characterStore.pairDistance"
+                v-model="gameStore.pairDistance"
                 :label="$t('config.unitSpacing')"
                 :min="0.1"
                 :max="1.5"
@@ -1787,11 +1774,11 @@
     </div>
   </UiModal>
 
-  <!-- SELECT PROJECTILE TYPE MODAL (80 Types) -->
+  <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :model-value="activeLevelConfig.projectileType || 'fireball'"
-    @update:model-value="(val) => updateActiveLevel({ projectileType: val })"
+    :current-projectile-id="activeLevelConfig.projectileId || activeLevelConfig.projectileType || 'fireball'"
+    @select="(val) => updateActiveLevel({ projectileId: val, projectileType: val })"
     @close="isProjectileModalOpen = false"
   />
 </template>
@@ -1822,7 +1809,6 @@ import {
 } from './ui'
 import { useToolStore } from '../stores/toolStore'
 import { useTowerStore } from '../stores/towerStore'
-import { useCharacterStore } from '../stores/characterStore'
 import { useRouteStore } from '../stores/routeStore'
 import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
@@ -1836,7 +1822,7 @@ import { requestAppFullscreen } from '../utils/fullscreen'
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
-import { getProjectileDef, getProjectilesByCategory } from '../utils/projectileCatalog'
+import { getProjectileDefinition, getProjectileArchetype, PROJECTILE_ARCHETYPES } from '../utils/projectileCatalog'
 import characterManifest from '../assets/generated/characterManifest.json'
 import { useI18n } from '../stores/i18nStore'
 import { sanitizeMapId } from '../services/mapManager'
@@ -1844,13 +1830,17 @@ import { sanitizeMapId } from '../services/mapManager'
 const router = useRouter()
 const toolStore = useToolStore()
 const towerStore = useTowerStore()
-const characterStore = useCharacterStore()
 const routeStore = useRouteStore()
 const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
-const { t } = useI18n()
+const { t, currentLocale } = useI18n()
+
+function getProjectileArchetypeMeta(def: any) {
+  const arch = getProjectileArchetype(def)
+  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
+}
 
 // Clan Management state
 const isClanModalOpen = ref(false)
@@ -2118,10 +2108,9 @@ const spawnModeOptions = computed(() => [
   { id: 'single_route', label: t('config.selectedRouteOnly'), icon: MapPin },
 ])
 
-// Projectile Selector State (80 Types)
+// Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDef(activeLevelConfig.value?.projectileType || 'fireball'))
-const currentCategoryProjectiles = computed(() => getProjectilesByCategory(activeProjectileDef.value.category))
+const activeProjectileDef = computed(() => getProjectileDefinition(activeLevelConfig.value?.projectileId || activeLevelConfig.value?.projectileType || 'fireball'))
 
 // Change Sprite Modal State (Only Tower Assets!)
 const isChangeSpriteModalOpen = ref(false)

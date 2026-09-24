@@ -73,7 +73,7 @@ describe('Code Quality & Strict Rules Audits', () => {
     for (const file of vueFiles) {
       const content = fs.readFileSync(file, 'utf-8')
       const lines = content.split('\n')
-      lines.forEach((lineText, idx) => {
+      lines.forEach((lineText: string, idx: number) => {
         // Exclude comments
         if (lineText.trim().startsWith('<!--') || lineText.trim().startsWith('//')) return
         const matches = lineText.match(emojiRegex)

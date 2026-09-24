@@ -65,14 +65,13 @@ export class EditorController {
   }
 
   public handlePointerDown(coord: GridCoord, e: MouseEvent | TouchEvent): void {
-    const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
-    const routeStore = this.ctx.routeStore || characterStore
+    const { routeStore, characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
 
     if (mapStore.activeLayer?.locked) return
     if (!isInsideGrid(coord.col, coord.row, mapStore.project.cols, mapStore.project.rows)) return
 
     // 1. Route Start Setting
-    if (routeStore.isSettingRouteStart) {
+    if (routeStore?.isSettingRouteStart) {
       if (routeStore.routeStartPlacementMode === 'add') {
         routeStore.addRoute(coord.col, coord.row)
       } else {
@@ -84,7 +83,7 @@ export class EditorController {
     }
 
     // 1.1 Player Base / Start Point Setting
-    if (routeStore.isSettingPlayerStartPoint) {
+    if (routeStore?.isSettingPlayerStartPoint) {
       routeStore.relocateCurrentPlayerStartPoint(coord.col, coord.row)
       routeStore.isSettingPlayerStartPoint = false
       engine.renderCharacter(characterStore, mapStore.project)
@@ -92,7 +91,7 @@ export class EditorController {
     }
 
     // 2. Custom Route Drawing & Point Selection/Relocation Dragging
-    if (routeStore.isDrawingRoute) {
+    if (routeStore?.isDrawingRoute) {
       const wpList = routeStore.drawingWaypoints || []
       const clickedWpIdx = wpList.findIndex(
         (p: GridCoord) => p.col === coord.col && p.row === coord.row
@@ -151,14 +150,13 @@ export class EditorController {
   }
 
   public handlePointerMove(coord: GridCoord, e: MouseEvent | TouchEvent): void {
-    const { characterStore, mapStore, engine, toolStore } = this.ctx
-    const routeStore = this.ctx.routeStore || characterStore
+    const { routeStore, characterStore, mapStore, engine, toolStore } = this.ctx
 
     toolStore.setHoveredCell(coord)
 
     // Waypoint dragging during route drawing
     if (
-      routeStore.isDrawingRoute &&
+      routeStore?.isDrawingRoute &&
       this.isDraggingWaypoint &&
       this.draggedWaypointIndex !== null
     ) {
@@ -178,13 +176,12 @@ export class EditorController {
   }
 
   public handlePointerUp(coord: GridCoord, e: MouseEvent | TouchEvent): void {
-    const { characterStore, mapStore, engine } = this.ctx
-    const routeStore = this.ctx.routeStore || characterStore
+    const { routeStore, characterStore, mapStore, engine } = this.ctx
 
     if (this.isDraggingWaypoint) {
       this.isDraggingWaypoint = false
       this.draggedWaypointIndex = null
-      routeStore.commitRouteState()
+      routeStore?.commitRouteState()
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
@@ -194,8 +191,7 @@ export class EditorController {
   }
 
   public handleContextMenu(): void {
-    const { characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
-    const routeStore = this.ctx.routeStore || characterStore
+    const { routeStore, characterStore, mapStore, engine, toolStore, assetStore } = this.ctx
 
     // 1. Cancel active multi-point operations first (Line, Box, Eraser, etc.)
     if (this.lineTool.lineStartPoint) {
@@ -232,23 +228,23 @@ export class EditorController {
       toolStore.setTool('brush')
       return
     }
-    if (routeStore.isDrawingRoute) {
+    if (routeStore?.isDrawingRoute) {
       if (routeStore.selectedWaypointIndex !== null) {
         routeStore.selectedWaypointIndex = null
         engine.renderCharacter(characterStore, mapStore.project)
         return
       }
     }
-    if (routeStore.selectedRouteIndex !== null) {
+    if (routeStore?.selectedRouteIndex !== null && routeStore?.selectedRouteIndex !== undefined) {
       routeStore.selectedRouteIndex = null
       engine.renderCharacter(characterStore, mapStore.project)
       return
     }
-    if (routeStore.isSettingRouteStart) {
+    if (routeStore?.isSettingRouteStart) {
       routeStore.isSettingRouteStart = false
       return
     }
-    if (routeStore.isSettingPlayerStartPoint) {
+    if (routeStore?.isSettingPlayerStartPoint) {
       routeStore.isSettingPlayerStartPoint = false
       return
     }

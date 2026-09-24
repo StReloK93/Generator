@@ -1,12 +1,14 @@
 import { Graphics, Sprite } from 'pixi.js'
 import { GridCoord, MapProject } from '../../types/map'
 import { useRouteStore } from '../../stores/routeStore'
+import { useWaveStore } from '../../stores/waveStore'
+import { useGameStore } from '../../stores/gameStore'
 import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
 import { assetManager } from '../../services/assetManager'
-import { getProjectileTheme, renderPixiProjectileHead } from '../../utils/projectileEffectRenderer'
-import { getProjectileDef } from '../../utils/projectileCatalog'
+import { ProjectileRenderer } from './ProjectileRenderer'
+import { getProjectileDefinition } from '../../utils/projectileCatalog'
 
 export interface CombatSparkParticle {
   x: number
@@ -27,22 +29,38 @@ export class CombatRenderer {
   public combatGraphics: Graphics
   private combatTrails = new Map<string, { x: number; y: number; alpha: number; size: number }[]>()
   public combatSparks: CombatSparkParticle[] = []
+  public activeStrikes: { x: number; y: number; startX?: number; startY?: number; life: number; maxLife: number; def: any }[] = []
 
   private activeProjIds = new Set<string>()
   private unsubscribeImpact?: () => void
+  private unsubscribeStrike?: () => void
   private lastTime = 0
 
   constructor() {
     this.combatGraphics = new Graphics()
     this.combatGraphics.zIndex = 999999
 
+    // Listen to decoupled combat strike events (Sky Strikes, Ground Bursts, Auras)
+    this.unsubscribeStrike = combatEvents.onStrike((evt) => {
+      const projDef = getProjectileDefinition(evt.projectileType)
+      this.activeStrikes.push({
+        x: evt.x,
+        y: evt.y,
+        startX: evt.startX,
+        startY: evt.startY,
+        life: evt.duration || 0.45,
+        maxLife: evt.duration || 0.45,
+        def: projDef,
+      })
+    })
+
     // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
-      const projDef = evt.projectileType ? getProjectileDef(evt.projectileType) : null
-      const sparkType = projDef?.sparkType || 'default'
-      const cat = projDef?.category || (evt.isSplash ? 'fire' : 'siege')
-      const count = evt.count || projDef?.sparkCount || (evt.isSplash ? 20 : 10)
-      const baseColor = evt.color ?? projDef?.sparkColorHex ?? 0xfbbf24
+      const projDef = evt.projectileType ? getProjectileDefinition(evt.projectileType) : null
+      const sparkType = projDef?.impact?.sparkType || 'default'
+      const cat = projDef?.identity?.category || (evt.isSplash ? 'fire' : 'siege')
+      const count = evt.count || projDef?.impact?.sparkCount || (evt.isSplash ? 20 : 10)
+      const baseColor = evt.color ?? projDef?.impact?.sparkColorHex ?? 0xfbbf24
 
       for (let s = 0; s < count; s++) {
         const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.6
@@ -147,13 +165,19 @@ export class CombatRenderer {
     const hasUnits = units.length > 0
     const hasSparks = this.combatSparks.length > 0
 
-    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits && !hasSparks) {
-      this.combatGraphics.clear()
+    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits && !hasSparks && this.activeStrikes.length === 0) {
+      if (this.combatGraphics && !this.combatGraphics.destroyed) {
+        this.combatGraphics.clear()
+      }
       return
     }
 
-    this.combatGraphics.clear()
-    this.combatGraphics.zIndex = 999999
+    if (this.combatGraphics && !this.combatGraphics.destroyed) {
+      this.combatGraphics.clear()
+      this.combatGraphics.zIndex = 999999
+    } else {
+      return
+    }
 
     // 1. Attack Range Indicator
     if (towerToHighlight) {
@@ -162,8 +186,9 @@ export class CombatRenderer {
       const rx = (r * tileWidth) / Math.SQRT2
       const ry = (r * tileHeight) / Math.SQRT2
 
+      const towerPos = gridToScreen(towerToHighlight.col, towerToHighlight.row, tileWidth, tileHeight)
       this.combatGraphics
-        .ellipse(towerToHighlight.screenX, towerToHighlight.screenY, rx, ry)
+        .ellipse(towerPos.x, towerPos.y, rx, ry)
         .fill({ color: 0x38bdf8, alpha: 0.12 })
         .stroke({ width: 2, color: 0x38bdf8, alpha: 0.85 })
     } else if (towerStore.activeBuildTowerId && hoveredGridCoord) {
@@ -264,10 +289,33 @@ export class CombatRenderer {
       buildGhostSprite.visible = false
     }
 
-    // 2. Flying Animated Projectiles
+    // 2. Instant Sky Strikes, Ground Bursts, and Auras Rendering
     const nowTime = performance.now()
     const dt = this.lastTime > 0 ? Math.min(0.1, (nowTime - this.lastTime) / 1000) : 0.016
     this.lastTime = nowTime
+
+    if (this.activeStrikes.length > 0) {
+      for (let i = this.activeStrikes.length - 1; i >= 0; i--) {
+        const s = this.activeStrikes[i]
+        s.life -= dt
+        if (s.life <= 0) {
+          this.activeStrikes.splice(i, 1)
+        } else {
+          ProjectileRenderer.renderHead(
+            this.combatGraphics,
+            s.def,
+            s.x,
+            s.y,
+            0,
+            s.startX ?? s.x,
+            s.startY ?? s.y,
+            nowTime
+          )
+        }
+      }
+    }
+
+    // 3. Flying Animated Projectiles
     this.activeProjIds.clear()
 
     if (hasProjectiles) {
@@ -279,8 +327,7 @@ export class CombatRenderer {
         if (!proj || (proj.active === false && !isLocal)) continue
         this.activeProjIds.add(proj.id)
         const type = proj.projectileType || 'fireball'
-        const projDef = getProjectileDef(type)
-        const theme = getProjectileTheme(type, proj.color)
+        const projDef = getProjectileDefinition(type)
 
         const totalDist =
           proj.totalDistance ||
@@ -288,7 +335,7 @@ export class CombatRenderer {
           1
         const progress = Math.min(1.0, (proj.traveledDistance || 0) / totalDist)
 
-        const hasArc = theme.isLaser ? false : (projDef.hasArc === false || theme.hasArc === false ? false : Boolean(projDef.hasArc ?? theme.hasArc))
+        const hasArc = projDef.movement.isLaser ? false : (projDef.movement.hasArc !== false)
         const arcMaxHeight =
           type === 'arrow'
             ? Math.min(48, totalDist * 0.18)
@@ -308,7 +355,7 @@ export class CombatRenderer {
         let lateralY = 0
         const projOffsetPerp = (proj as any).offsetPerp ?? 0
         const projPhaseOffset = (proj as any).phaseOffset ?? 0
-        const isHelix = projDef.formation === 'twin_helix'
+        const isHelix = projDef.formation.type === 'twin_helix'
 
         if (projOffsetPerp !== 0) {
           const swirl = isHelix
@@ -325,12 +372,6 @@ export class CombatRenderer {
         const vy = dy - (arcMaxHeight > 0 ? Math.cos(progress * Math.PI) * Math.PI * arcMaxHeight : 0)
         const angle = Math.atan2(vy, vx)
 
-        const trailStyle = projDef.trailStyle || (projDef.shape === 'arrow' || projDef.shape === 'feather' ? 'particles' : 'solid_line')
-        const trailColor = projDef.trailColorHex ?? theme.trailColorHex ?? 0xfbbf24
-        const trailAlpha = projDef.trailAlpha ?? theme.trailAlpha ?? 0.8
-        const trailWidth = projDef.trailWidth ?? 4
-        const isFireProj = projDef.category === 'fire' || type.includes('flame') || type.includes('fire')
-
         this.activeProjIds.add(proj.id)
 
         let trail = this.combatTrails.get(proj.id)
@@ -338,127 +379,23 @@ export class CombatRenderer {
           trail = []
           this.combatTrails.set(proj.id, trail)
         }
-        trail.push({ x: renderX, y: renderY, alpha: 1.0, size: trailWidth })
-        const maxTrailLen = Math.max(3, projDef.trailLength ?? 8)
+        trail.push({ x: renderX, y: renderY, alpha: 1.0, size: projDef.trail.width || 4 })
+        const maxTrailLen = Math.max(3, projDef.trail.length ?? 8)
         if (trail.length > maxTrailLen) trail.shift()
 
-        // Render Trail according to user preference (strictly respecting style)
-        if (trailStyle !== 'none' && !projDef.isLaser && !projDef.isInstant && projDef.shape !== 'instant_strike') {
-          if (trailStyle === 'particles') {
-            for (let t = 0; t < trail.length; t++) {
-              const pt = trail[t]
-              const frac = (t + 1) / trail.length
-              const trailRadius = frac * Math.max(1.0, trailWidth * 0.75)
-              this.combatGraphics
-                .circle(pt.x, pt.y, Math.max(0.8, trailRadius))
-                .fill({ color: trailColor, alpha: frac * trailAlpha })
-            }
-          } else if (trailStyle === 'glow_streak') {
-            if (trail.length >= 2) {
-              this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-              for (let t = 1; t < trail.length; t++) {
-                this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-              }
-              this.combatGraphics.stroke({
-                width: Math.max(1.5, trailWidth * 2.2),
-                color: trailColor,
-                alpha: trailAlpha * 0.35,
-                cap: 'round',
-                join: 'round',
-              })
+        // 1. Render Trail with unified ProjectileRenderer
+        ProjectileRenderer.renderTrail(this.combatGraphics, projDef, trail, nowTime)
 
-              this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-              for (let t = 1; t < trail.length; t++) {
-                this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-              }
-              this.combatGraphics.stroke({
-                width: Math.max(1.0, trailWidth),
-                color: trailColor,
-                alpha: trailAlpha * 0.95,
-                cap: 'round',
-                join: 'round',
-              })
-            }
-          } else if (trailStyle === 'solid_line') {
-            if (trail.length >= 2) {
-              if (isFireProj) {
-                // Layer 1: Outer Crimson Combustion Heat Shimmer
-                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-                for (let t = 1; t < trail.length; t++) {
-                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-                }
-                this.combatGraphics.stroke({
-                  width: Math.max(2.0, trailWidth * 2.8),
-                  color: 0xdc2626,
-                  alpha: trailAlpha * 0.35,
-                  cap: 'round',
-                  join: 'round',
-                })
-
-                // Layer 2: Mid Roaring Orange Flame Body
-                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-                for (let t = 1; t < trail.length; t++) {
-                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-                }
-                this.combatGraphics.stroke({
-                  width: Math.max(1.5, trailWidth * 1.6),
-                  color: 0xf97316,
-                  alpha: trailAlpha * 0.75,
-                  cap: 'round',
-                  join: 'round',
-                })
-
-                // Layer 3: Blazing Golden-Yellow Incandescent Core
-                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-                for (let t = 1; t < trail.length; t++) {
-                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-                }
-                this.combatGraphics.stroke({
-                  width: Math.max(1.0, trailWidth * 0.8),
-                  color: trailColor,
-                  alpha: trailAlpha * 0.95,
-                  cap: 'round',
-                  join: 'round',
-                })
-
-                // Layer 4: Floating Micro-Embers along trail path
-                for (let t = 0; t < trail.length - 1; t += 2) {
-                  const pt = trail[t]
-                  const eJitterX = Math.sin(nowTime * 0.01 + t * 4) * 2.0
-                  const eJitterY = Math.cos(nowTime * 0.01 + t * 4) * 2.0
-                  const eFrac = (t + 1) / trail.length
-                  this.combatGraphics
-                    .circle(pt.x + eJitterX, pt.y + eJitterY, Math.max(1.0, 2.0 * eFrac))
-                    .fill({ color: t % 4 === 0 ? 0xffffff : 0xfef08a, alpha: eFrac * 0.9 })
-                }
-              } else {
-                this.combatGraphics.moveTo(trail[0].x, trail[0].y)
-                for (let t = 1; t < trail.length; t++) {
-                  this.combatGraphics.lineTo(trail[t].x, trail[t].y)
-                }
-                this.combatGraphics.stroke({
-                  width: Math.max(1.0, trailWidth),
-                  color: trailColor,
-                  alpha: trailAlpha,
-                  cap: 'round',
-                  join: 'round',
-                })
-              }
-            }
-          }
-        }
-
-        // Render projectile head
-        renderPixiProjectileHead(
+        // 2. Render Projectile Head with unified ProjectileRenderer
+        ProjectileRenderer.renderHead(
           this.combatGraphics,
-          type,
+          projDef,
           renderX,
           renderY,
           angle,
           proj.startX,
           proj.startY,
-          nowTime,
-          projDef
+          nowTime
         )
       }
     }
@@ -560,20 +497,52 @@ export class CombatRenderer {
 
     // 5. Floating Unit HP Bars
     if (hasUnits) {
+      const waveStore = useWaveStore()
+      const gameStore = useGameStore()
+      const currentWaveCfg =
+        waveStore?.currentWaveConfig ||
+        waveStore?.waveConfigs?.[waveStore?.currentWaveIndex ?? 0] ||
+        null
+
       for (let i = 0; i < units.length; i++) {
         const unit = units[i]
-        if (!unit.isSpawned || unit.isDead) continue
+        const isSpawned = unit.lifecycle ? unit.lifecycle.isSpawned : unit.isSpawned
+        const isDead = unit.lifecycle ? unit.lifecycle.isDead : unit.isDead
+        if (!isSpawned || isDead) continue
 
-        const maxHp = unit.maxHp || 100
-        const currentHp = Math.max(0, unit.currentHp ?? maxHp)
+        const maxHp = (unit.combat ? unit.combat.maxHp : unit.maxHp) || 100
+        const currentHp = Math.max(0, (unit.combat ? unit.combat.currentHp : unit.currentHp) ?? maxHp)
         const ratio = Math.min(1, Math.max(0, currentHp / maxHp))
 
         const unitElev = Number(characterStore?.unitElevation) || 0
-        const unitOffsetY = (unit.offsetY ?? 0) + unitElev
-        const barW = 32
+        const rawOffsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? currentWaveCfg?.offsetY ?? 0
+        const unitOffsetY = rawOffsetY + unitElev
+
+        const col = unit.movement ? unit.movement.currentCol : unit.currentCol
+        const row = unit.movement ? unit.movement.currentRow : unit.currentRow
+        const direction = unit.movement ? unit.movement.direction : (unit.direction ?? 2)
+        const baseScreen = gridToScreen(col, row, tileWidth, tileHeight)
+
+        const sideOffset = unit.identity ? unit.identity.sideOffset : (unit.sideOffset ?? 0)
+        let finalScreenX = baseScreen.x
+        let finalScreenY = baseScreen.y
+
+        if (gameStore?.formation === 'pairs' && sideOffset !== 0) {
+          const perpX = Math.cos((direction * Math.PI) / 4 + Math.PI / 2)
+          const perpY = Math.sin((direction * Math.PI) / 4 + Math.PI / 2) * 0.5
+          const offsetDist = tileWidth * 0.15 * sideOffset
+          finalScreenX += perpX * offsetDist
+          finalScreenY += perpY * offsetDist
+        }
+
+        const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
+        const rawUnitScale = (unit.identity ? unit.identity.scale : (unit as any).unitScale) ?? currentWaveCfg?.unitScale
+        const customUnitScale = (Number(rawUnitScale) || 1.0) * globalScale
+
+        const barW = Math.round(32 * Math.min(1.5, Math.max(0.8, customUnitScale)))
         const barH = 4
-        const barX = unit.screenX - barW / 2
-        const barY = unit.screenY - tileHeight * 1.25 - unitOffsetY
+        const barX = finalScreenX - barW / 2
+        const barY = finalScreenY - (tileHeight * 1.15 * customUnitScale) - unitOffsetY
 
         this.combatGraphics
           .roundRect(barX - 1, barY - 1, barW + 2, barH + 2, 2)
@@ -604,6 +573,9 @@ export class CombatRenderer {
     try {
       if (this.unsubscribeImpact) {
         this.unsubscribeImpact()
+      }
+      if (this.unsubscribeStrike) {
+        this.unsubscribeStrike()
       }
       this.clear()
       if (this.combatGraphics && !this.combatGraphics.destroyed) {

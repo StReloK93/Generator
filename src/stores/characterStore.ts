@@ -1,8 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { GridCoord, UnitVariantType, WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
+import { UnitVariantType, WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
+import { 
+  CharacterUnit, 
+  CharacterAction, 
+  CharacterModel, 
+  UnitStatusEffect, 
+  UnitIdentity, 
+  UnitMovement, 
+  UnitCombat, 
+  UnitAnimation, 
+  UnitLifecycle 
+} from '../types/unit'
 import { useMapStore } from './mapStore'
-import { useToolStore } from './toolStore'
 import { useTowerStore } from './towerStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { useRouteStore } from './routeStore'
@@ -13,135 +23,69 @@ import { gridToScreen } from '../utils/isometric'
 import characterManifest from '../assets/generated/characterManifest.json'
 import { CrowdSimulation, GameStateMachine } from '../domain/simulation'
 
-export type CharacterAction = 'Idle' | 'Run' | 'Pickup' | 'Walk' | 'Attack' | 'Die' | 'Hit' | 'Block' | 'Cast' | 'Jump' | 'Taunt' | (string & {})
-export type CharacterModel = 'male' | 'warrior' | (string & {})
-export type { WaveConfig, RouteInfo, Route }
-
-export interface UnitStatusEffect {
-  type: TowerTraitType
-  duration: number // remaining seconds
-  dps?: number // damage per second
-  slowPercent?: number
-  amplification?: number
-  tickTimer?: number
-  sourceTowerId?: string
+export type { 
+  CharacterUnit, 
+  CharacterAction, 
+  CharacterModel, 
+  UnitStatusEffect,
+  UnitIdentity,
+  UnitMovement,
+  UnitCombat,
+  UnitAnimation,
+  UnitLifecycle,
+  WaveConfig, 
+  RouteInfo, 
+  Route 
 }
 
-export interface CharacterUnit {
-  id: string
-  routeIndex: number
-  routeId: string
-  unitIndex: number
-  pairIndex: number
-  sideOffset: number // -1 (Left side) or +1 (Right side) for 2 people running side-by-side!
-  currentCol: number
-  currentRow: number
-  screenX: number
-  screenY: number
-  direction: number // 0..7
-  action: CharacterAction
-  characterModel?: CharacterModel
-  animSpeed?: number
-  offsetY?: number
-  unitScale?: number
-  unitVariant?: UnitVariantType
-  variantTint?: number | string
-  frameIndex: number
-  animTimer: number
-  pathIndex: number
-  pathInterpolation: number
-  isSpawned: boolean
-  hasReachedEnd: boolean
-  celebrationTimer: number
-  maxHp: number
-  currentHp: number
-  isDead: boolean
-  deathFade: number
-  distanceTraveled?: number
-  immunities?: TowerTraitType[]
-  statusEffects?: UnitStatusEffect[]
-  consecutiveHits?: Record<string, number>
-}
-
+/**
+ * useCharacterStore — Pinia Store owning active units and orchestrating unit simulation.
+ * 
+ * SOLID Principles:
+ * 1. Single Responsibility: Manages active units list, spawning, and simulation loop.
+ * 2. Pure Domain Calculations: All coordinate/angle/DoT math is in CrowdSimulation.
+ * 3. Separation of Concerns: Game economy -> gameStore, routes -> routeStore, waves -> waveStore.
+ */
 export const useCharacterStore = defineStore('characterStore', () => {
   const mapStore = useMapStore()
-  const toolStore = useToolStore()
   const towerStore = useTowerStore()
   const multiplayerStore = useMultiplayerStore()
   const routeStore = useRouteStore()
   const waveStore = useWaveStore()
   const gameStore = useGameStore()
 
-  // --- UNIT SIMULATION & HARAKAT STATE ---
+  // ==========================================
+  // 1. REACTIVE STATE
+  // ==========================================
   const isEnabled = ref(true)
   const isPlaying = ref(false)
-  const unitSpeed = ref(2.5) // Unit Walking Speed (tiles per second, 0.8 to 6.0)
-  const speed = unitSpeed // Backward-compat alias
-  const spawnCount = ref(10)
-  const formation = ref<'pairs' | 'single'>('pairs')
-  const pairDistance = ref(0.35)
-  const followCamera = ref(false)
-  const showPathTrail = ref(true)
-  const showSpawnPoints = ref(true)
-  const autoLoop = ref(true)
-  const unitElevation = ref(0)
-  const unitScaleMultiplier = ref(1.0)
-
-  // Units array & crowd tracking
   const units = ref<CharacterUnit[]>([])
-  const lapCount = ref(0)
   const routeWaveProgress = ref<Record<number, number>>({})
   const statusMessage = ref('Waiting at spawn point')
 
-  // --- COMPUTEDS ---
-  const spawnedUnitsCount = computed(() => {
-    return units.value.filter(u => u.isSpawned && !u.hasReachedEnd).length
-  })
-
-  const completedUnitsCount = computed(() => {
-    return units.value.filter(u => u.hasReachedEnd).length
-  })
-
+  // ==========================================
+  // 2. COMPUTEDS
+  // ==========================================
+  /**
+   * Count of active, living enemies currently marching on the field.
+   */
   const aliveEnemiesCount = computed(() => {
     if (multiplayerStore.roomId) {
-      return networkSyncBuffer.renderUnitsList.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
+      return networkSyncBuffer.renderUnitsList.filter(
+        u => u.isSpawned && !u.isDead && !u.hasReachedEnd
+      ).length
     }
-    return units.value.filter(u => u.isSpawned && !u.isDead && !u.hasReachedEnd).length
+    return units.value.filter(
+      u => u.lifecycle.isSpawned && !u.lifecycle.isDead && !u.lifecycle.hasReachedEnd
+    ).length
   })
 
-  const deadEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId) {
-      return networkSyncBuffer.renderUnitsList.filter(u => u.isDead).length
-    }
-    return units.value.filter(u => u.isDead).length
-  })
-
-  const leakedEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId) {
-      return networkSyncBuffer.renderUnitsList.filter(u => u.hasReachedEnd).length
-    }
-    return units.value.filter(u => u.hasReachedEnd).length
-  })
-
-  const totalWaveEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId) {
-      return networkSyncBuffer.renderUnitsList.length
-    }
-    return units.value.length
-  })
-
-  const progressPercent = computed(() => {
-    const active = units.value.filter(u => u.isSpawned)
-    if (active.length === 0) return 0
-    let totalInterp = 0
-    for (const u of active) {
-      const route = routeStore.getRouteForIndex(u.routeIndex ?? 0)
-      const maxLen = Math.max(1, route.length - 1)
-      totalInterp += Math.min(100, Math.round((u.pathIndex / maxLen) * 100))
-    }
-    return Math.round(totalInterp / active.length)
-  })
-
+  // ==========================================
+  // 3. HELPERS
+  // ==========================================
+  /**
+   * Determines action frame count from character manifest metadata.
+   */
   function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
     const meta = (characterManifest as any)?.[String(model || 'male').toLowerCase()]
     if (!meta || !meta.actions) {
@@ -156,8 +100,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
     return act?.frameCount || (model === 'warrior' ? 24 : 10)
   }
 
-  // --- MULTI-UNIT CROWD INITIALIZATION & SPAWNING ---
-  function initializeUnits() {
+  // ==========================================
+  // 4. UNIT CREATION & SPAWNING
+  // ==========================================
+  /**
+   * Initializes units for the current wave using the composable structure.
+   */
+  function initializeUnits(): void {
     if (routeStore.routes.length === 0) {
       units.value = []
       return
@@ -165,8 +114,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
     const list: CharacterUnit[] = []
     const waveCfg = waveStore.currentWaveConfig
-    const count = Math.max(1, Math.min(100, waveCfg ? waveCfg.unitCount : spawnCount.value))
-    const isPairFormation = formation.value === 'pairs'
+    const count = Math.max(1, Math.min(100, waveCfg ? waveCfg.unitCount : 10))
+    const isPairFormation = gameStore.formation === 'pairs'
     const model: CharacterModel = (waveCfg?.characterModel as CharacterModel) || 'male'
     const initialMaxFrames = getModelActionFrameCount(model, 'Run')
 
@@ -178,10 +127,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const baseHp = waveCfg ? waveCfg.unitHp : 100
 
     for (const rIdx of activeRoutesToSpawn) {
-      progressMap[rIdx] = 0 // Leader starts at distance 0
+      progressMap[rIdx] = 0
       const route = routeStore.getRouteForIndex(rIdx)
       const startPt = route[0] || { col: 2, row: 2 }
-      const startScreen = gridToScreen(startPt.col, startPt.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
       const routeItem = routeStore.routes[rIdx]
       const routeId = routeItem ? routeItem.id : `route-${rIdx}`
 
@@ -200,38 +148,46 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
         list.push({
           id: `unit-r${rIdx}-${i}-${Date.now()}`,
-          routeIndex: rIdx,
-          routeId,
-          unitIndex: i,
-          pairIndex,
-          sideOffset,
-          currentCol: startPt.col,
-          currentRow: startPt.row,
-          screenX: startScreen.x,
-          screenY: startScreen.y,
-          direction: 2,
-          action: 'Idle',
-          characterModel: model,
-          animSpeed: waveCfg?.animSpeed || 1.0,
-          offsetY: waveCfg?.offsetY || 0,
-          unitScale: waveCfg?.unitScale || 1.0,
-          unitVariant: waveCfg?.unitVariant || 'normal',
-          variantTint: waveCfg?.variantTint,
-          frameIndex: (i * 2) % initialMaxFrames,
-          animTimer: 0,
-          pathIndex: 0,
-          pathInterpolation: 0,
-          isSpawned: pairIndex === 0, // First pair visible standing at spawn point
-          hasReachedEnd: false,
-          celebrationTimer: 0,
-          maxHp: baseHp,
-          currentHp: baseHp,
-          isDead: false,
-          deathFade: 1.0,
-          distanceTraveled: 0,
-          immunities: effectiveImmunities,
-          statusEffects: [],
-          consecutiveHits: {},
+          identity: {
+            routeId,
+            routeIndex: rIdx,
+            unitIndex: i,
+            pairIndex,
+            sideOffset,
+            model,
+            variant: waveCfg?.unitVariant || 'normal',
+            variantTint: waveCfg?.variantTint,
+            offsetY: waveCfg?.offsetY || 0,
+            scale: waveCfg?.unitScale || 1.0,
+          },
+          movement: {
+            currentCol: startPt.col,
+            currentRow: startPt.row,
+            direction: 2,
+            pathIndex: 0,
+            pathInterpolation: 0,
+            distanceTraveled: 0,
+          },
+          combat: {
+            maxHp: baseHp,
+            currentHp: baseHp,
+            immunities: effectiveImmunities,
+            statusEffects: [],
+            consecutiveHits: {},
+          },
+          animation: {
+            action: 'Idle',
+            frameIndex: (i * 2) % initialMaxFrames,
+            animTimer: 0,
+            animSpeed: waveCfg?.animSpeed || 1.0,
+          },
+          lifecycle: {
+            isSpawned: pairIndex === 0,
+            hasReachedEnd: false,
+            isDead: false,
+            deathFade: 1.0,
+            celebrationTimer: 0,
+          },
         })
       }
     }
@@ -240,7 +196,10 @@ export const useCharacterStore = defineStore('characterStore', () => {
     units.value = list
   }
 
-  function spawnAtRoute(routeIdx?: number | null) {
+  /**
+   * Spawns units for the selected route.
+   */
+  function spawnAtRoute(routeIdx?: number | null): void {
     if (routeIdx !== undefined && routeIdx !== null) {
       routeStore.selectedRouteIndex = routeIdx
     }
@@ -253,31 +212,43 @@ export const useCharacterStore = defineStore('characterStore', () => {
       : `${routeStore.selectedRoute?.name || 'Route'} ready (${totalCount} units ${hpStr})`
   }
 
-  function startTour() {
+  // ==========================================
+  // 5. SIMULATION CONTROLS
+  // ==========================================
+  /**
+   * Starts unit tour / marching.
+   */
+  function startTour(): void {
     if (units.value.length === 0) {
       initializeUnits()
     }
     isPlaying.value = true
     for (const u of units.value) {
-      if (u.isSpawned && !u.hasReachedEnd && !u.isDead) {
-        u.action = 'Run'
+      if (u.lifecycle.isSpawned && !u.lifecycle.hasReachedEnd && !u.lifecycle.isDead) {
+        u.animation.action = 'Run'
       }
     }
     const waveName = waveStore.currentWaveConfig ? waveStore.currentWaveConfig.name : 'Units'
     statusMessage.value = `${waveName} — ${units.value.length} units marching to target...`
   }
 
-  function pauseTour() {
+  /**
+   * Pauses unit movement.
+   */
+  function pauseTour(): void {
     isPlaying.value = false
     for (const u of units.value) {
-      if (!u.hasReachedEnd && !u.isDead) {
-        u.action = 'Idle'
+      if (!u.lifecycle.hasReachedEnd && !u.lifecycle.isDead) {
+        u.animation.action = 'Idle'
       }
     }
     statusMessage.value = 'Movement paused'
   }
 
-  function togglePlay() {
+  /**
+   * Toggles play/pause state.
+   */
+  function togglePlay(): void {
     if (isPlaying.value) {
       pauseTour()
     } else {
@@ -285,35 +256,29 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
   }
 
-  function resetTour() {
+  /**
+   * Resets unit tour to spawn points.
+   */
+  function resetTour(): void {
     pauseTour()
-    lapCount.value = 0
+    towerStore.clearCombatEffects()
     routeWaveProgress.value = {}
     units.value = []
     initializeUnits()
     statusMessage.value = 'Reset to spawn point and ready'
   }
 
-  function calculateDirection(fromCol: number, fromRow: number, toCol: number, toRow: number): number {
-    return CrowdSimulation.calculateDirection(
-      fromCol,
-      fromRow,
-      toCol,
-      toRow,
-      mapStore.project.tileWidth,
-      mapStore.project.tileHeight
-    )
-  }
-
+  // ==========================================
+  // 6. MAIN SIMULATION UPDATE LOOP
+  // ==========================================
   /**
-   * Main multi-unit animation & movement tick
+   * Primary frame update loop for units.
    */
-  function updateTick(deltaSec: number) {
+  function updateTick(deltaSec: number): void {
     if (!isEnabled.value) return
 
-    // Building & prep phase in Play Mode
+    // Phase 1: Build Prep phase
     if (gameStore.isGameMode && gameStore.gameState === 'build_prep') {
-      // Countdown timer ONLY runs automatically in Multiplayer rooms
       if (multiplayerStore.roomId && multiplayerStore.isHost) {
         if (gameStore.prepCountdown > 0) {
           gameStore.prepCountdown -= deltaSec
@@ -325,47 +290,49 @@ export const useCharacterStore = defineStore('characterStore', () => {
         }
       }
 
-      // Animate idle pose for preview units standing at the spawn point
+      // Idle animation for preview units at spawn point
       for (const unit of units.value) {
-        if (unit.isSpawned && !unit.isDead && !unit.hasReachedEnd) {
-          unit.action = 'Idle'
-          unit.animTimer += deltaSec
-          if (unit.animTimer >= 0.15) {
-            unit.animTimer = 0
-            const maxIdle = getModelActionFrameCount(unit.characterModel, 'Idle')
-            unit.frameIndex = (unit.frameIndex + 1) % maxIdle
+        if (unit.lifecycle.isSpawned && !unit.lifecycle.isDead && !unit.lifecycle.hasReachedEnd) {
+          unit.animation.action = 'Idle'
+          unit.animation.animTimer += deltaSec
+          if (unit.animation.animTimer >= 0.15) {
+            unit.animation.animTimer = 0
+            const maxIdle = getModelActionFrameCount(unit.identity.model, 'Idle')
+            unit.animation.frameIndex = (unit.animation.frameIndex + 1) % maxIdle
           }
         }
       }
       return
     }
 
-    // Auto-start unit movement if game state transitioned to wave_running
+    // Phase 2: Start marching when wave begins
     if (gameStore.isGameMode && gameStore.gameState === 'wave_running' && !isPlaying.value) {
       startTour()
     }
 
+    // Phase 3: Paused idle animation
     if (!isPlaying.value) {
       for (const unit of units.value) {
-        if (!unit.isDead && !unit.hasReachedEnd) {
-          unit.action = 'Idle'
-          unit.animTimer += deltaSec
-          if (unit.animTimer >= 0.15) {
-            unit.animTimer = 0
-            const maxIdle = getModelActionFrameCount(unit.characterModel, 'Idle')
-            unit.frameIndex = (unit.frameIndex + 1) % maxIdle
+        if (!unit.lifecycle.isDead && !unit.lifecycle.hasReachedEnd) {
+          unit.animation.action = 'Idle'
+          unit.animation.animTimer += deltaSec
+          if (unit.animation.animTimer >= 0.15) {
+            unit.animation.animTimer = 0
+            const maxIdle = getModelActionFrameCount(unit.identity.model, 'Idle')
+            unit.animation.frameIndex = (unit.animation.frameIndex + 1) % maxIdle
           }
         }
       }
       return
     }
 
+    // Phase 4: Active movement & path calculations
     const tileWidth = mapStore.project.tileWidth
     const tileHeight = mapStore.project.tileHeight
     const waveCfg = waveStore.currentWaveConfig
     const unitBaseSpeed = waveCfg ? waveCfg.unitSpeed : 2.5
     const stepDistance = unitBaseSpeed * deltaSec
-    const spacingInTiles = pairDistance.value
+    const spacingInTiles = gameStore.pairDistance
 
     for (const rIdxStr in routeWaveProgress.value) {
       const rIdx = Number(rIdxStr)
@@ -373,40 +340,41 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
 
     let allCompletedOrDead = true
-    let leaderUnit: CharacterUnit | null = null
 
     for (const unit of units.value) {
-      const route = routeStore.getRouteForIndex(unit.routeIndex ?? 0)
+      const route = routeStore.getRouteForIndex(unit.identity.routeIndex ?? 0)
       if (!route || route.length <= 1) continue
 
-      if (unit.isDead) {
-        unit.action = 'Pickup'
-        unit.animTimer += deltaSec
-        if (unit.animTimer >= 0.08) {
-          unit.animTimer = 0
-          const maxDead = getModelActionFrameCount(unit.characterModel, 'Pickup')
-          if (unit.frameIndex < maxDead) {
-            unit.frameIndex++
+      // Dead unit animation
+      if (unit.lifecycle.isDead) {
+        unit.animation.action = 'Pickup'
+        unit.animation.animTimer += deltaSec
+        if (unit.animation.animTimer >= 0.08) {
+          unit.animation.animTimer = 0
+          const maxDead = getModelActionFrameCount(unit.identity.model, 'Pickup')
+          if (unit.animation.frameIndex < maxDead) {
+            unit.animation.frameIndex++
           }
         }
-        if (unit.deathFade > 0) {
-          unit.deathFade = Math.max(0, unit.deathFade - deltaSec * 1.2)
+        if (unit.lifecycle.deathFade > 0) {
+          unit.lifecycle.deathFade = Math.max(0, unit.lifecycle.deathFade - deltaSec * 1.2)
         }
         continue
       }
 
-      // 1. PROCESS STATUS EFFECTS
+      // DoT and status effects processing
       let maxSlowPercent = 0
-      if (unit.statusEffects && unit.statusEffects.length > 0) {
+      if (unit.combat.statusEffects && unit.combat.statusEffects.length > 0) {
         const effectRes = CrowdSimulation.processStatusEffects(unit, deltaSec)
         maxSlowPercent = effectRes.maxSlowPercent
 
         if (effectRes.dotDamage > 0) {
+          const uScreen = gridToScreen(unit.movement.currentCol, unit.movement.currentRow, tileWidth, tileHeight)
           towerStore.damageFloaters.push({
             id: `dot-${Date.now()}-${Math.random()}`,
             text: effectRes.dotText || `-${effectRes.dotDamage}`,
-            x: unit.screenX + (Math.random() * 16 - 8),
-            y: unit.screenY - tileHeight * 1.05,
+            x: uScreen.x + (Math.random() * 16 - 8),
+            y: uScreen.y - tileHeight * 1.05,
             color: effectRes.dotColor || 0xf97316,
             alpha: 1.0,
             lifeTimer: 0,
@@ -415,126 +383,88 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
         if (effectRes.unitDied) {
           gameStore.totalKills++
+
+          const unitBounty = waveCfg ? (waveCfg.unitBonus ?? waveCfg.goldReward ?? 1) : 1
+          if (unitBounty > 0) {
+            if (multiplayerStore.roomId) {
+              const myPl = multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
+              if (myPl) {
+                myPl.gold = (myPl.gold || 0) + unitBounty
+                myPl.totalGoldEarned = (myPl.totalGoldEarned || 0) + unitBounty
+                myPl.killsCount = (myPl.killsCount || 0) + 1
+                gameStore.gold = myPl.gold
+                gameStore.totalGoldEarned = myPl.totalGoldEarned
+              }
+            } else {
+              gameStore.gold += unitBounty
+              gameStore.totalGoldEarned += unitBounty
+            }
+
+            const uScreen = gridToScreen(unit.movement.currentCol, unit.movement.currentRow, tileWidth, tileHeight)
+            towerStore.damageFloaters.push({
+              id: `dot-gold-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              text: `+${unitBounty}g`,
+              x: uScreen.x,
+              y: uScreen.y - tileHeight * 1.2,
+              color: 0xfacc15,
+              alpha: 1.0,
+              lifeTimer: 0,
+            })
+          }
         }
       }
 
-      if (unit.isDead) continue
+      if (unit.lifecycle.isDead) continue
 
+      // Spawning interval distance check
       const speedMultiplier = Math.max(0.15, 1.0 - (Math.min(85, maxSlowPercent) / 100))
-      const waveDist = routeWaveProgress.value[unit.routeIndex ?? 0] ?? 0
-      const targetSpawnDist = unit.pairIndex * spacingInTiles
+      const waveDist = routeWaveProgress.value[unit.identity.routeIndex ?? 0] ?? 0
+      const targetSpawnDist = unit.identity.pairIndex * spacingInTiles
 
-      if (waveDist < targetSpawnDist && (unit.distanceTraveled === undefined || unit.distanceTraveled === 0)) {
-        unit.isSpawned = false
-        unit.action = 'Idle'
+      if (waveDist < targetSpawnDist && (unit.movement.distanceTraveled === undefined || unit.movement.distanceTraveled === 0)) {
+        unit.lifecycle.isSpawned = false
+        unit.animation.action = 'Idle'
         allCompletedOrDead = false
         continue
       }
 
-      unit.isSpawned = true
+      unit.lifecycle.isSpawned = true
 
-      if (unit.distanceTraveled === undefined) {
-        unit.distanceTraveled = Math.max(0, waveDist - targetSpawnDist)
-      } else {
-        unit.distanceTraveled += (unitBaseSpeed * speedMultiplier) * deltaSec
-      }
+      // Advance unit along route
+      const advRes = CrowdSimulation.advanceUnitPosition(
+        unit,
+        route,
+        deltaSec,
+        unitBaseSpeed,
+        speedMultiplier,
+        gameStore.formation,
+        tileWidth,
+        tileHeight
+      )
 
-      const unitDist = unit.distanceTraveled
-
-      if (unitDist >= route.length - 1) {
-        if (!unit.hasReachedEnd) {
-          unit.hasReachedEnd = true
-          if (gameStore.isGameMode && gameStore.gameState === 'wave_running') {
-            const lifeRes = GameStateMachine.deductLife(gameStore.playerLives)
-            gameStore.playerLives = lifeRes.remainingLives
-            if (lifeRes.isGameOver) {
-              gameStore.gameState = 'game_over'
-              isPlaying.value = false
-              statusMessage.value = 'Defeat! All lives lost.'
-            }
+      if (advRes.hasReachedEnd) {
+        if (advRes.isJustReachedEnd && gameStore.isGameMode && gameStore.gameState === 'wave_running') {
+          const lifeRes = GameStateMachine.deductLife(gameStore.playerLives)
+          gameStore.playerLives = lifeRes.remainingLives
+          if (lifeRes.isGameOver) {
+            gameStore.gameState = 'game_over'
+            isPlaying.value = false
+            statusMessage.value = 'Defeat! All lives lost.'
+            towerStore.clearCombatEffects()
           }
         }
-        unit.pathIndex = route.length - 1
-        unit.pathInterpolation = 0
-        unit.action = 'Pickup'
-        unit.celebrationTimer += deltaSec
-        unit.animTimer += deltaSec
-        if (unit.animTimer >= 0.1) {
-          unit.animTimer = 0
-          const maxAction = getModelActionFrameCount(unit.characterModel, 'Pickup')
-          unit.frameIndex = (unit.frameIndex + 1) % maxAction
-        }
-        unit.currentCol = route[route.length - 1].col
-        unit.currentRow = route[route.length - 1].row
-        const ptScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
-        unit.screenX = ptScreen.x
-        unit.screenY = ptScreen.y
         continue
       }
 
       allCompletedOrDead = false
-      if (!leaderUnit && unit.routeIndex === routeStore.selectedRouteIndex) {
-        leaderUnit = unit
-      }
 
-      unit.hasReachedEnd = false
-      unit.action = 'Run'
-      unit.pathIndex = Math.floor(unitDist)
-      unit.pathInterpolation = unitDist - unit.pathIndex
-
-      const idxA = unit.pathIndex
-      const idxB = Math.min(route.length - 1, idxA + 1)
-      const ptA = route[idxA]
-      const ptB = route[idxB]
-
-      const t = unit.pathInterpolation
-      unit.currentCol = ptA.col + (ptB.col - ptA.col) * t
-      unit.currentRow = ptA.row + (ptB.row - ptA.row) * t
-
-      const baseScreen = gridToScreen(unit.currentCol, unit.currentRow, tileWidth, tileHeight)
-
-      if (formation.value === 'pairs' && unit.sideOffset !== 0) {
-        const offsetPt = CrowdSimulation.calculateSideOffset(
-          baseScreen.x,
-          baseScreen.y,
-          ptA,
-          ptB,
-          unit.sideOffset,
-          tileWidth,
-          tileHeight
-        )
-        unit.screenX = offsetPt.screenX
-        unit.screenY = offsetPt.screenY
-      } else {
-        unit.screenX = baseScreen.x
-        unit.screenY = baseScreen.y
-      }
-
-      if (idxA !== idxB) {
-        unit.direction = calculateDirection(ptA.col, ptA.row, ptB.col, ptB.row)
-      }
-
-      unit.animTimer += deltaSec
-      const maxRun = getModelActionFrameCount(unit.characterModel, 'Run')
-      const animMultiplier = unit.animSpeed || waveStore.currentWaveConfig?.animSpeed || 1.0
-      const frameDuration = ((maxRun > 15 ? 0.04 : 0.07) / Math.min(5, unitBaseSpeed / 2.5)) / Math.max(0.1, animMultiplier)
-      if (unit.animTimer >= frameDuration) {
-        unit.animTimer = 0
-        unit.frameIndex = (unit.frameIndex + 1) % maxRun
-      }
+      // Update run animation
+      const maxRun = getModelActionFrameCount(unit.identity.model, 'Run')
+      CrowdSimulation.updateUnitAnimation(unit, deltaSec, maxRun, unitBaseSpeed)
     }
 
-    // Camera follow leader
-    if (followCamera.value && isPlaying.value && leaderUnit && leaderUnit.isSpawned && !leaderUnit.isDead && !leaderUnit.hasReachedEnd) {
-      const panX = window.innerWidth / 2 - leaderUnit.screenX * toolStore.zoom
-      const panY = window.innerHeight / 2 - leaderUnit.screenY * toolStore.zoom
-      toolStore.pan.x += (panX - toolStore.pan.x) * 0.08
-      toolStore.pan.y += (panY - toolStore.pan.y) * 0.08
-    }
-
-    // Wave completion
+    // Phase 5: Wave completion evaluation
     if (allCompletedOrDead && units.value.length > 0) {
-      lapCount.value++
       const completedWave = waveStore.currentWaveConfig
       const reward = completedWave ? (completedWave.endWaveBonus ?? completedWave.goldReward ?? 50) : 50
 
@@ -563,11 +493,13 @@ export const useCharacterStore = defineStore('characterStore', () => {
             gameStore.gameState = 'victory'
             isPlaying.value = false
             statusMessage.value = 'Victory! All waves successfully cleared!'
+            towerStore.clearCombatEffects()
           } else {
             waveStore.currentWaveIndex++
             gameStore.gameState = 'build_prep'
             gameStore.prepCountdown = gameStore.wavePrepDuration
             isPlaying.value = false
+            towerStore.clearCombatEffects()
             spawnAtRoute(0)
             if (multiplayerStore.roomId) {
               statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${gameStore.wavePrepDuration}s build prep...`
@@ -579,73 +511,52 @@ export const useCharacterStore = defineStore('characterStore', () => {
       } else {
         gameStore.gold += reward
         pauseTour()
+        towerStore.clearCombatEffects()
         statusMessage.value = `${completedWave?.name || 'Wave'} test completed!`
       }
     }
   }
 
-  function updateClientInterpolation(deltaSec: number) {
+  /**
+   * Client-side network interpolation for multiplayer.
+   */
+  function updateClientInterpolation(deltaSec: number): void {
     networkSyncBuffer.interpolate(deltaSec)
   }
 
-  function devClearAllCreeps() {
+  /**
+   * Developer tool: clear all creeps.
+   */
+  function devClearAllCreeps(): void {
     for (const u of units.value) {
-      u.isDead = true
-      u.action = 'Pickup'
-      u.deathFade = 0.2
+      u.lifecycle.isDead = true
+      u.animation.action = 'Pickup'
+      u.lifecycle.deathFade = 0.2
     }
     units.value = []
     towerStore.clearCombatEffects()
   }
 
-  function resetForNewProject() {
+  /**
+   * Reset unit state for a new project.
+   */
+  function resetForNewProject(): void {
     units.value = []
-    unitSpeed.value = 2.5
-    spawnCount.value = 10
-    formation.value = 'pairs'
-    pairDistance.value = 0.35
-    followCamera.value = false
-    showPathTrail.value = true
-    autoLoop.value = true
-    unitElevation.value = 0
-    unitScaleMultiplier.value = 1.0
-    lapCount.value = 0
     statusMessage.value = 'Waiting at spawn point'
   }
 
   return {
-    // Unit state
     units,
     isEnabled,
     isPlaying,
-    speed,
-    unitSpeed,
-    spawnCount,
-    formation,
-    pairDistance,
-    followCamera,
-    showPathTrail,
-    showSpawnPoints,
-    autoLoop,
-    unitElevation,
-    unitScaleMultiplier,
-    lapCount,
     statusMessage,
-    spawnedUnitsCount,
-    completedUnitsCount,
     aliveEnemiesCount,
-    deadEnemiesCount,
-    leakedEnemiesCount,
-    totalWaveEnemiesCount,
-    progressPercent,
-    // Unit actions
     initializeUnits,
     spawnAtRoute,
     startTour,
     pauseTour,
     togglePlay,
     resetTour,
-    calculateDirection,
     updateTick,
     updateClientInterpolation,
     devClearAllCreeps,

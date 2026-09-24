@@ -634,32 +634,33 @@ class NetworkSyncBuffer {
       const hitX = event.currentX || event.targetX || 0
       const hitY = event.currentY || event.targetY || 0
 
-      // Spawn shockwave ring for all hits (AoE wide, or single-target crisp ripple)
-      const hasNearbyRing = this.explosionRingsPool.some(
-        r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 20
-      )
-      if (!hasNearbyRing) {
-        let ring: ClientExplosionRing | null = null
-        for (let i = 0; i < this.explosionRingsPool.length; i++) {
-          if (!this.explosionRingsPool[i].active) {
-            ring = this.explosionRingsPool[i]
-            break
+      // Spawn shockwave ring ONLY for AoE splash hits
+      const isSplash = Boolean(event.isSplash)
+      if (isSplash) {
+        const hasNearbyRing = this.explosionRingsPool.some(
+          r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 20
+        )
+        if (!hasNearbyRing) {
+          let ring: ClientExplosionRing | null = null
+          for (let i = 0; i < this.explosionRingsPool.length; i++) {
+            if (!this.explosionRingsPool[i].active) {
+              ring = this.explosionRingsPool[i]
+              break
+            }
           }
-        }
-        if (!ring) ring = this.explosionRingsPool[0]
+          if (!ring) ring = this.explosionRingsPool[0]
 
-        if (ring) {
-          const theme = getProjectileTheme(event.projType || 'fireball')
-          const isArrow = event.projType === 'arrow'
-          const isSplash = Boolean(event.isSplash)
-          ring.id = `ring-${Date.now()}`
-          ring.x = hitX
-          ring.y = hitY
-          ring.radius = 3
-          ring.maxRadius = isSplash ? (event.splashRadius || 1.5) * 128 * 0.65 : (isArrow ? 14 : 18)
-          ring.color = theme.shockwaveColorHex
-          ring.alpha = 0.95
-          ring.active = true
+          if (ring) {
+            const theme = getProjectileTheme(event.projType || 'fireball')
+            ring.id = `ring-${Date.now()}`
+            ring.x = hitX
+            ring.y = hitY
+            ring.radius = 3
+            ring.maxRadius = (event.splashRadius || 1.5) * 128 * 0.65
+            ring.color = theme.shockwaveColorHex
+            ring.alpha = 0.95
+            ring.active = true
+          }
         }
       }
 
@@ -741,27 +742,27 @@ class NetworkSyncBuffer {
       projectileType: proj.projectileType,
     })
 
-    // Spawn Impact Shockwave Ring for ALL hits (matching TowerLivePreview!)
-    let ring: ClientExplosionRing | null = null
-    for (let i = 0; i < this.explosionRingsPool.length; i++) {
-      if (!this.explosionRingsPool[i].active) {
-        ring = this.explosionRingsPool[i]
-        break
+    // Spawn Impact Shockwave Ring ONLY for splash hits
+    if (isSplash) {
+      let ring: ClientExplosionRing | null = null
+      for (let i = 0; i < this.explosionRingsPool.length; i++) {
+        if (!this.explosionRingsPool[i].active) {
+          ring = this.explosionRingsPool[i]
+          break
+        }
       }
-    }
-    if (!ring) ring = this.explosionRingsPool[0]
+      if (!ring) ring = this.explosionRingsPool[0]
 
-    if (ring) {
-      ring.id = `ring-${Date.now()}-${Math.random()}`
-      ring.x = proj.currentX
-      ring.y = proj.currentY
-      ring.radius = 3
-      ring.maxRadius = isSplash
-        ? (proj.splashRadius || 1.5) * 128 * 0.65
-        : (isArrow ? 14 : 18)
-      ring.color = theme.shockwaveColorHex
-      ring.alpha = 0.95
-      ring.active = true
+      if (ring) {
+        ring.id = `ring-${Date.now()}-${Math.random()}`
+        ring.x = proj.currentX
+        ring.y = proj.currentY
+        ring.radius = 3
+        ring.maxRadius = (proj.splashRadius || 1.5) * 128 * 0.65
+        ring.color = theme.shockwaveColorHex
+        ring.alpha = 0.95
+        ring.active = true
+      }
     }
   }
 

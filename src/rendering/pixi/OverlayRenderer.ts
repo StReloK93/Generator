@@ -65,7 +65,9 @@ export class OverlayRenderer {
     if (!force && sig === this.lastBuildableSignature) return
     this.lastBuildableSignature = sig
 
-    this.buildableOverlayGraphics.clear()
+    if (this.buildableOverlayGraphics && !(this.buildableOverlayGraphics as any).destroyed && typeof this.buildableOverlayGraphics.clear === 'function') {
+      this.buildableOverlayGraphics.clear()
+    }
     if (!shouldShow) return
 
     const buildableSet = new Set(project.buildableCells || [])
@@ -95,8 +97,12 @@ export class OverlayRenderer {
     activeAsset: AssetItem | null,
     activeTool: string
   ): void {
-    this.hoverGraphics.clear()
-    this.previewContainer.removeChildren()
+    if (this.hoverGraphics && !(this.hoverGraphics as any).destroyed && typeof this.hoverGraphics.clear === 'function') {
+      this.hoverGraphics.clear()
+    }
+    if (this.previewContainer && !(this.previewContainer as any).destroyed) {
+      this.previewContainer.removeChildren()
+    }
 
     if (!hovered || !isInsideGrid(hovered.col, hovered.row, project.cols, project.rows)) {
       return
@@ -201,7 +207,9 @@ export class OverlayRenderer {
     spanX = 1,
     spanY = 1
   ): void {
-    this.selectionGraphics.clear()
+    if (this.selectionGraphics && !(this.selectionGraphics as any).destroyed && typeof this.selectionGraphics.clear === 'function') {
+      this.selectionGraphics.clear()
+    }
     if (!selected) return
 
     const { tileWidth, tileHeight } = project
@@ -253,8 +261,12 @@ export class OverlayRenderer {
     activeAsset: AssetItem | null,
     activeTool: string
   ): void {
-    this.hoverGraphics.clear()
-    this.previewContainer.removeChildren()
+    if (this.hoverGraphics && !(this.hoverGraphics as any).destroyed && typeof this.hoverGraphics.clear === 'function') {
+      this.hoverGraphics.clear()
+    }
+    if (this.previewContainer && !(this.previewContainer as any).destroyed) {
+      this.previewContainer.removeChildren()
+    }
 
     if (cells.length === 0) return
 
@@ -365,8 +377,9 @@ export class OverlayRenderer {
   }
 
   public renderTeammateHovers(teammateHovers: Map<string, any>, project: any): void {
-    if (!this.hoverGraphics) return
-    this.hoverGraphics.clear()
+    if (this.hoverGraphics && !(this.hoverGraphics as any).destroyed && typeof this.hoverGraphics.clear === 'function') {
+      this.hoverGraphics.clear()
+    }
 
     if (!teammateHovers || teammateHovers.size === 0) return
 
@@ -399,9 +412,15 @@ export class OverlayRenderer {
 
     const isGame = Boolean(gameStore.isGameMode)
     if (isGame) {
-      this.pathTrailGraphics.clear()
-      this.spawnOverlayGraphics.clear()
-      this.spawnMarkersContainer.removeChildren()
+      if (this.pathTrailGraphics && !(this.pathTrailGraphics as any).destroyed && typeof this.pathTrailGraphics.clear === 'function') {
+        this.pathTrailGraphics.clear()
+      }
+      if (this.spawnOverlayGraphics && !(this.spawnOverlayGraphics as any).destroyed && typeof this.spawnOverlayGraphics.clear === 'function') {
+        this.spawnOverlayGraphics.clear()
+      }
+      if (this.spawnMarkersContainer && !(this.spawnMarkersContainer as any).destroyed) {
+        this.spawnMarkersContainer.removeChildren()
+      }
       return
     }
 
@@ -411,7 +430,7 @@ export class OverlayRenderer {
     const drawingWpLen = routeStore.drawingWaypoints?.length || 0
     const selectedWpIdx = routeStore.selectedWaypointIndex ?? -1
     const showSpawns =
-      characterStore?.showPathTrail !== false ||
+      routeStore.showPathTrail !== false ||
       isDrawing ||
       Boolean(routeStore.isSettingRouteStart)
     const routesCount = routeStore.routes?.length || 0
@@ -437,7 +456,7 @@ export class OverlayRenderer {
       isDrawing && routeStore.drawingWaypoints
         ? routeStore.drawingWaypoints.map((p: GridCoord) => `${p.col},${p.row}`).join('|')
         : ''
-    const showLines = Boolean(characterStore?.showPathTrail !== false)
+    const showLines = Boolean(routeStore.showPathTrail !== false)
     const routesList = routeStore.routes || []
     const routesHash = routesList
       .map((r: any, idx: number) => {
@@ -451,9 +470,15 @@ export class OverlayRenderer {
     if (!isDrawing && trailSignature === this.lastTrailSignature) return
     this.lastTrailSignature = trailSignature
 
-    this.pathTrailGraphics.clear()
-    this.spawnOverlayGraphics.clear()
-    this.spawnMarkersContainer.removeChildren()
+    if (this.pathTrailGraphics && !(this.pathTrailGraphics as any).destroyed && typeof this.pathTrailGraphics.clear === 'function') {
+      this.pathTrailGraphics.clear()
+    }
+    if (this.spawnOverlayGraphics && !(this.spawnOverlayGraphics as any).destroyed && typeof this.spawnOverlayGraphics.clear === 'function') {
+      this.spawnOverlayGraphics.clear()
+    }
+    if (this.spawnMarkersContainer && !(this.spawnMarkersContainer as any).destroyed) {
+      this.spawnMarkersContainer.removeChildren()
+    }
 
     if (isDrawing) {
       if (routesList.length > 0) {
@@ -607,7 +632,7 @@ export class OverlayRenderer {
         }
       }
     } else if (showSpawns) {
-      if (characterStore?.showPathTrail !== false) {
+      if (routeStore.showPathTrail !== false) {
         const routesList = routeStore.routes || []
         const routesToDraw: { route: GridCoord[]; rIdx: number }[] =
           routesList.length > 0

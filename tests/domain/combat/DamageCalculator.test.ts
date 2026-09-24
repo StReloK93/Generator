@@ -44,16 +44,22 @@ describe('DamageCalculator Domain Logic', () => {
   })
 
   it('should apply Stacking trait consecutive hit bonuses up to maxStacks', () => {
-    const target: CombatUnitTarget = {
+    const target = {
       id: 'unit-1',
-      col: 5,
-      row: 5,
-      hp: 100,
+      currentCol: 5,
+      currentRow: 5,
+      screenX: 0,
+      screenY: 0,
+      currentHp: 100,
       maxHp: 100,
+      isDead: false,
+      hasReachedEnd: false,
+      isSpawned: true,
+      pathIndex: 0,
       consecutiveHits: {
         'tower-1': 3, // 3 previous hits
       },
-    }
+    } as CombatUnitTarget
 
     const result = DamageCalculator.calculateDamage(
       50,
@@ -72,12 +78,18 @@ describe('DamageCalculator Domain Logic', () => {
   })
 
   it('should amplify damage if target is afflicted with Void vulnerability curse', () => {
-    const targetWithVoid: CombatUnitTarget = {
+    const targetWithVoid = {
       id: 'unit-curse',
-      col: 2,
-      row: 2,
-      hp: 200,
+      currentCol: 2,
+      currentRow: 2,
+      screenX: 0,
+      screenY: 0,
+      currentHp: 200,
       maxHp: 200,
+      isDead: false,
+      hasReachedEnd: false,
+      isSpawned: true,
+      pathIndex: 0,
       statusEffects: [
         {
           type: 'void',
@@ -85,21 +97,27 @@ describe('DamageCalculator Domain Logic', () => {
           amplification: 50, // +50% damage taken
         },
       ],
-    }
+    } as CombatUnitTarget
 
     const result = DamageCalculator.calculateDamage(100, undefined, targetWithVoid)
     expect(result.finalDamage).toBe(150) // 100 * 1.5 = 150
   })
 
   it('should respect unit immunities against elemental traits', () => {
-    const immuneTarget: CombatUnitTarget = {
+    const immuneTarget = {
       id: 'boss-fire-immune',
-      col: 10,
-      row: 10,
-      hp: 500,
+      currentCol: 10,
+      currentRow: 10,
+      screenX: 0,
+      screenY: 0,
+      currentHp: 500,
       maxHp: 500,
+      isDead: false,
+      hasReachedEnd: false,
+      isSpawned: true,
+      pathIndex: 0,
       immunities: ['fire'],
-    }
+    } as CombatUnitTarget
 
     const result = DamageCalculator.calculateDamage(
       100,

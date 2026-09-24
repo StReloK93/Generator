@@ -130,7 +130,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { Trophy, Coins, Skull, Home, LogOut, RotateCcw, Layers, Castle } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
 import { useMapStore } from '../../stores/mapStore'
-import { useCharacterStore } from '../../stores/characterStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useWaveStore } from '../../stores/waveStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
@@ -139,18 +138,15 @@ import { sanitizeMapId } from '../../services/mapManager'
 const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
-const characterStore = useCharacterStore()
 const gameStore = useGameStore()
 const waveStore = useWaveStore()
 const multiplayerStore = useMultiplayerStore()
 
 function handleRestartGame() {
-  characterStore.resetTour()
   gameStore.restartGame()
 }
 
 function handleExit() {
-  characterStore.resetTour()
   gameStore.exitPlayMode()
   if (gameStore.entrySource === 'editor' || route.name === 'editor-game') {
     const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')

@@ -38,42 +38,37 @@ export type UnitVariantType =
   | 'golden'
   | 'demon'
 
-export type TowerTraitType = 
-  | 'fire' 
-  | 'frost' 
-  | 'poison' 
-  | 'stacking' 
-  | 'blood' 
-  | 'electric' 
-  | 'void'
+import type { TowerTraitType } from './combat'
+
+export type { 
+  TowerTraitType, 
+  CombatEffect, 
+  SplashType, 
+  TargetStrategy, 
+  DamageElement,
+  DamageEffect,
+  BurnEffect,
+  SlowEffect,
+  PoisonEffect,
+  BleedEffect,
+  StunEffect,
+  ChainEffect,
+  VulnerabilityEffect,
+  StackingDamageEffect,
+} from './combat'
+
+export type {
+  TowerAssetConfig,
+  TowerBaseStats,
+  TowerProjectileConfig,
+  TowerLevelConfig,
+  TowerBlueprint,
+  PlacedTower,
+} from './tower'
 
 export interface TowerTraitsConfig {
-  traits?: TowerTraitType[]
-  // Fire trait
-  fireBonusDamage?: number
-  burnDps?: number
-  burnDuration?: number
-  // Frost trait
-  slowPercent?: number
-  slowDuration?: number
-  frostBonusDamage?: number
-  // Poison trait
-  poisonDps?: number
-  poisonDuration?: number
-  poisonSlowPercent?: number
-  // Stacking (Ramping) damage on consecutive hits
-  stackBonusDamage?: number
-  maxStacks?: number
-  // Blood / Bleed trait
-  bleedDps?: number
-  bleedDuration?: number
-  // Electric trait
-  electricBonusDamage?: number
-  chainTargets?: number
-  stunDuration?: number
-  // Void trait
-  voidVulnPercent?: number
-  voidDuration?: number
+  traits?: import('./combat').TowerTraitType[]
+  effects?: import('./combat').CombatEffect[]
 }
 
 export type ProjectileType =
@@ -83,21 +78,6 @@ export type ProjectileType =
   | 'flame_laser'
   | 'flame_rocket'
   | (string & {})
-
-export interface TowerLevelConfig extends TowerTraitsConfig {
-  level: number // 1, 2, 3, etc.
-  name?: string // Custom level label (e.g. "Flame Guard II")
-  cost: number // Gold upgrade cost to reach this level (0 or base price for level 1)
-  damage: number
-  attackSpeed: number // seconds per attack
-  range: number // attack range in tiles
-  projectileType?: ProjectileType
-  projectileSpeed?: number
-  projectileColor?: number
-  isSplash?: boolean
-  splashRadius?: number
-  splashType?: 'constant' | 'falloff'
-}
 
 export interface WaveConfig {
   waveNumber: number

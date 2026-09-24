@@ -124,9 +124,15 @@ export class WaterRenderer {
 
     if (count === 0) {
       this.container.visible = false
-      this.baseGraphics.clear()
-      this.maskGraphics.clear()
-      this.foamGraphics.clear()
+      if (this.baseGraphics && !(this.baseGraphics as any).destroyed && typeof this.baseGraphics.clear === 'function') {
+        this.baseGraphics.clear()
+      }
+      if (this.maskGraphics && !(this.maskGraphics as any).destroyed && typeof this.maskGraphics.clear === 'function') {
+        this.maskGraphics.clear()
+      }
+      if (this.foamGraphics && !(this.foamGraphics as any).destroyed && typeof this.foamGraphics.clear === 'function') {
+        this.foamGraphics.clear()
+      }
       if (this.tilingSprite) {
         this.tilingSprite.visible = false
       }
@@ -166,9 +172,15 @@ export class WaterRenderer {
     this.tilingSprite.height = Math.max(128, maxY - minY)
 
     // Rebuild base graphics, mask, and foam lines
-    this.baseGraphics.clear()
-    this.maskGraphics.clear()
-    this.foamGraphics.clear()
+    if (this.baseGraphics && !(this.baseGraphics as any).destroyed && typeof this.baseGraphics.clear === 'function') {
+      this.baseGraphics.clear()
+    }
+    if (this.maskGraphics && !(this.maskGraphics as any).destroyed && typeof this.maskGraphics.clear === 'function') {
+      this.maskGraphics.clear()
+    }
+    if (this.foamGraphics && !(this.foamGraphics as any).destroyed && typeof this.foamGraphics.clear === 'function') {
+      this.foamGraphics.clear()
+    }
 
     const waterSet = new Set(rawCells)
 

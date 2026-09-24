@@ -1,10 +1,13 @@
 import { Container, Graphics, Sprite } from 'pixi.js'
 import { MapProject, UnitVariantType } from '../../types/map'
 import { useWaveStore } from '../../stores/waveStore'
+import { useGameStore } from '../../stores/gameStore'
 import { assetManager } from '../../services/assetManager'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { getVariantTint } from '../../utils/unitVariants'
 import { renderPixiUnitEffect } from '../../utils/unitEffectRenderer'
+import { gridToScreen } from '../../utils/isometric'
+import { CrowdSimulation } from '../../domain/simulation/CrowdSimulation'
 import characterManifest from '../../assets/generated/characterManifest.json'
 
 export class UnitRenderer {
@@ -56,12 +59,23 @@ export class UnitRenderer {
       this.unitLastDepths = new Array(units.length).fill(-1)
     }
 
+    const waveStore = useWaveStore()
+    const gameStore = useGameStore()
+    const currentWaveCfg =
+      waveStore?.currentWaveConfig ||
+      waveStore?.waveConfigs?.[waveStore?.currentWaveIndex ?? 0] ||
+      null
+
     // Update each active unit
     for (let i = 0; i < units.length; i++) {
       const unit = units[i]
       const container = this.unitContainers[i]
 
-      if (!unit.isSpawned || (unit.isDead && unit.deathFade !== undefined && unit.deathFade <= 0)) {
+      const isSpawned = unit.lifecycle ? unit.lifecycle.isSpawned : unit.isSpawned
+      const isDead = unit.lifecycle ? unit.lifecycle.isDead : unit.isDead
+      const deathFade = unit.lifecycle ? unit.lifecycle.deathFade : unit.deathFade
+
+      if (!isSpawned || (isDead && deathFade !== undefined && deathFade <= 0)) {
         if (container.visible) {
           container.visible = false
           this.unitLastDepths[i] = -1
@@ -74,23 +88,19 @@ export class UnitRenderer {
       const sprite = container.getChildAt(0) as Sprite
       const marker = container.getChildAt(1) as Graphics
 
-      const actionPrefix = unit.action || 'Idle'
-      const frame = actionPrefix === 'Idle' ? '0' : unit.frameIndex || 0
-      const waveStore = useWaveStore()
-      const currentWaveCfg =
-        waveStore?.currentWaveConfig ||
-        waveStore?.waveConfigs?.[waveStore?.currentWaveIndex ?? 0] ||
-        null
+      const actionPrefix = (unit.animation ? unit.animation.action : unit.action) || 'Idle'
+      const frame = actionPrefix === 'Idle' ? '0' : (unit.animation ? unit.animation.frameIndex : unit.frameIndex) || 0
 
-      const effectiveModel = unit.characterModel || currentWaveCfg?.characterModel || 'male'
+      const effectiveModel = (unit.identity ? unit.identity.model : unit.characterModel) || currentWaveCfg?.characterModel || 'male'
+      const direction = unit.movement ? unit.movement.direction : (unit.direction ?? 2)
       const texture = assetManager.getCharacterTexture(
-        unit.direction,
+        direction,
         actionPrefix,
         frame,
         effectiveModel
       )
 
-      const fadeAlpha = unit.isDead ? Math.max(0, unit.deathFade ?? 1.0) : 1.0
+      const fadeAlpha = isDead ? Math.max(0, deathFade ?? 1.0) : 1.0
 
       if (texture) {
         if (sprite.texture !== texture) {
@@ -108,17 +118,17 @@ export class UnitRenderer {
         const baseScale = (tileWidth * 1.0) / cellW
         const scaleMult = modelMeta?.scale ?? 1.0
         const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
-        const rawUnitScale = (unit as any).unitScale ?? currentWaveCfg?.unitScale
+        const rawUnitScale = (unit.identity ? unit.identity.scale : (unit as any).unitScale) ?? currentWaveCfg?.unitScale
         const customUnitScale = (Number(rawUnitScale) || 1.0) * globalScale
 
         sprite.scale.set(baseScale * scaleMult * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
 
-        const variant = (unit.unitVariant || currentWaveCfg?.unitVariant || 'normal') as UnitVariantType
-        const effectiveTint = unit.variantTint ?? currentWaveCfg?.variantTint
+        const variant = ((unit.identity ? unit.identity.variant : unit.unitVariant) || currentWaveCfg?.unitVariant || 'normal') as UnitVariantType
+        const effectiveTint = (unit.identity ? unit.identity.variantTint : unit.variantTint) ?? currentWaveCfg?.variantTint
         sprite.tint = getVariantTint(variant, effectiveTint)
 
-        if (!unit.isDead) {
+        if (!isDead) {
           renderPixiUnitEffect({
             marker,
             variant,
@@ -137,14 +147,32 @@ export class UnitRenderer {
       }
 
       const unitElev = Number(characterStore?.unitElevation) || 0
-      const rawOffsetY = unit.offsetY ?? currentWaveCfg?.offsetY ?? 0
+      const rawOffsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? currentWaveCfg?.offsetY ?? 0
       const unitOffsetY = rawOffsetY + unitElev
-      container.position.set(unit.screenX, unit.screenY)
+
+      const col = unit.movement ? unit.movement.currentCol : unit.currentCol
+      const row = unit.movement ? unit.movement.currentRow : unit.currentRow
+      const baseScreen = gridToScreen(col, row, tileWidth, tileHeight)
+
+      const sideOffset = unit.identity ? unit.identity.sideOffset : (unit.sideOffset ?? 0)
+      let finalScreenX = baseScreen.x
+      let finalScreenY = baseScreen.y
+
+      if (gameStore.formation === 'pairs' && sideOffset !== 0) {
+        // Calculate side offset perpendicular to direction
+        const perpX = Math.cos((direction * Math.PI) / 4 + Math.PI / 2)
+        const perpY = Math.sin((direction * Math.PI) / 4 + Math.PI / 2) * 0.5
+        const offsetDist = tileWidth * 0.15 * sideOffset
+        finalScreenX += perpX * offsetDist
+        finalScreenY += perpY * offsetDist
+      }
+
+      container.position.set(finalScreenX, finalScreenY)
       sprite.position.set(0, -unitOffsetY)
       marker.position.set(0, -unitOffsetY)
 
       const charDepth =
-        100000 + Math.round((unit.currentCol + unit.currentRow) * 1000) + 300 + (i % 10)
+        100000 + Math.round((col + row) * 1000) + 300 + (i % 10)
       if (container.zIndex !== charDepth) {
         container.zIndex = charDepth
         needsDepthSort = true

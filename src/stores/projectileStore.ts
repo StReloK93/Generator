@@ -1,191 +1,133 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { BASE_PROJECTILE_CATALOG, registerCustomProjectiles } from '../utils/projectileCatalog'
-
-export type ProjectileCategory = 
-  | 'fire' 
-  | 'frost' 
-  | 'electro' 
-  | 'poison' 
-  | 'arcane' 
-  | 'void' 
-  | 'siege' 
-  | 'holy'
-  | 'custom'
-
-export type ProjectileFormation =
-  | 'single'
-  | 'volley_3'
-  | 'volley_5'
-  | 'twin_helix'
-  | 'satellites'
-  | 'laser_beam'
-
-export type TrailStyle = 'particles' | 'solid_line' | 'glow_streak' | 'none'
-
-export type ProjectileShape =
-  | 'circle'
-  | 'sand_cluster'
-  | 'line_streak'
-  | 'energy_orb'
-  | 'energy_wave'
-  | 'flame_wisp'
-  | 'diamond_shard'
-  | 'star'
-  | 'instant_strike'
-  | 'arrow'
-  | 'spear_lance'
-  | 'lightning_bolt'
-  | 'shuriken'
-  | 'sawblade'
-  | 'skull'
-  | 'greatsword'
-  | 'hammer'
-  | 'boulder'
-  | 'feather'
-
-export type SparkParticleType =
-  | 'fire_ember'
-  | 'ice_shard'
-  | 'snowflake'
-  | 'lightning_arc'
-  | 'acid_drop'
-  | 'arcane_star'
-  | 'void_blood'
-  | 'shrapnel'
-  | 'holy_cross'
-  | 'sand_dust'
-  | 'spark_line'
-  | 'default'
-
-export interface ProjectileConfig {
-  id: string
-  name: string
-  nameUz: string
-  category: ProjectileCategory
-  description: string
-  isCustom?: boolean
-  formation: ProjectileFormation
-  shape: ProjectileShape
-  size: number
-  length?: number
-  points?: number
-  satelliteCount?: number
-  hasArc: boolean
-  isLaser: boolean
-  isInstant?: boolean
-  instantType?: 'sky_strike' | 'ground_burst' | 'unit_aura'
-  colorHex: number
-  colorCss: string
-  trailColorHex: number
-  trailColorCss: string
-  sparkColorHex: number
-  sparkColorCss: string
-  shockwaveColorHex: number
-  shockwaveColorCss: string
-  trailAlpha: number
-  trailLength: number
-  trailWidth: number
-  trailStyle?: TrailStyle
-  sparkType: SparkParticleType
-  sparkCount: number
-  shockwaveRadius: number
-  hasDoubleRing: boolean
-}
+import {
+  ProjectileDefinition,
+  ProjectileCategory,
+} from '../types/projectile'
+import {
+  BASE_PROJECTILE_DEFINITIONS,
+  registerCustomProjectiles,
+  getProjectileDefinition,
+  getAllProjectilesUnified,
+  parseProjectileJson,
+  serializeProjectileToClipboard,
+} from '../utils/projectileCatalog'
 
 export const useProjectileStore = defineStore('projectile', () => {
-  const sessionProjectiles = ref<ProjectileConfig[]>(
-    BASE_PROJECTILE_CATALOG.map(p => ({
-      id: p.id,
-      name: p.name,
-      nameUz: p.nameUz,
-      category: p.category,
-      description: p.description,
-      isCustom: Boolean(p.isCustom),
-      formation: p.formation || 'single',
-      shape: p.shape || 'circle',
-      size: p.size ?? 10,
-      length: p.length ?? 24,
-      points: p.points ?? 4,
-      satelliteCount: p.satelliteCount ?? 0,
-      hasArc: p.hasArc,
-      isLaser: p.isLaser,
-      isInstant: p.isInstant,
-      instantType: p.instantType || 'sky_strike',
-      colorHex: p.colorHex,
-      colorCss: p.colorCss,
-      trailColorHex: p.trailColorHex,
-      trailColorCss: p.trailColorCss,
-      sparkColorHex: p.sparkColorHex,
-      sparkColorCss: p.sparkColorCss,
-      shockwaveColorHex: p.shockwaveColorHex,
-      shockwaveColorCss: p.shockwaveColorCss,
-      trailAlpha: p.trailAlpha,
-      trailLength: p.trailLength ?? 8,
-      trailWidth: p.trailWidth ?? 4,
-      trailStyle: p.trailStyle || 'solid_line',
-      sparkType: p.sparkType || 'fire_ember',
-      sparkCount: p.sparkCount ?? 16,
-      shockwaveRadius: p.shockwaveRadius ?? 24,
-      hasDoubleRing: Boolean(p.hasDoubleRing)
-    }))
+  const sessionProjectiles = ref<ProjectileDefinition[]>(
+    JSON.parse(JSON.stringify(BASE_PROJECTILE_DEFINITIONS))
   )
 
   const isLoaded = ref(true)
 
-  const allProjectiles = computed<ProjectileConfig[]>(() => {
+  const allProjectiles = computed<ProjectileDefinition[]>(() => {
     return sessionProjectiles.value
   })
 
-  function getProjectile(id: string): ProjectileConfig | undefined {
-    return sessionProjectiles.value.find(p => p.id === id) || sessionProjectiles.value[0]
+  const customProjectiles = computed(() =>
+    sessionProjectiles.value.filter(p => p.identity.isCustom || p.identity.category === 'custom')
+  )
+
+  function getProjectile(id: string): ProjectileDefinition {
+    return (
+      sessionProjectiles.value.find(p => p.identity.id === id) ||
+      getProjectileDefinition(id) ||
+      sessionProjectiles.value[0]
+    )
   }
 
-  function createBlankProjectile(category: ProjectileCategory = 'fire'): ProjectileConfig {
+  function createBlankProjectile(category: ProjectileCategory = 'fire'): ProjectileDefinition {
     const id = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-    const blank: ProjectileConfig = {
-      id,
-      name: 'New Custom Projectile',
-      nameUz: 'Yangi Maxsus Snaryad',
-      category,
-      description: 'Yangi maxsus snaryad konfiguratsiyasi',
-      isCustom: true,
-      formation: 'single',
-      shape: 'circle',
-      size: 8,
-      length: 24,
-      points: 4,
-      satelliteCount: 0,
-      hasArc: false,
-      isLaser: false,
-      isInstant: false,
-      instantType: 'sky_strike',
-      colorHex: 0xf97316,
-      colorCss: '#f97316',
-      trailColorHex: 0xfbbf24,
-      trailColorCss: '#fbbf24',
-      sparkColorHex: 0xfef08a,
-      sparkColorCss: '#fef08a',
-      shockwaveColorHex: 0xef4444,
-      shockwaveColorCss: '#ef4444',
-      trailAlpha: 0.7,
-      trailLength: 8,
-      trailWidth: 4,
-      trailStyle: 'solid_line',
-      sparkType: 'fire_ember',
-      sparkCount: 16,
-      shockwaveRadius: 24,
-      hasDoubleRing: true,
+    const blank: ProjectileDefinition = {
+      identity: {
+        id,
+        name: 'New Custom Projectile',
+        nameUz: 'Yangi Maxsus Snaryad',
+        category,
+        description: 'Yangi maxsus snaryad konfiguratsiyasi',
+        version: 1,
+        isCustom: true,
+      },
+      movement: {
+        speed: 12,
+        hasArc: false,
+        isLaser: false,
+        isInstant: false,
+      },
+      visual: {
+        shape: 'circle',
+        size: 10,
+        length: 24,
+        points: 4,
+        colorHex: 0xf97316,
+        colorCss: '#f97316',
+        glowColorHex: 0xfbbf24,
+        glowColorCss: '#fbbf24',
+        coreColorHex: 0xffffff,
+        coreColorCss: '#ffffff',
+        alpha: 1.0,
+        scale: 1.0,
+      },
+      trail: {
+        style: 'solid_line',
+        colorHex: 0xfbbf24,
+        colorCss: '#fbbf24',
+        alpha: 0.7,
+        length: 8,
+        width: 4,
+      },
+      formation: {
+        type: 'single',
+        satelliteCount: 0,
+      },
+      impact: {
+        sparkType: 'fire_ember',
+        sparkCount: 16,
+        sparkColorHex: 0xfbbf24,
+        sparkColorCss: '#fbbf24',
+        shockwaveRadius: 24,
+        shockwaveColorHex: 0xef4444,
+        shockwaveColorCss: '#ef4444',
+        hasDoubleRing: true,
+      },
     }
+
     sessionProjectiles.value.unshift(blank)
     registerCustomProjectiles(sessionProjectiles.value)
     return blank
   }
 
-  function updateProjectile(id: string, updates: Partial<ProjectileConfig>): boolean {
-    const idx = sessionProjectiles.value.findIndex(p => p.id === id)
+  function updateProjectile(id: string, updates: Partial<ProjectileDefinition>): boolean {
+    const idx = sessionProjectiles.value.findIndex(p => p.identity.id === id)
     if (idx !== -1) {
-      sessionProjectiles.value[idx] = { ...sessionProjectiles.value[idx], ...updates }
+      sessionProjectiles.value[idx] = {
+        ...sessionProjectiles.value[idx],
+        ...updates,
+        identity: {
+          ...sessionProjectiles.value[idx].identity,
+          ...(updates.identity || {}),
+        },
+        movement: {
+          ...sessionProjectiles.value[idx].movement,
+          ...(updates.movement || {}),
+        },
+        visual: {
+          ...sessionProjectiles.value[idx].visual,
+          ...(updates.visual || {}),
+        },
+        trail: {
+          ...sessionProjectiles.value[idx].trail,
+          ...(updates.trail || {}),
+        },
+        formation: {
+          ...sessionProjectiles.value[idx].formation,
+          ...(updates.formation || {}),
+        },
+        impact: {
+          ...sessionProjectiles.value[idx].impact,
+          ...(updates.impact || {}),
+        },
+      }
       registerCustomProjectiles(sessionProjectiles.value)
       return true
     }
@@ -193,7 +135,7 @@ export const useProjectileStore = defineStore('projectile', () => {
   }
 
   function deleteProjectile(id: string): boolean {
-    const idx = sessionProjectiles.value.findIndex(p => p.id === id)
+    const idx = sessionProjectiles.value.findIndex(p => p.identity.id === id)
     if (idx !== -1) {
       sessionProjectiles.value.splice(idx, 1)
       registerCustomProjectiles(sessionProjectiles.value)
@@ -202,21 +144,68 @@ export const useProjectileStore = defineStore('projectile', () => {
     return false
   }
 
-  function duplicateProjectile(id: string): ProjectileConfig | null {
+  function duplicateProjectile(id: string): ProjectileDefinition | null {
     const src = getProjectile(id)
     if (!src) return null
 
-    const cloned: ProjectileConfig = {
-      ...JSON.parse(JSON.stringify(src)),
-      id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      name: `${src.name} (Copy)`,
-      nameUz: `${src.nameUz} (Nusxa)`,
-      isCustom: true,
-    }
+    const cloned: ProjectileDefinition = JSON.parse(JSON.stringify(src))
+    cloned.identity.id = `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    cloned.identity.name = `${src.identity.name} (Copy)`
+    cloned.identity.nameUz = `${src.identity.nameUz || src.identity.name} (Nusxa)`
+    cloned.identity.isCustom = true
 
     sessionProjectiles.value.unshift(cloned)
     registerCustomProjectiles(sessionProjectiles.value)
     return cloned
+  }
+
+  /**
+   * Copies self-contained ProjectileDefinition to OS Clipboard as JSON
+   */
+  async function copyProjectileJsonToClipboard(id: string): Promise<boolean> {
+    const proj = getProjectile(id)
+    if (!proj) return false
+    try {
+      const jsonStr = serializeProjectileToClipboard(proj)
+      await navigator.clipboard.writeText(jsonStr)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Reads OS Clipboard JSON, validates, and registers as a new ProjectileDefinition
+   */
+  async function pasteProjectileJsonFromClipboard(): Promise<{ success: boolean; data?: ProjectileDefinition; error?: string }> {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (!text) return { success: false, error: 'Klipbord bo\'sh' }
+      return importProjectileFromJson(text)
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Klipborddan o\'qib bo\'lmadi' }
+    }
+  }
+
+  /**
+   * Imports a ProjectileDefinition from JSON string
+   */
+  function importProjectileFromJson(jsonStr: string): { success: boolean; data?: ProjectileDefinition; error?: string } {
+    const res = parseProjectileJson(jsonStr)
+    if (!res.success || !res.data) {
+      return { success: false, error: res.error }
+    }
+
+    const item = res.data
+    const existingIdx = sessionProjectiles.value.findIndex(p => p.identity.id === item.identity.id)
+    if (existingIdx >= 0) {
+      sessionProjectiles.value[existingIdx] = item
+    } else {
+      sessionProjectiles.value.unshift(item)
+    }
+
+    registerCustomProjectiles(sessionProjectiles.value)
+    return { success: true, data: item }
   }
 
   function exportProjectilesJson(): void {
@@ -233,68 +222,12 @@ export const useProjectileStore = defineStore('projectile', () => {
   }
 
   function resetToDefaults() {
-    sessionProjectiles.value = BASE_PROJECTILE_CATALOG.map(p => ({
-      id: p.id,
-      name: p.name,
-      nameUz: p.nameUz,
-      category: p.category,
-      description: p.description,
-      isCustom: Boolean(p.isCustom),
-      formation: p.formation || 'single',
-      shape: p.shape || 'circle',
-      size: p.size ?? 10,
-      length: p.length ?? 24,
-      points: p.points ?? 4,
-      satelliteCount: p.satelliteCount ?? 0,
-      hasArc: p.hasArc,
-      isLaser: p.isLaser,
-      isInstant: p.isInstant,
-      instantType: p.instantType || 'sky_strike',
-      colorHex: p.colorHex,
-      colorCss: p.colorCss,
-      trailColorHex: p.trailColorHex,
-      trailColorCss: p.trailColorCss,
-      sparkColorHex: p.sparkColorHex,
-      sparkColorCss: p.sparkColorCss,
-      shockwaveColorHex: p.shockwaveColorHex,
-      shockwaveColorCss: p.shockwaveColorCss,
-      trailAlpha: p.trailAlpha,
-      trailLength: p.trailLength ?? 8,
-      trailWidth: p.trailWidth ?? 4,
-      trailStyle: p.trailStyle || 'solid_line',
-      sparkType: p.sparkType || 'fire_ember',
-      sparkCount: p.sparkCount ?? 16,
-      shockwaveRadius: p.shockwaveRadius ?? 24,
-      hasDoubleRing: Boolean(p.hasDoubleRing)
-    }))
+    sessionProjectiles.value = JSON.parse(JSON.stringify(BASE_PROJECTILE_DEFINITIONS))
     registerCustomProjectiles(sessionProjectiles.value)
   }
 
-  // Register in catalog runtime initially
+  // Initial runtime registration
   registerCustomProjectiles(sessionProjectiles.value)
-
-  const customProjectiles = computed(() => sessionProjectiles.value.filter(p => p.isCustom || p.category === 'custom'))
-
-  function importProjectilesFromJson(jsonStr: string): { success: boolean; count: number; error?: string } {
-    try {
-      const parsed = JSON.parse(jsonStr)
-      const list: ProjectileConfig[] = Array.isArray(parsed) ? parsed : [parsed]
-      if (list.length === 0) return { success: false, count: 0, error: 'Hech qanday snaryad topilmadi' }
-      for (const item of list) {
-        if (!item.id || !item.name) continue
-        const idx = sessionProjectiles.value.findIndex(p => p.id === item.id)
-        if (idx >= 0) {
-          sessionProjectiles.value[idx] = { ...sessionProjectiles.value[idx], ...item }
-        } else {
-          sessionProjectiles.value.unshift(item)
-        }
-      }
-      registerCustomProjectiles(sessionProjectiles.value)
-      return { success: true, count: list.length }
-    } catch (e: any) {
-      return { success: false, count: 0, error: e.message }
-    }
-  }
 
   return {
     allProjectiles,
@@ -305,8 +238,10 @@ export const useProjectileStore = defineStore('projectile', () => {
     updateProjectile,
     deleteProjectile,
     duplicateProjectile,
+    copyProjectileJsonToClipboard,
+    pasteProjectileJsonFromClipboard,
+    importProjectileFromJson,
     exportProjectilesJson,
-    importProjectilesFromJson,
     resetToDefaults,
   }
 })
