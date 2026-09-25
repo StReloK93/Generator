@@ -18,11 +18,13 @@ export class OverlayRenderer {
   public previewContainer: Container
   public buildGhostSprite: Sprite
   public buildableOverlayGraphics: Graphics
+  public collisionOverlayGraphics: Graphics
   public pathTrailGraphics: Graphics
   public spawnOverlayGraphics: Graphics
   public spawnMarkersContainer: Container
 
   private lastBuildableSignature = ''
+  private lastCollisionSignature = ''
   private lastTrailSignature = ''
   public getTexture?: (asset: AssetItem) => Texture | null
 
@@ -34,6 +36,7 @@ export class OverlayRenderer {
     this.buildGhostSprite = new Sprite()
     this.buildGhostSprite.visible = false
     this.buildableOverlayGraphics = new Graphics()
+    this.collisionOverlayGraphics = new Graphics()
     this.pathTrailGraphics = new Graphics()
     this.spawnOverlayGraphics = new Graphics()
     this.spawnMarkersContainer = new Container()
@@ -43,6 +46,7 @@ export class OverlayRenderer {
     this.overlayContainer.addChild(this.previewContainer)
     this.overlayContainer.addChild(this.buildGhostSprite)
     this.overlayContainer.addChild(this.buildableOverlayGraphics)
+    this.overlayContainer.addChild(this.collisionOverlayGraphics)
     this.overlayContainer.addChild(this.pathTrailGraphics)
     this.overlayContainer.addChild(this.spawnOverlayGraphics)
     this.overlayContainer.addChild(this.spawnMarkersContainer)
@@ -87,6 +91,54 @@ export class OverlayRenderer {
             .fill({ color: 0xef4444, alpha: 0.08 })
             .stroke({ width: 1, color: 0xf87171, alpha: 0.35 })
         }
+      }
+    }
+  }
+
+  public renderCollisionOverlay(
+    project: MapProject,
+    isVisible: boolean,
+    activeTool?: string,
+    force = false
+  ): void {
+    const shouldShow = Boolean(isVisible || activeTool === 'collision')
+    const { cols, rows, tileWidth, tileHeight, updatedAt } = project
+    const count = project.collisionSubcells?.length || 0
+    const sig = `${shouldShow}_${activeTool || ''}_${cols}_${rows}_${tileWidth}_${tileHeight}_${count}_${updatedAt || 0}`
+
+    if (!force && sig === this.lastCollisionSignature) return
+    this.lastCollisionSignature = sig
+
+    if (this.collisionOverlayGraphics && !(this.collisionOverlayGraphics as any).destroyed && typeof this.collisionOverlayGraphics.clear === 'function') {
+      this.collisionOverlayGraphics.clear()
+    }
+    if (!shouldShow) return
+
+    const subW = tileWidth * 0.5
+    const subH = tileHeight * 0.5
+    const maxSubCols = cols * 2
+    const maxSubRows = rows * 2
+
+    // 1. Draw subtle 2x2 subgrid dashed lines when tool is active
+    if (activeTool === 'collision') {
+      for (let sc = 0; sc < maxSubCols; sc++) {
+        for (let sr = 0; sr < maxSubRows; sr++) {
+          const poly = getCellPolygon(sc, sr, subW, subH)
+          this.collisionOverlayGraphics.poly(poly).stroke({ width: 0.5, color: 0xf87171, alpha: 0.2 })
+        }
+      }
+    }
+
+    // 2. Draw red blocked obstacle subcells
+    const subcells = project.collisionSubcells || []
+    for (const key of subcells) {
+      const [sc, sr] = key.split(',').map(Number)
+      if (sc !== undefined && sr !== undefined) {
+        const poly = getCellPolygon(sc, sr, subW, subH)
+        this.collisionOverlayGraphics
+          .poly(poly)
+          .fill({ color: 0xef4444, alpha: 0.45 })
+          .stroke({ width: 1.2, color: 0xfca5a5, alpha: 0.9 })
       }
     }
   }
@@ -271,6 +323,21 @@ export class OverlayRenderer {
     if (cells.length === 0) return
 
     const { tileWidth, tileHeight } = project
+
+    if (activeTool === 'collision') {
+      const subW = tileWidth * 0.5
+      const subH = tileHeight * 0.5
+      this.hoverGraphics.clear()
+      for (const cell of cells) {
+        const poly = getCellPolygon(cell.col * 2, cell.row * 2, subW, subH)
+        this.hoverGraphics.poly(poly)
+      }
+      this.hoverGraphics
+        .fill({ color: 0xef4444, alpha: 0.35 })
+        .stroke({ width: 1.5, color: 0xfca5a5, alpha: 0.9 })
+      return
+    }
+
     const isEraser = activeTool === 'eraser' || activeTool === 'buildable-block'
     const isBoxClear = activeTool === 'box-clear'
     const isBoxFill = (activeTool === 'box-fill' || activeTool === 'box') && !!activeAsset

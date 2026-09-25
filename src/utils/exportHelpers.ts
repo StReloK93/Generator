@@ -33,6 +33,7 @@ export function compactTileItem(item: any, col: number, row: number): any {
   if (item.rotation && item.rotation !== 0) compact.rotation = item.rotation
   if (item.zIndex && item.zIndex !== 0) compact.zIndex = item.zIndex
   if (item.depthOffset && item.depthOffset !== 0) compact.depthOffset = item.depthOffset
+  if (item.isFrontWall) compact.isFrontWall = true
   if (item.cellZIndex && typeof item.cellZIndex === 'object') {
     const nonZero = Object.entries(item.cellZIndex).filter(([_, z]) => z !== 0)
     if (nonZero.length > 0) compact.cellZIndex = Object.fromEntries(nonZero)
@@ -55,6 +56,7 @@ export function normalizeTileItem(raw: any, col: number, row: number): any {
     assetId: raw.assetId || raw.id,
     zIndex: raw.zIndex || 0,
     depthOffset: raw.depthOffset || 0,
+    isFrontWall: !!raw.isFrontWall,
     cellZIndex: raw.cellZIndex || {},
     spanX: raw.spanX || 1,
     spanY: raw.spanY || 1,
@@ -154,32 +156,71 @@ export function buildFullProjectJsonPayload(
   const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
   const rawTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
   const resolvedTowerBlueprints = rawTowerBlueprints.map((bp: any) => {
-    const rawName = (bp.assetName || '').replace(/\.[^/.]+$/, '').trim()
+    const rawName = (bp.asset?.assetName || bp.assetName || bp.name || '').replace(/\.[^/.]+$/, '').trim()
     const fallbackId = rawName ? (rawName.startsWith('sprite-') ? rawName : `sprite-${rawName}`) : 'sprite-stoneColumn_W'
+    const assetId = bp.asset?.assetId || bp.assetId || fallbackId
+    const assetName = bp.asset?.assetName || bp.assetName || (rawName ? `${rawName}.webp` : 'stoneColumn_W.webp')
+    const assetPath = bp.asset?.assetPath || (bp.assetPath && (bp.assetPath.startsWith('http://') || bp.assetPath.startsWith('https://')) ? bp.assetPath : '')
+    const projId = bp.projectileId || bp.projectileType || bp.projectile?.type || 'fireball'
+    const targetStrategy = bp.targetStrategy || 'first'
+
+    const levels = Array.isArray(bp.levels) && bp.levels.length > 0
+      ? bp.levels.map((lvl: any, idx: number) => {
+          const isLvlSplash = lvl.isSplash !== undefined ? Boolean(lvl.isSplash) : (idx === 0 ? Boolean(bp.isSplash) : false)
+          return {
+            ...lvl,
+            level: lvl.level || (idx + 1),
+            name: lvl.name || (idx === 0 ? bp.name : `${bp.name} ${idx + 1}`),
+            cost: Number(lvl.cost ?? bp.cost ?? 100),
+            damage: Number(lvl.damage ?? bp.damage ?? 20),
+            attackSpeed: Number(lvl.attackSpeed ?? bp.attackSpeed ?? 1.0),
+            range: Number(lvl.range ?? bp.range ?? 3.0),
+            isSplash: isLvlSplash,
+            splashRadius: isLvlSplash ? Number(lvl.splashRadius ?? bp.splashRadius ?? 1.5) : undefined,
+            splashType: isLvlSplash ? (lvl.splashType || bp.splashType || 'falloff') : undefined,
+            traits: Array.isArray(lvl.traits) ? [...lvl.traits] : (Array.isArray(bp.traits) ? [...bp.traits] : []),
+            effects: Array.isArray(lvl.effects) && lvl.effects.length > 0
+              ? [...lvl.effects]
+              : (Array.isArray(bp.effects) && bp.effects.length > 0 ? [...bp.effects] : undefined),
+          }
+        })
+      : [
+          {
+            ...bp,
+            level: 1,
+            name: bp.name || 'Tower',
+            cost: Number(bp.cost ?? 100),
+            damage: Number(bp.damage ?? 20),
+            attackSpeed: Number(bp.attackSpeed ?? 1.0),
+            range: Number(bp.range ?? 3.0),
+            isSplash: Boolean(bp.isSplash),
+            splashRadius: Boolean(bp.isSplash) ? Number(bp.splashRadius ?? 1.5) : undefined,
+            splashType: Boolean(bp.isSplash) ? (bp.splashType || 'falloff') : undefined,
+            traits: Array.isArray(bp.traits) ? [...bp.traits] : [],
+            effects: Array.isArray(bp.effects) && bp.effects.length > 0 ? [...bp.effects] : undefined,
+          }
+        ]
+
     return {
-      ...bp,
+      id: bp.id,
+      name: bp.name,
+      description: bp.description || '',
       clanId: bp.clanId || (resolvedClans[0]?.id || 'clan-iron'),
-      assetId: bp.assetId || fallbackId,
-      assetName: bp.assetName || (rawName ? `${rawName}.webp` : 'stoneColumn_W.webp'),
-      assetPath: bp.assetPath && (bp.assetPath.startsWith('http://') || bp.assetPath.startsWith('https://')) ? bp.assetPath : '',
-      splashType: bp.splashType || 'falloff',
-      traits: Array.isArray(bp.traits) ? [...bp.traits] : (bp.trait ? [bp.trait] : []),
-      levels: Array.isArray(bp.levels) ? bp.levels.map((lvl: any, idx: number) => ({
-        level: lvl.level || (idx + 1),
-        name: lvl.name || '',
-        cost: Number(lvl.cost) || 0,
-        damage: Number(lvl.damage) || bp.damage || 20,
-        attackSpeed: Number(lvl.attackSpeed) || bp.attackSpeed || 1.0,
-        range: Number(lvl.range) || bp.range || 3,
-        projectileType: lvl.projectileType || bp.projectileType || 'arrow',
-        projectileSpeed: Number(lvl.projectileSpeed) || bp.projectileSpeed || 15.0,
-        projectileColor: lvl.projectileColor !== undefined ? lvl.projectileColor : bp.projectileColor,
-        isSplash: lvl.isSplash !== undefined ? !!lvl.isSplash : !!bp.isSplash,
-        splashRadius: Number(lvl.splashRadius) || bp.splashRadius || 1.5,
-        splashType: lvl.splashType || bp.splashType || 'falloff',
-        traits: Array.isArray(lvl.traits) ? [...lvl.traits] : (lvl.trait ? [lvl.trait] : []),
-        effects: Array.isArray(lvl.effects) ? [...lvl.effects] : undefined,
-      })) : undefined,
+      asset: {
+        assetId,
+        assetName,
+        assetPath,
+        scale: Number(bp.asset?.scale ?? bp.scale ?? 1.0),
+        spanX: Number(bp.asset?.spanX ?? bp.spanX ?? 1),
+        spanY: Number(bp.asset?.spanY ?? bp.spanY ?? 1),
+        anchorX: Number(bp.asset?.anchorX ?? bp.anchorX ?? 0.5),
+        anchorY: Number(bp.asset?.anchorY ?? bp.anchorY ?? 0.88),
+        muzzleOffsetX: Number(bp.asset?.muzzleOffsetX ?? bp.muzzleOffsetX ?? 0),
+        muzzleOffsetY: Number(bp.asset?.muzzleOffsetY ?? bp.muzzleOffsetY ?? 0),
+      },
+      projectileId: projId,
+      targetStrategy,
+      levels,
     }
   })
   const rawWaveConfigs = waveData?.waveConfigs || (project as any).waveConfigs || []
@@ -248,6 +289,8 @@ export function buildFullProjectJsonPayload(
       spanX: a.spanX || 1,
       spanY: a.spanY || 1,
       scale: a.scale || 1.0,
+      depthOffset: a.depthOffset || 0,
+      isFrontWall: !!a.isFrontWall,
       isSample: a.isSample,
     }))
 
@@ -257,6 +300,7 @@ export function buildFullProjectJsonPayload(
     project: {
       id: project.id,
       name: project.name,
+      gameMode: project.gameMode || 'td',
       cols: project.cols,
       rows: project.rows,
       tileWidth: project.tileWidth,
@@ -273,6 +317,7 @@ export function buildFullProjectJsonPayload(
       waveConfigs: resolvedWaveConfigs,
       buildableCells: project.buildableCells || [],
       waterCells: project.waterCells || [],
+      collisionSubcells: project.collisionSubcells || [],
       buildMode: project.buildMode || 'all',
       customProjectiles: getAllProjectilesUnified().filter(p => p.identity?.isCustom),
       createdAt: project.createdAt || Date.now(),
@@ -433,6 +478,7 @@ export async function importProjectFromJson(
   
   project.waterCells = Array.isArray(project.waterCells) ? project.waterCells : []
   project.buildableCells = Array.isArray(project.buildableCells) ? project.buildableCells : []
+  project.collisionSubcells = Array.isArray(project.collisionSubcells) ? project.collisionSubcells : []
   
   onProgress?.(75, 'import.restoringLayers')
   await yieldToMain()

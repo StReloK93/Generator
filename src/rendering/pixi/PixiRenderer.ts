@@ -9,6 +9,8 @@ import { TowerRenderer } from './TowerRenderer'
 import { CombatRenderer } from './CombatRenderer'
 import { UnitRenderer } from './UnitRenderer'
 import { WaterRenderer } from './WaterRenderer'
+import { HeroRenderer } from './HeroRenderer'
+import { useHeroStore } from '../../stores/heroStore'
 
 export class PixiRenderer {
   public context: PixiContext
@@ -19,6 +21,7 @@ export class PixiRenderer {
   public towers: TowerRenderer
   public combat: CombatRenderer
   public units: UnitRenderer
+  public hero: HeroRenderer
 
   public isInitialized = false
 
@@ -31,6 +34,7 @@ export class PixiRenderer {
     this.towers = new TowerRenderer()
     this.combat = new CombatRenderer()
     this.units = new UnitRenderer()
+    this.hero = new HeroRenderer()
 
     // Connect sub-renderers
     this.overlay.getTexture = (asset: AssetItem) => this.map.getTexture(asset)
@@ -132,6 +136,12 @@ export class PixiRenderer {
   renderCharacters(characterStore: any, project: MapProject): void {
     this.overlay.renderRouteAndSpawns(characterStore, project)
     this.units.renderUnits(characterStore, project, this.map.layersContainer)
+    try {
+      const heroStore = useHeroStore()
+      this.hero.renderHero(heroStore, project, this.map.layersContainer)
+    } catch {
+      // Ignored if outside Pinia scope
+    }
   }
 
   renderHoverCell(
@@ -165,6 +175,10 @@ export class PixiRenderer {
     this.overlay.renderBuildableOverlay(project, isVisible, activeTool, force)
   }
 
+  renderCollisionOverlay(project: MapProject, isVisible: boolean, activeTool?: string, force = false): void {
+    this.overlay.renderCollisionOverlay(project, isVisible, activeTool, force)
+  }
+
   renderTeammateHovers(teammateHovers: Map<string, any>, project: any): void {
     this.overlay.renderTeammateHovers(teammateHovers, project)
   }
@@ -173,7 +187,8 @@ export class PixiRenderer {
     clientX: number,
     clientY: number,
     canvasRect: DOMRect | null | undefined,
-    project: MapProject | null | undefined
+    project: MapProject | null | undefined,
+    useSubgrid = false
   ): { worldX: number; worldY: number; gridCoord: GridCoord } {
     if (
       !this.isInitialized ||
@@ -199,7 +214,19 @@ export class PixiRenderer {
 
     const tileW = project.tileWidth || 128
     const tileH = project.tileHeight || 64
-    const gridCoord = screenToGrid(worldX, worldY, tileW, tileH)
+    
+    let gridCoord: GridCoord
+    if (useSubgrid) {
+      const halfW = tileW / 2
+      const halfH = tileH / 2
+      const u = (worldX / halfW + worldY / halfH) / 2
+      const v = (worldY / halfH - worldX / halfW) / 2
+      const subCol = Math.floor(u * 2 + 0.5)
+      const subRow = Math.floor(v * 2 + 0.5)
+      gridCoord = { col: subCol * 0.5, row: subRow * 0.5 }
+    } else {
+      gridCoord = screenToGrid(worldX, worldY, tileW, tileH)
+    }
 
     return { worldX, worldY, gridCoord }
   }
@@ -235,6 +262,7 @@ export class PixiRenderer {
       this.grid?.clear()
       this.combat?.clear()
       this.overlay?.clear()
+      this.hero?.clear()
       if (this.map?.layersContainer && !this.map.layersContainer.destroyed) {
         this.units?.clear(this.map.layersContainer)
         this.towers?.clear(this.map.layersContainer)
@@ -259,6 +287,7 @@ export class PixiRenderer {
       this.water?.destroy()
       this.towers?.destroy()
       this.units?.destroy()
+      this.hero?.destroy()
       this.overlay?.destroy()
       this.map?.destroy()
       this.combat?.destroy()

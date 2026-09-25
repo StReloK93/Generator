@@ -57,4 +57,49 @@ describe('WaveManager Domain Logic', () => {
     expect(waves[1].waveNumber).toBe(2)
     expect(waves[2].waveNumber).toBe(3)
   })
+
+  it('computeEffectiveImmunities should strictly respect explicit immunities array over variant', async () => {
+    const { computeEffectiveImmunities } = await import('@/stores/characterStore')
+
+    // Explicit empty immunities: must be empty even if unitVariant is 'electric'
+    const waveWithClearedImmunities: WaveConfig = {
+      waveNumber: 1,
+      name: 'W1',
+      unitHp: 100,
+      unitCount: 10,
+      unitSpeed: 3.5,
+      isBoss: false,
+      goldReward: 1,
+      unitVariant: 'electric',
+      immunities: [],
+    }
+    expect(computeEffectiveImmunities(waveWithClearedImmunities)).toEqual([])
+
+    // Explicit custom immunities
+    const waveWithCustomImmunities: WaveConfig = {
+      waveNumber: 1,
+      name: 'W1',
+      unitHp: 100,
+      unitCount: 10,
+      unitSpeed: 3.5,
+      isBoss: false,
+      goldReward: 1,
+      unitVariant: 'electric',
+      immunities: ['fire', 'frost'],
+    }
+    expect(computeEffectiveImmunities(waveWithCustomImmunities)).toEqual(['fire', 'frost'])
+
+    // Legacy wave without immunities field should fallback to unitVariant
+    const legacyWave: WaveConfig = {
+      waveNumber: 1,
+      name: 'W1',
+      unitHp: 100,
+      unitCount: 10,
+      unitSpeed: 3.5,
+      isBoss: false,
+      goldReward: 1,
+      unitVariant: 'fire',
+    }
+    expect(computeEffectiveImmunities(legacyWave)).toEqual(['fire'])
+  })
 })

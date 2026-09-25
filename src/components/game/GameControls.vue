@@ -9,7 +9,7 @@
           towerStore.activeBuildTowerId === bp.id
             ? 'bg-amber-500/50 border-amber-400 ring-2 ring-amber-400/40'
             : 'bg-slate-900/90 border-slate-700/80 hover:border-slate-500'
-        ]" :title="`${bp.name} — ${$t('game.cost', { amount: bp.cost })}`">
+        ]" :title="`${bp.name} — ${$t('game.cost', { amount: bp.cost ?? 100 })}`">
         <div class="size-12 sm:size-14  flex items-center justify-center">
           <img v-if="getTowerSpriteUrl(bp)" :src="getTowerSpriteUrl(bp)" :alt="bp.name"
             class="size-9 object-contain filter drop-shadow scale-110" />

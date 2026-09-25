@@ -342,9 +342,40 @@ async function initArenaPixi() {
   combatGraphics = new Graphics()
   app.stage.addChild(combatGraphics)
 
-  app.ticker.add((ticker) => {
+  arenaTickerFn = (ticker: any) => {
     updateArena(ticker.deltaTime / 60)
-  })
+  }
+  app.ticker.add(arenaTickerFn)
+}
+
+let arenaTickerFn: ((ticker: any) => void) | null = null
+
+function cleanArenaPixi() {
+  if (app) {
+    const curApp = app
+    app = null
+    try {
+      if (arenaTickerFn && curApp.ticker) {
+        curApp.ticker.remove(arenaTickerFn)
+      }
+      curApp.stop()
+    } catch {}
+    arenaTickerFn = null
+
+    try {
+      if (combatGraphics && !(combatGraphics as any).destroyed) {
+        combatGraphics.destroy()
+      }
+    } catch {}
+    combatGraphics = null
+
+    try {
+      curApp.destroy(false)
+    } catch {}
+  }
+  activeProjectiles.length = 0
+  activeStrikes.length = 0
+  autoSpawnTimer = 0
 }
 
 function spawnManualShot() {
@@ -513,16 +544,7 @@ watch(() => props.isOpen, (open) => {
       if (!app) initArenaPixi()
     }, 50)
   } else {
-    if (app) {
-      const curApp = app
-      app = null
-      combatGraphics = null
-      try {
-        curApp.destroy(true, { children: true, texture: false })
-      } catch {
-        // Ignored
-      }
-    }
+    cleanArenaPixi()
   }
 })
 
@@ -533,15 +555,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (app) {
-    const curApp = app
-    app = null
-    combatGraphics = null
-    try {
-      curApp.destroy(true, { children: true, texture: false })
-    } catch {
-      // Ignored
-    }
-  }
+  cleanArenaPixi()
 })
 </script>

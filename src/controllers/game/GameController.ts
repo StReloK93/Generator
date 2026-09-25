@@ -1,6 +1,7 @@
 import { GridCoord, MapProject } from '../../types/map'
 import { isInsideGrid } from '../../utils/isometric'
 import { IsoEngine } from '../../engine/IsoEngine'
+import { useHeroStore } from '../../stores/heroStore'
 
 export interface GameControllerDependencies {
   engine: IsoEngine
@@ -27,6 +28,13 @@ export class GameController {
 
   public setupSimulationLoop(): void {
     const { engine, characterStore, gameStore, towerStore, multiplayerStore, mapStore, toolStore } = this.deps
+    const heroStore = useHeroStore()
+    const isHeroMode = mapStore.project?.gameMode === 'hero'
+
+    heroStore.toggleHero(isHeroMode)
+    if (isHeroMode) {
+      heroStore.selectHero(true)
+    }
 
     engine.onTick = (rawDeltaSec: number) => {
       const simSpeed = Math.max(0.1, Math.min(50.0, gameStore?.gameSpeed || 1.0))
@@ -35,7 +43,9 @@ export class GameController {
       if (!multiplayerStore.roomId || multiplayerStore.isHost) {
         characterStore.updateTick(effectiveDelta)
 
-        towerStore.updateCombatTick(effectiveDelta)
+        if (!isHeroMode) {
+          towerStore.updateCombatTick(effectiveDelta)
+        }
 
         if (multiplayerStore.roomId && multiplayerStore.isHost) {
           multiplayerStore.broadcastGameTick()
@@ -44,13 +54,21 @@ export class GameController {
         characterStore.updateClientInterpolation(rawDeltaSec)
       }
 
+      // Update hero movement and animation only in Hero mode
+      if (isHeroMode) {
+        heroStore.updateHero(effectiveDelta, mapStore.project.tileWidth, mapStore.project.tileHeight)
+      }
+
       engine.renderCharacter(characterStore, mapStore.project)
-      engine.renderTowersAndCombat(
-        towerStore,
-        mapStore.project,
-        characterStore,
-        toolStore.hoveredCell
-      )
+
+      if (!isHeroMode) {
+        engine.renderTowersAndCombat(
+          towerStore,
+          mapStore.project,
+          characterStore,
+          toolStore.hoveredCell
+        )
+      }
       engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
     }
   }
@@ -62,16 +80,37 @@ export class GameController {
   public handleCellClick(gridCoord: GridCoord): void {
     const { mapStore, towerStore, gameStore, routeStore, multiplayerStore, toolStore, notify, t } =
       this.deps
+    const heroStore = useHeroStore()
+    const isHeroMode = mapStore.project?.gameMode === 'hero'
 
     if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
-      towerStore.selectPlacedTower(null)
-      this.pendingBuildCell = null
-      towerStore.setPendingBuildCell(null)
-      toolStore.setHoveredCell(null)
+      if (!isHeroMode) {
+        towerStore.selectPlacedTower(null)
+        this.pendingBuildCell = null
+        towerStore.setPendingBuildCell(null)
+        toolStore.setHoveredCell(null)
+      }
       return
     }
 
-    // 1. If building a tower from shop
+    // 1. HERO REJIMI: Point-and-Click Hero Harakati
+    if (isHeroMode) {
+      if (heroStore.isEnabled) {
+        const distToHero = Math.hypot(
+          gridCoord.col - heroStore.hero.currentCol,
+          gridCoord.row - heroStore.hero.currentRow
+        )
+        if (distToHero < 0.9) {
+          heroStore.selectHero(true)
+        } else if (heroStore.isSelected) {
+          heroStore.moveTo(gridCoord.col, gridCoord.row)
+        }
+      }
+      return
+    }
+
+    // 2. TD REJIMI: Minora qurish va tanlash
+    // 2.1 If building a tower from shop
     if (towerStore.activeBuildTowerId) {
       // Check if cell already has a placed tower!
       const existingTower = towerStore.placedTowers.find(
@@ -98,7 +137,7 @@ export class GameController {
         return
       }
 
-      // 1.1 First tap on a cell: Target and highlight this cell
+      // First tap on a cell: Target and highlight this cell
       if (
         !this.pendingBuildCell ||
         this.pendingBuildCell.col !== gridCoord.col ||
@@ -111,7 +150,7 @@ export class GameController {
         return
       }
 
-      // 1.2 Second tap on the SAME active cell: Validate and place the tower!
+      // Second tap on the SAME active cell: Validate and place the tower!
       const bp = towerStore.blueprints.find((b: any) => b.id === towerStore.activeBuildTowerId)
       if (bp) {
         let currentGold = gameStore?.gold ?? 0
@@ -149,15 +188,16 @@ export class GameController {
       return
     }
 
-    // 2. Check if a placed tower exists on this cell (explicit click to select/inspect)
+    // 2.2 Check if a placed tower exists on this cell (explicit click to select/inspect)
     const clickedTower = towerStore.placedTowers.find(
       (t: any) => t.col === gridCoord.col && t.row === gridCoord.row
     )
     if (clickedTower) {
       towerStore.selectPlacedTower(clickedTower.id)
-    } else {
-      towerStore.selectPlacedTower(null)
+      return
     }
+
+    towerStore.selectPlacedTower(null)
   }
 
   public handlePointerMove(gridCoord: GridCoord): void {
@@ -183,7 +223,16 @@ export class GameController {
   }
 
   public handleContextMenu(): void {
-    const { towerStore, toolStore } = this.deps
+    const { towerStore, toolStore, mapStore } = this.deps
+    const heroStore = useHeroStore()
+
+    // 1. Deselect hero
+    if (heroStore.isSelected) {
+      heroStore.selectHero(false)
+      return
+    }
+
+    // 2. Cancel tower build in TD mode
     if (towerStore.activeBuildTowerId) {
       this.pendingBuildCell = null
       towerStore.setPendingBuildCell(null)
@@ -191,6 +240,8 @@ export class GameController {
       towerStore.selectBuildTower(null)
       return
     }
+
+    // 3. Deselect placed tower
     if (towerStore.selectedPlacedTowerId) {
       towerStore.selectPlacedTower(null)
     }

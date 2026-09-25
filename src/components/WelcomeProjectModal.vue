@@ -55,6 +55,38 @@
             :placeholder="$t('welcome.projectNamePlaceholder')" :leading-icon="Sparkles"
             @keyup.enter="handleCreateNew" />
 
+          <!-- Game Mode Selector: TD vs Hero -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">O'yin Rejimi (Game Mode)</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <UiCard :selected="selectedGameMode === 'td'" interactive padding="md"
+                custom-class="flex flex-col gap-1.5 cursor-pointer border-slate-800 hover:border-amber-500/50 transition-colors"
+                @click="selectedGameMode = 'td'">
+                <div class="flex items-center gap-2 text-amber-400">
+                  <Castle class="w-5 h-5 shrink-0" />
+                  <span class="font-bold text-sm">Tower Defense</span>
+                  <UiBadge v-if="selectedGameMode === 'td'" variant="amber" size="xs" class="ml-auto">Faol</UiBadge>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-tight">
+                  To'lqinlar, klanlar, minoralar qurish va bazani himoyalash.
+                </p>
+              </UiCard>
+
+              <UiCard :selected="selectedGameMode === 'hero'" interactive padding="md"
+                custom-class="flex flex-col gap-1.5 cursor-pointer border-slate-800 hover:border-emerald-500/50 transition-colors"
+                @click="selectedGameMode = 'hero'">
+                <div class="flex items-center gap-2 text-emerald-400">
+                  <Swords class="w-5 h-5 shrink-0" />
+                  <span class="font-bold text-sm">Hero Adventure</span>
+                  <UiBadge v-if="selectedGameMode === 'hero'" variant="emerald" size="xs" class="ml-auto">Faol</UiBadge>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-tight">
+                  Qahramon (Warrior, Orc, Demon), to'siqlar, sarguzasht va janglar.
+                </p>
+              </UiCard>
+            </div>
+          </div>
+
           <!-- Presets Selection -->
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-slate-300">{{ $t('common.size') }}</label>
@@ -161,7 +193,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Sparkles, Upload, History, Trash2, Map, Package } from 'lucide-vue-next'
+import { Sparkles, Upload, History, Trash2, Map, Package, Castle, Swords } from 'lucide-vue-next'
 import {
   UiModal,
   UiTabs,
@@ -181,6 +213,7 @@ import { useRouteStore } from '../stores/routeStore'
 import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
+import { useHeroStore } from '../stores/heroStore'
 import { importProjectFromJson, normalizeTileItem, yieldToMain } from '../utils/exportHelpers'
 import {
   getRecentProjects,
@@ -190,8 +223,10 @@ import {
 } from '../services/projectStorage'
 import {
   sanitizeMapId,
-  saveEditorDraft
+  saveEditorDraft,
+  registerSessionCustomMap
 } from '../services/mapManager'
+import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
 
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
@@ -205,6 +240,7 @@ const routeStore = useRouteStore()
 const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
+const heroStore = useHeroStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -214,6 +250,7 @@ const isImporting = ref(false)
 const importProgress = ref(0)
 const importStageMessage = ref('')
 const activeMode = ref<'new' | 'import' | 'recents'>('new')
+const selectedGameMode = ref<'td' | 'hero'>('td')
 const newProjectName = ref('My Defense Map')
 const cols = ref(60)
 const rows = ref(60)
@@ -280,16 +317,23 @@ function handleCreateNew() {
   characterStore.resetForNewProject()
   towerStore.resetForNewProject()
 
-  const name = newProjectName.value.trim() || 'New Isometric Map'
+  const name = newProjectName.value.trim() || (selectedGameMode.value === 'hero' ? 'My Hero Adventure' : 'My Defense Map')
   const newId = sanitizeMapId(`proj-${Date.now().toString(36)}`)
   mapStore.createNewProject({
     name,
+    gameMode: selectedGameMode.value,
     cols: cols.value,
     rows: rows.value,
     tileWidth: 128,
     tileHeight: 64,
   })
   mapStore.project.id = newId
+
+  // Configure Hero mode state
+  heroStore.toggleHero(selectedGameMode.value === 'hero')
+  if (selectedGameMode.value === 'hero') {
+    heroStore.selectHero(true)
+  }
 
   // Save to editor draft and recents
   saveEditorDraft(
@@ -441,6 +485,12 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
 
     characterStore.spawnAtRoute(routeStore.selectedRouteIndex ?? 0)
 
+    const isHeroMode = clonedProject.gameMode === 'hero'
+    heroStore.toggleHero(isHeroMode)
+    if (isHeroMode) {
+      heroStore.selectHero(true)
+    }
+
     assetStore.selectedAssetId = null
     toolStore.activeTool = 'select'
     toolStore.selectedElement = null
@@ -465,6 +515,18 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       wvData,
       mapStore.project.gameSettings
     )
+
+    // Register into session memory so immediate game play has latest imported data
+    registerSessionCustomMap(cleanId, buildFullProjectJsonPayload(
+      mapStore.project,
+      assetStore.assets,
+      {
+        routes: routeStore.routes,
+      },
+      twrData,
+      wvData,
+      mapStore.project.gameSettings
+    ))
 
     mapStore.resetHistory(`Map loaded: ${project.name || 'Project'}`)
     await new Promise(r => setTimeout(r, 220))

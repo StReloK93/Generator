@@ -67,10 +67,11 @@ export function sanitizeMapId(nameOrId: string): string {
 }
 
 /**
- * Loads clean, official map for GAME PLAY (Single Player / Multiplayer).
- * STRICT RULE: Games NEVER load from editor's auto-saved localStorage drafts!
+ * Loads map for GAME PLAY (Single Player / Multiplayer).
+ * If the user has edited and saved changes in the editor, load their latest draft from LocalStorage!
+ * Otherwise fallback to the official pristine map from src/maps/*.json.
  */
-export function getGameMapDataById(mapId: string): { payload: any; source: 'builtin' | 'custom' } | null {
+export function getGameMapDataById(mapId: string): { payload: any; source: 'builtin' | 'custom' | 'editor_draft' } | null {
   if (!mapId) return null
   const cleanId = sanitizeMapId(mapId)
 
@@ -79,7 +80,20 @@ export function getGameMapDataById(mapId: string): { payload: any; source: 'buil
     return { payload: sessionCustomMaps.get(cleanId), source: 'custom' }
   }
 
-  // 2. Check official built-in maps from src/maps/*.json
+  // 2. Check in-progress edited draft in LocalStorage (so editor changes are immediately active in game)
+  try {
+    const raw = localStorage.getItem(`defensor_editor_draft_${cleanId}`)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed) {
+        return { payload: parsed, source: 'editor_draft' }
+      }
+    }
+  } catch (e) {
+    console.warn(`[mapManager] Error reading editor draft for game ${mapId}:`, e)
+  }
+
+  // 3. Fallback to official built-in maps from src/maps/*.json
   const builtins = getBuiltinMaps()
   const builtinMatch = builtins.find(m => 
     m.id === cleanId || 

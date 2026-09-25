@@ -244,7 +244,9 @@ export class MapRenderer {
 
           // Precise Depth Sorting across ALL covered cells using layer priority, relative depth offset and per-cell Z-index
           let maxDepthScore = 0
-          const depthOffset = item.depthOffset || 0
+          const depthOffset = (item.depthOffset !== undefined && item.depthOffset !== 0)
+            ? item.depthOffset
+            : (item.isFrontWall || asset.isFrontWall ? 1 : (asset.depthOffset || 0))
 
           for (let cx = posX; cx < posX + spanX; cx++) {
             for (let cy = posY; cy < posY + spanY; cy++) {

@@ -86,6 +86,16 @@
         @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
       />
 
+      <!-- Collision / Obstacles Tool -->
+      <UiIconButton
+        variant="tool"
+        size="sm"
+        :icon="ShieldAlert"
+        :active="toolStore.activeTool === 'collision'"
+        :title="`${$t('editor.collisionLayer') || 'Collision'} (C)`"
+        @click="toolStore.setTool(toolStore.activeTool === 'collision' ? (toolStore.lastDrawingTool === 'collision' ? 'brush' : toolStore.lastDrawingTool) : 'collision')"
+      />
+
       <!-- Scatter / Random Multi-Asset Tool -->
       <UiIconButton
         variant="tool"
@@ -286,6 +296,75 @@
           size="xs"
           :title="`${$t('common.done')}`"
           @click="finishWater"
+        >
+          {{ $t('common.done') || 'Done' }}
+        </UiButton>
+      </div>
+    </div>
+
+    <!-- Minimalist Top Bar when in Collision Mode -->
+    <div 
+      v-if="toolStore.activeTool === 'collision'"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-md bg-slate-950/80 border border-rose-500/30 px-2 sm:px-3 py-1 rounded-full shadow-2xl flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-rose-200 animate-in fade-in slide-in-from-top-2 select-none"
+    >
+      <div class="flex items-center gap-1.5 pl-1 pr-0.5">
+        <ShieldAlert class="w-3.5 h-3.5 text-rose-400 animate-pulse shrink-0" />
+        <span class="font-semibold text-slate-200 hidden md:inline">{{ $t('editor.collisionLayer') || 'To\'siqlar' }}</span>
+        <span class="font-mono text-[11px] text-rose-300 font-bold px-1.5 py-0.2 bg-rose-500/10 rounded-full border border-rose-500/20">
+          {{ mapStore.project.collisionSubcells?.length || 0 }}
+        </span>
+      </div>
+
+      <div class="h-3.5 w-px bg-slate-800"></div>
+
+      <!-- Sub-tool Selector: Point (Q) / Line (W) / Box (E) -->
+      <UiTabs
+        v-model="collisionSubTool"
+        variant="segmented"
+        size="xs"
+        :items="[
+          { id: 'brush', label: 'Point' },
+          { id: 'line', label: 'Line' },
+          { id: 'box', label: 'Box' },
+        ]"
+      />
+
+      <!-- Action: Block (+) vs Clear (-) -->
+      <UiTabs
+        v-model="collisionAction"
+        :variant="collisionAction === 'block' ? 'amber' : 'segmented'"
+        size="xs"
+        :items="[
+          { id: 'block', label: '+' },
+          { id: 'clear', label: '-' },
+        ]"
+      />
+
+      <div class="h-3.5 w-px bg-slate-800"></div>
+
+      <div class="flex items-center gap-1">
+        <UiButton
+          variant="ghost"
+          size="xs"
+          custom-class="text-rose-400 hover:text-rose-300"
+          :title="$t('common.clear')"
+          @click="mapStore.clearAllCollisionSubcells(); engine.renderCollisionOverlay(mapStore.project, true, 'collision', true)"
+        >
+          {{ $t('common.clear') || 'Clear' }}
+        </UiButton>
+        <UiButton
+          variant="secondary"
+          size="xs"
+          :title="`${$t('common.cancel')} (Esc)`"
+          @click="cancelCollision"
+        >
+          {{ $t('common.cancel') || 'Cancel' }}
+        </UiButton>
+        <UiButton
+          variant="game-green"
+          size="xs"
+          :title="`${$t('common.done')}`"
+          @click="finishCollision"
         >
           {{ $t('common.done') || 'Done' }}
         </UiButton>
@@ -701,7 +780,7 @@ import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { 
   Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
   Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves,
-  Dices, Settings2, Square, Pointer
+  Dices, Settings2, Square, Pointer, ShieldAlert
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
@@ -749,9 +828,14 @@ const buildableBoxStartPoint = ref<GridCoord | null>(null)
 const waterSubTool = ref<'brush' | 'line' | 'box'>('brush')
 const waterAction = ref<'water' | 'dry'>('water')
 
-// Session Snapshots for Buildable and Water modes to support reliable Cancel (Esc / Cancel button)
+// Collision Layer Sub-tool ('brush' | 'line' | 'box') & Action Mode ('block' | 'clear')
+const collisionSubTool = ref<'brush' | 'line' | 'box'>('brush')
+const collisionAction = ref<'block' | 'clear'>('block')
+
+// Session Snapshots for Buildable, Water and Collision modes to support reliable Cancel (Esc / Cancel button)
 const buildableSnapshot = ref<{ buildMode: 'all' | 'custom' | undefined; buildableCells: string[] } | null>(null)
 const waterSnapshot = ref<string[] | null>(null)
+const collisionSnapshot = ref<string[] | null>(null)
 
 function captureBuildableSnapshot() {
   buildableSnapshot.value = {
@@ -762,6 +846,10 @@ function captureBuildableSnapshot() {
 
 function captureWaterSnapshot() {
   waterSnapshot.value = [...(mapStore.project.waterCells || [])]
+}
+
+function captureCollisionSnapshot() {
+  collisionSnapshot.value = [...(mapStore.project.collisionSubcells || [])]
 }
 
 function cancelBuildable() {
@@ -795,6 +883,22 @@ function cancelWater() {
 function finishWater() {
   editorController.waterTool.onCancel(editorController.ctx)
   toolStore.setTool(toolStore.lastDrawingTool === 'water' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+function cancelCollision() {
+  if (collisionSnapshot.value) {
+    mapStore.project.collisionSubcells = [...collisionSnapshot.value]
+    mapStore.project.updatedAt = Date.now()
+    engine.renderCollisionOverlay(mapStore.project, toolStore.activeTool === 'collision', 'collision', true)
+  }
+  editorController.collisionTool.onCancel(editorController.ctx)
+  toolStore.previewCells = []
+  toolStore.setTool(toolStore.lastDrawingTool === 'collision' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+}
+
+function finishCollision() {
+  editorController.collisionTool.onCancel(editorController.ctx)
+  toolStore.setTool(toolStore.lastDrawingTool === 'collision' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
 }
 
 const selectedAssetItem = computed(() => {
@@ -851,6 +955,13 @@ watch(waterAction, (val) => {
   editorController.waterTool.action = val
 })
 
+watch(collisionSubTool, (val) => {
+  editorController.collisionTool.subTool = val
+})
+watch(collisionAction, (val) => {
+  editorController.collisionTool.action = val
+})
+
 const showGuide = ref(true)
 const isDraggingOver = ref(false)
 let resizeObserver: ResizeObserver | null = null
@@ -883,6 +994,7 @@ function updateEngineState() {
   )
   engine.renderCharacter(characterStore, mapStore.project)
   engine.renderBuildableOverlay(mapStore.project, toolStore.showBuildableZones, toolStore.activeTool)
+  engine.renderCollisionOverlay(mapStore.project, toolStore.activeTool === 'collision', toolStore.activeTool)
 }
 
 onMounted(async () => {
@@ -1087,7 +1199,25 @@ watch(() => [
   }
 }, { deep: true })
 
-// Sync Box, Eraser, Water, and Buildable states if active tool changes
+watch(() => [
+  toolStore.activeTool,
+  mapStore.project.collisionSubcells,
+  mapStore.project.collisionSubcells?.length,
+  mapStore.project.cols,
+  mapStore.project.rows,
+  mapStore.project.tileWidth,
+  mapStore.project.tileHeight,
+], () => {
+  if (engine.isInitialized) {
+    engine.renderCollisionOverlay(
+      mapStore.project,
+      toolStore.activeTool === 'collision',
+      toolStore.activeTool
+    )
+  }
+}, { deep: true })
+
+// Sync Box, Eraser, Water, Collision, and Buildable states if active tool changes
 watch(() => toolStore.activeTool, (newTool, oldTool) => {
   if (newTool === 'buildable') {
     captureBuildableSnapshot()
@@ -1101,6 +1231,12 @@ watch(() => toolStore.activeTool, (newTool, oldTool) => {
     waterSnapshot.value = null
   }
 
+  if (newTool === 'collision') {
+    captureCollisionSnapshot()
+  } else if (oldTool === 'collision') {
+    collisionSnapshot.value = null
+  }
+
   if (newTool !== 'box-fill' && editorController.boxTool.boxStartPoint) {
     editorController.boxTool.onCancel(editorController.ctx)
   }
@@ -1112,6 +1248,9 @@ watch(() => toolStore.activeTool, (newTool, oldTool) => {
   }
   if (newTool !== 'water' && editorController.waterTool.boxStartPoint) {
     editorController.waterTool.onCancel(editorController.ctx)
+  }
+  if (newTool !== 'collision' && editorController.collisionTool?.boxStartPoint) {
+    editorController.collisionTool.onCancel(editorController.ctx)
   }
 }, { immediate: true })
 
@@ -1139,7 +1278,8 @@ function handleMouseDown(e: MouseEvent) {
   }
   if (mapStore.activeLayer?.locked) return
   const rect = camera.getViewportRect(viewportContainerRef.value)
-  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
+  const isSubgrid = toolStore.activeTool === 'collision'
+  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project, isSubgrid)
   editorController.handlePointerDown(gridCoord, e)
 }
 
@@ -1155,7 +1295,8 @@ function handleMouseMove(e: MouseEvent) {
     return
   }
   const rect = camera.getViewportRect(viewportContainerRef.value)
-  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project)
+  const isSubgrid = toolStore.activeTool === 'collision'
+  const { gridCoord } = engine.screenPointToGrid(e.clientX, e.clientY, rect, mapStore.project, isSubgrid)
   editorController.handlePointerMove(gridCoord, e)
 }
 
@@ -1174,7 +1315,8 @@ function handleMouseUp(e?: MouseEvent) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const clientX = e ? e.clientX : 0
   const clientY = e ? e.clientY : 0
-  const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
+  const isSubgrid = toolStore.activeTool === 'collision'
+  const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project, isSubgrid)
   editorController.handlePointerUp(gridCoord, e || new MouseEvent('mouseup'))
 }
 
@@ -1322,6 +1464,14 @@ function handleKeyDown(e: KeyboardEvent) {
       cancelWater()
       return
     }
+    if (toolStore.activeTool === 'collision') {
+      if (editorController.collisionTool.boxStartPoint) {
+        editorController.collisionTool.onCancel(editorController.ctx)
+        return
+      }
+      cancelCollision()
+      return
+    }
     if (toolStore.activeTool === 'scatter') {
       toolStore.setTool(toolStore.lastDrawingTool === 'scatter' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
       return
@@ -1425,10 +1575,14 @@ function handleKeyDown(e: KeyboardEvent) {
       return
     }
 
-    // Toggle TD Settings Modal: T
+    // Toggle Settings Modal: T (Hero settings in Hero mode, TD settings in TD mode)
     if (code === 'KeyT' || key === 't') {
       e.preventDefault()
-      toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen
+      if (mapStore.project.gameMode === 'hero') {
+        toolStore.isHeroConfigModalOpen = !toolStore.isHeroConfigModalOpen
+      } else {
+        toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen
+      }
       return
     }
 
@@ -1469,6 +1623,10 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'brush'
         return
       }
+      if (toolStore.activeTool === 'collision') {
+        collisionSubTool.value = 'brush'
+        return
+      }
       if (toolStore.activeTool === 'eraser') {
         eraserSubTool.value = 'simple'
         return
@@ -1492,6 +1650,10 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'line'
         return
       }
+      if (toolStore.activeTool === 'collision') {
+        collisionSubTool.value = 'line'
+        return
+      }
       if (toolStore.activeTool === 'eraser') {
         eraserSubTool.value = 'line'
         return
@@ -1513,6 +1675,10 @@ function handleKeyDown(e: KeyboardEvent) {
       }
       if (toolStore.activeTool === 'water') {
         waterSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'collision') {
+        collisionSubTool.value = 'box'
         return
       }
       if (toolStore.activeTool === 'eraser') {
@@ -1575,6 +1741,10 @@ function handleKeyDown(e: KeyboardEvent) {
         waterSubTool.value = 'line'
         return
       }
+      if (toolStore.activeTool === 'collision') {
+        collisionSubTool.value = 'line'
+        return
+      }
       if (toolStore.activeTool === 'eraser') {
         eraserSubTool.value = 'line'
         return
@@ -1588,8 +1758,11 @@ function handleKeyDown(e: KeyboardEvent) {
     if (code === 'KeyU' || key === 'u' || code === 'KeyC' || key === 'c') {
       e.preventDefault()
       if (code === 'KeyC' || key === 'c') {
-        toolStore.setTool('eraser')
-        eraserSubTool.value = 'box'
+        if (toolStore.activeTool === 'collision') {
+          toolStore.setTool(toolStore.lastDrawingTool === 'collision' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
+        } else {
+          toolStore.setTool('collision')
+        }
         return
       }
       if (toolStore.activeTool === 'buildable') {
@@ -1598,6 +1771,10 @@ function handleKeyDown(e: KeyboardEvent) {
       }
       if (toolStore.activeTool === 'water') {
         waterSubTool.value = 'box'
+        return
+      }
+      if (toolStore.activeTool === 'collision') {
+        collisionSubTool.value = 'box'
         return
       }
       if (toolStore.activeTool === 'eraser') {

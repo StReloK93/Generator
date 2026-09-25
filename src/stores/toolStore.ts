@@ -29,6 +29,7 @@ export const useToolStore = defineStore('toolStore', () => {
   const isShortcutsModalOpen = ref<boolean>(false)
   const isHistoryModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
+  const isHeroConfigModalOpen = ref<boolean>(false)
   const isBoxClearModalOpen = ref<boolean>(false)
   const boxClearData = ref<BoxClearModalData | null>(null)
   const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'spawns'>('towers')
@@ -40,6 +41,14 @@ export const useToolStore = defineStore('toolStore', () => {
 
   function closeGameConfig() {
     isGameConfigModalOpen.value = false
+  }
+
+  function openHeroConfig() {
+    isHeroConfigModalOpen.value = true
+  }
+
+  function closeHeroConfig() {
+    isHeroConfigModalOpen.value = false
   }
 
   function openBoxClearModal(data: BoxClearModalData) {
@@ -240,6 +249,9 @@ export const useToolStore = defineStore('toolStore', () => {
     isShortcutsModalOpen,
     isHistoryModalOpen,
     isGameConfigModalOpen,
+    isHeroConfigModalOpen,
+    openHeroConfig,
+    closeHeroConfig,
     isBoxClearModalOpen,
     boxClearData,
     openBoxClearModal,

@@ -119,7 +119,10 @@ const currentRange = computed(() => {
   return props.levelConfig?.range || props.blueprint.range || 3
 })
 
+let tickerFn: ((ticker: any) => void) | null = null
+
 async function initPixi() {
+  cleanPixi()
   if (!canvasRef.value || !containerRef.value) return
 
   const rect = containerRef.value.getBoundingClientRect()
@@ -151,17 +154,18 @@ async function initPixi() {
 
   updateTowerTexture()
 
-  app.ticker.add((ticker) => {
+  tickerFn = (ticker: any) => {
     updateSimulation(ticker.deltaTime / 60)
-  })
+  }
+  app.ticker.add(tickerFn)
 }
 
 function updateTowerTexture() {
-  if (!towerSprite) return
+  if (!towerSprite || (towerSprite as any).destroyed) return
   const src = assetStore.getAssetPreview(props.blueprint.assetId || props.blueprint.assetName) || props.blueprint.assetPath
   if (src) {
     Assets.load<Texture>(src).then((tex) => {
-      if (towerSprite && tex) {
+      if (towerSprite && !(towerSprite as any).destroyed && tex) {
         towerSprite.texture = tex
         const maxDim = 80
         const scale = Math.min(maxDim / tex.width, maxDim / tex.height) * (props.blueprint.scale || 1.0)
@@ -171,8 +175,66 @@ function updateTowerTexture() {
   }
 }
 
+function cleanPixi() {
+  if (app) {
+    const curApp = app
+    app = null
+    try {
+      if (tickerFn && curApp.ticker) {
+        curApp.ticker.remove(tickerFn)
+      }
+      curApp.stop()
+    } catch {}
+    tickerFn = null
+
+    try {
+      if (rangeGraphics && !(rangeGraphics as any).destroyed) {
+        rangeGraphics.destroy()
+      }
+    } catch {}
+    rangeGraphics = null
+
+    try {
+      if (combatGraphics && !(combatGraphics as any).destroyed) {
+        combatGraphics.destroy()
+      }
+    } catch {}
+    combatGraphics = null
+
+    try {
+      if (towerSprite && !(towerSprite as any).destroyed) {
+        towerSprite.destroy()
+      }
+    } catch {}
+    towerSprite = null
+
+    try {
+      if (stageContainer && !(stageContainer as any).destroyed) {
+        stageContainer.destroy({ children: true })
+      }
+    } catch {}
+    stageContainer = null
+
+    try {
+      curApp.destroy(false)
+    } catch {}
+  }
+  activeProjectiles.length = 0
+  activeSparks.length = 0
+  activeRings.length = 0
+  activeStrikes.length = 0
+}
+
 watch(() => [props.blueprint.assetId, props.blueprint.assetName, props.blueprint.assetPath, props.blueprint.scale], () => {
   updateTowerTexture()
+})
+
+watch(() => [props.blueprint.projectileId, props.blueprint.id, props.levelConfig?.projectileId], () => {
+  activeProjectiles.length = 0
+  activeSparks.length = 0
+  activeRings.length = 0
+  activeStrikes.length = 0
+  cooldownTimer = 0
 })
 
 function spawnShot(w: number, h: number) {
@@ -511,18 +573,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (app) {
-    const curApp = app
-    app = null
-    stageContainer = null
-    towerSprite = null
-    rangeGraphics = null
-    combatGraphics = null
-    try {
-      curApp.destroy(true, { children: true, texture: false })
-    } catch {
-      // Ignored
-    }
-  }
+  cleanPixi()
 })
 </script>

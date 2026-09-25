@@ -7,6 +7,8 @@ export interface EffectProcessingContext {
   targetUnit?: CombatUnitTarget
   vulnerabilityMultiplier?: number
   consecutiveHitsCount?: number
+  isSplashHit?: boolean
+  towerIsSplash?: boolean
 }
 
 export class EffectProcessor {
@@ -37,6 +39,13 @@ export class EffectProcessor {
     let stackCount: number | undefined
 
     for (const effect of effects) {
+      // If this is a secondary splash target, skip effects where splash is disabled or tower splash is off
+      if (context.isSplashHit) {
+        if (!context.towerIsSplash || effect.isSplash === false) {
+          continue
+        }
+      }
+
       switch (effect.type) {
         case 'damage': {
           if (effect.element && unitImmunities.includes(effect.element as TowerTraitType)) {
@@ -164,70 +173,109 @@ export class EffectProcessor {
     if (!traitsConfig) return []
     const effects: CombatEffect[] = []
 
-    if (traitsConfig.effects && Array.isArray(traitsConfig.effects) && traitsConfig.effects.length > 0) {
-      return [...traitsConfig.effects]
-    }
-
+    const towerIsSplash = Boolean(traitsConfig.isSplash)
     const traits: TowerTraitType[] = traitsConfig.traits || []
 
     for (const trait of traits) {
       if (trait === 'fire') {
-        if (traitsConfig.fireBonusDamage) {
-          effects.push({ type: 'damage', amount: traitsConfig.fireBonusDamage, element: 'fire' })
-        }
+        const fireIsSplash = towerIsSplash && (traitsConfig.fireSplash !== undefined ? Boolean(traitsConfig.fireSplash) : (traitsConfig.fireIsSplash !== undefined ? Boolean(traitsConfig.fireIsSplash) : true))
         effects.push({
           type: 'burn',
           dps: traitsConfig.burnDps || 4,
           duration: traitsConfig.burnDuration || 3.0,
+          isSplash: fireIsSplash,
         })
-      } else if (trait === 'frost') {
-        if (traitsConfig.frostBonusDamage) {
-          effects.push({ type: 'damage', amount: traitsConfig.frostBonusDamage, element: 'frost' })
+        if (traitsConfig.fireBonusDamage) {
+          effects.push({
+            type: 'damage',
+            amount: traitsConfig.fireBonusDamage,
+            element: 'fire',
+            isSplash: fireIsSplash,
+          })
         }
+      } else if (trait === 'frost') {
+        const frostIsSplash = towerIsSplash && (traitsConfig.frostSplash !== undefined ? Boolean(traitsConfig.frostSplash) : (traitsConfig.frostIsSplash !== undefined ? Boolean(traitsConfig.frostIsSplash) : true))
         effects.push({
           type: 'slow',
           percent: traitsConfig.slowPercent || 30,
           duration: traitsConfig.slowDuration || 2.5,
+          isSplash: frostIsSplash,
         })
+        if (traitsConfig.frostBonusDamage) {
+          effects.push({
+            type: 'damage',
+            amount: traitsConfig.frostBonusDamage,
+            element: 'frost',
+            isSplash: frostIsSplash,
+          })
+        }
       } else if (trait === 'poison') {
+        const poisonIsSplash = towerIsSplash && (traitsConfig.poisonSplash !== undefined ? Boolean(traitsConfig.poisonSplash) : (traitsConfig.poisonIsSplash !== undefined ? Boolean(traitsConfig.poisonIsSplash) : true))
         effects.push({
           type: 'poison',
           dps: traitsConfig.poisonDps || 6,
           duration: traitsConfig.poisonDuration || 4.0,
           slowPercent: traitsConfig.poisonSlowPercent || 10,
+          isSplash: poisonIsSplash,
         })
       } else if (trait === 'stacking') {
+        const stackingIsSplash = towerIsSplash && (traitsConfig.stackingSplash !== undefined ? Boolean(traitsConfig.stackingSplash) : (traitsConfig.stackingIsSplash !== undefined ? Boolean(traitsConfig.stackingIsSplash) : true))
         effects.push({
           type: 'stacking_damage',
           bonusPerHit: traitsConfig.stackBonusDamage || 4,
           maxStacks: traitsConfig.maxStacks || 10,
+          isSplash: stackingIsSplash,
         })
       } else if (trait === 'blood') {
+        const bloodIsSplash = towerIsSplash && (traitsConfig.bloodSplash !== undefined ? Boolean(traitsConfig.bloodSplash) : (traitsConfig.bloodIsSplash !== undefined ? Boolean(traitsConfig.bloodIsSplash) : true))
         effects.push({
           type: 'bleed',
           dps: traitsConfig.bleedDps || 7,
           duration: traitsConfig.bleedDuration || 3.5,
+          isSplash: bloodIsSplash,
         })
       } else if (trait === 'electric') {
-        if (traitsConfig.electricBonusDamage) {
-          effects.push({ type: 'damage', amount: traitsConfig.electricBonusDamage, element: 'electric' })
-        }
+        const electricIsSplash = towerIsSplash && (traitsConfig.electricSplash !== undefined ? Boolean(traitsConfig.electricSplash) : (traitsConfig.electricIsSplash !== undefined ? Boolean(traitsConfig.electricIsSplash) : true))
         effects.push({
           type: 'stun',
           duration: traitsConfig.stunDuration || 0.3,
+          isSplash: electricIsSplash,
         })
+        if (traitsConfig.electricBonusDamage) {
+          effects.push({
+            type: 'damage',
+            amount: traitsConfig.electricBonusDamage,
+            element: 'electric',
+            isSplash: electricIsSplash,
+          })
+        }
         if (traitsConfig.chainTargets && traitsConfig.chainTargets > 1) {
           effects.push({
             type: 'chain',
             targets: traitsConfig.chainTargets,
+            isSplash: electricIsSplash,
           })
         }
       } else if (trait === 'void') {
+        const voidIsSplash = towerIsSplash && (traitsConfig.voidSplash !== undefined ? Boolean(traitsConfig.voidSplash) : (traitsConfig.voidIsSplash !== undefined ? Boolean(traitsConfig.voidIsSplash) : true))
         effects.push({
           type: 'vulnerability',
           percent: traitsConfig.voidVulnPercent || 25,
           duration: traitsConfig.voidDuration || 4.0,
+          isSplash: voidIsSplash,
         })
+      }
+    }
+
+    // Include any explicit custom effects not already covered by active traits
+    if (traitsConfig.effects && Array.isArray(traitsConfig.effects) && traitsConfig.effects.length > 0) {
+      for (const eff of traitsConfig.effects) {
+        if (!effects.some(e => e.type === eff.type)) {
+          effects.push({
+            ...eff,
+            isSplash: towerIsSplash ? (eff.isSplash !== undefined ? Boolean(eff.isSplash) : true) : false,
+          })
+        }
       }
     }
 

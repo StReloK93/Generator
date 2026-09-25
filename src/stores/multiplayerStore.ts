@@ -519,7 +519,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
               const builderId = tower.builderId || msg.senderId
               const builderPlayer = players.value.find(p => p.id === builderId)
               const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
-              const cost = bp ? bp.cost : (tower.damage ? Math.round(tower.damage * 0.8) : 50)
+              const cost = bp ? (bp.cost ?? 100) : (tower.damage ? Math.round(tower.damage * 0.8) : 50)
               if (builderPlayer) {
                 builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - cost)
                 builderPlayer.towersBuilt = (builderPlayer.towersBuilt || 0) + 1
@@ -570,7 +570,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (idx !== -1) {
           const removed = towerStore.placedTowers.splice(idx, 1)[0]
           const bp = towerStore.blueprints.find(b => b.id === removed.blueprintId)
-          const baseCost = bp ? bp.cost : 100
+          const baseCost = bp ? (bp.cost ?? 100) : 100
           const refund = Math.round(baseCost * 0.7 * (1 + (removed.level - 1) * 0.5))
           addSystemMessage(`${removed.name} was sold (+${refund} Gold).`)
 

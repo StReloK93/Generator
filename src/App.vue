@@ -5,7 +5,7 @@
         name="game-page"
         mode="out-in"
       >
-        <component :is="Component" :key="route.path" />
+        <component :is="Component" :key="route.name === 'editor' || route.name === 'game' ? String(route.name) : route.path" />
       </Transition>
     </router-view>
 
@@ -134,32 +134,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style>
-/* Global styles */
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #090d16;
-  color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden;
-  user-select: none;
-}
-
-/* Smooth Game Route Page Transitions */
-.game-page-enter-active,
-.game-page-leave-active {
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.game-page-enter-from {
-  opacity: 0;
-  transform: scale(0.992) translateY(2px);
-}
-
-.game-page-leave-to {
-  opacity: 0;
-  transform: scale(1.008) translateY(-2px);
-}
-</style>

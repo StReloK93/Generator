@@ -33612,8 +33612,6 @@
         "name": "Simple fire tower",
         "description": "Custom defense tower: Stone Guard Tower",
         "clanId": "clan-iron",
-        "targetStrategy": "first",
-        "projectileId": "fireball",
         "asset": {
           "assetId": "sprite-tower_fire_one",
           "assetName": "Tower_fire_one.webp",
@@ -33626,29 +33624,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": -24
         },
-        "stats": {
-          "cost": 10,
-          "damage": 10,
-          "attackSpeed": 0.8,
-          "range": 5
-        },
-        "projectile": {
-          "type": "fireball",
-          "speed": 12,
-          "color": 14753096,
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 5,
-              "element": "fire"
-            },
-            {
-              "type": "burn",
-              "dps": 2,
-              "duration": 2
-            }
-          ]
-        },
+        "projectileId": "fireball",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -33657,50 +33634,22 @@
             "damage": 10,
             "attackSpeed": 0.8,
             "range": 5,
-            "projectileType": "fireball",
-            "projectileSpeed": 12,
-            "projectileColor": 14753096,
             "isSplash": false,
-            "splashRadius": 1.5,
-            "splashType": "falloff",
             "traits": [
               "fire"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 5,
+                "element": "fire"
+              },
+              {
+                "type": "burn",
+                "dps": 2,
+                "duration": 2
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_fire_one",
-        "assetName": "Tower_fire_one.webp",
-        "assetPath": "",
-        "damage": 10,
-        "attackSpeed": 0.8,
-        "range": 5,
-        "cost": 10,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": -24,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "fireball",
-        "projectileSpeed": 12,
-        "projectileColor": 14753096,
-        "isSplash": false,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "fire"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 5,
-            "element": "fire"
-          },
-          {
-            "type": "burn",
-            "dps": 2,
-            "duration": 2
           }
         ]
       },
@@ -33709,8 +33658,6 @@
         "name": "Mini splash tower",
         "description": "Custom defense tower: Arcane Energy Orb Tower",
         "clanId": "clan-iron",
-        "targetStrategy": "first",
-        "projectileId": "custom_1790244461539_5z8n",
         "asset": {
           "assetId": "sprite-tower_fire",
           "assetName": "Tower_fire.webp",
@@ -33723,33 +33670,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": -10
         },
-        "stats": {
-          "cost": 50,
-          "damage": 25,
-          "attackSpeed": 1.2,
-          "range": 4
-        },
-        "projectile": {
-          "type": "custom_1790244461539_5z8n",
-          "speed": 10.5,
-          "color": 3359061,
-          "splash": {
-            "radius": 1,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 3,
-              "element": "fire"
-            },
-            {
-              "type": "burn",
-              "dps": 3,
-              "duration": 2
-            }
-          ]
-        },
+        "projectileId": "custom_1790244461539_5z8n",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -33758,60 +33680,32 @@
             "damage": 25,
             "attackSpeed": 1.2,
             "range": 4,
-            "projectileType": "custom_1790244461539_5z8n",
-            "projectileSpeed": 10.5,
-            "projectileColor": 3359061,
             "isSplash": true,
             "splashRadius": 1,
             "splashType": "falloff",
             "traits": [
               "fire"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 3,
+                "element": "fire"
+              },
+              {
+                "type": "burn",
+                "dps": 3,
+                "duration": 2
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_fire",
-        "assetName": "Tower_fire.webp",
-        "assetPath": "",
-        "damage": 25,
-        "attackSpeed": 1.2,
-        "range": 4,
-        "cost": 50,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": -10,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1790244461539_5z8n",
-        "projectileSpeed": 10.5,
-        "projectileColor": 3359061,
-        "isSplash": true,
-        "splashRadius": 1,
-        "splashType": "falloff",
-        "traits": [
-          "fire"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 3,
-            "element": "fire"
-          },
-          {
-            "type": "burn",
-            "dps": 3,
-            "duration": 2
           }
         ]
       },
       {
         "id": "tower-1789119660572-d3yh",
         "name": "Fast fire tower",
-        "description": "Custom defense tower: Arcane Energy Orb Tower",
+        "description": "Custom defense tower: Fast Fire Tower",
         "clanId": "clan-iron",
-        "targetStrategy": "first",
-        "projectileId": "magma_geyser_burst",
         "asset": {
           "assetId": "sprite-tower_fire_three",
           "assetName": "Tower_fire_three.webp",
@@ -33824,101 +33718,51 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": -20
         },
-        "stats": {
-          "cost": 80,
-          "damage": 35,
-          "attackSpeed": 0.3,
-          "range": 6
-        },
-        "projectile": {
-          "type": "magma_geyser_burst",
-          "speed": 10.5,
-          "color": 16347926,
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 4,
-              "element": "fire"
-            },
-            {
-              "type": "burn",
-              "dps": 4,
-              "duration": 3
-            },
-            {
-              "type": "damage",
-              "amount": 4,
-              "element": "electric"
-            },
-            {
-              "type": "stun",
-              "duration": 0.3
-            }
-          ]
-        },
+        "projectileId": "magma_geyser_burst",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
-            "name": "Arcane Energy Orb Tower",
+            "name": "Fast fire tower",
             "cost": 80,
             "damage": 35,
             "attackSpeed": 0.3,
             "range": 6,
-            "projectileType": "magma_geyser_burst",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
-            "isSplash": false,
-            "splashRadius": 0.5,
-            "splashType": "falloff",
+            "isSplash": true,
             "traits": [
               "fire",
               "electric"
-            ]
-          }
-        ],
-        "assetId": "sprite-tower_fire_three",
-        "assetName": "Tower_fire_three.webp",
-        "assetPath": "",
-        "damage": 35,
-        "attackSpeed": 0.3,
-        "range": 6,
-        "cost": 80,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": -20,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "magma_geyser_burst",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": false,
-        "splashRadius": 0.5,
-        "splashType": "falloff",
-        "traits": [
-          "fire",
-          "electric"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 4,
-            "element": "fire"
-          },
-          {
-            "type": "burn",
-            "dps": 4,
-            "duration": 3
-          },
-          {
-            "type": "damage",
-            "amount": 4,
-            "element": "electric"
-          },
-          {
-            "type": "stun",
-            "duration": 0.3
+            ],
+            "effects": [
+              {
+                "type": "burn",
+                "dps": 4,
+                "duration": 3,
+                "isSplash": true
+              },
+              {
+                "type": "stun",
+                "duration": 0.3,
+                "isSplash": false
+              },
+              {
+                "type": "damage",
+                "amount": 5,
+                "element": "electric",
+                "isSplash": false
+              },
+              {
+                "type": "chain",
+                "targets": 2,
+                "isSplash": false
+              }
+            ],
+            "splashRadius": 0.5,
+            "splashType": "falloff",
+            "electricSplash": false,
+            "electricBonusDamage": 5,
+            "chainTargets": 2,
+            "stunDuration": 0.3
           }
         ]
       },
@@ -33927,8 +33771,6 @@
         "name": "Big flame tower",
         "description": "Custom defense tower: Stone Ballista Tower",
         "clanId": "clan-iron",
-        "targetStrategy": "first",
-        "projectileId": "custom_1790249232525_9ll0",
         "asset": {
           "assetId": "sprite-custom_tower_piece",
           "assetName": "Custom_tower_piece.webp",
@@ -33941,33 +33783,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 200,
-          "damage": 90,
-          "attackSpeed": 0.8,
-          "range": 5
-        },
-        "projectile": {
-          "type": "custom_1790249232525_9ll0",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1.5,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 20,
-              "element": "fire"
-            },
-            {
-              "type": "burn",
-              "dps": 10,
-              "duration": 3
-            }
-          ]
-        },
+        "projectileId": "custom_1790249232525_9ll0",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -33976,50 +33793,24 @@
             "damage": 90,
             "attackSpeed": 0.8,
             "range": 5,
-            "projectileType": "custom_1790249232525_9ll0",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1.5,
             "splashType": "falloff",
             "traits": [
               "fire"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 20,
+                "element": "fire"
+              },
+              {
+                "type": "burn",
+                "dps": 10,
+                "duration": 3
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-custom_tower_piece",
-        "assetName": "Custom_tower_piece.webp",
-        "assetPath": "",
-        "damage": 90,
-        "attackSpeed": 0.8,
-        "range": 5,
-        "cost": 200,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1790249232525_9ll0",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "fire"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 20,
-            "element": "fire"
-          },
-          {
-            "type": "burn",
-            "dps": 10,
-            "duration": 3
           }
         ]
       },
@@ -34028,8 +33819,6 @@
         "name": "Simple ice tower",
         "description": "Custom defense tower: Tower_ice1",
         "clanId": "clan-1789541192592-w54z",
-        "targetStrategy": "first",
-        "projectileId": "custom_1789582542158_lnev",
         "asset": {
           "assetId": "sprite-tower_ice1",
           "assetName": "Tower_ice1.webp",
@@ -34042,29 +33831,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 10,
-          "damage": 10,
-          "attackSpeed": 1,
-          "range": 5
-        },
-        "projectile": {
-          "type": "custom_1789582542158_lnev",
-          "speed": 14,
-          "color": 440020,
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 5,
-              "element": "frost"
-            },
-            {
-              "type": "slow",
-              "percent": 20,
-              "duration": 3
-            }
-          ]
-        },
+        "projectileId": "custom_1789582542158_lnev",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34073,50 +33841,22 @@
             "damage": 10,
             "attackSpeed": 1,
             "range": 5,
-            "projectileType": "custom_1789582542158_lnev",
-            "projectileSpeed": 14,
-            "projectileColor": 440020,
             "isSplash": false,
-            "splashRadius": 1.5,
-            "splashType": "falloff",
             "traits": [
               "frost"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 5,
+                "element": "frost"
+              },
+              {
+                "type": "slow",
+                "percent": 20,
+                "duration": 3
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_ice1",
-        "assetName": "Tower_ice1.webp",
-        "assetPath": "",
-        "damage": 10,
-        "attackSpeed": 1,
-        "range": 5,
-        "cost": 10,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1789582542158_lnev",
-        "projectileSpeed": 14,
-        "projectileColor": 440020,
-        "isSplash": false,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "frost"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 5,
-            "element": "frost"
-          },
-          {
-            "type": "slow",
-            "percent": 20,
-            "duration": 3
           }
         ]
       },
@@ -34125,8 +33865,6 @@
         "name": "Faster ice tower",
         "description": "Custom defense tower: Tower_ice1",
         "clanId": "clan-1789541192592-w54z",
-        "targetStrategy": "first",
-        "projectileId": "custom_1789582622693_n5g8",
         "asset": {
           "assetId": "sprite-tower_ice2",
           "assetName": "Tower_ice2.webp",
@@ -34139,29 +33877,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 40,
-          "damage": 45,
-          "attackSpeed": 0.5,
-          "range": 5
-        },
-        "projectile": {
-          "type": "custom_1789582622693_n5g8",
-          "speed": 14,
-          "color": 440020,
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 5,
-              "element": "frost"
-            },
-            {
-              "type": "slow",
-              "percent": 30,
-              "duration": 3
-            }
-          ]
-        },
+        "projectileId": "custom_1789582622693_n5g8",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34170,50 +33887,22 @@
             "damage": 45,
             "attackSpeed": 0.5,
             "range": 5,
-            "projectileType": "custom_1789582622693_n5g8",
-            "projectileSpeed": 14,
-            "projectileColor": 440020,
             "isSplash": false,
-            "splashRadius": 1.5,
-            "splashType": "falloff",
             "traits": [
               "frost"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 5,
+                "element": "frost"
+              },
+              {
+                "type": "slow",
+                "percent": 30,
+                "duration": 3
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_ice2",
-        "assetName": "Tower_ice2.webp",
-        "assetPath": "",
-        "damage": 45,
-        "attackSpeed": 0.5,
-        "range": 5,
-        "cost": 40,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1789582622693_n5g8",
-        "projectileSpeed": 14,
-        "projectileColor": 440020,
-        "isSplash": false,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "frost"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 5,
-            "element": "frost"
-          },
-          {
-            "type": "slow",
-            "percent": 30,
-            "duration": 3
           }
         ]
       },
@@ -34222,8 +33911,6 @@
         "name": "Nice ice",
         "description": "Custom defense tower: Tower_ice3",
         "clanId": "clan-1789541192592-w54z",
-        "targetStrategy": "first",
-        "projectileId": "custom_1789582622693_n5g8",
         "asset": {
           "assetId": "sprite-tower_ice3",
           "assetName": "Tower_ice3.webp",
@@ -34236,33 +33923,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 130,
-          "damage": 40,
-          "attackSpeed": 2.5,
-          "range": 3
-        },
-        "projectile": {
-          "type": "custom_1789582622693_n5g8",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1,
-            "type": "constant"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 20,
-              "element": "frost"
-            },
-            {
-              "type": "slow",
-              "percent": 50,
-              "duration": 2
-            }
-          ]
-        },
+        "projectileId": "custom_1789582622693_n5g8",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34271,50 +33933,24 @@
             "damage": 40,
             "attackSpeed": 2.5,
             "range": 3,
-            "projectileType": "custom_1789582622693_n5g8",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1,
             "splashType": "constant",
             "traits": [
               "frost"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 20,
+                "element": "frost"
+              },
+              {
+                "type": "slow",
+                "percent": 50,
+                "duration": 2
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_ice3",
-        "assetName": "Tower_ice3.webp",
-        "assetPath": "",
-        "damage": 40,
-        "attackSpeed": 2.5,
-        "range": 3,
-        "cost": 130,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1789582622693_n5g8",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1,
-        "splashType": "constant",
-        "traits": [
-          "frost"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 20,
-            "element": "frost"
-          },
-          {
-            "type": "slow",
-            "percent": 50,
-            "duration": 2
           }
         ]
       },
@@ -34323,8 +33959,6 @@
         "name": "Snow Star",
         "description": "Custom defense tower: Tower_ice4",
         "clanId": "clan-1789541192592-w54z",
-        "targetStrategy": "first",
-        "projectileId": "custom_1789735101659_yf3q",
         "asset": {
           "assetId": "sprite-tower_ice4",
           "assetName": "Tower_ice4.webp",
@@ -34337,33 +33971,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 200,
-          "damage": 90,
-          "attackSpeed": 1,
-          "range": 6
-        },
-        "projectile": {
-          "type": "custom_1789735101659_yf3q",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1.5,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 20,
-              "element": "frost"
-            },
-            {
-              "type": "slow",
-              "percent": 30,
-              "duration": 2.5
-            }
-          ]
-        },
+        "projectileId": "custom_1789735101659_yf3q",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34372,50 +33981,24 @@
             "damage": 90,
             "attackSpeed": 1,
             "range": 6,
-            "projectileType": "custom_1789735101659_yf3q",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1.5,
             "splashType": "falloff",
             "traits": [
               "frost"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 20,
+                "element": "frost"
+              },
+              {
+                "type": "slow",
+                "percent": 30,
+                "duration": 2.5
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_ice4",
-        "assetName": "Tower_ice4.webp",
-        "assetPath": "",
-        "damage": 90,
-        "attackSpeed": 1,
-        "range": 6,
-        "cost": 200,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "custom_1789735101659_yf3q",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "frost"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 20,
-            "element": "frost"
-          },
-          {
-            "type": "slow",
-            "percent": 30,
-            "duration": 2.5
           }
         ]
       },
@@ -34424,8 +34007,6 @@
         "name": "Killer fire",
         "description": "Custom defense tower: Tower_fire4",
         "clanId": "clan-iron",
-        "targetStrategy": "first",
-        "projectileId": "meteor_fall_strike",
         "asset": {
           "assetId": "sprite-tower_fire4",
           "assetName": "Tower_fire4.webp",
@@ -34438,46 +34019,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 400,
-          "damage": 235,
-          "attackSpeed": 0.5,
-          "range": 5
-        },
-        "projectile": {
-          "type": "meteor_fall_strike",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1,
-            "type": "constant"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 10,
-              "element": "fire"
-            },
-            {
-              "type": "burn",
-              "dps": 4,
-              "duration": 3
-            },
-            {
-              "type": "damage",
-              "amount": 10,
-              "element": "electric"
-            },
-            {
-              "type": "stun",
-              "duration": 0.2
-            },
-            {
-              "type": "chain",
-              "targets": 2
-            }
-          ]
-        },
+        "projectileId": "meteor_fall_strike",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34486,65 +34029,38 @@
             "damage": 235,
             "attackSpeed": 0.5,
             "range": 5,
-            "projectileType": "meteor_fall_strike",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1,
             "splashType": "constant",
             "traits": [
               "fire",
               "electric"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 10,
+                "element": "fire"
+              },
+              {
+                "type": "burn",
+                "dps": 4,
+                "duration": 3
+              },
+              {
+                "type": "damage",
+                "amount": 10,
+                "element": "electric"
+              },
+              {
+                "type": "stun",
+                "duration": 0.2
+              },
+              {
+                "type": "chain",
+                "targets": 2
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_fire4",
-        "assetName": "Tower_fire4.webp",
-        "assetPath": "",
-        "damage": 235,
-        "attackSpeed": 0.5,
-        "range": 5,
-        "cost": 400,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "meteor_fall_strike",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1,
-        "splashType": "constant",
-        "traits": [
-          "fire",
-          "electric"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 10,
-            "element": "fire"
-          },
-          {
-            "type": "burn",
-            "dps": 4,
-            "duration": 3
-          },
-          {
-            "type": "damage",
-            "amount": 10,
-            "element": "electric"
-          },
-          {
-            "type": "stun",
-            "duration": 0.2
-          },
-          {
-            "type": "chain",
-            "targets": 2
           }
         ]
       },
@@ -34553,8 +34069,6 @@
         "name": "Tower_ice5",
         "description": "Custom defense tower: Tower_ice5",
         "clanId": "clan-1789541192592-w54z",
-        "targetStrategy": "first",
-        "projectileId": "line_streak_beam",
         "asset": {
           "assetId": "sprite-tower_ice5",
           "assetName": "Tower_ice5.webp",
@@ -34567,46 +34081,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 340,
-          "damage": 365,
-          "attackSpeed": 3,
-          "range": 7
-        },
-        "projectile": {
-          "type": "line_streak_beam",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1.5,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "damage",
-              "amount": 20,
-              "element": "frost"
-            },
-            {
-              "type": "slow",
-              "percent": 50,
-              "duration": 3
-            },
-            {
-              "type": "damage",
-              "amount": 20,
-              "element": "electric"
-            },
-            {
-              "type": "stun",
-              "duration": 1
-            },
-            {
-              "type": "chain",
-              "targets": 2
-            }
-          ]
-        },
+        "projectileId": "line_streak_beam",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34615,65 +34091,38 @@
             "damage": 365,
             "attackSpeed": 3,
             "range": 7,
-            "projectileType": "line_streak_beam",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1.5,
             "splashType": "falloff",
             "traits": [
               "frost",
               "electric"
+            ],
+            "effects": [
+              {
+                "type": "damage",
+                "amount": 20,
+                "element": "frost"
+              },
+              {
+                "type": "slow",
+                "percent": 50,
+                "duration": 3
+              },
+              {
+                "type": "damage",
+                "amount": 20,
+                "element": "electric"
+              },
+              {
+                "type": "stun",
+                "duration": 1
+              },
+              {
+                "type": "chain",
+                "targets": 2
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower_ice5",
-        "assetName": "Tower_ice5.webp",
-        "assetPath": "",
-        "damage": 365,
-        "attackSpeed": 3,
-        "range": 7,
-        "cost": 340,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "line_streak_beam",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "frost",
-          "electric"
-        ],
-        "effects": [
-          {
-            "type": "damage",
-            "amount": 20,
-            "element": "frost"
-          },
-          {
-            "type": "slow",
-            "percent": 50,
-            "duration": 3
-          },
-          {
-            "type": "damage",
-            "amount": 20,
-            "element": "electric"
-          },
-          {
-            "type": "stun",
-            "duration": 1
-          },
-          {
-            "type": "chain",
-            "targets": 2
           }
         ]
       },
@@ -34682,8 +34131,6 @@
         "name": "Blood tower",
         "description": "Custom defense tower: Tower_ice3",
         "clanId": "clan-1790058637054-7q3o",
-        "targetStrategy": "first",
-        "projectileId": "fireball",
         "asset": {
           "assetId": "sprite-tower blood1",
           "assetName": "Tower blood1.webp",
@@ -34696,28 +34143,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 10,
-          "damage": 5,
-          "attackSpeed": 1,
-          "range": 6
-        },
-        "projectile": {
-          "type": "fireball",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 0.5,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "bleed",
-              "dps": 3,
-              "duration": 4
-            }
-          ]
-        },
+        "projectileId": "fireball",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34726,45 +34153,19 @@
             "damage": 5,
             "attackSpeed": 1,
             "range": 6,
-            "projectileType": "fireball",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 0.5,
             "splashType": "falloff",
             "traits": [
               "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 3,
+                "duration": 4
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower blood1",
-        "assetName": "Tower blood1.webp",
-        "assetPath": "",
-        "damage": 5,
-        "attackSpeed": 1,
-        "range": 6,
-        "cost": 10,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "fireball",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 0.5,
-        "splashType": "falloff",
-        "traits": [
-          "blood"
-        ],
-        "effects": [
-          {
-            "type": "bleed",
-            "dps": 3,
-            "duration": 4
           }
         ]
       },
@@ -34773,8 +34174,6 @@
         "name": "Blood TO",
         "description": "Custom defense tower: Tower blood2",
         "clanId": "clan-1790058637054-7q3o",
-        "targetStrategy": "first",
-        "projectileId": "fireball",
         "asset": {
           "assetId": "sprite-tower blood3",
           "assetName": "Tower blood3.webp",
@@ -34787,28 +34186,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 40,
-          "damage": 20,
-          "attackSpeed": 1.5,
-          "range": 5
-        },
-        "projectile": {
-          "type": "fireball",
-          "speed": 10.5,
-          "color": 16347926,
-          "splash": {
-            "radius": 1,
-            "type": "falloff"
-          },
-          "effects": [
-            {
-              "type": "bleed",
-              "dps": 10,
-              "duration": 3
-            }
-          ]
-        },
+        "projectileId": "fireball",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34817,45 +34196,19 @@
             "damage": 20,
             "attackSpeed": 1.5,
             "range": 5,
-            "projectileType": "fireball",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": true,
             "splashRadius": 1,
             "splashType": "falloff",
             "traits": [
               "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 10,
+                "duration": 3
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower blood3",
-        "assetName": "Tower blood3.webp",
-        "assetPath": "",
-        "damage": 20,
-        "attackSpeed": 1.5,
-        "range": 5,
-        "cost": 40,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "fireball",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": true,
-        "splashRadius": 1,
-        "splashType": "falloff",
-        "traits": [
-          "blood"
-        ],
-        "effects": [
-          {
-            "type": "bleed",
-            "dps": 10,
-            "duration": 3
           }
         ]
       },
@@ -34864,8 +34217,6 @@
         "name": "Tower blood2",
         "description": "Custom defense tower: Tower blood2",
         "clanId": "clan-1790058637054-7q3o",
-        "targetStrategy": "first",
-        "projectileId": "fireball",
         "asset": {
           "assetId": "sprite-tower blood2",
           "assetName": "Tower blood2.webp",
@@ -34878,24 +34229,8 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "stats": {
-          "cost": 100,
-          "damage": 100,
-          "attackSpeed": 1,
-          "range": 5
-        },
-        "projectile": {
-          "type": "fireball",
-          "speed": 10.5,
-          "color": 16347926,
-          "effects": [
-            {
-              "type": "bleed",
-              "dps": 10,
-              "duration": 3
-            }
-          ]
-        },
+        "projectileId": "fireball",
+        "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
@@ -34904,45 +34239,17 @@
             "damage": 100,
             "attackSpeed": 1,
             "range": 5,
-            "projectileType": "fireball",
-            "projectileSpeed": 10.5,
-            "projectileColor": 16347926,
             "isSplash": false,
-            "splashRadius": 1.5,
-            "splashType": "falloff",
             "traits": [
               "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 10,
+                "duration": 3
+              }
             ]
-          }
-        ],
-        "assetId": "sprite-tower blood2",
-        "assetName": "Tower blood2.webp",
-        "assetPath": "",
-        "damage": 100,
-        "attackSpeed": 1,
-        "range": 5,
-        "cost": 100,
-        "scale": 1,
-        "muzzleOffsetX": 0,
-        "muzzleOffsetY": 0,
-        "spanX": 1,
-        "spanY": 1,
-        "anchorX": 0.5,
-        "anchorY": 0.88,
-        "projectileType": "fireball",
-        "projectileSpeed": 10.5,
-        "projectileColor": 16347926,
-        "isSplash": false,
-        "splashRadius": 1.5,
-        "splashType": "falloff",
-        "traits": [
-          "blood"
-        ],
-        "effects": [
-          {
-            "type": "bleed",
-            "dps": 10,
-            "duration": 3
           }
         ]
       }
@@ -35088,9 +34395,7 @@
         "offsetY": -3,
         "unitScale": 0.7,
         "unitVariant": "demon",
-        "immunities": [
-          "electric"
-        ]
+        "immunities": []
       },
       {
         "waveNumber": 9,
@@ -35545,8 +34850,8 @@
       }
     ],
     "createdAt": 1789020267344,
-    "updatedAt": 1790250985027
+    "updatedAt": 1790330208550
   },
   "assets": [],
-  "savedAt": "2026-09-24T11:56:25.027Z"
+  "savedAt": "2026-09-25T09:56:48.550Z"
 }

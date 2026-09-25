@@ -235,6 +235,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
   function createNewProject(config: {
     name: string
+    gameMode?: import('../types/map').MapGameMode
     cols: number
     rows: number
     tileWidth: number
@@ -245,6 +246,7 @@ export const useMapStore = defineStore('mapStore', () => {
     project.value = {
       id: `proj-${Date.now()}`,
       name: config.name || 'New Isometric Map',
+      gameMode: config.gameMode || 'td',
       cols: Math.max(2, Math.min(256, config.cols)),
       rows: Math.max(2, Math.min(256, config.rows)),
       tileWidth: config.tileWidth || 128,
@@ -748,6 +750,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
     const current = item.depthOffset || 0
     item.depthOffset = Math.max(-10, Math.min(10, current + delta))
+    item.isFrontWall = item.depthOffset > 0
     project.value.updatedAt = Date.now()
     pushHistory(`Relative depth adjusted (${item.depthOffset > 0 ? '+' : ''}${item.depthOffset})`)
   }
@@ -761,6 +764,7 @@ export const useMapStore = defineStore('mapStore', () => {
     if (!item) return
 
     item.depthOffset = Math.max(-10, Math.min(10, Math.round(offset)))
+    item.isFrontWall = item.depthOffset > 0
     project.value.updatedAt = Date.now()
   }
 
@@ -954,7 +958,7 @@ export const useMapStore = defineStore('mapStore', () => {
 
   function updateAllItemsOfAsset(
     assetId: string,
-    updates: { anchorX?: number; anchorY?: number; spanX?: number; spanY?: number; scale?: number }
+    updates: { anchorX?: number; anchorY?: number; spanX?: number; spanY?: number; scale?: number; isFrontWall?: boolean }
   ) {
     if (!assetId) return
     const cleanId = assetId.replace(/^sprite-/, '').replace(/\.[^/.]+$/, '')
@@ -972,6 +976,14 @@ export const useMapStore = defineStore('mapStore', () => {
             if (updates.scale !== undefined) item.scale = updates.scale
             if (updates.spanX !== undefined) item.spanX = updates.spanX
             if (updates.spanY !== undefined) item.spanY = updates.spanY
+            if (updates.isFrontWall !== undefined) {
+              item.isFrontWall = updates.isFrontWall
+              if (updates.isFrontWall) {
+                item.depthOffset = 1
+              } else if (item.depthOffset === 1) {
+                item.depthOffset = 0
+              }
+            }
             updatedCount++
           }
         }
@@ -2480,6 +2492,86 @@ export const useMapStore = defineStore('mapStore', () => {
     pushHistory('Filled all cells with water')
   }
 
+  // ==========================================
+  // 2x2 SUB-GRID COLLISION / OBSTACLE METHODS
+  // ==========================================
+  function isSubCellBlocked(subCol: number, subRow: number): boolean {
+    const maxSubCols = (project.value.cols || 30) * 2
+    const maxSubRows = (project.value.rows || 30) * 2
+    if (subCol < 0 || subCol >= maxSubCols || subRow < 0 || subRow >= maxSubRows) {
+      return true // Out of map bounds is impassable
+    }
+    const cells = project.value.collisionSubcells
+    if (!cells || !Array.isArray(cells) || cells.length === 0) return false
+    return cells.includes(`${subCol},${subRow}`)
+  }
+
+  function toggleSubCellBlocked(subCol: number, subRow: number) {
+    const maxSubCols = (project.value.cols || 30) * 2
+    const maxSubRows = (project.value.rows || 30) * 2
+    if (subCol < 0 || subCol >= maxSubCols || subRow < 0 || subRow >= maxSubRows) return
+
+    if (!project.value.collisionSubcells) {
+      project.value.collisionSubcells = []
+    }
+    const key = `${subCol},${subRow}`
+    const idx = project.value.collisionSubcells.indexOf(key)
+    if (idx !== -1) {
+      project.value.collisionSubcells.splice(idx, 1)
+    } else {
+      project.value.collisionSubcells.push(key)
+    }
+    project.value.updatedAt = Date.now()
+  }
+
+  function setSubCellBlocked(subCol: number, subRow: number, blocked: boolean) {
+    const maxSubCols = (project.value.cols || 30) * 2
+    const maxSubRows = (project.value.rows || 30) * 2
+    if (subCol < 0 || subCol >= maxSubCols || subRow < 0 || subRow >= maxSubRows) return
+
+    if (!project.value.collisionSubcells) {
+      project.value.collisionSubcells = []
+    }
+    const key = `${subCol},${subRow}`
+    const idx = project.value.collisionSubcells.indexOf(key)
+    if (blocked && idx === -1) {
+      project.value.collisionSubcells.push(key)
+    } else if (!blocked && idx !== -1) {
+      project.value.collisionSubcells.splice(idx, 1)
+    }
+    project.value.updatedAt = Date.now()
+  }
+
+  function batchSetSubCellsBlocked(subCells: { subCol: number; subRow: number }[], blocked: boolean) {
+    if (!subCells || subCells.length === 0) return
+    if (!project.value.collisionSubcells) {
+      project.value.collisionSubcells = []
+    }
+    const maxSubCols = (project.value.cols || 30) * 2
+    const maxSubRows = (project.value.rows || 30) * 2
+    const currentSet = new Set(project.value.collisionSubcells)
+
+    for (const sc of subCells) {
+      if (sc.subCol < 0 || sc.subCol >= maxSubCols || sc.subRow < 0 || sc.subRow >= maxSubRows) continue
+      const key = `${sc.subCol},${sc.subRow}`
+      if (blocked) {
+        currentSet.add(key)
+      } else {
+        currentSet.delete(key)
+      }
+    }
+
+    project.value.collisionSubcells = Array.from(currentSet)
+    project.value.updatedAt = Date.now()
+    pushHistory(blocked ? `Added ${subCells.length} obstacle subcells` : `Removed ${subCells.length} obstacle subcells`)
+  }
+
+  function clearAllCollisionSubcells() {
+    project.value.collisionSubcells = []
+    project.value.updatedAt = Date.now()
+    pushHistory('Cleared all obstacle collision subcells')
+  }
+
   if (history.value.length === 0) {
     resetHistory('Initial state')
   }
@@ -2572,5 +2664,10 @@ export const useMapStore = defineStore('mapStore', () => {
     batchSetWaterCells,
     clearAllWaterCells,
     fillAllWaterCells,
+    isSubCellBlocked,
+    toggleSubCellBlocked,
+    setSubCellBlocked,
+    batchSetSubCellsBlocked,
+    clearAllCollisionSubcells,
   }
 })

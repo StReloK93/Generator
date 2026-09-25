@@ -64,7 +64,8 @@
     </div>
 
     <!-- Modals & Overlays -->
-    <GameConfigModal />
+    <GameConfigModal v-if="mapStore.project.gameMode !== 'hero'" />
+    <HeroConfigModal v-if="mapStore.project.gameMode === 'hero'" />
     <TowerCreateModal />
     <BoxClearModal />
     <KeyboardShortcutsModal />
@@ -86,6 +87,7 @@ import RightSidebar from '../components/RightSidebar.vue'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import ExportModal from '../components/ExportModal.vue'
 import GameConfigModal from '../components/GameConfigModal.vue'
+import HeroConfigModal from '../components/HeroConfigModal.vue'
 import TowerCreateModal from '../components/TowerCreateModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'

@@ -1043,7 +1043,39 @@ function syncHexColors() {
   }
 }
 
+let editorTickerFn: ((ticker: any) => void) | null = null
+
+function cleanEditorPixi() {
+  if (app) {
+    const curApp = app
+    app = null
+    try {
+      if (editorTickerFn && curApp.ticker) {
+        curApp.ticker.remove(editorTickerFn)
+      }
+      curApp.stop()
+    } catch {}
+    editorTickerFn = null
+
+    try {
+      if (combatGraphics && !(combatGraphics as any).destroyed) {
+        combatGraphics.destroy()
+      }
+    } catch {}
+    combatGraphics = null
+
+    try {
+      curApp.destroy(false)
+    } catch {}
+  }
+  activeProjectiles.length = 0
+  activeSparks.length = 0
+  activeRings.length = 0
+  activeStrikes.length = 0
+}
+
 async function initPixi() {
+  cleanEditorPixi()
   if (!arenaCanvasRef.value) return
 
   app = new Application()
@@ -1060,9 +1092,10 @@ async function initPixi() {
   combatGraphics = new Graphics()
   app.stage.addChild(combatGraphics)
 
-  app.ticker.add((ticker) => {
+  editorTickerFn = (ticker: any) => {
     updateArena(ticker.deltaTime / 60)
-  })
+  }
+  app.ticker.add(editorTickerFn)
 }
 
 let shotCounter = 0
@@ -1229,11 +1262,17 @@ function handleImpact(p: { targetX: number; targetY: number; def: ProjectileDefi
 let autoSpawnTimer = 0
 
 function updateArena(dt: number) {
-  if (!app || !combatGraphics) return
+  if (!app || !combatGraphics || (combatGraphics as any).destroyed) return
 
   const w = app.screen.width
   const h = app.screen.height
-  combatGraphics.clear()
+  try {
+    if (combatGraphics && !(combatGraphics as any).destroyed && typeof combatGraphics.clear === 'function') {
+      combatGraphics.clear()
+    }
+  } catch {
+    return
+  }
 
   // Update Moving Target Position
   movingTargetAngle += dt * 1.5
@@ -1467,9 +1506,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (app) {
-    app.destroy(true, { children: true, texture: false })
-    app = null
-  }
+  cleanEditorPixi()
 })
 </script>

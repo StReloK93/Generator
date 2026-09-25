@@ -7,58 +7,62 @@ export type DamageElement = 'physical' | 'fire' | 'frost' | 'poison' | 'electric
 
 export type TowerTraitType = 'fire' | 'frost' | 'poison' | 'stacking' | 'blood' | 'electric' | 'void'
 
-export interface DamageEffect {
+export interface BaseCombatEffect {
+  isSplash?: boolean
+}
+
+export interface DamageEffect extends BaseCombatEffect {
   type: 'damage'
   amount?: number
   element?: DamageElement
   bonusVsVariant?: Record<string, number>
 }
 
-export interface BurnEffect {
+export interface BurnEffect extends BaseCombatEffect {
   type: 'burn'
   dps: number
   duration: number
 }
 
-export interface SlowEffect {
+export interface SlowEffect extends BaseCombatEffect {
   type: 'slow'
   percent: number
   duration: number
 }
 
-export interface PoisonEffect {
+export interface PoisonEffect extends BaseCombatEffect {
   type: 'poison'
   dps: number
   duration: number
   slowPercent?: number
 }
 
-export interface BleedEffect {
+export interface BleedEffect extends BaseCombatEffect {
   type: 'bleed'
   dps: number
   duration: number
 }
 
-export interface StunEffect {
+export interface StunEffect extends BaseCombatEffect {
   type: 'stun'
   duration: number
   chance?: number
 }
 
-export interface ChainEffect {
+export interface ChainEffect extends BaseCombatEffect {
   type: 'chain'
   targets: number
   rangeTiles?: number
   damageFalloff?: number // 0.0 to 1.0 multiplier per bounce
 }
 
-export interface VulnerabilityEffect {
+export interface VulnerabilityEffect extends BaseCombatEffect {
   type: 'vulnerability'
   percent: number
   duration: number
 }
 
-export interface StackingDamageEffect {
+export interface StackingDamageEffect extends BaseCombatEffect {
   type: 'stacking_damage'
   bonusPerHit: number
   maxStacks: number

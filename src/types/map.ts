@@ -5,6 +5,7 @@ export interface TileItem {
   assetId: string
   zIndex: number // default / base zIndex within same cell
   depthOffset?: number // relative depth offset relative to neighboring grid cells (-5 to +5: e.g. +1 renders on top of cell in front, -1 renders behind cell above)
+  isFrontWall?: boolean // if true, renders in front of characters in this cell (occludes Hero)
   cellZIndex?: Record<string, number> // key: `${col},${row}` -> per-cell specific Z-Index for multi-cell objects!
   spanX?: number // width in cells (default: 1)
   spanY?: number // height in cells (default: 1)
@@ -17,6 +18,7 @@ export interface TileItem {
   offsetY?: number // fine pixel offset
   opacity?: number
 }
+
 
 export interface Layer {
   id: string
@@ -58,9 +60,10 @@ export type {
 } from './combat'
 
 export type {
+  TowerAsset,
+  TowerLevel,
+  TowerEffect,
   TowerAssetConfig,
-  TowerBaseStats,
-  TowerProjectileConfig,
   TowerLevelConfig,
   TowerBlueprint,
   PlacedTower,
@@ -136,9 +139,12 @@ export interface RouteInfo {
   playerCameraPoint?: { col: number, row: number }
 }
 
+export type MapGameMode = 'td' | 'hero'
+
 export interface MapProject {
   id: string
   name: string
+  gameMode?: MapGameMode
   cols: number
   rows: number
   tileWidth: number
@@ -156,6 +162,7 @@ export interface MapProject {
   currentWaveIndex?: number
   buildableCells?: string[] // list of `${col},${row}` cells where towers can be built. If empty/undefined, all valid cells are buildable
   waterCells?: string[] // list of `${col},${row}` cells designated as animated water
+  collisionSubcells?: string[] // list of `${subCol},${subRow}` 2x2 subgrid obstacle cells for hero & unit collision
   buildMode?: 'all' | 'custom'
   createdAt: number
   updatedAt: number
@@ -182,11 +189,13 @@ export interface AssetItem {
   spanX?: number // default 1
   spanY?: number // default 1
   scale?: number // default 1.0
+  depthOffset?: number // default depth offset
+  isFrontWall?: boolean // if true, placed in front of characters / occludes Hero
   isSample?: boolean
   fileRelativePath?: string
 }
 
-export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'water' | 'scatter' | 'pan'
+export type ToolType = 'select' | 'brush' | 'bucket' | 'eraser' | 'picker' | 'line' | 'rect' | 'box-fill' | 'box-clear' | 'buildable' | 'water' | 'collision' | 'scatter' | 'pan'
 
 export type PlacementMode = 'ask' | 'stack' | 'replace'
 

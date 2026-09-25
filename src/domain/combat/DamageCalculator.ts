@@ -8,16 +8,21 @@ export class DamageCalculator {
    */
   public static calculateDamage(
     baseDamage: number,
-    towerTraitsConfig?: { traits?: TowerTraitType[]; effects?: CombatEffect[]; id?: string; [key: string]: any },
-    target?: CombatUnitTarget
+    towerTraitsConfig?: { traits?: TowerTraitType[]; effects?: CombatEffect[]; id?: string; isSplash?: boolean; [key: string]: any },
+    target?: CombatUnitTarget,
+    options?: { isSplashHit?: boolean }
   ): DamageCalculationResult {
-    const effects = EffectProcessor.traitsToEffects(towerTraitsConfig)
+    const effects = (towerTraitsConfig?.effects && Array.isArray(towerTraitsConfig.effects) && towerTraitsConfig.effects.length > 0)
+      ? towerTraitsConfig.effects
+      : EffectProcessor.traitsToEffects(towerTraitsConfig)
 
     return EffectProcessor.processEffects(effects, {
       baseDamage,
       sourceTowerId: towerTraitsConfig?.id,
       targetUnit: target,
       consecutiveHitsCount: towerTraitsConfig?.id && target?.consecutiveHits ? target.consecutiveHits[towerTraitsConfig.id] : 0,
+      isSplashHit: options?.isSplashHit,
+      towerIsSplash: Boolean(towerTraitsConfig?.isSplash),
     })
   }
 

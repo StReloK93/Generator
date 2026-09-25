@@ -843,8 +843,9 @@ function openAnchorModal(asset: AssetItem) {
   selectedAssetForAnchor.value = asset
 }
 
-function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: number; spanY: number; scale: number }) {
+function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: number; spanY: number; scale: number; isFrontWall?: boolean }) {
   if (selectedAssetForAnchor.value) {
+
     const asset = selectedAssetForAnchor.value
     // 1. Update Asset Store and Central AssetManager
     assetStore.updateAssetProperties(asset.id, updates)

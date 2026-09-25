@@ -156,7 +156,7 @@
               <div class="flex flex-col min-w-0 text-left">
                 <span class="font-bold text-white truncate text-xs sm:text-sm">{{ activeSelectedBlueprint.name }}</span>
                 <span class="font-mono text-xs text-amber-300 font-bold flex items-center gap-1 mt-0.5">
-                  <Coins class="size-3 text-amber-400" />{{ $t('game.cost', { amount: activeSelectedBlueprint.cost }) }}
+                  <Coins class="size-3 text-amber-400" />{{ $t('game.cost', { amount: activeSelectedBlueprint.cost ?? 100 }) }}
                 </span>
               </div>
             </div>
@@ -176,7 +176,7 @@
               <span class="text-slate-400 flex items-center gap-1">
                 <Zap class="size-3 text-amber-400" />{{ $t('config.attackSpeed') }}
               </span>
-              <span class="font-bold text-white">{{ (1 / activeSelectedBlueprint.attackSpeed).toFixed(1) }}/s</span>
+              <span class="font-bold text-white">{{ (1 / (activeSelectedBlueprint.attackSpeed || 1.0)).toFixed(1) }}/s</span>
             </div>
             <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
               <span class="text-slate-400 flex items-center gap-1">
@@ -199,11 +199,11 @@
             <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{{ $t('traits.title')
             }}</span>
             <div class="flex items-center gap-1 flex-wrap">
-              <span v-for="traitId in activeSelectedBlueprint.traits" :key="traitId"
+              <span v-for="traitId in activeSelectedBlueprint.traits" :key="String(traitId)"
                 class="px-1.5 py-0.5 rounded text-[9px] font-bold border flex items-center gap-0.5"
-                :class="getTraitDef(traitId).badgeClass">
-                <component :is="getTraitDef(traitId).icon" class="size-2.5" />
-                <span>{{ $t(getTraitDef(traitId).nameKey) }}</span>
+                :class="getTraitDef(traitId as any).badgeClass">
+                <component :is="getTraitDef(traitId as any).icon" class="size-2.5" />
+                <span>{{ $t(getTraitDef(traitId as any).nameKey) }}</span>
               </span>
             </div>
           </div>
@@ -476,7 +476,7 @@ const playerGold = computed(() => {
 
 const isBuildAffordable = computed(() => {
   if (!activeSelectedBlueprint.value) return false
-  return playerGold.value >= activeSelectedBlueprint.value.cost
+  return playerGold.value >= (activeSelectedBlueprint.value.cost ?? 100)
 })
 
 function getProjectileLabel(type?: string): string {
@@ -531,7 +531,7 @@ function confirmPendingBuild() {
 
   if (!isBuildAffordable.value) {
     notify.gold(
-      t('game.needGoldForTower', { cost: activeSelectedBlueprint.value.cost, current: playerGold.value }),
+      t('game.needGoldForTower', { cost: activeSelectedBlueprint.value.cost ?? 100, current: playerGold.value }),
       t('game.notEnoughGold')
     )
     return
@@ -568,7 +568,7 @@ const sellRefund = computed(() => {
   const tower = towerStore.selectedPlacedTower
   if (!tower) return 50
   const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
-  const baseCost = bp ? bp.cost : 100
+  const baseCost = bp ? (bp.cost ?? 100) : 100
   let investedUpgrades = 0
   if (bp && bp.levels && tower.level > 1) {
     for (let i = 1; i < Math.min(tower.level, bp.levels.length); i++) {

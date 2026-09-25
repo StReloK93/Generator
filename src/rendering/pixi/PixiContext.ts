@@ -101,22 +101,34 @@ export class PixiContext {
   }
 
   destroy(): void {
-    this.stopTicker()
+    try {
+      this.stopTicker()
+    } catch {}
+
     if (this.isInitialized) {
+      this.isInitialized = false
       try {
-        if (this.stageContainer && !this.stageContainer.destroyed) {
+        if (this.stageContainer && !(this.stageContainer as any).destroyed) {
           this.stageContainer.removeChildren()
         }
-        if (this.worldContainer && !this.worldContainer.destroyed) {
+      } catch (e) {
+        // Ignored
+      }
+      try {
+        if (this.worldContainer && !(this.worldContainer as any).destroyed) {
           this.worldContainer.removeChildren()
         }
-        if (this.app?.renderer) {
-          this.app.destroy(true, { children: false, texture: false })
+      } catch (e) {
+        // Ignored
+      }
+      try {
+        if (this.app) {
+          const appRef = this.app
+          ;(this as any).app = null
+          appRef.destroy(false)
         }
       } catch (e) {
-        console.warn('PixiContext destroy error:', e)
-      } finally {
-        this.isInitialized = false
+        // Ignored
       }
     }
   }

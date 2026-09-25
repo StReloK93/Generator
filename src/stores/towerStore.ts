@@ -223,10 +223,31 @@ export const useTowerStore = defineStore('towerStore', () => {
     mapStore.pushHistory(`Removed upgrade level from ${bp.name}`)
   }
 
-  function updateBlueprint(bpId: string, updates: Partial<TowerBlueprint>): void {
+  function updateBlueprint(bpId: string, updates: Partial<TowerBlueprint> | any): void {
     const bp = blueprints.value.find(b => b.id === bpId)
     if (!bp) return
-    Object.assign(bp, updates)
+
+    if (updates.asset) {
+      Object.assign(bp.asset, updates.asset)
+    }
+    if (updates.assetId !== undefined) bp.asset.assetId = updates.assetId
+    if (updates.assetName !== undefined) bp.asset.assetName = updates.assetName
+    if (updates.assetPath !== undefined) bp.asset.assetPath = updates.assetPath
+    if (updates.scale !== undefined) bp.asset.scale = Number(updates.scale)
+    if (updates.muzzleOffsetX !== undefined) bp.asset.muzzleOffsetX = Number(updates.muzzleOffsetX)
+    if (updates.muzzleOffsetY !== undefined) bp.asset.muzzleOffsetY = Number(updates.muzzleOffsetY)
+    if (updates.spanX !== undefined) bp.asset.spanX = Number(updates.spanX)
+    if (updates.spanY !== undefined) bp.asset.spanY = Number(updates.spanY)
+    if (updates.anchorX !== undefined) bp.asset.anchorX = Number(updates.anchorX)
+    if (updates.anchorY !== undefined) bp.asset.anchorY = Number(updates.anchorY)
+
+    if (updates.name !== undefined) bp.name = updates.name
+    if (updates.description !== undefined) bp.description = updates.description
+    if (updates.clanId !== undefined) bp.clanId = updates.clanId
+    if (updates.projectileId !== undefined) bp.projectileId = updates.projectileId
+    if (updates.projectileType !== undefined) bp.projectileId = updates.projectileType
+    if (updates.targetStrategy !== undefined) bp.targetStrategy = updates.targetStrategy
+
     syncBlueprintChanges(bpId)
   }
 
@@ -424,13 +445,14 @@ export const useTowerStore = defineStore('towerStore', () => {
         : null
       if (myPl) currentGold = myPl.gold ?? 0
 
-      if (currentGold < bp.cost) return null
+      const towerCost = bp.cost ?? 100
+      if (currentGold < towerCost) return null
 
       if (myPl) {
-        myPl.gold = currentGold - bp.cost
+        myPl.gold = currentGold - towerCost
         gameStore.gold = myPl.gold
       } else {
-        gameStore.gold -= bp.cost
+        gameStore.gold -= towerCost
       }
     }
 
@@ -452,11 +474,11 @@ export const useTowerStore = defineStore('towerStore', () => {
       damage: lvl1.damage || 20,
       attackSpeed: lvl1.attackSpeed || 1.0,
       range: lvl1.range || 3,
-      projectileId: (lvl1 as any).projectileId || bp.projectileId || bp.projectileType || 'arrow',
-      projectileType: (lvl1.projectileType as ProjectileType) || bp.projectileType || 'arrow',
-      projectileSpeed: lvl1.projectileSpeed || bp.projectileSpeed || 15.0,
-      projectileColor: lvl1.projectileColor !== undefined ? lvl1.projectileColor : (bp.projectileColor || 0xd97706),
-      isSplash: Boolean(lvl1.isSplash !== undefined ? lvl1.isSplash : bp.isSplash),
+      projectileId: bp.projectileId || 'fireball',
+      projectileType: (bp.projectileId as ProjectileType) || 'fireball',
+      projectileSpeed: 14.0,
+      projectileColor: 0xd97706,
+      isSplash: Boolean(lvl1.isSplash),
       splashRadius: lvl1.splashRadius || 1.5,
       splashType: lvl1.splashType || 'falloff',
       cooldownTimer: 0,
@@ -466,8 +488,8 @@ export const useTowerStore = defineStore('towerStore', () => {
       builderName: myPlayer?.name || 'Player',
       builderColor: myPlayer?.color || '#38bdf8',
       targetStrategy: bp.targetStrategy || 'first',
-      effects: lvl1.effects ? [...lvl1.effects] : (bp.effects ? [...bp.effects] : []),
-      traits: lvl1.traits ? [...lvl1.traits] : (bp.traits ? [...bp.traits] : []),
+      effects: lvl1.effects ? [...lvl1.effects] : [],
+      traits: (lvl1.traits ? [...lvl1.traits] : []) as any,
     }
 
     placedTowers.value.push(newTower)
@@ -501,7 +523,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     const tower = placedTowers.value.find(t => t.id === id)
     if (!tower) return
     const bp = blueprintMap.value.get(tower.blueprintId)
-    const baseCost = bp ? bp.cost : 100
+    const baseCost = bp ? (bp.cost ?? 100) : 100
     const refund = Math.round(baseCost * 0.7 * (tower.level || 1))
 
     if (gameStore.isGameMode) {
@@ -554,14 +576,12 @@ export const useTowerStore = defineStore('towerStore', () => {
     tower.damage = nextLvlCfg.damage
     tower.attackSpeed = nextLvlCfg.attackSpeed
     tower.range = nextLvlCfg.range
-    tower.isSplash = !!nextLvlCfg.isSplash
+    tower.isSplash = Boolean(nextLvlCfg.isSplash)
     tower.splashRadius = nextLvlCfg.splashRadius || 1.5
     tower.splashType = nextLvlCfg.splashType || 'falloff'
-    tower.projectileType = (nextLvlCfg.projectileType as ProjectileType) || 'arrow'
-    tower.projectileSpeed = nextLvlCfg.projectileSpeed || 15.0
-    tower.projectileColor = nextLvlCfg.projectileColor !== undefined ? nextLvlCfg.projectileColor : 0xd97706
-    tower.traits = nextLvlCfg.traits ? [...nextLvlCfg.traits] : (bp.traits ? [...bp.traits] : [])
-    tower.effects = nextLvlCfg.effects ? [...nextLvlCfg.effects] : (bp.effects ? [...bp.effects] : [])
+    tower.projectileId = bp.projectileId || 'fireball'
+    tower.traits = (nextLvlCfg.traits ? [...nextLvlCfg.traits] : []) as any
+    tower.effects = nextLvlCfg.effects ? [...nextLvlCfg.effects] : []
 
     syncToProject()
     mapStore.pushHistory(`Upgraded ${tower.name} to Level ${tower.level}`)
@@ -628,7 +648,39 @@ export const useTowerStore = defineStore('towerStore', () => {
 
   function syncToProject(): void {
     if (!mapStore.project) return
-    mapStore.project.towerBlueprints = JSON.parse(JSON.stringify(blueprints.value))
+    mapStore.project.towerBlueprints = blueprints.value.map(bp => ({
+      id: bp.id,
+      name: bp.name,
+      description: bp.description || '',
+      clanId: bp.clanId,
+      asset: {
+        assetId: bp.asset.assetId,
+        assetName: bp.asset.assetName,
+        assetPath: bp.asset.assetPath || '',
+        scale: bp.asset.scale ?? 1.0,
+        spanX: bp.asset.spanX ?? 1,
+        spanY: bp.asset.spanY ?? 1,
+        anchorX: bp.asset.anchorX ?? 0.5,
+        anchorY: bp.asset.anchorY ?? 0.88,
+        muzzleOffsetX: bp.asset.muzzleOffsetX ?? 0,
+        muzzleOffsetY: bp.asset.muzzleOffsetY ?? 0,
+      },
+      projectileId: bp.projectileId,
+      targetStrategy: bp.targetStrategy || 'first',
+      levels: bp.levels.map(lvl => ({
+        level: lvl.level,
+        name: lvl.name,
+        cost: lvl.cost,
+        damage: lvl.damage,
+        attackSpeed: lvl.attackSpeed,
+        range: lvl.range,
+        isSplash: Boolean(lvl.isSplash),
+        splashRadius: lvl.isSplash ? (lvl.splashRadius ?? 1.5) : undefined,
+        splashType: lvl.isSplash ? (lvl.splashType || 'falloff') : undefined,
+        traits: lvl.traits ? [...lvl.traits] : [],
+        effects: lvl.effects && lvl.effects.length > 0 ? [...lvl.effects] : undefined,
+      }))
+    }))
     mapStore.project.clans = JSON.parse(JSON.stringify(clans.value))
     mapStore.project.placedTowers = JSON.parse(JSON.stringify(placedTowers.value))
   }

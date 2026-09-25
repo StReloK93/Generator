@@ -411,6 +411,21 @@
           />
         </div>
 
+        <!-- 6. Front Wall / Occludes Characters Toggle -->
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xs">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <ShieldAlert class="w-3.5 h-3.5 text-amber-400" />
+              {{ $t('anchor.isFrontWall') || 'Old devor (Heroni to\'sadi)' }}
+            </span>
+            <span class="text-[10px] text-slate-400">
+              {{ $t('anchor.isFrontWallDesc') || 'Kameraga yaqin bo\'lib, shu katakdagi personajlarning ustida chiziladi' }}
+            </span>
+          </div>
+          <UiSwitch v-model="currentIsFrontWall" size="sm" />
+        </div>
+
+
       </div>
 
     </div>
@@ -451,7 +466,7 @@ import {
   Crosshair, Boxes, Image, ZoomIn, ZoomOut, 
   ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 
   Compass, Check, Info, Mountain, TreePine, 
-  Focus, Footprints, Lightbulb, Castle 
+  Focus, Footprints, Lightbulb, Castle, ShieldAlert
 } from 'lucide-vue-next'
 import { UiModal, UiSlider, UiButton, UiIconButton, UiTabs, UiNumberInput, UiSwitch } from './ui'
 import { AnchorBaseGridSvg, AnchorOverlayGridSvg } from './svg'
@@ -464,7 +479,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', updates: { anchorX: number; anchorY: number; spanX: number; spanY: number; scale: number }): void
+  (e: 'save', updates: { anchorX: number; anchorY: number; spanX: number; spanY: number; scale: number; isFrontWall?: boolean }): void
 }>()
 
 const assetStore = useAssetStore()
@@ -475,6 +490,7 @@ const currentY = ref<number>(props.asset.anchorY ?? 0.5)
 const currentSpanX = ref<number>(props.asset.spanX ?? 1)
 const currentSpanY = ref<number>(props.asset.spanY ?? 1)
 const currentScale = ref<number>(props.asset.scale ?? 1.0)
+const currentIsFrontWall = ref<boolean>(!!props.asset.isFrontWall)
 
 const viewMode = ref<'isometric' | 'sprite'>('isometric')
 const zoom = ref<number>(1.25)
@@ -789,6 +805,7 @@ function save() {
     spanX: currentSpanX.value,
     spanY: currentSpanY.value,
     scale: currentScale.value,
+    isFrontWall: currentIsFrontWall.value,
   })
 }
 </script>

@@ -477,6 +477,19 @@
                 </UiButton>
               </div>
             </div>
+
+            <!-- Front Wall Toggle -->
+            <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-brand-500/20 text-xs">
+              <span class="text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
+                <ShieldAlert class="w-3.5 h-3.5 text-amber-400" />
+                {{ $t('inspector.isFrontWall') || 'Old devor (Heroni to\'sadi)' }}
+              </span>
+              <UiSwitch
+                :model-value="activeItem.isFrontWall || (activeItem.depthOffset || 0) > 0"
+                size="xs"
+                @update:model-value="handleToggleFrontWall"
+              />
+            </div>
             <p class="text-[10px] text-slate-400 leading-tight flex items-center gap-1.5">
               <Lightbulb class="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span v-html="$t('inspector.aboveFrontTip')"></span>
@@ -769,7 +782,7 @@ import {
   Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine, 
   ChevronsUp, ChevronsDown, Move, Trash2, Crosshair, Lightbulb,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown, CopyCheck, CheckSquare,
-  FlipHorizontal, RotateCw
+  FlipHorizontal, RotateCw, ShieldAlert
 } from 'lucide-vue-next'
 import { 
   UiButton, 
@@ -778,7 +791,8 @@ import {
   UiBadge,
   UiTabs,
   UiNumberInput,
-  UiSlider
+  UiSlider,
+  UiSwitch
 } from './ui'
 import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
@@ -1012,6 +1026,18 @@ function resetDepth() {
     0,
     toolStore.selectedElement.layerId
   )
+  if (activeItem.value) {
+    activeItem.value.isFrontWall = false
+  }
+}
+
+function handleToggleFrontWall(val: boolean) {
+  if (!activeItem.value || !toolStore.selectedElement) return
+  const { col, row, itemId, layerId } = toolStore.selectedElement
+  mapStore.setItemDepthOffset(col, row, itemId, val ? 1 : 0, layerId)
+  if (activeItem.value) {
+    activeItem.value.isFrontWall = val
+  }
 }
 
 function handleSwitchLayer(targetLayerId: string) {

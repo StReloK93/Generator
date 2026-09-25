@@ -112,8 +112,8 @@ export class CombatEngine {
               targetY,
               damage: tower.damage,
               isSplash: tower.isSplash,
-              splashRadius: tower.splashRadius,
-              splashType: tower.splashType,
+              splashRadius: tower.splashRadius || 1.5,
+              splashType: tower.splashType || 'falloff',
               projectileType: projId,
               color: tower.projectileColor || projDef.impact?.sparkColorHex || 0xfbbf24,
               speed: 9999,
@@ -211,10 +211,10 @@ export class CombatEngine {
       targetX,
       targetY,
       isSplash: tower.isSplash,
-      splashRadius: tower.splashRadius,
-      splashType: tower.splashType,
-      projectileType: tower.projectileType,
-      color: tower.projectileColor,
+      splashRadius: tower.splashRadius || 1.5,
+      splashType: tower.splashType || 'falloff',
+      projectileType: tower.projectileId || tower.projectileType || 'fireball',
+      color: tower.projectileColor || 0xd97706,
       speed: projSpeedPx,
       totalDistance: totalDist,
       traveledDistance: 0,
@@ -371,6 +371,24 @@ export class CombatEngine {
       color: proj.color,
     })
 
+    let directTarget = targetUnit
+    if (!directTarget) {
+      let closestUnit: CharacterUnit | null = null
+      let closestDist = Infinity
+      for (const u of activeUnits) {
+        if (u.lifecycle.isDead || !u.lifecycle.isSpawned || u.lifecycle.hasReachedEnd) continue
+        const uScreen = gridToScreen(u.movement.currentCol, u.movement.currentRow, tileWidth, tileHeight)
+        const d = Math.hypot(uScreen.x - proj.targetX, uScreen.y - proj.targetY)
+        if (d < closestDist) {
+          closestDist = d
+          closestUnit = u
+        }
+      }
+      if (closestUnit && closestDist <= 36) {
+        directTarget = closestUnit
+      }
+    }
+
     if (isSplash) {
       const splashRadiusTiles = proj.splashRadius || originTower?.splashRadius || 1.5
 
@@ -406,10 +424,12 @@ export class CombatEngine {
               consecutiveHits: u.combat.consecutiveHits,
             }
 
+            const isDirectTarget = Boolean(directTarget && u.id === directTarget.id)
             const dmgRes = DamageCalculator.calculateDamage(
               splashDmg,
               originTower,
-              combatTarget
+              combatTarget,
+              { isSplashHit: !isDirectTarget }
             )
 
             const actualDmg = dmgRes.finalDamage
@@ -436,7 +456,15 @@ export class CombatEngine {
             if (dmgRes.appliedStatusEffects && dmgRes.appliedStatusEffects.length > 0) {
               u.combat.statusEffects = u.combat.statusEffects || []
               for (const eff of dmgRes.appliedStatusEffects) {
-                u.combat.statusEffects.push({ ...eff, sourceTowerId: originTower?.id })
+                const existing = u.combat.statusEffects.find(e => e.type === eff.type && e.sourceTowerId === originTower?.id)
+                if (existing) {
+                  existing.duration = Math.max(existing.duration, eff.duration)
+                  if (eff.slowPercent) existing.slowPercent = eff.slowPercent
+                  if (eff.dps) existing.dps = eff.dps
+                  if (eff.amplification) existing.amplification = eff.amplification
+                } else {
+                  u.combat.statusEffects.push({ ...eff, sourceTowerId: originTower?.id })
+                }
               }
             }
 
@@ -503,7 +531,15 @@ export class CombatEngine {
       if (dmgRes.appliedStatusEffects && dmgRes.appliedStatusEffects.length > 0) {
         targetUnit.combat.statusEffects = targetUnit.combat.statusEffects || []
         for (const eff of dmgRes.appliedStatusEffects) {
-          targetUnit.combat.statusEffects.push({ ...eff, sourceTowerId: originTower?.id })
+          const existing = targetUnit.combat.statusEffects.find(e => e.type === eff.type && e.sourceTowerId === originTower?.id)
+          if (existing) {
+            existing.duration = Math.max(existing.duration, eff.duration)
+            if (eff.slowPercent) existing.slowPercent = eff.slowPercent
+            if (eff.dps) existing.dps = eff.dps
+            if (eff.amplification) existing.amplification = eff.amplification
+          } else {
+            targetUnit.combat.statusEffects.push({ ...eff, sourceTowerId: originTower?.id })
+          }
         }
       }
 

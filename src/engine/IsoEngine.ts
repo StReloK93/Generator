@@ -111,6 +111,10 @@ export class IsoEngine {
     return this.renderer.overlay.buildableOverlayGraphics
   }
 
+  public get collisionOverlayGraphics(): Graphics {
+    return this.renderer.overlay.collisionOverlayGraphics
+  }
+
   public get pathTrailGraphics(): Graphics {
     return this.renderer.overlay.pathTrailGraphics
   }
@@ -208,6 +212,11 @@ export class IsoEngine {
     this.renderer.renderBuildableOverlay(project, isVisible, activeTool, force)
   }
 
+  renderCollisionOverlay(project: MapProject, isVisible: boolean, activeTool?: string, force = false): void {
+    this.renderer.renderCollisionOverlay(project, isVisible, activeTool, force)
+  }
+
+
   renderHoverCell(
     hovered: GridCoord | null,
     project: MapProject,
@@ -257,12 +266,13 @@ export class IsoEngine {
     clientX: number,
     clientY: number,
     canvasRect: DOMRect | null | undefined,
-    project: MapProject | null | undefined
+    project: MapProject | null | undefined,
+    useSubgrid = false
   ): { worldX: number; worldY: number; gridCoord: GridCoord } {
     if (!this.renderer || !this.renderer.isInitialized) {
       return { worldX: 0, worldY: 0, gridCoord: { col: 0, row: 0 } }
     }
-    return this.renderer.screenPointToGrid(clientX, clientY, canvasRect, project)
+    return this.renderer.screenPointToGrid(clientX, clientY, canvasRect, project, useSubgrid)
   }
 
   async exportImage(options: {
@@ -275,27 +285,41 @@ export class IsoEngine {
   }
 
   stopTicker(): void {
-    this.renderer.context.stopTicker()
+    this.renderer?.context?.stopTicker()
   }
 
   clearCombatVisuals(): void {
-    this.renderer.combat.clear()
+    if (this.renderer?.combat) {
+      this.renderer.combat.clear()
+    }
   }
 
   clearCharacterVisuals(): void {
-    this.renderer.overlay.pathTrailGraphics.clear()
-    this.renderer.units.clear(this.renderer.map.layersContainer)
-    this.characterContainer.visible = false
+    try {
+      if (this.renderer?.overlay?.pathTrailGraphics && !(this.renderer.overlay.pathTrailGraphics as any).destroyed) {
+        this.renderer.overlay.pathTrailGraphics.clear()
+      }
+      if (this.renderer?.units) {
+        this.renderer.units.clear(this.renderer?.map?.layersContainer)
+      }
+      if (this.characterContainer) {
+        this.characterContainer.visible = false
+      }
+    } catch (e) {
+      console.warn('[IsoEngine] clearCharacterVisuals caught:', e)
+    }
   }
 
   clearOverlayVisuals(): void {
-    this.renderer.overlay.clear()
+    if (this.renderer?.overlay) {
+      this.renderer.overlay.clear()
+    }
   }
 
   destroy(): void {
     if (IsoEngine.instance === this) {
       IsoEngine.instance = null
     }
-    this.renderer.destroy()
+    this.renderer?.destroy()
   }
 }

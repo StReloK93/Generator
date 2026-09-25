@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { UnitVariantType, WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
 import { 
   CharacterUnit, 
@@ -36,6 +36,23 @@ export type {
   WaveConfig, 
   RouteInfo, 
   Route 
+}
+
+/**
+ * Computes exact effective immunities from wave configuration.
+ * When immunities array is explicitly provided (even if empty []), it is treated as Single Source of Truth.
+ * Fallback to unitVariant is only applied when immunities field is undefined (legacy maps).
+ */
+export function computeEffectiveImmunities(waveCfg?: WaveConfig | null): TowerTraitType[] {
+  if (!waveCfg) return []
+  if (Array.isArray(waveCfg.immunities)) {
+    return [...waveCfg.immunities]
+  }
+  const varType = String(waveCfg.unitVariant || '').toLowerCase()
+  if (['fire', 'frost', 'poison', 'blood', 'electric', 'void'].includes(varType)) {
+    return [varType as TowerTraitType]
+  }
+  return []
 }
 
 /**
@@ -126,6 +143,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
     const progressMap: Record<number, number> = {}
     const baseHp = waveCfg ? waveCfg.unitHp : 100
 
+    const effectiveImmunities = computeEffectiveImmunities(waveCfg)
+
     for (const rIdx of activeRoutesToSpawn) {
       progressMap[rIdx] = 0
       const route = routeStore.getRouteForIndex(rIdx)
@@ -136,15 +155,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
       for (let i = 0; i < count; i++) {
         const pairIndex = isPairFormation ? Math.floor(i / 2) : i
         const sideOffset = isPairFormation ? (i % 2 === 0 ? -1 : 1) : 0
-
-        const waveImmunities = waveCfg?.immunities || []
-        const effectiveImmunities = [...waveImmunities]
-        if (effectiveImmunities.length === 0 && waveCfg?.unitVariant) {
-          const varType = String(waveCfg.unitVariant).toLowerCase()
-          if (['fire', 'frost', 'poison', 'blood', 'electric', 'void'].includes(varType)) {
-            effectiveImmunities.push(varType as TowerTraitType)
-          }
-        }
 
         list.push({
           id: `unit-r${rIdx}-${i}-${Date.now()}`,
@@ -171,7 +181,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
           combat: {
             maxHp: baseHp,
             currentHp: baseHp,
-            immunities: effectiveImmunities,
+            immunities: [...effectiveImmunities],
             statusEffects: [],
             consecutiveHits: {},
           },
@@ -195,6 +205,78 @@ export const useCharacterStore = defineStore('characterStore', () => {
     routeWaveProgress.value = progressMap
     units.value = list
   }
+
+  /**
+   * Synchronizes currently active/spawned units on the battlefield in real-time with the latest wave settings.
+   */
+  function syncLiveUnitsWithWaveConfig(): void {
+    const waveCfg = waveStore.currentWaveConfig
+    if (!waveCfg) return
+
+    const effectiveImmunities = computeEffectiveImmunities(waveCfg)
+
+    for (const u of units.value) {
+      if (!u.lifecycle.isDead) {
+        // 1. Immediately update immunities
+        u.combat.immunities = [...effectiveImmunities]
+
+        // Clear active status effects if unit is newly immune to them
+        if (u.combat.statusEffects && u.combat.statusEffects.length > 0) {
+          u.combat.statusEffects = u.combat.statusEffects.filter(eff => {
+            if (eff.type === 'fire' && effectiveImmunities.includes('fire')) return false
+            if (eff.type === 'frost' && effectiveImmunities.includes('frost')) return false
+            if (eff.type === 'poison' && effectiveImmunities.includes('poison')) return false
+            if (eff.type === 'blood' && effectiveImmunities.includes('blood')) return false
+            if (eff.type === 'electric' && effectiveImmunities.includes('electric')) return false
+            if (eff.type === 'void' && effectiveImmunities.includes('void')) return false
+            return true
+          })
+        }
+
+        // 2. Update HP proportionally with new maxHp
+        if (waveCfg.unitHp && waveCfg.unitHp > 0 && u.combat.maxHp !== waveCfg.unitHp) {
+          const hpRatio = u.combat.maxHp > 0 ? u.combat.currentHp / u.combat.maxHp : 1.0
+          u.combat.maxHp = waveCfg.unitHp
+          u.combat.currentHp = Math.max(1, Math.min(u.combat.maxHp, Math.round(u.combat.maxHp * hpRatio)))
+        }
+
+        // 3. Update visual identity & animation parameters
+        if (waveCfg.unitVariant) {
+          u.identity.variant = waveCfg.unitVariant
+        }
+        if (waveCfg.variantTint !== undefined) {
+          u.identity.variantTint = waveCfg.variantTint
+        }
+        if (waveCfg.unitScale !== undefined) {
+          u.identity.scale = waveCfg.unitScale
+        }
+        if (waveCfg.offsetY !== undefined) {
+          u.identity.offsetY = waveCfg.offsetY
+        }
+        if (waveCfg.animSpeed !== undefined) {
+          u.animation.animSpeed = waveCfg.animSpeed
+        }
+      }
+    }
+  }
+
+  // Real-time synchronization watcher for sandbox test tools and live configuration changes
+  watch(
+    () => [
+      waveStore.currentWaveConfig?.immunities,
+      waveStore.currentWaveConfig?.unitHp,
+      waveStore.currentWaveConfig?.unitSpeed,
+      waveStore.currentWaveConfig?.unitScale,
+      waveStore.currentWaveConfig?.unitVariant,
+      waveStore.currentWaveConfig?.variantTint,
+      waveStore.currentWaveConfig?.animSpeed,
+      waveStore.currentWaveConfig?.offsetY,
+    ],
+    () => {
+      syncLiveUnitsWithWaveConfig()
+    },
+    { deep: true }
+  )
 
   /**
    * Spawns units for the selected route.
@@ -417,7 +499,8 @@ export const useCharacterStore = defineStore('characterStore', () => {
       if (unit.lifecycle.isDead) continue
 
       // Spawning interval distance check
-      const speedMultiplier = Math.max(0.15, 1.0 - (Math.min(85, maxSlowPercent) / 100))
+      const isStunned = maxSlowPercent >= 99
+      const speedMultiplier = isStunned ? 0 : Math.max(0.1, 1.0 - (Math.min(90, maxSlowPercent) / 100))
       const waveDist = routeWaveProgress.value[unit.identity.routeIndex ?? 0] ?? 0
       const targetSpawnDist = unit.identity.pairIndex * spacingInTiles
 
@@ -552,6 +635,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
     statusMessage,
     aliveEnemiesCount,
     initializeUnits,
+    syncLiveUnitsWithWaveConfig,
     spawnAtRoute,
     startTour,
     pauseTour,

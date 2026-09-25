@@ -562,9 +562,23 @@
             <div v-if="activeLevelConfig.traits && activeLevelConfig.traits.length > 0" class="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
               <!-- Fire Parameters -->
               <UiCard v-if="hasLevelTrait('fire')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-orange-500/30 bg-orange-950/20">
-                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
-                  <Flame class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.fireName') }}</span>
+                <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-orange-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
+                    <Flame class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.fireName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-orange-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.fireSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ fireSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.fireBonusDamage ?? 5"
@@ -597,9 +611,23 @@
 
               <!-- Frost Parameters -->
               <UiCard v-if="hasLevelTrait('frost')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-cyan-500/30 bg-cyan-950/20">
-                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
-                  <Snowflake class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.frostName') }}</span>
+                <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-cyan-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
+                    <Snowflake class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.frostName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-cyan-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.frostSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ frostSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.frostBonusDamage ?? 2"
@@ -632,9 +660,23 @@
 
               <!-- Poison Parameters -->
               <UiCard v-if="hasLevelTrait('poison')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-emerald-500/30 bg-emerald-950/20">
-                <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
-                  <Skull class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.poisonName') }}</span>
+                <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-emerald-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
+                    <Skull class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.poisonName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-emerald-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.poisonSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ poisonSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.poisonDps ?? 6"
@@ -667,9 +709,23 @@
 
               <!-- Stacking Ramp Parameters -->
               <UiCard v-if="hasLevelTrait('stacking')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-amber-500/30 bg-amber-950/20">
-                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
-                  <TrendingUp class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.stackingName') }}</span>
+                <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-amber-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
+                    <TrendingUp class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.stackingName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-amber-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.stackingSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ stackingSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.stackBonusDamage ?? 4"
@@ -693,9 +749,23 @@
 
               <!-- Blood Parameters -->
               <UiCard v-if="hasLevelTrait('blood')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-rose-500/30 bg-rose-950/20">
-                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
-                  <Droplet class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.bloodName') }}</span>
+                <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-rose-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
+                    <Droplet class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.bloodName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-rose-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.bloodSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ bloodSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.bleedDps ?? 7"
@@ -719,9 +789,23 @@
 
               <!-- Electric Parameters -->
               <UiCard v-if="hasLevelTrait('electric')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-sky-500/30 bg-sky-950/20">
-                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
-                  <Zap class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.electricName') }}</span>
+                <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-sky-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
+                    <Zap class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.electricName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-sky-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.electricSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ electricSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.electricBonusDamage ?? 6"
@@ -745,9 +829,23 @@
 
               <!-- Void Parameters -->
               <UiCard v-if="hasLevelTrait('void')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-purple-500/30 bg-purple-950/20">
-                <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
-                  <Ghost class="w-3.5 h-3.5" />
-                  <span>{{ $t('traits.voidName') }}</span>
+                <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-purple-500/20">
+                  <div class="flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
+                    <Ghost class="w-3.5 h-3.5" />
+                    <span>{{ $t('traits.voidName') }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px]" :class="activeLevelConfig.isSplash ? 'text-purple-200/80 font-medium' : 'text-slate-500'">
+                      {{ $t('traits.splashEffect') }}
+                    </span>
+                    <UiSwitch 
+                      :model-value="Boolean(activeLevelConfig.isSplash && (activeLevelConfig.voidSplash ?? true))"
+                      :disabled="!activeLevelConfig.isSplash"
+                      size="xs"
+                      variant="amber"
+                      @update:model-value="(val) => updateActiveLevel({ voidSplash: val })"
+                    />
+                  </div>
                 </div>
                 <UiSlider 
                   :model-value="activeLevelConfig.voidVulnPercent ?? 25"
@@ -1777,8 +1875,8 @@
   <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :current-projectile-id="activeLevelConfig.projectileId || activeLevelConfig.projectileType || 'fireball'"
-    @select="(val) => updateActiveLevel({ projectileId: val, projectileType: val })"
+    :current-projectile-id="selectedBp?.projectileId || 'fireball'"
+    @select="(val) => updateSelectedBp({ projectileId: val })"
     @close="isProjectileModalOpen = false"
   />
 </template>
@@ -2110,7 +2208,7 @@ const spawnModeOptions = computed(() => [
 
 // Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDefinition(activeLevelConfig.value?.projectileId || activeLevelConfig.value?.projectileType || 'fireball'))
+const activeProjectileDef = computed(() => getProjectileDefinition(selectedBp.value?.projectileId || 'fireball'))
 
 // Change Sprite Modal State (Only Tower Assets!)
 const isChangeSpriteModalOpen = ref(false)

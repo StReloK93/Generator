@@ -320,9 +320,23 @@
         <div v-if="form.traits && form.traits.length > 0" class="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
           <!-- Fire Parameters -->
           <UiCard v-if="hasFormTrait('fire')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-orange-500/30 bg-orange-950/20">
-            <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
-              <Flame class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.fireName') }}</span>
+            <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-orange-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-orange-400">
+                <Flame class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.fireName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-orange-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.fireSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.fireSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.fireBonusDamage"
@@ -352,9 +366,23 @@
 
           <!-- Frost Parameters -->
           <UiCard v-if="hasFormTrait('frost')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-cyan-500/30 bg-cyan-950/20">
-            <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
-              <Snowflake class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.frostName') }}</span>
+            <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-cyan-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-cyan-400">
+                <Snowflake class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.frostName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-cyan-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.frostSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.frostSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.frostBonusDamage"
@@ -384,9 +412,23 @@
 
           <!-- Poison Parameters -->
           <UiCard v-if="hasFormTrait('poison')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-emerald-500/30 bg-emerald-950/20">
-            <div class="sm:col-span-3 flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
-              <Skull class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.poisonName') }}</span>
+            <div class="sm:col-span-3 flex items-center justify-between gap-1.5 pb-1 border-b border-emerald-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400">
+                <Skull class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.poisonName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-emerald-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.poisonSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.poisonSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.poisonDps"
@@ -416,9 +458,23 @@
 
           <!-- Stacking Ramp Parameters -->
           <UiCard v-if="hasFormTrait('stacking')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-amber-500/30 bg-amber-950/20">
-            <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
-              <TrendingUp class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.stackingName') }}</span>
+            <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-amber-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
+                <TrendingUp class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.stackingName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-amber-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.stackingSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.stackingSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.stackBonusDamage"
@@ -440,9 +496,23 @@
 
           <!-- Blood Parameters -->
           <UiCard v-if="hasFormTrait('blood')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-rose-500/30 bg-rose-950/20">
-            <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
-              <Droplet class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.bloodName') }}</span>
+            <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-rose-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-rose-400">
+                <Droplet class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.bloodName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-rose-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.bloodSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.bloodSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.bleedDps"
@@ -464,9 +534,23 @@
 
           <!-- Electric Parameters -->
           <UiCard v-if="hasFormTrait('electric')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-sky-500/30 bg-sky-950/20">
-            <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
-              <Zap class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.electricName') }}</span>
+            <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-sky-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-sky-400">
+                <Zap class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.electricName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-sky-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.electricSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.electricSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.electricBonusDamage"
@@ -488,9 +572,23 @@
 
           <!-- Void Parameters -->
           <UiCard v-if="hasFormTrait('void')" variant="subtle" padding="sm" custom-class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-purple-500/30 bg-purple-950/20">
-            <div class="sm:col-span-2 flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
-              <Ghost class="w-3.5 h-3.5" />
-              <span>{{ $t('traits.voidName') }}</span>
+            <div class="sm:col-span-2 flex items-center justify-between gap-1.5 pb-1 border-b border-purple-500/20">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-purple-400">
+                <Ghost class="w-3.5 h-3.5" />
+                <span>{{ $t('traits.voidName') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px]" :class="form.isSplash ? 'text-purple-200/80 font-medium' : 'text-slate-500'">
+                  {{ $t('traits.splashEffect') }}
+                </span>
+                <UiSwitch 
+                  :model-value="Boolean(form.isSplash && (form.voidSplash ?? true))"
+                  :disabled="!form.isSplash"
+                  size="xs"
+                  variant="amber"
+                  @update:model-value="(val) => form.voidSplash = val"
+                />
+              </div>
             </div>
             <UiSlider 
               v-model="form.voidVulnPercent"
@@ -661,21 +759,28 @@ const form = ref({
   fireBonusDamage: 5,
   burnDps: 4,
   burnDuration: 3.0,
+  fireSplash: true,
   slowPercent: 30,
   slowDuration: 2.5,
   frostBonusDamage: 2,
+  frostSplash: true,
   poisonDps: 6,
   poisonDuration: 4.0,
   poisonSlowPercent: 10,
+  poisonSplash: true,
   stackBonusDamage: 4,
   maxStacks: 10,
+  stackingSplash: true,
   bleedDps: 7,
   bleedDuration: 3.5,
+  bloodSplash: true,
   electricBonusDamage: 6,
   chainTargets: 2,
   stunDuration: 0.3,
+  electricSplash: true,
   voidVulnPercent: 25,
   voidDuration: 4.0,
+  voidSplash: true,
 })
 
 watch(() => towerStore.isCreateTowerModalOpen, (isOpen) => {
@@ -772,21 +877,28 @@ function handleCreateTower() {
     fireBonusDamage: form.value.fireBonusDamage,
     burnDps: form.value.burnDps,
     burnDuration: form.value.burnDuration,
+    fireSplash: form.value.fireSplash,
     slowPercent: form.value.slowPercent,
     slowDuration: form.value.slowDuration,
     frostBonusDamage: form.value.frostBonusDamage,
+    frostSplash: form.value.frostSplash,
     poisonDps: form.value.poisonDps,
     poisonDuration: form.value.poisonDuration,
     poisonSlowPercent: form.value.poisonSlowPercent,
+    poisonSplash: form.value.poisonSplash,
     stackBonusDamage: form.value.stackBonusDamage,
     maxStacks: form.value.maxStacks,
+    stackingSplash: form.value.stackingSplash,
     bleedDps: form.value.bleedDps,
     bleedDuration: form.value.bleedDuration,
+    bloodSplash: form.value.bloodSplash,
     electricBonusDamage: form.value.electricBonusDamage,
     chainTargets: form.value.chainTargets,
     stunDuration: form.value.stunDuration,
+    electricSplash: form.value.electricSplash,
     voidVulnPercent: form.value.voidVulnPercent,
     voidDuration: form.value.voidDuration,
+    voidSplash: form.value.voidSplash,
   }
 
   towerStore.addNewBlueprint(TowerBlueprintManager.normalizeBlueprint(newBlueprint))

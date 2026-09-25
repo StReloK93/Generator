@@ -212,13 +212,14 @@ export const useWaveStore = defineStore('waveStore', () => {
   function devToggleActiveWaveImmunity(trait: TowerTraitType) {
     const wave = currentWaveConfig.value
     if (!wave) return
-    if (!wave.immunities) wave.immunities = []
-    const idx = wave.immunities.indexOf(trait)
+    const currentList = Array.isArray(wave.immunities) ? [...wave.immunities] : []
+    const idx = currentList.indexOf(trait)
     if (idx === -1) {
-      wave.immunities.push(trait)
+      currentList.push(trait)
     } else {
-      wave.immunities.splice(idx, 1)
+      currentList.splice(idx, 1)
     }
+    wave.immunities = currentList
     syncWavesToProject()
   }
 

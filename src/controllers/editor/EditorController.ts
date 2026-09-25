@@ -10,6 +10,7 @@ import { SelectTool } from './tools/SelectTool'
 import { BuildableTool } from './tools/BuildableTool'
 import { WaterTool } from './tools/WaterTool'
 import { ScatterTool } from './tools/ScatterTool'
+import { CollisionTool } from './tools/CollisionTool'
 
 export class EditorController {
   public ctx: EditorToolContext
@@ -24,6 +25,7 @@ export class EditorController {
   public buildableTool = new BuildableTool()
   public waterTool = new WaterTool()
   public scatterTool = new ScatterTool()
+  public collisionTool = new CollisionTool()
 
   // Route & Waypoint dragging state
   public isDraggingWaypoint = false
@@ -53,6 +55,7 @@ export class EditorController {
     if (active === 'buildable') return this.buildableTool
     if (active === 'water') return this.waterTool
     if (active === 'scatter') return this.scatterTool
+    if (active === 'collision') return this.collisionTool
     if (active === 'select' || active === 'brush') {
       if (this.ctx.toolStore.drawSubTool === 'line') return this.lineTool
       if (this.ctx.toolStore.drawSubTool === 'box') {

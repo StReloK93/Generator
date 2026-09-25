@@ -117,8 +117,21 @@
     <!-- Right: TD Hub Modal, Start Game, Export -->
     <div class="flex items-center gap-1.5 sm:gap-2">
 
-      <!-- TD & Movement Settings Modal Button -->
+      <!-- Hero Settings Modal Button (Hero mode) -->
       <UiButton
+        v-if="mapStore.project.gameMode === 'hero'"
+        :variant="toolStore.isHeroConfigModalOpen ? 'game-green' : 'secondary'"
+        size="sm"
+        :leading-icon="Swords"
+        title="Hero Settings (T)"
+        @click="toolStore.isHeroConfigModalOpen = !toolStore.isHeroConfigModalOpen"
+      >
+        <span class="hidden sm:inline">Hero Settings</span>
+      </UiButton>
+
+      <!-- TD & Movement Settings Modal Button (TD mode) -->
+      <UiButton
+        v-else
         :variant="toolStore.isGameConfigModalOpen ? 'game-amber' : 'secondary'"
         size="sm"
         :leading-icon="ShieldAlert"
@@ -169,7 +182,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { 
-  Home, Grid, Hash, Undo2, Redo2, History, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload
+  Home, Grid, Hash, Undo2, Redo2, History, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, Swords
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
 import { useMapStore } from '../../stores/mapStore'

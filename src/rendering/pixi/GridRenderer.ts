@@ -27,9 +27,23 @@ export class GridRenderer {
     showCenter = true,
     showSymmetry = true
   ): void {
-    this.gridGraphics.clear()
-    this.borderGraphics.clear()
-    this.coordsContainer.removeChildren()
+    if (!this.gridGraphics || (this.gridGraphics as any).destroyed) {
+      this.gridGraphics = new Graphics()
+      this.container.addChild(this.gridGraphics)
+    } else {
+      this.gridGraphics.clear()
+    }
+
+    if (!this.borderGraphics || (this.borderGraphics as any).destroyed) {
+      this.borderGraphics = new Graphics()
+      this.container.addChild(this.borderGraphics)
+    } else {
+      this.borderGraphics.clear()
+    }
+
+    if (this.coordsContainer && !(this.coordsContainer as any).destroyed) {
+      this.coordsContainer.removeChildren()
+    }
 
     const { cols, rows, tileWidth, tileHeight } = project
     const halfW = tileWidth / 2

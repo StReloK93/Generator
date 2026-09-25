@@ -158,5 +158,45 @@ describe('DamageCalculator Domain Logic', () => {
       expect(dmgEdge).toBeLessThan(dmgMid)
       expect(dmgEdge).toBeGreaterThanOrEqual(35) // floor factor is 0.35
     })
+
+    it('should apply trait effect to splash target when tower isSplash is true and trait splash is enabled', () => {
+      const tower = {
+        isSplash: true,
+        traits: ['fire', 'frost'] as any,
+        fireBonusDamage: 20,
+        burnDps: 10,
+        burnDuration: 3,
+        fireSplash: true,
+        frostBonusDamage: 10,
+        slowPercent: 30,
+        slowDuration: 2,
+        frostSplash: false, // Frost splash disabled!
+      }
+
+      // Direct hit: receives both Fire and Frost
+      const directResult = DamageCalculator.calculateDamage(50, tower, undefined, { isSplashHit: false })
+      expect(directResult.finalDamage).toBe(50 + 20 + 10) // 80
+      expect(directResult.appliedStatusEffects.map(e => e.type)).toEqual(['fire', 'frost'])
+
+      // Splash hit (secondary target): receives ONLY Fire, Frost is skipped because frostSplash is false
+      const splashResult = DamageCalculator.calculateDamage(30, tower, undefined, { isSplashHit: true })
+      expect(splashResult.finalDamage).toBe(30 + 20) // 50 (fire bonus only)
+      expect(splashResult.appliedStatusEffects.map(e => e.type)).toEqual(['fire'])
+    })
+
+    it('should NOT apply any trait effects on splash if tower isSplash is false', () => {
+      const nonSplashTower = {
+        isSplash: false,
+        traits: ['fire'] as any,
+        fireBonusDamage: 20,
+        burnDps: 10,
+        burnDuration: 3,
+        fireSplash: true,
+      }
+
+      const splashResult = DamageCalculator.calculateDamage(30, nonSplashTower, undefined, { isSplashHit: true })
+      expect(splashResult.finalDamage).toBe(30) // no fire bonus on splash
+      expect(splashResult.appliedStatusEffects).toHaveLength(0) // no burn on splash
+    })
   })
 })

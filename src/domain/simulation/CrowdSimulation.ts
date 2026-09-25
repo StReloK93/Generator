@@ -183,7 +183,7 @@ export class CrowdSimulation {
 
     // Moving along the path
     unit.lifecycle.hasReachedEnd = false
-    unit.animation.action = 'Run'
+    unit.animation.action = speedMultiplier <= 0.01 ? 'Idle' : 'Run'
     unit.movement.pathIndex = Math.floor(unitDist)
     unit.movement.pathInterpolation = unitDist - unit.movement.pathIndex
 
@@ -219,6 +219,15 @@ export class CrowdSimulation {
     maxFrames: number,
     baseSpeed: number = 2.5
   ): void {
+    if (unit.animation.action === 'Idle') {
+      unit.animation.animTimer += deltaSec
+      if (unit.animation.animTimer >= 0.16) {
+        unit.animation.animTimer = 0
+        unit.animation.frameIndex = (unit.animation.frameIndex + 1) % maxFrames
+      }
+      return
+    }
+
     unit.animation.animTimer += deltaSec
     const animMultiplier = unit.animation.animSpeed || 1.0
     const frameDuration = ((maxFrames > 15 ? 0.04 : 0.07) / Math.min(5, baseSpeed / 2.5)) / Math.max(0.1, animMultiplier)

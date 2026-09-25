@@ -48,10 +48,10 @@
         <GameHud v-if="isCanvasReady"  />
     </Transition>
 
-    <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Slides smoothly in from bottom when canvas is ready) -->
+    <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Slides smoothly in from bottom when canvas is ready - Only in TD mode) -->
     <Transition name="controls-slide-bottom">
       <div 
-        v-if="isCanvasReady" 
+        v-if="isCanvasReady && mapStore.project.gameMode !== 'hero'" 
         class="absolute bottom-0 inset-x-0 z-30 pointer-events-none"
       >
         <GameControls />
@@ -69,11 +69,19 @@
     <!-- 5. Game Over, Victory, Clan Select & TD Config Modals -->
     <GameOverModal />
     <GameVictoryModal />
-    <ClanSelectModal />
+    <ClanSelectModal v-if="mapStore.project.gameMode !== 'hero'" />
     <GameConfigModal />
 
-    <!-- 6. Developer Test & Sandbox Toolbar (Only in Redactor/Editor Playtest Mode) -->
-    <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode" />
+    <!-- Floating Hero Control Widget (Only in Hero Adventure mode) -->
+    <div 
+      v-if="isCanvasReady && mapStore.project.gameMode === 'hero'"
+      class="absolute top-3 left-3 sm:top-4 sm:left-4 z-40 pointer-events-auto"
+    >
+      <HeroControlWidget />
+    </div>
+
+    <!-- 6. Developer Test & Sandbox Toolbar (Only in TD Redactor/Editor Playtest Mode) -->
+    <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode && mapStore.project.gameMode !== 'hero'" />
 
     <!-- 7. Slot for Editor-Only Overlays -->
     <slot name="editor-tools" v-if="isCanvasReady" />
@@ -87,6 +95,7 @@ import { Shield } from 'lucide-vue-next'
 import GameCanvas from './GameCanvas.vue'
 import GameHud from './GameHud.vue'
 import GameControls from './GameControls.vue'
+import HeroControlWidget from './HeroControlWidget.vue'
 import DevTestSandboxToolbar from './DevTestSandboxToolbar.vue'
 import GameOverModal from './GameOverModal.vue'
 import GameVictoryModal from './GameVictoryModal.vue'
