@@ -777,10 +777,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
-import { 
-  Plus, Minus, Crosshair, Sparkles, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw, 
-  Trash2, Check, Footprints, PaintBucket, Scan, Eraser, MousePointer, Paintbrush, Pipette, Spline, Layers, Castle, Waves,
-  Dices, Settings2, Square, Pointer, ShieldAlert
+import {
+  Plus, Crosshair, X, MapPin, PenTool, PlusCircle, Package, Undo2, Redo2, RotateCcw,
+  Trash2, Check, Footprints, PaintBucket, Eraser, Pipette, Castle, Waves,
+  Dices, Settings2, Pointer, ShieldAlert
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiTabs } from '../ui'
 import ElementInspector from '../ElementInspector.vue'
@@ -797,8 +797,8 @@ import { useI18n } from '../../stores/i18nStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { EditorController } from '../../controllers/editor/EditorController'
 import { usePixiCamera } from '../../composables/usePixiCamera'
-import { GridCoord, AssetItem, SelectedElementRef } from '../../types/map'
-import { cellKey, isInsideGrid, getBresenhamLine, getRectangleCells, floodFill } from '../../utils/isometric'
+import { AssetItem } from '../../types/map'
+import { isInsideGrid } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
 
 const emit = defineEmits<{
@@ -817,12 +817,10 @@ const { t } = useI18n()
 
 // Eraser Sub-tool ('simple' | 'line' | 'box')
 const eraserSubTool = ref<'simple' | 'line' | 'box'>('simple')
-const hasDrawnInDrag = ref(false)
 
 // Buildable Zones Sub-tool ('brush' | 'line' | 'box') & Action Mode ('allow' | 'block')
 const buildableSubTool = ref<'brush' | 'line' | 'box'>('brush')
 const buildableAction = ref<'allow' | 'block'>('allow')
-const buildableBoxStartPoint = ref<GridCoord | null>(null)
 
 // Water Layer Sub-tool ('brush' | 'line' | 'box') & Action Mode ('water' | 'dry')
 const waterSubTool = ref<'brush' | 'line' | 'box'>('brush')
@@ -934,6 +932,7 @@ const editorController = new EditorController({
   notify,
   t,
   engine,
+  modifiers: { ctrl: false, shift: false },
 })
 
 watch(eraserSubTool, (val) => {
@@ -962,7 +961,6 @@ watch(collisionAction, (val) => {
   editorController.collisionTool.action = val
 })
 
-const showGuide = ref(true)
 const isDraggingOver = ref(false)
 let resizeObserver: ResizeObserver | null = null
 
@@ -1262,8 +1260,8 @@ const isShiftPressed = ref(false)
 function handleMouseDown(e: MouseEvent) {
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
-  editorController.isCtrlPressed = isCtrlPressed.value
-  editorController.isShiftPressed = isShiftPressed.value
+  editorController.ctx.modifiers.ctrl = isCtrlPressed.value
+  editorController.ctx.modifiers.shift = isShiftPressed.value
 
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
@@ -1287,8 +1285,8 @@ function handleMouseMove(e: MouseEvent) {
   if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
-  editorController.isCtrlPressed = isCtrlPressed.value
-  editorController.isShiftPressed = isShiftPressed.value
+  editorController.ctx.modifiers.ctrl = isCtrlPressed.value
+  editorController.ctx.modifiers.shift = isShiftPressed.value
 
   if (camera.isPanning.value) {
     camera.updatePan(e.clientX, e.clientY)
@@ -1307,8 +1305,8 @@ function handleMouseUp(e?: MouseEvent) {
   if (e) {
     isCtrlPressed.value = e.ctrlKey || e.metaKey
     isShiftPressed.value = e.shiftKey
-    editorController.isCtrlPressed = isCtrlPressed.value
-    editorController.isShiftPressed = isShiftPressed.value
+    editorController.ctx.modifiers.ctrl = isCtrlPressed.value
+    editorController.ctx.modifiers.shift = isShiftPressed.value
   }
   if (camera.isPanning.value) camera.endPan()
   if (!viewportContainerRef.value || !engine.renderer?.isInitialized) return
@@ -1798,8 +1796,8 @@ function handleKeyDown(e: KeyboardEvent) {
 function handleKeyUp(e: KeyboardEvent) {
   isCtrlPressed.value = e.ctrlKey || e.metaKey
   isShiftPressed.value = e.shiftKey
-  editorController.isCtrlPressed = isCtrlPressed.value
-  editorController.isShiftPressed = isShiftPressed.value
+  editorController.ctx.modifiers.ctrl = isCtrlPressed.value
+  editorController.ctx.modifiers.shift = isShiftPressed.value
   if (e.code === 'Space') camera.isSpacePressed.value = false
 }
 

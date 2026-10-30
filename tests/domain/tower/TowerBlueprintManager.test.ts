@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { TowerBlueprintManager } from '../../../src/domain/tower/TowerBlueprintManager'
-import { TowerBlueprint, PlacedTower } from '../../../src/types/tower'
+import { TowerBlueprintManager, RawTowerBlueprint } from '../../../src/domain/tower/TowerBlueprintManager'
+import { PlacedTower } from '../../../src/types/tower'
 
 describe('TowerBlueprintManager & Tower Interfaces', () => {
   it('normalizes blueprint with clean TowerAsset and TowerLevel structure', () => {
-    const raw = {
+    const raw: RawTowerBlueprint = {
       id: 'tower-test-1',
       name: 'Fire Tower',
       description: 'A blazing tower',
@@ -44,11 +44,10 @@ describe('TowerBlueprintManager & Tower Interfaces', () => {
 
     // By default, tower MUST NOT be splash
     expect(bp.levels[0].isSplash).toBe(false)
-    expect(bp.isSplash).toBe(false)
   })
 
   it('preserves isSplash = true when explicitly configured', () => {
-    const raw = {
+    const raw: RawTowerBlueprint = {
       id: 'tower-splash-1',
       name: 'Splash Mortar',
       isSplash: true,
@@ -74,7 +73,6 @@ describe('TowerBlueprintManager & Tower Interfaces', () => {
     expect(bp.levels[0].isSplash).toBe(true)
     expect(bp.levels[0].splashRadius).toBe(2.0)
     expect(bp.levels[0].splashType).toBe('constant')
-    expect(bp.isSplash).toBe(true)
   })
 
   it('correctly updates level properties and syncs to placed towers', () => {
@@ -116,5 +114,29 @@ describe('TowerBlueprintManager & Tower Interfaces', () => {
 
     expect(placedTower.damage).toBe(lvl2.damage)
     expect(placedTower.isSplash).toBe(false)
+  })
+})
+
+describe('TowerBlueprintManager level sync', () => {
+  it('keeps a placed tower on the highest remaining level when its level is removed', () => {
+    const bp = TowerBlueprintManager.normalizeBlueprint({ id: 'bp-lvl', name: 'Lvl', damage: 10 })
+    TowerBlueprintManager.addBlueprintLevel(bp)
+    TowerBlueprintManager.addBlueprintLevel(bp)
+    const tower: PlacedTower = {
+      id: 't', blueprintId: 'bp-lvl', name: 'Lvl', col: 0, row: 0, level: 3,
+      damage: 0, attackSpeed: 1, range: 3, projectileId: 'fireball', isSplash: false,
+      cooldownTimer: 0, totalDamageDealt: 0, killsCount: 0,
+    }
+    bp.levels.splice(2, 1)
+    TowerBlueprintManager.syncBlueprintToPlacedTowers(bp, [tower])
+    expect(tower.level).toBe(2)
+    expect(tower.damage).toBe(bp.levels[1].damage)
+  })
+
+  it('normalized blueprint carries no flat compatibility fields', () => {
+    const bp = TowerBlueprintManager.normalizeBlueprint({ id: 'bp-flat', name: 'Flat', cost: 70, assetName: 'x.webp' })
+    expect(Object.keys(bp).sort()).toEqual(['asset', 'clanId', 'description', 'id', 'levels', 'name', 'projectileId', 'targetStrategy'])
+    expect(bp.levels[0].cost).toBe(70)
+    expect(JSON.parse(JSON.stringify(bp)).levels[0]).not.toHaveProperty('asset')
   })
 })

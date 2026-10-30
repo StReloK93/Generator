@@ -1,7 +1,7 @@
-import { 
-  Flame, Snowflake, Skull, TrendingUp, Droplet, Zap, Ghost 
+import {
+  Flame, Snowflake, Skull, TrendingUp, Droplet, Zap, Ghost
 } from 'lucide-vue-next'
-import { TowerTraitType, TowerTraitsConfig } from '../types/map'
+import { TowerTraitType } from '../types/map'
 
 export interface TowerTraitDef {
   id: TowerTraitType

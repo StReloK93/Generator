@@ -1,12 +1,11 @@
 import {
   Flame, Snowflake, Zap, Skull, Wand2, Ghost, Crosshair, Sun,
-  Sparkles, Rocket, Wind, Mountain, Orbit, Send, Activity
+  Sparkles, Mountain, Orbit, Send, Activity
 } from 'lucide-vue-next'
 import {
   ProjectileDefinition,
   ProjectileCategory,
   ProjectileArchetype,
-  ProjectileClipboardPayload,
 } from '../types/projectile'
 
 export interface ProjectileArchetypeMeta {
@@ -66,6 +65,11 @@ export const PROJECTILE_ARCHETYPES: ProjectileArchetypeMeta[] = [
     badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
   },
 ]
+
+export function getProjectileArchetypeMeta(proj: ProjectileDefinition): ProjectileArchetypeMeta {
+  const arch = getProjectileArchetype(proj)
+  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
+}
 
 export function getProjectileArchetype(proj: ProjectileDefinition): ProjectileArchetype {
   if (!proj) return 'flying'

@@ -1,4 +1,5 @@
-import { PlacedTower, TowerBlueprint, Projectile, DamageFloater, ExplosionRing } from '../../stores/towerStore'
+import { PlacedTower, TowerBlueprint } from '../../types/tower'
+import { Projectile, DamageFloater, ExplosionRing } from '../../types/combat'
 import { CharacterUnit } from '../../types/unit'
 import { TargetingSystem, DamageCalculator, CombatSimulation, CombatUnitTarget } from './index'
 import { getProjectileDefinition } from '../../utils/projectileCatalog'
@@ -79,14 +80,14 @@ export class CombatEngine {
 
           const bp = blueprintsMap.get(tower.blueprintId)
           const towerScreen = gridToScreen(tower.col, tower.row, tileWidth, tileHeight)
-          const muzzleX = towerScreen.x + (bp?.asset?.muzzleOffsetX ?? bp?.muzzleOffsetX ?? 0)
-          const muzzleY = towerScreen.y - tileHeight * 1.35 + (bp?.asset?.muzzleOffsetY ?? bp?.muzzleOffsetY ?? 0)
+          const muzzleX = towerScreen.x + (bp?.asset?.muzzleOffsetX ?? bp?.asset.muzzleOffsetX ?? 0)
+          const muzzleY = towerScreen.y - tileHeight * 1.35 + (bp?.asset?.muzzleOffsetY ?? bp?.asset.muzzleOffsetY ?? 0)
 
           const targetScreen = gridToScreen(bestTarget.movement.currentCol, bestTarget.movement.currentRow, tileWidth, tileHeight)
           const targetX = targetScreen.x
           const targetY = targetScreen.y - tileHeight * 0.5
 
-          const projId = (tower as any).projectileId || tower.projectileType || 'fireball'
+          const projId = tower.projectileId || 'fireball'
           const projDef = getProjectileDefinition(projId)
           const isInstant = Boolean(projDef.movement.isInstant || projDef.visual.shape === 'instant_strike')
 
@@ -115,7 +116,7 @@ export class CombatEngine {
               splashRadius: tower.splashRadius || 1.5,
               splashType: tower.splashType || 'falloff',
               projectileType: projId,
-              color: tower.projectileColor || projDef.impact?.sparkColorHex || 0xfbbf24,
+              color: projDef.impact?.sparkColorHex || 0xfbbf24,
               speed: 9999,
               totalDistance: 1,
               traveledDistance: 1,
@@ -135,7 +136,7 @@ export class CombatEngine {
             const effStartX = muzzleX
             const effStartY = muzzleY
             const totalDist = Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1
-            const projSpeedTiles = projDef.movement.speed || tower.projectileSpeed || 12.0
+            const projSpeedTiles = projDef.movement.speed || 12.0
             const projSpeedPx = projSpeedTiles * (tileWidth * 0.45)
             const formation = projDef.formation.type || 'single'
 
@@ -213,8 +214,8 @@ export class CombatEngine {
       isSplash: tower.isSplash,
       splashRadius: tower.splashRadius || 1.5,
       splashType: tower.splashType || 'falloff',
-      projectileType: tower.projectileId || tower.projectileType || 'fireball',
-      color: tower.projectileColor || 0xd97706,
+      projectileType: tower.projectileId || 'fireball',
+      color: getProjectileDefinition(tower.projectileId || 'fireball').impact?.sparkColorHex || 0xd97706,
       speed: projSpeedPx,
       totalDistance: totalDist,
       traveledDistance: 0,

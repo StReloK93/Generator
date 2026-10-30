@@ -257,7 +257,6 @@ import {
 import { UiButton, UiCard, UiInput, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
-import { useTowerStore } from '../stores/towerStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
 import { applyMapPayloadToStores } from '../services/mapManager'
@@ -265,7 +264,6 @@ import { applyMapPayloadToStores } from '../services/mapManager'
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
-const towerStore = useTowerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 

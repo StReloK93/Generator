@@ -92,3 +92,56 @@ export interface SplashConfig {
 }
 
 export type TargetStrategy = 'first' | 'last' | 'strongest' | 'weakest' | 'closest'
+
+/**
+ * Uchib borayotgan snaryad (Flying Projectile).
+ */
+export interface Projectile {
+  id: string
+  towerId: string
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+  targetUnitId: string
+  targetX: number
+  targetY: number
+  damage: number
+  isSplash: boolean
+  splashRadius: number
+  splashType: SplashType
+  projectileType: string
+  color: number
+  speed: number
+  totalDistance: number
+  traveledDistance: number
+  offsetPerp?: number
+  phaseOffset?: number
+}
+
+/**
+ * Urilgan zarba matni (Floating Damage Text).
+ */
+export interface DamageFloater {
+  id: string
+  text: string
+  x: number
+  y: number
+  color: number
+  alpha: number
+  lifeTimer: number
+}
+
+/**
+ * Splash va to'qnashuv to'lqin halqasi (Explosion Ring).
+ */
+export interface ExplosionRing {
+  id: string
+  x: number
+  y: number
+  radius: number
+  maxRadius: number
+  color: number
+  alpha: number
+  lifeTimer: number
+}

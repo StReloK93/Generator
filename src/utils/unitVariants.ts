@@ -1,4 +1,12 @@
+import type { Component } from 'vue'
+import { Shield, Flame, Snowflake, Skull, Ghost, Zap, Droplet, Crown } from 'lucide-vue-next'
 import { UnitVariantType } from '../types/map'
+
+const VARIANT_ICON_MAP: Record<string, Component> = { Shield, Flame, Snowflake, Skull, Ghost, Zap, Droplet, Crown }
+
+export function getVariantIcon(iconName?: string): Component {
+  return VARIANT_ICON_MAP[iconName || 'Shield'] || Shield
+}
 
 export interface UnitVariantDef {
   id: UnitVariantType

@@ -34,7 +34,6 @@ export function renderCanvasUnitEffect(opts: CanvasUnitEffectOptions): void {
   const {
     ctx,
     centerX,
-    bodyHeadY,
     bodyChestY,
     bodyWaistY,
     bodyFeetY,
@@ -411,8 +410,6 @@ export function renderPixiUnitEffect(opts: PixiUnitEffectOptions): void {
   const {
     marker,
     variant,
-    tileWidth,
-    tileHeight,
     customUnitScale,
     fadeAlpha,
     unitIndex,

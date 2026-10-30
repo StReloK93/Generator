@@ -8,7 +8,7 @@
       <div class="absolute top-2.5 left-2.5 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-slate-200">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
         <span class="text-[11px] font-mono font-bold text-amber-300 truncate max-w-40 sm:max-w-48">
-          {{ blueprint.assetName || blueprint.name || 'Custom' }}
+          {{ blueprint.asset.assetName || blueprint.name || 'Custom' }}
         </span>
       </div>
 
@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Application, Container, Graphics, Sprite, Texture, Assets } from 'pixi.js'
-import { TowerBlueprint, TowerLevelConfig } from '../../types/tower'
+import { TowerBlueprint, TowerLevel } from '../../types/tower'
 import { useAssetStore } from '../../stores/assetStore'
 import { getProjectileDefinition, getProjectileArchetype } from '../../utils/projectileCatalog'
 import { ProjectileRenderer } from '../../rendering/pixi/ProjectileRenderer'
@@ -33,7 +33,7 @@ import { ProjectileDefinition, ProjectileArchetype } from '../../types/projectil
 
 const props = defineProps<{
   blueprint: TowerBlueprint
-  levelConfig?: TowerLevelConfig
+  levelConfig?: TowerLevel
 }>()
 
 const assetStore = useAssetStore()
@@ -98,13 +98,7 @@ const activeRings: LiveRing[] = []
 const activeStrikes: LiveStrike[] = []
 
 const activeDef = computed<ProjectileDefinition>(() => {
-  const projId =
-    props.levelConfig?.projectileId ||
-    props.levelConfig?.projectileType ||
-    props.blueprint.projectileId ||
-    props.blueprint.projectileType ||
-    'fireball'
-  return getProjectileDefinition(projId)
+  return getProjectileDefinition(props.blueprint.projectileId || 'fireball')
 })
 
 const activeArchetype = computed<ProjectileArchetype>(() => {
@@ -112,11 +106,11 @@ const activeArchetype = computed<ProjectileArchetype>(() => {
 })
 
 const currentAttackSpeed = computed(() => {
-  return props.levelConfig?.attackSpeed || props.blueprint.attackSpeed || 1.0
+  return props.levelConfig?.attackSpeed || props.blueprint.levels[0].attackSpeed || 1.0
 })
 
 const currentRange = computed(() => {
-  return props.levelConfig?.range || props.blueprint.range || 3
+  return props.levelConfig?.range || props.blueprint.levels[0].range || 3
 })
 
 let tickerFn: ((ticker: any) => void) | null = null
@@ -162,13 +156,13 @@ async function initPixi() {
 
 function updateTowerTexture() {
   if (!towerSprite || (towerSprite as any).destroyed) return
-  const src = assetStore.getAssetPreview(props.blueprint.assetId || props.blueprint.assetName) || props.blueprint.assetPath
+  const src = assetStore.getAssetPreview(props.blueprint.asset.assetId || props.blueprint.asset.assetName) || props.blueprint.asset.assetPath
   if (src) {
     Assets.load<Texture>(src).then((tex) => {
       if (towerSprite && !(towerSprite as any).destroyed && tex) {
         towerSprite.texture = tex
         const maxDim = 80
-        const scale = Math.min(maxDim / tex.width, maxDim / tex.height) * (props.blueprint.scale || 1.0)
+        const scale = Math.min(maxDim / tex.width, maxDim / tex.height) * (props.blueprint.asset.scale || 1.0)
         towerSprite.scale.set(scale)
       }
     }).catch(() => {})
@@ -225,11 +219,11 @@ function cleanPixi() {
   activeStrikes.length = 0
 }
 
-watch(() => [props.blueprint.assetId, props.blueprint.assetName, props.blueprint.assetPath, props.blueprint.scale], () => {
+watch(() => [props.blueprint.asset.assetId, props.blueprint.asset.assetName, props.blueprint.asset.assetPath, props.blueprint.asset.scale], () => {
   updateTowerTexture()
 })
 
-watch(() => [props.blueprint.projectileId, props.blueprint.id, props.levelConfig?.projectileId], () => {
+watch(() => [props.blueprint.projectileId, props.blueprint.id], () => {
   activeProjectiles.length = 0
   activeSparks.length = 0
   activeRings.length = 0
@@ -238,8 +232,8 @@ watch(() => [props.blueprint.projectileId, props.blueprint.id, props.levelConfig
 })
 
 function spawnShot(w: number, h: number) {
-  const muzzleX = w * 0.5 + (props.blueprint.muzzleOffsetX ?? 0)
-  const muzzleY = h * 0.5 - 20 + (props.blueprint.muzzleOffsetY ?? 0)
+  const muzzleX = w * 0.5 + (props.blueprint.asset.muzzleOffsetX ?? 0)
+  const muzzleY = h * 0.5 - 20 + (props.blueprint.asset.muzzleOffsetY ?? 0)
 
   const targetAngles = [
     -Math.PI * 0.25,
@@ -281,7 +275,7 @@ function spawnShot(w: number, h: number) {
     return
   }
 
-  const speedTilesSec = Math.max(4, def.movement.speed || props.blueprint.projectileSpeed || 12)
+  const speedTilesSec = Math.max(4, def.movement.speed || 12)
   const durationSec = Math.max(0.2, (range * 0.8) / speedTilesSec)
   const formationType = def.formation?.type || 'single'
 
@@ -422,8 +416,8 @@ function updateSimulation(dt: number) {
 
   const nowTime = performance.now()
   const arch = activeArchetype.value
-  const muzzleX = w * 0.5 + (props.blueprint.muzzleOffsetX ?? 0)
-  const muzzleY = h * 0.5 - 20 + (props.blueprint.muzzleOffsetY ?? 0)
+  const muzzleX = w * 0.5 + (props.blueprint.asset.muzzleOffsetX ?? 0)
+  const muzzleY = h * 0.5 - 20 + (props.blueprint.asset.muzzleOffsetY ?? 0)
   const previewTargetX = w * 0.78
   const previewTargetY = h * 0.38
 

@@ -1,5 +1,8 @@
 import { MapProject, AssetItem } from '../types/map'
 import { registerCustomProjectiles, getAllProjectilesUnified } from './projectileCatalog'
+import { normalizeGameSettings } from '../domain/simulation/GameSettings'
+import { WaveManager } from '../domain/simulation/WaveManager'
+import { TowerBlueprintManager, RawTowerBlueprint } from '../domain/tower/TowerBlueprintManager'
 
 /**
  * Downloads a data URI or blob as a file
@@ -109,140 +112,25 @@ export function buildFullProjectJsonPayload(
     unitScaleMultiplier?: number
   }
 ): any {
-  const resolvedGameSettings = {
-    startingGold: gameSettings?.startingGold ?? project.gameSettings?.startingGold ?? 150,
-    startingLives: gameSettings?.startingLives ?? project.gameSettings?.startingLives ?? 20,
-    wavePrepTime: gameSettings?.wavePrepTime ?? project.gameSettings?.wavePrepTime ?? 10,
-    spawnMode: gameSettings?.spawnMode ?? project.gameSettings?.spawnMode ?? characterData?.spawnMode ?? 'all_routes',
-    formation: gameSettings?.formation ?? project.gameSettings?.formation ?? characterData?.formation ?? 'single',
-    pairDistance: gameSettings?.pairDistance ?? project.gameSettings?.pairDistance ?? characterData?.pairDistance ?? 0.6,
-    unitElevation: gameSettings?.unitElevation ?? project.gameSettings?.unitElevation ?? (characterData as any)?.unitElevation ?? 0,
-    unitScaleMultiplier: gameSettings?.unitScaleMultiplier ?? project.gameSettings?.unitScaleMultiplier ?? (characterData as any)?.unitScaleMultiplier ?? 1.0,
-    scoreMultiplier: gameSettings?.scoreMultiplier ?? project.gameSettings?.scoreMultiplier ?? 1.0,
-  }
-
-  const rawRoutes = characterData?.routes || (project as any).routes || []
-  const resolvedRoutes = (Array.isArray(rawRoutes) ? rawRoutes : []).map((r: any, idx: number) => {
-    let routePoints: any[] | undefined = Array.isArray(r.routePoints) && r.routePoints.length > 0
-      ? r.routePoints.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
-      : undefined
-
-    if (!routePoints) {
-      const key = r.id || `route-${idx}`
-      const legacyWps = characterData?.customWaypoints?.[key] || (project as any)?.customWaypoints?.[key]
-      if (Array.isArray(legacyWps) && legacyWps.length > 0) {
-        routePoints = legacyWps.map((pt: any) => ({ col: Number(pt.col), row: Number(pt.row) }))
-      } else {
-        const c = r.col !== undefined ? r.col : (r.spawnCol ?? 2)
-        const row = r.row !== undefined ? r.row : (r.spawnRow ?? 2)
-        routePoints = [{ col: Number(c), row: Number(row) }]
-      }
-    }
-
-    let playerCameraPoint = r.playerCameraPoint
-    if (!playerCameraPoint && (r.playerCol !== undefined && r.playerRow !== undefined)) {
-      playerCameraPoint = { col: Number(r.playerCol), row: Number(r.playerRow) }
-    }
-
-    return {
-      id: r.id || `route-${idx + 1}`,
-      name: r.name || `Route ${idx + 1}`,
-      routePoints,
-      playerCameraPoint: playerCameraPoint ? { col: Number(playerCameraPoint.col), row: Number(playerCameraPoint.row) } : undefined,
-    }
+  const definedOnly = (o?: object) => Object.fromEntries(Object.entries(o || {}).filter(([, v]) => v !== undefined))
+  const resolvedGameSettings = normalizeGameSettings({
+    ...definedOnly(characterData),
+    ...definedOnly(project.gameSettings),
+    ...definedOnly(gameSettings),
   })
+
+  const resolvedRoutes = normalizeLegacyImportRoutes(
+    { ...project, routes: characterData?.routes || project.routes || [] },
+    { characterData }
+  )
 
   const resolvedClans = (project as any).clans || towerData?.clans || []
   const resolvedPlacedTowers = towerData?.placedTowers || (project as any).placedTowers || []
   const rawTowerBlueprints = towerData?.towerBlueprints || (project as any).towerBlueprints || []
-  const resolvedTowerBlueprints = rawTowerBlueprints.map((bp: any) => {
-    const rawName = (bp.asset?.assetName || bp.assetName || bp.name || '').replace(/\.[^/.]+$/, '').trim()
-    const fallbackId = rawName ? (rawName.startsWith('sprite-') ? rawName : `sprite-${rawName}`) : 'sprite-stoneColumn_W'
-    const assetId = bp.asset?.assetId || bp.assetId || fallbackId
-    const assetName = bp.asset?.assetName || bp.assetName || (rawName ? `${rawName}.webp` : 'stoneColumn_W.webp')
-    const assetPath = bp.asset?.assetPath || (bp.assetPath && (bp.assetPath.startsWith('http://') || bp.assetPath.startsWith('https://')) ? bp.assetPath : '')
-    const projId = bp.projectileId || bp.projectileType || bp.projectile?.type || 'fireball'
-    const targetStrategy = bp.targetStrategy || 'first'
-
-    const levels = Array.isArray(bp.levels) && bp.levels.length > 0
-      ? bp.levels.map((lvl: any, idx: number) => {
-          const isLvlSplash = lvl.isSplash !== undefined ? Boolean(lvl.isSplash) : (idx === 0 ? Boolean(bp.isSplash) : false)
-          return {
-            ...lvl,
-            level: lvl.level || (idx + 1),
-            name: lvl.name || (idx === 0 ? bp.name : `${bp.name} ${idx + 1}`),
-            cost: Number(lvl.cost ?? bp.cost ?? 100),
-            damage: Number(lvl.damage ?? bp.damage ?? 20),
-            attackSpeed: Number(lvl.attackSpeed ?? bp.attackSpeed ?? 1.0),
-            range: Number(lvl.range ?? bp.range ?? 3.0),
-            isSplash: isLvlSplash,
-            splashRadius: isLvlSplash ? Number(lvl.splashRadius ?? bp.splashRadius ?? 1.5) : undefined,
-            splashType: isLvlSplash ? (lvl.splashType || bp.splashType || 'falloff') : undefined,
-            traits: Array.isArray(lvl.traits) ? [...lvl.traits] : (Array.isArray(bp.traits) ? [...bp.traits] : []),
-            effects: Array.isArray(lvl.effects) && lvl.effects.length > 0
-              ? [...lvl.effects]
-              : (Array.isArray(bp.effects) && bp.effects.length > 0 ? [...bp.effects] : undefined),
-          }
-        })
-      : [
-          {
-            ...bp,
-            level: 1,
-            name: bp.name || 'Tower',
-            cost: Number(bp.cost ?? 100),
-            damage: Number(bp.damage ?? 20),
-            attackSpeed: Number(bp.attackSpeed ?? 1.0),
-            range: Number(bp.range ?? 3.0),
-            isSplash: Boolean(bp.isSplash),
-            splashRadius: Boolean(bp.isSplash) ? Number(bp.splashRadius ?? 1.5) : undefined,
-            splashType: Boolean(bp.isSplash) ? (bp.splashType || 'falloff') : undefined,
-            traits: Array.isArray(bp.traits) ? [...bp.traits] : [],
-            effects: Array.isArray(bp.effects) && bp.effects.length > 0 ? [...bp.effects] : undefined,
-          }
-        ]
-
-    return {
-      id: bp.id,
-      name: bp.name,
-      description: bp.description || '',
-      clanId: bp.clanId || (resolvedClans[0]?.id || 'clan-iron'),
-      asset: {
-        assetId,
-        assetName,
-        assetPath,
-        scale: Number(bp.asset?.scale ?? bp.scale ?? 1.0),
-        spanX: Number(bp.asset?.spanX ?? bp.spanX ?? 1),
-        spanY: Number(bp.asset?.spanY ?? bp.spanY ?? 1),
-        anchorX: Number(bp.asset?.anchorX ?? bp.anchorX ?? 0.5),
-        anchorY: Number(bp.asset?.anchorY ?? bp.anchorY ?? 0.88),
-        muzzleOffsetX: Number(bp.asset?.muzzleOffsetX ?? bp.muzzleOffsetX ?? 0),
-        muzzleOffsetY: Number(bp.asset?.muzzleOffsetY ?? bp.muzzleOffsetY ?? 0),
-      },
-      projectileId: projId,
-      targetStrategy,
-      levels,
-    }
-  })
-  const rawWaveConfigs = waveData?.waveConfigs || (project as any).waveConfigs || []
-  const resolvedWaveConfigs = rawWaveConfigs.map((w: any) => ({
-    waveNumber: w.waveNumber,
-    name: w.name,
-    unitHp: Number(w.unitHp) || 100,
-    unitSpeed: Number(w.unitSpeed) || 2.5,
-    unitCount: Number(w.unitCount) || 10,
-    isBoss: !!w.isBoss,
-    goldReward: Number(w.goldReward) || (Number(w.unitBonus) || 1),
-    unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
-    endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
-    characterModel: w.characterModel || 'male',
-    animSpeed: Number(w.animSpeed) || 1.0,
-    offsetY: Number(w.offsetY) || 0,
-    unitScale: Number(w.unitScale) || 1.0,
-    unitVariant: w.unitVariant || 'normal',
-    variantTint: w.variantTint,
-    immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
-  }))
-  const resolvedCurrentWaveIndex = waveData?.currentWaveIndex ?? (project as any).currentWaveIndex ?? 0
+  const resolvedTowerBlueprints = rawTowerBlueprints.map((bp: RawTowerBlueprint) =>
+    TowerBlueprintManager.normalizeBlueprint({ ...bp, clanId: bp.clanId || resolvedClans[0]?.id || 'clan-iron' })
+  )
+  const resolvedWaveConfigs = WaveManager.normalizeWaves(waveData?.waveConfigs || project.waveConfigs || [])
 
   // Compact layers to remove redundant default values from every single cell
   const compactedLayers = (project.layers || []).map(layer => {
@@ -504,11 +392,7 @@ export async function importProjectFromJson(
     currentWaveIndex: project.currentWaveIndex ?? 0,
   }
 
-  const gameSettings = project.gameSettings || data.gameSettings || {
-    startingGold: 150,
-    startingLives: 20,
-    wavePrepTime: 10,
-  }
+  const gameSettings = normalizeGameSettings(project.gameSettings || data.gameSettings || data.characterData?.gameSettings)
 
   const incomingCustomProj = data.customProjectiles || project.customProjectiles
   if (Array.isArray(incomingCustomProj) && incomingCustomProj.length > 0) {

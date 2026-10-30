@@ -61,18 +61,12 @@ export type {
 
 export type {
   TowerAsset,
+  TowerTraitParams,
   TowerLevel,
   TowerEffect,
-  TowerAssetConfig,
-  TowerLevelConfig,
   TowerBlueprint,
   PlacedTower,
 } from './tower'
-
-export interface TowerTraitsConfig {
-  traits?: import('./combat').TowerTraitType[]
-  effects?: import('./combat').CombatEffect[]
-}
 
 export type ProjectileType =
   | 'fireball'

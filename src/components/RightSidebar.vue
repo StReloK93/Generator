@@ -108,7 +108,7 @@
               <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-inner border border-slate-800/80">
                 <img 
                   :src="assetStore.getAssetPreview(entry.item.assetId)" 
-                  :alt="getAsset(entry.item.assetId)?.name"
+                  :alt="assetStore.getAsset(entry.item.assetId)?.name"
                   width="32"
                   height="32"
                   decoding="async"
@@ -120,7 +120,7 @@
               <!-- Meta details -->
               <div class="flex-1 min-w-0">
                 <div class="text-[11px] font-semibold text-slate-200 truncate flex items-center justify-between">
-                  <span class="truncate">{{ getAsset(entry.item.assetId)?.name || 'Element' }}</span>
+                  <span class="truncate">{{ assetStore.getAsset(entry.item.assetId)?.name || 'Element' }}</span>
                   <UiBadge variant="brand" size="xs">
                     Z:{{ entry.item.zIndex || 0 }}
                   </UiBadge>
@@ -586,22 +586,22 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { 
-  Boxes, Layers, ChevronLeft, ChevronRight, ChevronDown, Search, 
-  Crosshair, Trash2, FolderOpen, 
-  Plus, Eye, EyeOff, Lock, Unlock, 
-  ArrowUp, ArrowDown, X, Footprints, PenTool, MapPin,
-  CopyCheck, Maximize2, Star, Castle
+import {
+  Boxes, Layers, ChevronLeft, ChevronRight, Search,
+  Crosshair, Trash2, FolderOpen,
+  Plus, Eye, EyeOff, Lock, Unlock,
+  ArrowUp, ArrowDown, Footprints, PenTool, MapPin,
+  CopyCheck, Star, Castle
 } from 'lucide-vue-next'
-import { 
-  UiButton, 
-  UiIconButton, 
-  UiInput, 
-  UiCard, 
-  UiTabs, 
-  UiBadge, 
+import {
+  UiButton,
+  UiIconButton,
+  UiInput,
+  UiCard,
+  UiTabs,
+  UiBadge,
   UiSlider,
-  TabItem 
+  TabItem
 } from './ui'
 import { useMapStore, PlacedElementEntry } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
@@ -669,7 +669,6 @@ const assetCategoryItems = computed<TabItem[]>(() => {
 function handleAddNewRoute() {
   routeStore.isSettingRouteStart = true
   routeStore.routeStartPlacementMode = 'add'
-  routeStore.statusMessage = t('sidebar.clickPlaceRouteStart', { number: routeStore.routes.length + 1 })
 }
 
 function handleSelectRoute(idx: number) {
@@ -699,13 +698,11 @@ function handleRelocateStart(idx: number) {
   routeStore.selectedRouteIndex = idx
   routeStore.routeStartPlacementMode = 'relocate'
   routeStore.isSettingRouteStart = true
-  routeStore.statusMessage = t('sidebar.clickRelocateStart', { number: idx + 1 })
 }
 
 function handleSetPlayerStart(idx: number) {
   routeStore.selectedRouteIndex = idx
   routeStore.isSettingPlayerStartPoint = true
-  routeStore.statusMessage = t('sidebar.clickSetPlayerStart', { number: idx + 1 })
 }
 
 function getRouteStats(route: any, idx: number): string {
@@ -722,17 +719,12 @@ const reversedLayers = computed(() => {
   return [...mapStore.project.layers].reverse()
 })
 
-// Fast O(1) asset lookup via assetStore
-function getAsset(assetId: string): AssetItem | null {
-  return assetStore.getAsset(assetId)
-}
-
 const filteredPlacedElements = computed(() => {
   if (activeTopTab.value !== 'elements') return []
   const query = elementSearchQuery.value.trim().toLowerCase()
   return mapStore.allPlacedElements.filter(entry => {
     if (!query) return true
-    const asset = getAsset(entry.item.assetId)
+    const asset = assetStore.getAsset(entry.item.assetId)
     const nameMatch = asset ? asset.name.toLowerCase().includes(query) : false
     const layerMatch = entry.layerName.toLowerCase().includes(query)
     const coordMatch = `${entry.col},${entry.row}`.includes(query)
@@ -743,37 +735,6 @@ const filteredPlacedElements = computed(() => {
 const displayedPlacedElements = computed(() => {
   return filteredPlacedElements.value.slice(0, displayLimit.value)
 })
-
-function getAssetThumbnailStyle(asset: AssetItem) {
-  if (asset.contentBounds && asset.height && asset.width) {
-    const b = asset.contentBounds
-    const contentCenterY = (b.minY + b.maxY) / 2
-    const contentCenterX = (b.minX + b.maxX) / 2
-    
-    // Shift content to exact center of the box
-    const offsetYPercent = ((asset.height / 2 - contentCenterY) / asset.height) * 100
-    const offsetXPercent = ((asset.width / 2 - contentCenterX) / asset.width) * 100
-    
-    const contentW = Math.max(1, b.maxX - b.minX)
-    const contentH = Math.max(1, b.maxY - b.minY)
-    
-    // Calculate scale to fill ~90% of the square thumbnail container
-    const scaleX = asset.width / contentW
-    const scaleY = asset.height / contentH
-    const fillScale = Math.min(1.85, Math.max(1.0, Math.min(scaleX, scaleY) * 0.90))
-    
-    return {
-      transform: `translate(${offsetXPercent.toFixed(1)}%, ${offsetYPercent.toFixed(1)}%) scale(${fillScale.toFixed(2)})`,
-      transformOrigin: 'center center',
-    }
-  }
-
-  // Fallback for square or standard assets
-  return {
-    transform: 'scale(1.05)',
-    transformOrigin: 'center center',
-  }
-}
 
 function handleSelectAndFocus(entry: PlacedElementEntry, event?: MouseEvent) {
   const ref = {
@@ -855,7 +816,7 @@ function handleAnchorSave(updates: { anchorX: number; anchorY: number; spanX: nu
 
     // 3. Update any Tower Blueprints using this asset
     for (const bp of towerStore.blueprints) {
-      if (bp.assetId === asset.id || bp.assetName === asset.name || bp.assetName === asset.id) {
+      if (bp.asset.assetId === asset.id || bp.asset.assetName === asset.name || bp.asset.assetName === asset.id) {
         towerStore.syncBlueprintChanges(bp.id)
       }
     }

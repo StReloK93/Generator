@@ -1,5 +1,4 @@
 import { CombatEffect, SplashType, TargetStrategy, TowerTraitType } from './combat'
-import { ProjectileType } from './map'
 
 export type TowerEffect = CombatEffect
 
@@ -17,7 +16,46 @@ export interface TowerAsset {
   muzzleOffsetY?: number
 }
 
-export interface TowerLevel {
+/**
+ * Per-trait tuning parameters consumed by EffectProcessor.traitsToEffects.
+ * `*IsSplash` keys are the legacy spelling found in older map files.
+ */
+export interface TowerTraitParams {
+  fireBonusDamage?: number
+  burnDps?: number
+  burnDuration?: number
+  fireSplash?: boolean
+  fireIsSplash?: boolean
+  slowPercent?: number
+  slowDuration?: number
+  frostBonusDamage?: number
+  frostSplash?: boolean
+  frostIsSplash?: boolean
+  poisonDps?: number
+  poisonDuration?: number
+  poisonSlowPercent?: number
+  poisonSplash?: boolean
+  poisonIsSplash?: boolean
+  stackBonusDamage?: number
+  maxStacks?: number
+  stackingSplash?: boolean
+  stackingIsSplash?: boolean
+  bleedDps?: number
+  bleedDuration?: number
+  bloodSplash?: boolean
+  bloodIsSplash?: boolean
+  electricBonusDamage?: number
+  chainTargets?: number
+  stunDuration?: number
+  electricSplash?: boolean
+  electricIsSplash?: boolean
+  voidVulnPercent?: number
+  voidDuration?: number
+  voidSplash?: boolean
+  voidIsSplash?: boolean
+}
+
+export interface TowerLevel extends TowerTraitParams {
   level: number
   name?: string
 
@@ -30,15 +68,9 @@ export interface TowerLevel {
   splashRadius?: number
   splashType?: SplashType
 
-  traits?: TowerTraitType[] | string[]
+  traits?: TowerTraitType[]
   effects?: TowerEffect[]
-
-  [key: string]: any
 }
-
-// Backward compatibility aliases
-export type TowerLevelConfig = TowerLevel
-export type TowerAssetConfig = TowerAsset
 
 export interface TowerBlueprint {
   id: string
@@ -52,38 +84,6 @@ export interface TowerBlueprint {
   targetStrategy: TargetStrategy
 
   levels: TowerLevel[]
-
-  // Optional root compatibility accessors for dynamic templates/bindings
-  cost?: number
-  damage?: number
-  attackSpeed?: number
-  range?: number
-  isSplash?: boolean
-  splashRadius?: number
-  splashType?: SplashType
-  assetId?: string
-  assetName?: string
-  assetPath?: string
-  scale?: number
-  spanX?: number
-  spanY?: number
-  anchorX?: number
-  anchorY?: number
-  muzzleOffsetX?: number
-  muzzleOffsetY?: number
-  projectileType?: ProjectileType
-  projectileSpeed?: number
-  projectileColor?: number
-  traits?: TowerTraitType[] | string[]
-  effects?: TowerEffect[]
-  stats?: {
-    cost: number
-    damage: number
-    attackSpeed: number
-    range: number
-  }
-  projectile?: any
-  [key: string]: any
 }
 
 export interface PlacedTower {
@@ -97,9 +97,6 @@ export interface PlacedTower {
   attackSpeed: number
   range: number
   projectileId: string
-  projectileType?: ProjectileType
-  projectileSpeed?: number
-  projectileColor?: number
   isSplash: boolean
   splashRadius?: number
   splashType?: SplashType
@@ -113,5 +110,9 @@ export interface PlacedTower {
   targetStrategy?: TargetStrategy
   effects?: CombatEffect[]
   traits?: TowerTraitType[]
-  [key: string]: any
+}
+
+/** Editable blueprint fields; asset fields are merged into `bp.asset`. Levels are edited via level APIs. */
+export type BlueprintUpdate = Partial<Pick<TowerBlueprint, 'name' | 'description' | 'clanId' | 'projectileId' | 'targetStrategy'>> & {
+  asset?: Partial<TowerAsset>
 }

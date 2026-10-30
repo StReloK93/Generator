@@ -8,7 +8,6 @@ import {
   BASE_PROJECTILE_DEFINITIONS,
   registerCustomProjectiles,
   getProjectileDefinition,
-  getAllProjectilesUnified,
   parseProjectileJson,
   serializeProjectileToClipboard,
 } from '../utils/projectileCatalog'

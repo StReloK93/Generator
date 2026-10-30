@@ -1,19 +1,28 @@
-import { GridCoord, MapProject } from '../../types/map'
+import { GridCoord } from '../../types/map'
 import { isInsideGrid } from '../../utils/isometric'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { useHeroStore } from '../../stores/heroStore'
+import type { useMapStore } from '../../stores/mapStore'
+import type { useToolStore } from '../../stores/toolStore'
+import type { useTowerStore } from '../../stores/towerStore'
+import type { useCharacterStore } from '../../stores/characterStore'
+import type { useGameStore } from '../../stores/gameStore'
+import type { useRouteStore } from '../../stores/routeStore'
+import type { useMultiplayerStore } from '../../stores/multiplayerStore'
+import type { useNotificationStore } from '../../stores/notificationStore'
+import type { useI18n } from '../../stores/i18nStore'
 
 export interface GameControllerDependencies {
   engine: IsoEngine
-  mapStore: any
-  toolStore: any
-  towerStore: any
-  characterStore: any
-  gameStore?: any
-  routeStore?: any
-  multiplayerStore: any
-  notify: any
-  t: (key: string, params?: any) => string
+  mapStore: ReturnType<typeof useMapStore>
+  toolStore: ReturnType<typeof useToolStore>
+  towerStore: ReturnType<typeof useTowerStore>
+  characterStore: ReturnType<typeof useCharacterStore>
+  gameStore: ReturnType<typeof useGameStore>
+  routeStore: ReturnType<typeof useRouteStore>
+  multiplayerStore: ReturnType<typeof useMultiplayerStore>
+  notify: ReturnType<typeof useNotificationStore>
+  t: ReturnType<typeof useI18n>['t']
 }
 
 export class GameController {
@@ -161,9 +170,9 @@ export class GameController {
           if (myPl) currentGold = myPl.gold ?? 0
         }
 
-        if (currentGold < bp.cost) {
+        if (currentGold < bp.levels[0].cost) {
           notify.gold(
-            t('game.needGoldForTower', { cost: bp.cost, current: currentGold }),
+            t('game.needGoldForTower', { cost: bp.levels[0].cost, current: currentGold }),
             t('game.notEnoughGold')
           )
           return
@@ -223,7 +232,7 @@ export class GameController {
   }
 
   public handleContextMenu(): void {
-    const { towerStore, toolStore, mapStore } = this.deps
+    const { towerStore, toolStore } = this.deps
     const heroStore = useHeroStore()
 
     // 1. Deselect hero

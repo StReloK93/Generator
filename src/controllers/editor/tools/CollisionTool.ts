@@ -1,5 +1,5 @@
 import { GridCoord } from '../../../types/map'
-import { isInsideGrid, getRectangleCells, getBresenhamLine } from '../../../utils/isometric'
+import { getBresenhamLine } from '../../../utils/isometric'
 import { IEditorTool, EditorToolContext } from './EditorTool'
 
 export interface SubGridCoord {

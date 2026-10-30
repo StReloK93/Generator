@@ -1,4 +1,4 @@
-import { Application, Container, Point } from 'pixi.js'
+import { Application, Container } from 'pixi.js'
 import { MapProject, Point2D } from '../../types/map'
 import { gridToScreen } from '../../utils/isometric'
 

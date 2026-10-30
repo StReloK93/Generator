@@ -227,6 +227,7 @@ import {
   registerSessionCustomMap
 } from '../services/mapManager'
 import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
+import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
@@ -431,22 +432,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
     routeStore.syncRoutesFromProject()
 
     // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time, formation, etc.)
-    const gSettings = clonedProject.gameSettings || data.gameSettings || (data.characterData && data.characterData.gameSettings) || {
-      startingGold: 150,
-      startingLives: 20,
-      wavePrepTime: 10,
-    }
-    mapStore.project.gameSettings = {
-      startingGold: Number(gSettings.startingGold) || 150,
-      startingLives: Number(gSettings.startingLives) || 20,
-      wavePrepTime: Number(gSettings.wavePrepTime) || 10,
-      maxPlayers: gSettings.maxPlayers || undefined,
-      spawnMode: gSettings.spawnMode || 'single',
-      formation: gSettings.formation || 'pair',
-      pairDistance: gSettings.pairDistance !== undefined ? Number(gSettings.pairDistance) : 0.45,
-      unitElevation: gSettings.unitElevation !== undefined ? Number(gSettings.unitElevation) : 0,
-      unitScaleMultiplier: gSettings.unitScaleMultiplier !== undefined ? Number(gSettings.unitScaleMultiplier) : 1.0,
-    }
+    mapStore.project.gameSettings = normalizeGameSettings(clonedProject.gameSettings || data.gameSettings || data.characterData?.gameSettings)
     gameStore.restoreGameSettingsFromProject()
 
     // Restore clans, towers & blueprints
@@ -466,20 +452,8 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
       currentWaveIndex: (project as any).currentWaveIndex ?? 0,
     }
     if (wvData.waveConfigs && wvData.waveConfigs.length > 0) {
-      waveStore.waveConfigs = wvData.waveConfigs.map((w: any) => ({
-        ...w,
-        unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
-        endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
-        characterModel: w.characterModel || 'male',
-        animSpeed: Number(w.animSpeed) || 1.0,
-        offsetY: Number(w.offsetY) || 0,
-        unitScale: Number(w.unitScale) || 1.0,
-        unitVariant: w.unitVariant || 'normal',
-        variantTint: w.variantTint,
-        immunities: Array.isArray(w.immunities) ? [...w.immunities] : [],
-      }))
-      waveStore.currentWaveIndex = wvData.currentWaveIndex ?? 0
-        ; (mapStore.project as any).waveConfigs = [...waveStore.waveConfigs]
+      mapStore.project.waveConfigs = wvData.waveConfigs
+      mapStore.project.currentWaveIndex = wvData.currentWaveIndex ?? 0
     }
     waveStore.restoreWavesFromProject()
 

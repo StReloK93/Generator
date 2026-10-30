@@ -19,9 +19,6 @@ export class WaterRenderer {
   private waterTexture: Texture | null = null
 
   private lastWaterSignature = ''
-  private elapsedTime = 0
-  private scrollSpeedX = 0 // Clean, uniform, calm static surface
-  private scrollSpeedY = 0
 
   constructor() {
     this.container = new Container()

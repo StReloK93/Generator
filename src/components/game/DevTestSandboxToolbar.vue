@@ -348,7 +348,7 @@
           <!-- Wave Jump Pills -->
           <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5 max-h-18">
             <button
-              v-for="(w, idx) in waveStore.waveConfigs"
+              v-for="(_, idx) in waveStore.waveConfigs"
               :key="idx"
               type="button"
               :class="[
@@ -506,7 +506,7 @@ const isExpanded = ref(false)
 const activeTab = ref('economy')
 
 // Local editable test starting gold, default from store
-const testStartingGold = ref(gameStore.startingGold || 250)
+const testStartingGold = ref(gameStore.startingGold)
 
 watch(() => gameStore.startingGold, (newVal) => {
   if (newVal !== undefined && newVal !== testStartingGold.value) {

@@ -346,7 +346,7 @@
               <div class="w-8 h-8 rounded-lg bg-slate-950 checker-pattern flex items-center justify-center p-1 shrink-0 overflow-hidden border border-slate-800">
                 <img 
                   :src="assetStore.getAssetPreview(entry.item.assetId)" 
-                  :alt="getAsset(entry.item.assetId)?.name"
+                  :alt="assetStore.getAsset(entry.item.assetId)?.name"
                   width="32"
                   height="32"
                   decoding="async"
@@ -360,7 +360,7 @@
               <!-- Meta -->
               <div class="flex-1 min-w-0">
                 <div class="text-xs font-semibold text-slate-200 truncate flex items-center justify-between">
-                  <span>{{ getAsset(entry.item.assetId)?.name || $t('common.element') }}</span>
+                  <span>{{ assetStore.getAsset(entry.item.assetId)?.name || $t('common.element') }}</span>
                   <UiBadge variant="brand" size="xs">
                     Z: {{ entry.cellZIndex }}
                   </UiBadge>
@@ -778,16 +778,16 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { 
-  Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine, 
+import {
+  Sliders, X, Layers, ArrowUpToLine, ArrowDownToLine,
   ChevronsUp, ChevronsDown, Move, Trash2, Crosshair, Lightbulb,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown, CopyCheck, CheckSquare,
   FlipHorizontal, RotateCw, ShieldAlert
 } from 'lucide-vue-next'
-import { 
-  UiButton, 
-  UiIconButton, 
-  UiCard, 
+import {
+  UiButton,
+  UiIconButton,
+  UiCard,
   UiBadge,
   UiTabs,
   UiNumberInput,
@@ -798,7 +798,7 @@ import { useMapStore } from '../stores/mapStore'
 import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useI18nStore } from '../stores/i18nStore'
-import { TileItem, SelectedElementRef } from '../types/map'
+import { TileItem } from '../types/map'
 import { cellKey } from '../utils/isometric'
 
 const mapStore = useMapStore()
@@ -835,13 +835,9 @@ const activeItem = computed<TileItem | null>(() => {
   return entry ? entry.item : (coveringElements.value[0]?.item || null)
 })
 
-function getAsset(assetId: string) {
-  return assetStore.getAsset(assetId)
-}
-
 const currentAsset = computed(() => {
   if (!activeItem.value) return null
-  return getAsset(activeItem.value.assetId)
+  return assetStore.getAsset(activeItem.value.assetId)
 })
 
 const identicalMapCount = computed(() => {
@@ -922,11 +918,6 @@ function handleBatchScaleInput(scale: number) {
   mapStore.batchUpdateItemsScale(toolStore.selectedElements, scale)
 }
 
-function handleBatchAdjustScale(delta: number) {
-  if (toolStore.selectedElements.length === 0) return
-  mapStore.batchAdjustItemsScale(toolStore.selectedElements, delta)
-}
-
 function handleBatchAdjustZIndex(delta: number) {
   if (toolStore.selectedElements.length === 0) return
   mapStore.batchAdjustItemsZIndex(toolStore.selectedElements, delta)
@@ -959,11 +950,6 @@ function handleBatchDelete() {
 }
 
 // --- Single Element Actions ---
-
-const currentLayerName = computed(() => {
-  const layer = mapStore.project.layers.find(l => l.id === toolStore.selectedElement?.layerId)
-  return layer ? layer.name : 'Layer'
-})
 
 const inspectedCell = computed(() => {
   if (activeCellInMatrix.value) return activeCellInMatrix.value
@@ -1168,12 +1154,6 @@ function handleScaleInput(scale: number) {
     scale,
     toolStore.selectedElement.layerId
   )
-}
-
-function adjustScale(delta: number) {
-  if (!activeItem.value) return
-  const current = activeItem.value.scale || 1.0
-  handleScaleInput(current + delta)
 }
 
 function nudge(dx: number, dy: number) {

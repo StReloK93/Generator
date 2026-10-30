@@ -160,9 +160,9 @@
                   </span>
                   <span 
                     class="text-[8px] font-bold px-1 py-0.2 rounded border uppercase tracking-wider"
-                    :class="getArchetypeMeta(proj).badgeClass"
+                    :class="getProjectileArchetypeMeta(proj).badgeClass"
                   >
-                    {{ getArchetypeMeta(proj).nameUz.split(' ')[0] }}
+                    {{ getProjectileArchetypeMeta(proj).nameUz.split(' ')[0] }}
                   </span>
                 </div>
                 <span class="text-[10px] text-slate-400 capitalize truncate">
@@ -802,8 +802,7 @@ import { ProjectileRenderer } from '../rendering/pixi/ProjectileRenderer'
 import {
   PROJECTILE_ARCHETYPES,
   getProjectileArchetype,
-  applyProjectileArchetype
-} from '../utils/projectileCatalog'
+  applyProjectileArchetype, getProjectileArchetypeMeta } from '../utils/projectileCatalog'
 import { ProjectileDefinition, ProjectileArchetype } from '../types/projectile'
 import UiButton from '../components/ui/UiButton.vue'
 import UiIconButton from '../components/ui/UiIconButton.vue'
@@ -901,11 +900,6 @@ const currentArchetypeMeta = computed(() => {
   return PROJECTILE_ARCHETYPES.find(a => a.id === currentArchetype.value) || PROJECTILE_ARCHETYPES[0]
 })
 
-function getArchetypeMeta(proj: ProjectileDefinition) {
-  const arch = getProjectileArchetype(proj)
-  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
-}
-
 const filteredProjectiles = computed(() => {
   let list = projectileStore.allProjectiles
   if (activeFilterTab.value !== 'all') {
@@ -926,7 +920,7 @@ const filteredProjectiles = computed(() => {
 function switchArchetype(newArch: ProjectileArchetype) {
   applyProjectileArchetype(currentForm.value, newArch)
   syncHexColors()
-  notify.info(`Snaryad turi: ${getArchetypeMeta(currentForm.value).nameUz}`)
+  notify.info(`Snaryad turi: ${getProjectileArchetypeMeta(currentForm.value).nameUz}`)
 }
 
 function getLocalizedName(proj?: ProjectileDefinition): string {

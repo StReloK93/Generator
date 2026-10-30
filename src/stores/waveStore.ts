@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { WaveConfig, UnitVariantType, TowerTraitType } from '../types/map'
+import { MapProject, WaveConfig, UnitVariantType, TowerTraitType } from '../types/map'
 import { useMapStore } from './mapStore'
 import { WaveManager } from '../domain/simulation'
 
@@ -20,26 +20,16 @@ export const useWaveStore = defineStore('waveStore', () => {
 
   function syncWavesToProject() {
     if (!mapStore.project) return
-    ;(mapStore.project as any).waveConfigs = waveConfigs.value.map(w => ({ ...w }))
-    ;(mapStore.project as any).currentWaveIndex = currentWaveIndex.value
+    mapStore.project.waveConfigs = waveConfigs.value.map(w => ({ ...w }))
+    mapStore.project.currentWaveIndex = currentWaveIndex.value
   }
 
   function restoreWavesFromProject() {
-    const p = mapStore.project as any
+    // `waveData` is the legacy (pre-2.x) map file location of waves
+    const p = mapStore.project as MapProject & { waveData?: { waveConfigs?: WaveConfig[]; currentWaveIndex?: number } }
     const waves = p.waveConfigs || p.waveData?.waveConfigs || []
-    if (waves && Array.isArray(waves) && waves.length > 0) {
-      waveConfigs.value = waves.map((w: any) => ({
-        ...w,
-        unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
-        endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
-        characterModel: w.characterModel || 'male',
-        animSpeed: Number(w.animSpeed) || 1.0,
-        offsetY: Number(w.offsetY) || 0,
-        unitScale: Number(w.unitScale) || 1.0,
-        unitVariant: w.unitVariant || 'normal',
-        variantTint: w.variantTint,
-        immunities: Array.isArray(w.immunities) ? w.immunities : [],
-      }))
+    if (waves.length > 0) {
+      waveConfigs.value = WaveManager.normalizeWaves(waves)
       currentWaveIndex.value = Math.max(0, Math.min(waveConfigs.value.length - 1, p.currentWaveIndex ?? p.waveData?.currentWaveIndex ?? 0))
     } else {
       waveConfigs.value = []

@@ -21857,7 +21857,7 @@
       }
     ],
     "gameSettings": {
-      "startingGold": 150,
+      "startingGold": 30,
       "startingLives": 20,
       "wavePrepTime": 10,
       "spawnMode": "all_routes",

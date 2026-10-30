@@ -189,9 +189,9 @@
                   </span>
                   <span 
                     class="text-[8px] font-bold px-1 py-0.2 rounded border uppercase tracking-wider"
-                    :class="getArchetypeMeta(proj).badgeClass"
+                    :class="getProjectileArchetypeMeta(proj).badgeClass"
                   >
-                    {{ getArchetypeMeta(proj).nameUz.split(' ')[0] }}
+                    {{ getProjectileArchetypeMeta(proj).nameUz.split(' ')[0] }}
                   </span>
                 </div>
                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400 truncate">
@@ -222,8 +222,7 @@ import { useI18n } from '../../stores/i18nStore'
 import { useProjectileStore } from '../../stores/projectileStore'
 import {
   PROJECTILE_ARCHETYPES,
-  getProjectileArchetype
-} from '../../utils/projectileCatalog'
+  getProjectileArchetype, getProjectileArchetypeMeta } from '../../utils/projectileCatalog'
 import { ProjectileRenderer } from '../../rendering/pixi/ProjectileRenderer'
 import { ProjectileDefinition, ProjectileArchetype } from '../../types/projectile'
 import UiModal from '../ui/UiModal.vue'
@@ -287,11 +286,6 @@ const activeArchetype = computed<ProjectileArchetype>(() => {
 const activeArchetypeMeta = computed(() => {
   return PROJECTILE_ARCHETYPES.find(a => a.id === activeArchetype.value) || PROJECTILE_ARCHETYPES[0]
 })
-
-function getArchetypeMeta(proj: ProjectileDefinition) {
-  const arch = getProjectileArchetype(proj)
-  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
-}
 
 const filteredProjectiles = computed(() => {
   let list = projectileStore.allProjectiles

@@ -636,25 +636,26 @@
   <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :current-projectile-id="form.projectileId || form.projectileType || 'fireball'"
-    @select="(val: string) => { form.projectileId = val; form.projectileType = val as ProjectileType }"
+    :current-projectile-id="form.projectileId || 'fireball'"
+    @select="(val: string) => { form.projectileId = val }"
     @close="isProjectileModalOpen = false"
   />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Plus, ShieldAlert, Search, Flame, ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords, Bomb, Crosshair } from 'lucide-vue-next'
-import { UiModal, UiInput, UiCard, UiSlider, UiNumberInput, UiButton, UiBadge, UiTabs, UiSwitch } from './ui'
-import { useTowerStore, ProjectileType, SplashType } from '../stores/towerStore'
+import { Plus, ShieldAlert, Search, Flame, Zap, Snowflake, TrendingDown, Equal, Sparkles, Skull, Droplet, Ghost, TrendingUp, Swords, Crosshair } from 'lucide-vue-next'
+import { UiModal, UiInput, UiCard, UiSlider, UiButton, UiBadge, UiTabs, UiSwitch } from './ui'
+import { useTowerStore } from '../stores/towerStore'
+import type { SplashType } from '../types/map'
 import { useAssetStore } from '../stores/assetStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
 import { AssetItem, TowerTraitType } from '../types/map'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon } from '../utils/towerClans'
-import { getProjectileDefinition, getProjectileArchetype, PROJECTILE_ARCHETYPES } from '../utils/projectileCatalog'
-import { TowerBlueprintManager } from '../domain/tower/TowerBlueprintManager'
+import { getProjectileDefinition, getProjectileArchetypeMeta } from '../utils/projectileCatalog'
+import { TowerBlueprintManager, RawTowerBlueprint } from '../domain/tower/TowerBlueprintManager'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
 
 const towerStore = useTowerStore()
@@ -668,17 +669,12 @@ function getLocalizedProjectileName(p: any): string {
   return p.identity?.name || p.name || p.id
 }
 
-function getProjectileArchetypeMeta(def: any) {
-  const arch = getProjectileArchetype(def)
-  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
-}
-
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
 
 // Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDefinition(form.value.projectileId || form.value.projectileType || 'fireball'))
+const activeProjectileDef = computed(() => getProjectileDefinition(form.value.projectileId || 'fireball'))
 
 const categories = computed(() => {
   const items = [
@@ -750,7 +746,6 @@ const form = ref({
   attackSpeed: 0.5,
   range: 4.0,
   projectileId: 'fireball',
-  projectileType: 'fireball' as ProjectileType,
   isSplash: false,
   splashRadius: 1.5,
   splashType: 'falloff' as SplashType,
@@ -828,32 +823,14 @@ function handleCreateTower() {
   const assetName = asset ? `${asset.name}.webp` : 'stoneColumn_W.webp'
   const preview = asset ? assetStore.getAssetPreview(asset) : ''
 
-  let projColor = 0xf97316
-  let projSpeed = 10.5
-  if (form.value.projectileType === 'cannonball') {
-    projColor = 0x334155
-    projSpeed = 8.5
-  } else if (form.value.projectileType === 'magic_bolt') {
-    projColor = 0x38bdf8
-    projSpeed = 16.0
-  } else if (form.value.projectileType === 'arrow') {
-    projColor = 0xd97706
-    projSpeed = 18.0
-  } else if (form.value.projectileType === 'frost_bolt') {
-    projColor = 0x06b6d4
-    projSpeed = 14.0
-  } else if (form.value.projectileType === 'laser') {
-    projColor = 0xec4899
-    projSpeed = 26.0
-  } else if (form.value.projectileType === 'missile') {
-    projColor = 0xe11d48
-    projSpeed = 12.0
-  }
-
-  const newBlueprint = {
-    id: `tower-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    name: form.value.name.trim(),
-    clanId: form.value.clanId || towerStore.selectedEditorClanId || towerStore.clans[0]?.id || 'clan-iron',
+  const { projectileId, clanId, ...levelFields } = form.value
+  const newBlueprint: RawTowerBlueprint = {
+    ...levelFields,
+    traits: [...levelFields.traits],
+    name: levelFields.name.trim(),
+    description: `Custom defense tower: ${levelFields.name}`,
+    clanId: clanId || towerStore.selectedEditorClanId || towerStore.clans[0]?.id || 'clan-iron',
+    projectileId,
     assetId,
     assetName,
     assetPath: preview || '',
@@ -862,43 +839,6 @@ function handleCreateTower() {
     spanY: asset?.spanY ?? 1,
     anchorX: asset?.anchorX ?? 0.5,
     anchorY: asset?.anchorY ?? 0.88,
-    description: `Custom defense tower: ${form.value.name}`,
-    damage: form.value.damage,
-    attackSpeed: form.value.attackSpeed,
-    range: form.value.range,
-    projectileType: form.value.projectileType,
-    projectileSpeed: projSpeed,
-    projectileColor: projColor,
-    isSplash: form.value.isSplash,
-    splashRadius: form.value.splashRadius,
-    splashType: form.value.splashType,
-    cost: form.value.cost,
-    traits: [...form.value.traits],
-    fireBonusDamage: form.value.fireBonusDamage,
-    burnDps: form.value.burnDps,
-    burnDuration: form.value.burnDuration,
-    fireSplash: form.value.fireSplash,
-    slowPercent: form.value.slowPercent,
-    slowDuration: form.value.slowDuration,
-    frostBonusDamage: form.value.frostBonusDamage,
-    frostSplash: form.value.frostSplash,
-    poisonDps: form.value.poisonDps,
-    poisonDuration: form.value.poisonDuration,
-    poisonSlowPercent: form.value.poisonSlowPercent,
-    poisonSplash: form.value.poisonSplash,
-    stackBonusDamage: form.value.stackBonusDamage,
-    maxStacks: form.value.maxStacks,
-    stackingSplash: form.value.stackingSplash,
-    bleedDps: form.value.bleedDps,
-    bleedDuration: form.value.bleedDuration,
-    bloodSplash: form.value.bloodSplash,
-    electricBonusDamage: form.value.electricBonusDamage,
-    chainTargets: form.value.chainTargets,
-    stunDuration: form.value.stunDuration,
-    electricSplash: form.value.electricSplash,
-    voidVulnPercent: form.value.voidVulnPercent,
-    voidDuration: form.value.voidDuration,
-    voidSplash: form.value.voidSplash,
   }
 
   towerStore.addNewBlueprint(TowerBlueprintManager.normalizeBlueprint(newBlueprint))

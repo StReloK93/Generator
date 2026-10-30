@@ -18,14 +18,12 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 ### 2. 🏪 State Management (Pinia Stores - `src/stores/`)
 - **`mapStore.ts`**: Xarita o'lchami, qatlamlar (`layers`), kataklardagi elementlar (`tiles`), tarix (`undo/redo`), loyiha eksport/importi.
 - **`assetStore.ts`**: Standart sprite kutubxonasi (`src/assets/sprites/*.png`), maxsus rasmlarni yuklash, bounding box tahlili va `reconcileImportedAssets`.
-- **`characterStore.ts`**:
-  - Marshrutlar va yo'nalishlar (`routes: RouteInfo[]` - `routePoints` va `playerCameraPoint`).
-  - To'lqinlar sozlamalari (`waveConfigs`, har bir to'lqin uchun alohida odam soni, HP, unit yurish tezligi, oltin mukofoti).
-  - Harakat tarkibi (`formation`: 2 kishi yonma-yon yoki 1 kishilik; `pairDistance`: oraliq masofa).
-  - Simulyatsiya tezligi (`gameSpeed`: 1x dan 50x gacha) va personaj yurish tezligi (`unitSpeed`: 0.8 dan 6.0 k/s) to'liq mustaqil ajratilgan.
-  - O'yin rejimi (`isGameMode`, `playerLives`, `gold`, `score`, `gameState`: `build_prep` 10 soniyalik qurilish taymeri va ketma-ket to'lqinlar).
+- **`characterStore.ts`**: Faol personajlar (`units`), spawn va simulyatsiya sikli (hisob-kitob `domain/simulation/CrowdSimulation`da).
+- **`routeStore.ts`**: Marshrutlar (`routes: RouteInfo[]` - `routePoints` va `playerCameraPoint`), marshrut chizish.
+- **`waveStore.ts`**: To'lqinlar (`waveConfigs`). Normalizatsiya faqat `WaveManager.normalizeWave` orqali.
+- **`gameStore.ts`**: O'yin rejimi (`isGameMode`, `playerLives`, `gold`, `gameState`, `gameSpeed`) va xarita TD sozlamalari (`startingGold`, `formation`, `pairDistance`, ...) — yagona manba `project.gameSettings`, defaultlar va normalizatsiya faqat `domain/simulation/GameSettings.ts` da.
 - **`towerStore.ts`**:
-  - Minora turlari/blueprintlari (`blueprints`: rasm, zarar, hujum tezligi, masofa, splash turi, snaryad turi/tezligi/rangi, narxi).
+  - Minora blueprintlari (`blueprints`: `asset`, `projectileId`, `levels[]`). Statlar faqat `levels[]` da, rasm faqat `asset` da; normalizatsiya `TowerBlueprintManager.normalizeBlueprint`. Snaryad tezligi/rangi faqat snaryad katalogidan (`projectileCatalog`) olinadi.
   - Xaritadagi minoralar (`placedTowers`: darajalar, kuchaytirish, sotish, jami berilgan zarar, o'ldirilgan dushmanlar).
   - Jang simulyatsiyasi (`updateCombatTick`).
 - **`toolStore.ts`**: Faol asboblar (`select`, `brush`, `eraser`, `bucket`, `line`, `rectangle`), tanlangan element, modal oynalar holati.
@@ -93,7 +91,7 @@ TD sozlamalari, to'lqinlar yoki o'yin qoidalariga (`goldReward`, `animSpeed`, `o
 1. **`src/types/map.ts`**: Interfeyslar (`WaveConfig`, `MapGameSettings`, `TowerBlueprint`) yangilanadi.
 2. **`src/utils/exportHelpers.ts`**: `buildFullProjectJsonPayload` (Export & Auto-save) va `importProjectFromJson` da saqlanadi va o'qiladi.
 3. **`src/components/WelcomeProjectModal.vue`**: JSON xarita import qilinganda `.json` fayldan to'liq o'qib olinadi va store'ga yuklanadi.
-4. **`src/stores/characterStore.ts`**: `syncWavesToProject()`, `restoreWavesFromProject()`, `syncGameSettingsToProject()`, va `restoreGameSettingsFromProject()` orqali sinxronlashtiriladi.
+4. **`src/stores/waveStore.ts`** / **`src/stores/gameStore.ts`**: `syncWavesToProject()`, `restoreWavesFromProject()`, `syncGameSettingsToProject()`, va `restoreGameSettingsFromProject()` orqali sinxronlashtiriladi (normalizatsiya: `WaveManager.normalizeWave`, `normalizeGameSettings`).
 5. **`src/stores/multiplayerStore.ts`**: Ko'p o'yinchili o'yinda (`MAP_DATA` va `START_GAME`) barcha ulangan o'yinchilarga bir xil to'liq uzatiladi.
 
 > ⚠️ **Qat'iy Talab**: Hech qachon o'yin balansi, mukofotlar yoki personaj/minora sozlamalari kod ichida hardcode qilinmasin — o'yinning barcha qoidalari to'g'ridan-to'g'ri xaritadagi (`.json`) TD settings va wave konfiguratsiyasidan olinishi shart!

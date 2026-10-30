@@ -35,6 +35,36 @@ export class WaveManager {
   }
 
   /**
+   * Normalizes a raw wave from saved JSON, network payloads or legacy files into a complete WaveConfig.
+   * Single owner of wave defaults for import, export, restore and multiplayer sync.
+   */
+  public static normalizeWave(raw: Partial<WaveConfig>, idx: number): WaveConfig {
+    const unitBonus = raw.unitBonus !== undefined ? Number(raw.unitBonus) : (Number(raw.goldReward) || 1)
+    return {
+      waveNumber: raw.waveNumber ?? idx + 1,
+      name: raw.name || `Wave ${idx + 1}`,
+      unitHp: Number(raw.unitHp) || 100,
+      unitSpeed: Number(raw.unitSpeed) || 2.5,
+      unitCount: Number(raw.unitCount) || 10,
+      isBoss: !!raw.isBoss,
+      goldReward: Number(raw.goldReward) || unitBonus,
+      unitBonus,
+      endWaveBonus: raw.endWaveBonus !== undefined ? Number(raw.endWaveBonus) : 50,
+      characterModel: raw.characterModel || 'male',
+      animSpeed: Number(raw.animSpeed) || 1.0,
+      offsetY: Number(raw.offsetY) || 0,
+      unitScale: Number(raw.unitScale) || 1.0,
+      unitVariant: raw.unitVariant || 'normal',
+      variantTint: raw.variantTint,
+      immunities: Array.isArray(raw.immunities) ? [...raw.immunities] : [],
+    }
+  }
+
+  public static normalizeWaves(raw: unknown): WaveConfig[] {
+    return Array.isArray(raw) ? raw.map((w, idx) => WaveManager.normalizeWave(w, idx)) : []
+  }
+
+  /**
    * Re-indexes waves sequentially after one is deleted.
    */
   public static reindexWaves(waves: WaveConfig[]): void {

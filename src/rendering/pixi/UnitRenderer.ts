@@ -7,8 +7,7 @@ import { networkSyncBuffer } from '../../services/networkSync'
 import { getVariantTint } from '../../utils/unitVariants'
 import { renderPixiUnitEffect } from '../../utils/unitEffectRenderer'
 import { gridToScreen } from '../../utils/isometric'
-import { CrowdSimulation } from '../../domain/simulation/CrowdSimulation'
-import characterManifest from '../../assets/generated/characterManifest.json'
+import { getCharacterMeta } from '../../utils/characterUtils'
 
 export class UnitRenderer {
   public unitContainers: Container[] = []
@@ -110,7 +109,7 @@ export class UnitRenderer {
         sprite.alpha = fadeAlpha
 
         const modelKey = String(effectiveModel).toLowerCase()
-        const modelMeta = (characterManifest as any)?.[modelKey]
+        const modelMeta = getCharacterMeta(modelKey)
         const anchorX = modelMeta?.anchorX ?? 0.5
         const anchorY = modelMeta?.anchorY ?? 0.898
         const cellW = modelMeta?.cellWidth || 256

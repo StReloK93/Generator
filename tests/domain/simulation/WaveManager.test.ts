@@ -103,3 +103,23 @@ describe('WaveManager Domain Logic', () => {
     expect(computeEffectiveImmunities(legacyWave)).toEqual(['fire'])
   })
 })
+
+describe('GameSettings normalization', () => {
+  it('keeps zero values and maps legacy aliases', async () => {
+    const { normalizeGameSettings, DEFAULT_GAME_SETTINGS } = await import('@/domain/simulation/GameSettings')
+    const gs = normalizeGameSettings({ startingGold: 0, wavePrepTime: 0, formation: 'pair', spawnMode: 'single' })
+    expect(gs.startingGold).toBe(0)
+    expect(gs.wavePrepTime).toBe(0)
+    expect(gs.formation).toBe('pairs')
+    expect(gs.spawnMode).toBe('single_route')
+    expect(normalizeGameSettings().startingGold).toBe(DEFAULT_GAME_SETTINGS.startingGold)
+  })
+
+  it('normalizeWave fills defaults including immunities', () => {
+    const w = WaveManager.normalizeWave({ unitHp: 300 }, 2)
+    expect(w.waveNumber).toBe(3)
+    expect(w.unitHp).toBe(300)
+    expect(w.endWaveBonus).toBe(50)
+    expect(w.immunities).toEqual([])
+  })
+})

@@ -1,4 +1,3 @@
-import { Container, Sprite, Texture } from 'pixi.js'
 import { AssetItem, GridCoord, MapProject, Point2D, SelectedElementRef } from '../../types/map'
 import { screenToGrid } from '../../utils/isometric'
 import { PixiContext } from './PixiContext'

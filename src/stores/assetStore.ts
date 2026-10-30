@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AssetItem, ToolType } from '../types/map'
+import type { TowerAsset } from '../types/tower'
 import { useToolStore } from './toolStore'
 import { MapQueries } from '../domain/map'
 import { assetManager } from '../services/assetManager'
@@ -85,6 +86,12 @@ export const useAssetStore = defineStore('assetStore', () => {
     }
 
     return assetManager.getPreviewDataUrl(assetOrId.id || assetOrId.name) || assetOrId.previewSrc || ''
+  }
+
+  /** Preview image for a tower blueprint asset: inline data URL, then atlas lookup by id, name or path. */
+  function getTowerAssetPreview(asset: TowerAsset): string {
+    if (asset.assetPath?.startsWith('data:')) return asset.assetPath
+    return getAssetPreview(asset.assetId) || getAssetPreview(asset.assetName) || getAssetPreview(asset.assetPath) || ''
   }
 
   // Get full-frame preview data URL (with trim offsets) for accurate anchor calibration
@@ -351,6 +358,7 @@ export const useAssetStore = defineStore('assetStore', () => {
   )
 
   return {
+    getTowerAssetPreview,
     assets,
     customAssets,
     selectedAssetId,

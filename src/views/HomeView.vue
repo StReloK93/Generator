@@ -128,13 +128,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
+import {
   Play,
   Users,
   Layers,
   Palette,
   Crosshair,
-  Map,
   Maximize2,
   Minimize2,
   Download
@@ -148,10 +147,10 @@ import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import MapSelectionModal, { HomeMapItem } from '../components/home/MapSelectionModal.vue'
 import { assetManager } from '../services/assetManager'
 import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
-import { 
-  getBuiltinMaps, 
-  sanitizeMapId, 
-  applyMapPayloadToStores, 
+import {
+  getBuiltinMaps,
+  sanitizeMapId,
+  applyMapPayloadToStores,
   registerSessionCustomMap
 } from '../services/mapManager'
 
@@ -192,10 +191,6 @@ const availableMaps = computed<HomeMapItem[]>(() => {
   return [...customImportedMaps.value, ...rawAvailableMaps]
 })
 
-const selectedMapObject = computed(() => {
-  return availableMaps.value.find(m => m.id === selectedMapId.value) || availableMaps.value[0] || null
-})
-
 function openMapModal() {
   if (!selectedMapId.value && availableMaps.value.length > 0) {
     selectedMapId.value = availableMaps.value[0].id
@@ -230,12 +225,6 @@ async function handleToggleFullscreen() {
 
 function goToEditor() {
   editorSetupModalRef.value?.open('new', false)
-}
-
-function startSelectedMap() {
-  const mapData = selectedMapObject.value
-  if (!mapData) return
-  selectAndStartMap(mapData)
 }
 
 async function selectAndStartMap(mapData: any) {

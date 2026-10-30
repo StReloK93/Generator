@@ -1,4 +1,4 @@
-import { CombatEffect, DamageElement, TowerTraitType } from '../../types/combat'
+import { CombatEffect, TowerTraitType } from '../../types/combat'
 import { CombatUnitTarget, DamageCalculationResult } from './types'
 
 export interface EffectProcessingContext {

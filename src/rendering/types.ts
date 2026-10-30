@@ -1,4 +1,4 @@
-import { GridCoord, MapProject, AssetItem, SelectedElementRef } from '../types/map'
+import { GridCoord, SelectedElementRef } from '../types/map'
 
 export interface ViewportTransform {
   zoom: number

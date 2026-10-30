@@ -10,7 +10,6 @@ import {
   TeammateHover,
   CompactUnitSnapshot,
   CompactCombatEvent,
-  PLAYER_COLORS,
   getSlotColor
 } from '../types/multiplayer'
 import { networkService } from '../services/networkService'
@@ -36,7 +35,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   // Local Player Identity
   const savedName = localStorage.getItem('isocraft_player_name') || `Player_${Math.floor(Math.random() * 900 + 100)}`
-  const savedColor = localStorage.getItem('isocraft_player_color') || PLAYER_COLORS[0]
 
   const myPlayerId = ref<string>(`p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`)
   const myPlayerName = ref<string>(savedName)
@@ -73,7 +71,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   // Connection & Chat
   const connectionStatus = ref<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected')
-  const statusMessage = ref<string>('')
   const chatMessages = ref<ChatMessage[]>([])
 
   // Initialize discovery listener
@@ -170,7 +167,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // Create slots based on map routes
     slots.value = initializeSlotsFromMap(mapProject)
 
-    const startGold = mapProject.gameSettings?.startingGold || gameStore.startingGold || 150
+    const startGold = gameStore.startingGold
 
     // Setup Host Player (Slot 0 is Slot 1 = Red)
     const hostPlayer: PlayerInfo = {
@@ -217,7 +214,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }))
 
     connectionStatus.value = 'connected'
-    statusMessage.value = 'Xona faol. O\'yinchilar kutilmoqda...'
 
     if (globalRouter) {
       globalRouter.push(`/lobby/${code}`)
@@ -236,7 +232,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     isHost.value = false
     connectionStatus.value = 'connecting'
     chatMessages.value = []
-    statusMessage.value = 'Xonaga ulanilmoqda...'
 
     const connected = await networkService.connectToHost(
       cleanRoomId,
@@ -258,7 +253,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       },
       () => {
         connectionStatus.value = 'disconnected'
-        statusMessage.value = 'Lost connection to host.'
         if (roomId.value) {
           notify.warning("Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
           leaveRoom(globalRouter)
@@ -349,7 +343,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         // Slot-based authoritative color
         const assignedColor = getSlotColor(emptySlot.slotIndex)
 
-        const startGold = mapStore.project.gameSettings?.startingGold || gameStore.startingGold || 150
+        const startGold = gameStore.startingGold
 
         const newPlayer: PlayerInfo = {
           id: applicant.id,
@@ -373,11 +367,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         // Send map data to client so client loads exact same map
         networkService.broadcast({
           type: 'MAP_DATA',
-          payload: {
-            project: mapStore.project,
-            waveConfigs: waveStore.waveConfigs,
-            towerBlueprints: (mapStore.project as any).towerBlueprints || [],
-          },
+          payload: { project: buildSyncedProjectSnapshot() },
           senderId: myPlayerId.value,
           timestamp: Date.now(),
         })
@@ -390,22 +380,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (msg.payload.project) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.project))
           mapName.value = mapStore.project.name || 'Isometric TD Map'
+          restoreSessionFromProject()
         }
-        if (msg.payload.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          waveStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
-            ...w,
-            characterModel: w.characterModel || 'male',
-            animSpeed: Number(w.animSpeed) || 1.0,
-            offsetY: Number(w.offsetY) || 0,
-            unitScale: Number(w.unitScale) || 1.0,
-            unitVariant: w.unitVariant || 'normal',
-            variantTint: w.variantTint,
-          }))
-        }
-        if (msg.payload.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
-          towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
-        }
-        towerStore.restoreFromProject()
         break
       }
 
@@ -453,25 +429,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.mapProject))
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
-        if (msg.payload?.waveConfigs && msg.payload.waveConfigs.length > 0) {
-          waveStore.waveConfigs = msg.payload.waveConfigs.map((w: any) => ({
-            ...w,
-            unitBonus: w.unitBonus !== undefined ? Number(w.unitBonus) : (Number(w.goldReward) || 1),
-            endWaveBonus: w.endWaveBonus !== undefined ? Number(w.endWaveBonus) : 50,
-            characterModel: w.characterModel || 'male',
-            animSpeed: Number(w.animSpeed) || 1.0,
-            offsetY: Number(w.offsetY) || 0,
-            unitScale: Number(w.unitScale) || 1.0,
-            unitVariant: w.unitVariant || 'normal',
-            variantTint: w.variantTint,
-          }))
-        }
-        if (msg.payload?.towerBlueprints && msg.payload.towerBlueprints.length > 0) {
-          towerStore.blueprints = msg.payload.towerBlueprints.map((b: any) => ({ ...b }))
-        }
-        towerStore.restoreFromProject()
-        gameStore.restoreGameSettingsFromProject()
-        waveStore.restoreWavesFromProject()
+        restoreSessionFromProject()
 
         resetGameMatchStats()
         roomGameState.value = 'in_game'
@@ -519,7 +477,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
               const builderId = tower.builderId || msg.senderId
               const builderPlayer = players.value.find(p => p.id === builderId)
               const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
-              const cost = bp ? (bp.cost ?? 100) : (tower.damage ? Math.round(tower.damage * 0.8) : 50)
+              const cost = bp ? (bp.levels[0].cost ?? 100) : (tower.damage ? Math.round(tower.damage * 0.8) : 50)
               if (builderPlayer) {
                 builderPlayer.gold = Math.max(0, (builderPlayer.gold || 0) - cost)
                 builderPlayer.towersBuilt = (builderPlayer.towersBuilt || 0) + 1
@@ -570,7 +528,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (idx !== -1) {
           const removed = towerStore.placedTowers.splice(idx, 1)[0]
           const bp = towerStore.blueprints.find(b => b.id === removed.blueprintId)
-          const baseCost = bp ? (bp.cost ?? 100) : 100
+          const baseCost = bp ? (bp.levels[0].cost ?? 100) : 100
           const refund = Math.round(baseCost * 0.7 * (1 + (removed.level - 1) * 0.5))
           addSystemMessage(`${removed.name} was sold (+${refund} Gold).`)
 
@@ -955,7 +913,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // 3. Low-frequency 1Hz Game State Sync (with Placed Towers state check)
     if (now - lastGameStateBroadcastTime >= 800) {
       lastGameStateBroadcastTime = now
-      const defaultGold = mapStore.project.gameSettings?.startingGold ?? gameStore.startingGold ?? 150
+      const defaultGold = gameStore.startingGold
       networkService.broadcast({
         type: 'GAME_STATE_SYNC',
         payload: {
@@ -986,7 +944,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function recordPlayerKill(playerId: string, killGold: number) {
     const p = players.value.find(x => x.id === playerId)
     if (p) {
-      const defaultGold = mapStore.project.gameSettings?.startingGold ?? gameStore.startingGold ?? 150
+      const defaultGold = gameStore.startingGold
       p.killsCount = (p.killsCount || 0) + 1
       p.gold = (p.gold !== undefined ? p.gold : defaultGold) + killGold
       p.totalGoldEarned = (p.totalGoldEarned !== undefined ? p.totalGoldEarned : defaultGold) + killGold
@@ -1112,8 +1070,25 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }
   }
 
+  /** Writes all TD state (settings, waves, routes, towers) into the project and returns a serializable copy. */
+  function buildSyncedProjectSnapshot(): MapProject {
+    gameStore.syncGameSettingsToProject()
+    waveStore.syncWavesToProject()
+    routeStore.syncRoutesToProject()
+    towerStore.syncToProject()
+    return JSON.parse(JSON.stringify(mapStore.project))
+  }
+
+  /** Hydrates every TD store from the received project — same path as a local map load. */
+  function restoreSessionFromProject() {
+    routeStore.syncRoutesFromProject()
+    towerStore.restoreFromProject()
+    gameStore.restoreGameSettingsFromProject()
+    waveStore.restoreWavesFromProject()
+  }
+
   function resetGameMatchStats() {
-    const startGold = mapStore.project.gameSettings?.startingGold || gameStore.startingGold || 150
+    const startGold = gameStore.startingGold
     players.value.forEach(p => {
       p.gold = startGold
       p.totalGoldEarned = startGold
@@ -1148,9 +1123,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       type: 'START_GAME',
       payload: {
         roomId: roomId.value,
-        mapProject: JSON.parse(JSON.stringify(mapStore.project)),
-        waveConfigs: JSON.parse(JSON.stringify(waveStore.waveConfigs)),
-        towerBlueprints: JSON.parse(JSON.stringify(towerStore.blueprints)),
+        mapProject: buildSyncedProjectSnapshot(),
         timestamp: Date.now(),
       },
       senderId: myPlayerId.value,
@@ -1276,7 +1249,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     nudgeHostName,
     teammateHovers,
     connectionStatus,
-    statusMessage,
     chatMessages,
     isAllReady,
     unreadyCount,

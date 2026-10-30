@@ -3,14 +3,14 @@ import { ref, computed } from 'vue'
 import { useMapStore } from './mapStore'
 import { useTowerStore } from './towerStore'
 import { useWaveStore } from './waveStore'
-import { useMultiplayerStore } from './multiplayerStore'
 import { useCharacterStore } from './characterStore'
+import { MapGameSettings, MapProject } from '../types/map'
+import { DEFAULT_GAME_SETTINGS, ResolvedGameSettings, normalizeGameSettings } from '../domain/simulation/GameSettings'
 
 export const useGameStore = defineStore('gameStore', () => {
   const mapStore = useMapStore()
   const towerStore = useTowerStore()
   const waveStore = useWaveStore()
-  const multiplayerStore = useMultiplayerStore()
 
   // --- GAME MODE & ECONOMY STATE ---
   const isGameMode = ref(false)
@@ -18,94 +18,41 @@ export const useGameStore = defineStore('gameStore', () => {
   const gameSpeed = ref(1.0)
   const totalKills = ref(0)
   const totalGoldEarned = ref(0)
-  const playerLives = ref(20)
-  const maxLives = ref(20)
+  const playerLives = ref(DEFAULT_GAME_SETTINGS.startingLives)
+  const maxLives = ref(DEFAULT_GAME_SETTINGS.startingLives)
   const gameState = ref<'ready' | 'build_prep' | 'wave_running' | 'wave_completed' | 'game_over' | 'victory'>('ready')
-  const prepCountdown = ref(10)
-  const gold = ref(150)
-  const spawnMode = ref<'all_routes' | 'single_route'>('all_routes')
+  const prepCountdown = ref(DEFAULT_GAME_SETTINGS.wavePrepTime)
+  const gold = ref(DEFAULT_GAME_SETTINGS.startingGold)
 
-  // --- PER-MAP TD SETTINGS COMPUTEDS ---
-  const startingGold = computed({
-    get: () => mapStore.project.gameSettings?.startingGold ?? 150,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: v, startingLives: 20, wavePrepTime: 10 }
-      } else {
-        mapStore.project.gameSettings.startingGold = v
-      }
-      gold.value = v
+  // --- PER-MAP TD SETTINGS (single source of truth: mapStore.project.gameSettings) ---
+  function ensureGameSettings(): MapGameSettings {
+    if (!mapStore.project.gameSettings) {
+      mapStore.project.gameSettings = normalizeGameSettings()
     }
-  })
+    return mapStore.project.gameSettings
+  }
 
-  const startingLives = computed({
-    get: () => mapStore.project.gameSettings?.startingLives ?? 20,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: v, wavePrepTime: 10 }
-      } else {
-        mapStore.project.gameSettings.startingLives = v
-      }
-      maxLives.value = v
-      playerLives.value = v
-    }
-  })
+  function projectSetting<K extends keyof ResolvedGameSettings>(key: K, onSet?: (v: ResolvedGameSettings[K]) => void) {
+    return computed<ResolvedGameSettings[K]>({
+      get: () => normalizeGameSettings(mapStore.project.gameSettings)[key],
+      set: (v) => {
+        Object.assign(ensureGameSettings(), { [key]: v })
+        onSet?.(v)
+      },
+    })
+  }
 
-  const wavePrepDuration = computed({
-    get: () => mapStore.project.gameSettings?.wavePrepTime ?? 10,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: v }
-      } else {
-        mapStore.project.gameSettings.wavePrepTime = v
-      }
-      prepCountdown.value = v
-    }
+  const startingGold = projectSetting('startingGold', (v) => { gold.value = v })
+  const startingLives = projectSetting('startingLives', (v) => {
+    maxLives.value = v
+    playerLives.value = v
   })
-
-  const formation = computed({
-    get: () => (mapStore.project.gameSettings?.formation as 'pairs' | 'single') || 'pairs',
-    set: (v: 'pairs' | 'single') => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, formation: v }
-      } else {
-        mapStore.project.gameSettings.formation = v
-      }
-    }
-  })
-
-  const pairDistance = computed({
-    get: () => mapStore.project.gameSettings?.pairDistance ?? 0.35,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, pairDistance: v }
-      } else {
-        mapStore.project.gameSettings.pairDistance = v
-      }
-    }
-  })
-
-  const unitElevation = computed({
-    get: () => mapStore.project.gameSettings?.unitElevation ?? 0,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, unitElevation: v }
-      } else {
-        mapStore.project.gameSettings.unitElevation = v
-      }
-    }
-  })
-
-  const unitScaleMultiplier = computed({
-    get: () => mapStore.project.gameSettings?.unitScaleMultiplier ?? 1.0,
-    set: (v: number) => {
-      if (!mapStore.project.gameSettings) {
-        mapStore.project.gameSettings = { startingGold: 150, startingLives: 20, wavePrepTime: 10, unitScaleMultiplier: v }
-      } else {
-        mapStore.project.gameSettings.unitScaleMultiplier = v
-      }
-    }
-  })
+  const wavePrepDuration = projectSetting('wavePrepTime', (v) => { prepCountdown.value = v })
+  const spawnMode = projectSetting('spawnMode')
+  const formation = projectSetting('formation')
+  const pairDistance = projectSetting('pairDistance')
+  const unitElevation = projectSetting('unitElevation')
+  const unitScaleMultiplier = projectSetting('unitScaleMultiplier')
 
   // --- LOADING SCREEN / PRELOADER STATE ---
   const isLoadingGame = ref(false)
@@ -137,50 +84,27 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   // --- SYNCHRONIZATION ---
+  /** Writes the complete, normalized settings object into the project (before export / save). */
   function syncGameSettingsToProject() {
     if (!mapStore.project) return
-    mapStore.project.gameSettings = {
-      startingGold: Number(startingGold.value) || 150,
-      startingLives: Number(startingLives.value) || 20,
-      wavePrepTime: Number(wavePrepDuration.value) || 10,
-      spawnMode: spawnMode.value || 'all_routes',
-      formation: formation.value || 'pairs',
-      pairDistance: Number(pairDistance.value) || 0.35,
-      unitElevation: Number(unitElevation.value) || 0,
-      unitScaleMultiplier: Number(unitScaleMultiplier.value) || 1.0,
-    }
+    mapStore.project.gameSettings = normalizeGameSettings(mapStore.project.gameSettings)
   }
 
+  /** Normalizes project settings (incl. legacy `characterConfig`) and resets runtime economy from them. */
   function restoreGameSettingsFromProject() {
-    const p = mapStore.project as any
-    const gs = p?.gameSettings || p?.characterConfig
-    if (gs) {
-      startingGold.value = gs.startingGold ?? 150
-      startingLives.value = gs.startingLives ?? 20
-      wavePrepDuration.value = gs.wavePrepTime ?? 10
-      if (gs.spawnMode) spawnMode.value = gs.spawnMode === 'single_route' ? 'single_route' : 'all_routes'
-      formation.value = gs.formation || 'pairs'
-      pairDistance.value = gs.pairDistance !== undefined ? Number(gs.pairDistance) : 0.35
-      unitElevation.value = gs.unitElevation !== undefined ? Number(gs.unitElevation) : 0
-      unitScaleMultiplier.value = gs.unitScaleMultiplier !== undefined ? Number(gs.unitScaleMultiplier) : 1.0
-      gold.value = startingGold.value
-      maxLives.value = startingLives.value
-      playerLives.value = startingLives.value
-      prepCountdown.value = wavePrepDuration.value
-    } else {
-      startingGold.value = 150
-      startingLives.value = 20
-      wavePrepDuration.value = 10
-      spawnMode.value = 'all_routes'
-      formation.value = 'pairs'
-      pairDistance.value = 0.35
-      unitElevation.value = 0
-      unitScaleMultiplier.value = 1.0
-      gold.value = 150
-      maxLives.value = 20
-      playerLives.value = 20
-      prepCountdown.value = 10
-    }
+    const p = mapStore.project as MapProject & { characterConfig?: Partial<MapGameSettings> }
+    mapStore.project.gameSettings = normalizeGameSettings(p.gameSettings || p.characterConfig)
+    resetRuntimeEconomy()
+  }
+
+  function resetRuntimeEconomy() {
+    gold.value = startingGold.value
+    maxLives.value = startingLives.value
+    playerLives.value = startingLives.value
+    prepCountdown.value = wavePrepDuration.value
+    totalKills.value = 0
+    totalGoldEarned.value = 0
+    gameSpeed.value = 1.0
   }
 
   // --- GAME LIFECYCLE CONTROLS ---
@@ -190,16 +114,8 @@ export const useGameStore = defineStore('gameStore', () => {
     towerStore.saveEditorTowersSnapshot()
     towerStore.clearCombatEffects()
     isGameMode.value = true
-    const initLives = startingLives.value
-    maxLives.value = initLives
-    playerLives.value = initLives
-    gold.value = startingGold.value
-    totalKills.value = 0
-    totalGoldEarned.value = 0
     waveStore.currentWaveIndex = 0
     gameState.value = 'build_prep'
-    prepCountdown.value = wavePrepDuration.value
-    gameSpeed.value = 1.0
 
     // Always reset character units to 1st Wave at the spawn point!
     useCharacterStore().resetTour()
@@ -227,6 +143,7 @@ export const useGameStore = defineStore('gameStore', () => {
 
   function restartGame() {
     towerStore.restoreEditorTowersSnapshot()
+    towerStore.initGameClanSelection()
     startPlayMode()
   }
 
@@ -241,19 +158,9 @@ export const useGameStore = defineStore('gameStore', () => {
     waveStore.currentWaveIndex = 0
     if (customStartingGold !== undefined) {
       startingGold.value = Math.max(0, customStartingGold)
-      gold.value = startingGold.value
-      syncGameSettingsToProject()
-    } else {
-      gold.value = startingGold.value
     }
-    const initLives = startingLives.value || 20
-    maxLives.value = initLives
-    playerLives.value = initLives
-    totalKills.value = 0
-    totalGoldEarned.value = 0
+    resetRuntimeEconomy()
     gameState.value = 'build_prep'
-    prepCountdown.value = wavePrepDuration.value
-    gameSpeed.value = 1.0
 
     // Reset character units to 1st Wave!
     useCharacterStore().resetTour()
@@ -269,7 +176,6 @@ export const useGameStore = defineStore('gameStore', () => {
 
   function devSetStartingGold(amount: number) {
     startingGold.value = Math.max(0, amount)
-    syncGameSettingsToProject()
   }
 
   function devAddLives(amount: number) {
@@ -304,16 +210,8 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   function resetForNewProject() {
-    startingGold.value = 150
-    startingLives.value = 20
-    wavePrepDuration.value = 10
-    gold.value = 150
-    maxLives.value = 20
-    playerLives.value = 20
-    prepCountdown.value = 10
-    totalKills.value = 0
-    totalGoldEarned.value = 150
-    spawnMode.value = 'all_routes'
+    mapStore.project.gameSettings = normalizeGameSettings()
+    resetRuntimeEconomy()
     isGameMode.value = false
     gameState.value = 'ready'
   }

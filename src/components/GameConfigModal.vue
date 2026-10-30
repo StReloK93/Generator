@@ -480,35 +480,35 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <!-- Tower Scale -->
               <UiSlider 
-                :model-value="selectedBp?.scale ?? 1.0"
+                :model-value="selectedBp?.asset.scale ?? 1.0"
                 :label="$t('config.towerScale')"
                 :min="0.3"
                 :max="3.0"
                 :step="0.05"
                 unit="x"
-                @update:model-value="(val) => updateSelectedBp({ scale: val })"
+                @update:model-value="(val) => updateSelectedBp({ asset: { scale: val } })"
               />
 
               <!-- Muzzle Offset X -->
               <UiSlider 
-                :model-value="selectedBp?.muzzleOffsetX ?? 0"
+                :model-value="selectedBp?.asset.muzzleOffsetX ?? 0"
                 :label="$t('config.muzzleOffsetX')"
                 :min="-50"
                 :max="50"
                 :step="1"
                 unit=" px"
-                @update:model-value="(val) => updateSelectedBp({ muzzleOffsetX: val })"
+                @update:model-value="(val) => updateSelectedBp({ asset: { muzzleOffsetX: val } })"
               />
 
               <!-- Muzzle Offset Y -->
               <UiSlider 
-                :model-value="selectedBp?.muzzleOffsetY ?? 0"
+                :model-value="selectedBp?.asset.muzzleOffsetY ?? 0"
                 :label="$t('config.muzzleOffsetY')"
                 :min="-80"
                 :max="20"
                 :step="1"
                 unit=" px"
-                @update:model-value="(val) => updateSelectedBp({ muzzleOffsetY: val })"
+                @update:model-value="(val) => updateSelectedBp({ asset: { muzzleOffsetY: val } })"
               />
             </div>
           </div>
@@ -1883,49 +1883,46 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { 
-  Gamepad2, X, ShieldAlert, Swords, TowerControl, Users, 
-  Plus, Sparkles, Trash2, Crosshair, Play, Pause, RotateCcw, 
-  MapPin, Navigation, PenTool, Activity, User, Coins, Heart, Timer,
-  Search, Pencil, Check, Image, Flag, Wand2, Skull, Shield, Flame,
-  ArrowRight, Zap, CircleDot, Snowflake, Radio, Rocket, Ghost, Droplet, Crown,
-  TrendingDown, TrendingUp, Equal, Bird, Bomb, Castle
+import {
+  Gamepad2, ShieldAlert, Swords, Users,
+  Plus, Sparkles, Trash2, Crosshair, RotateCcw,
+  MapPin, Navigation, PenTool, User, Coins, Heart, Timer,
+  Search, Pencil, Check, Image, Flag, Skull, Shield, Flame,
+  Zap, Snowflake, Ghost, Droplet,
+  TrendingDown, TrendingUp, Equal, Bird, Castle
 } from 'lucide-vue-next'
-import { 
-  UiModal, 
-  UiTabs, 
-  UiButton, 
-  UiIconButton, 
-  UiInput, 
-  UiNumberInput, 
-  UiSlider, 
-  UiSwitch, 
-  UiCard, 
-  UiBadge, 
-  TabItem 
+import {
+  UiModal,
+  UiTabs,
+  UiButton,
+  UiIconButton,
+  UiInput,
+  UiSlider,
+  UiSwitch,
+  UiCard,
+  UiBadge,
+  TabItem
 } from './ui'
 import { useToolStore } from '../stores/toolStore'
 import { useTowerStore } from '../stores/towerStore'
+import type { BlueprintUpdate } from '../types/tower'
 import { useRouteStore } from '../stores/routeStore'
 import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
-import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevelConfig } from '../types/map'
-import { UNIT_VARIANTS, UnitVariantDef, getVariantDef } from '../utils/unitVariants'
-import { TOWER_TRAITS, TowerTraitDef, getTraitDef } from '../utils/towerTraits'
+import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevel } from '../types/map'
+import { UNIT_VARIANTS, getVariantDef, getVariantIcon } from '../utils/unitVariants'
+import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon, CLAN_AVAILABLE_ICONS, CLAN_AVAILABLE_COLORS } from '../utils/towerClans'
-import { requestAppFullscreen } from '../utils/fullscreen'
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
-import { getProjectileDefinition, getProjectileArchetype, PROJECTILE_ARCHETYPES } from '../utils/projectileCatalog'
+import { getProjectileDefinition, getProjectileArchetypeMeta } from '../utils/projectileCatalog'
 import characterManifest from '../assets/generated/characterManifest.json'
+import { getCharacterMeta } from '../utils/characterUtils'
 import { useI18n } from '../stores/i18nStore'
-import { sanitizeMapId } from '../services/mapManager'
 
-const router = useRouter()
 const toolStore = useToolStore()
 const towerStore = useTowerStore()
 const routeStore = useRouteStore()
@@ -1934,11 +1931,6 @@ const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
 const { t, currentLocale } = useI18n()
-
-function getProjectileArchetypeMeta(def: any) {
-  const arch = getProjectileArchetype(def)
-  return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
-}
 
 // Clan Management state
 const isClanModalOpen = ref(false)
@@ -2018,20 +2010,6 @@ function openCreateTowerModal() {
   towerStore.isCreateTowerModalOpen = true
 }
 
-const variantIconMap: Record<string, any> = {
-  Shield,
-  Flame,
-  Snowflake,
-  Skull,
-  Ghost,
-  Zap,
-  Droplet,
-  Crown
-}
-
-function getVariantIcon(iconName: string) {
-  return variantIconMap[iconName] || Shield
-}
 
 const configTabItems = computed<TabItem[]>(() => [
   { id: 'towers', label: t('clans.title') || 'Clans & Towers', icon: Swords, count: towerStore.clans.length },
@@ -2051,13 +2029,13 @@ const splashTypeOptions = computed(() => [
 // Tower Blueprint Upgrade Levels State
 const selectedLevelIndex = ref(0)
 
-const currentBlueprintLevels = computed<TowerLevelConfig[]>(() => {
+const currentBlueprintLevels = computed<TowerLevel[]>(() => {
   if (!selectedBp.value) return []
   return towerStore.ensureBlueprintLevels(selectedBp.value)
 })
 
-const activeLevelConfig = computed<TowerLevelConfig>(() => {
-  if (!selectedBp.value) return {} as TowerLevelConfig
+const activeLevelConfig = computed<TowerLevel>(() => {
+  if (!selectedBp.value) return {} as TowerLevel
   const levels = currentBlueprintLevels.value
   const validIdx = Math.max(0, Math.min(levels.length - 1, selectedLevelIndex.value))
   return levels[validIdx] || levels[0] || (selectedBp.value as any)
@@ -2081,7 +2059,7 @@ function handleRemoveLevel() {
   selectedLevelIndex.value = Math.max(0, selectedLevelIndex.value - 1)
 }
 
-function updateActiveLevel(partial: Partial<TowerLevelConfig>) {
+function updateActiveLevel(partial: Partial<TowerLevel>) {
   if (!selectedBp.value) return
   towerStore.updateBlueprintLevel(selectedBp.value.id, selectedLevelIndex.value, partial)
 }
@@ -2106,14 +2084,6 @@ function toggleLevelTrait(traitId: TowerTraitType) {
     }
   }
   updateActiveLevel({ traits: currentTraits })
-}
-
-function hasTowerTrait(traitId: TowerTraitType): boolean {
-  return hasLevelTrait(traitId)
-}
-
-function toggleTowerTrait(traitId: TowerTraitType) {
-  toggleLevelTrait(traitId)
 }
 
 function hasWaveImmunity(traitId: TowerTraitType): boolean {
@@ -2156,7 +2126,7 @@ const availableCharacterModels = computed(() => {
 
 function getUnitModelDisplayName(id?: string): string {
   const lower = String(id || 'male').toLowerCase()
-  const found = (characterManifest as any)?.[lower]
+  const found = getCharacterMeta(lower)
   if (found && found.name) return found.name
   return lower.charAt(0).toUpperCase() + lower.slice(1)
 }
@@ -2169,15 +2139,6 @@ function getModelIcon(modelId: string) {
   if (lower === 'warrior') return Swords
   if (lower === 'female') return User
   return User
-}
-
-function getUnitBadgeVariant(id?: string): 'brand' | 'amber' | 'rose' | 'emerald' {
-  const lower = String(id || 'male').toLowerCase()
-  if (lower.includes('warrior') || lower.includes('knight')) return 'amber'
-  if (lower.includes('female') || lower.includes('woman')) return 'rose'
-  if (lower.includes('medusa') || lower.includes('orc') || lower.includes('goblin') || lower.includes('dragon')) return 'emerald'
-  if (lower.includes('bird') || lower.includes('demon')) return 'amber'
-  return 'brand'
 }
 
 function openChangeUnitModal() {
@@ -2268,7 +2229,7 @@ const tempSelectedAsset = computed(() => {
 
 function openChangeSpriteModal() {
   if (selectedBp.value) {
-    tempSelectedAssetId.value = selectedBp.value.assetId || ''
+    tempSelectedAssetId.value = selectedBp.value.asset.assetId || ''
   }
   spriteModalSearchQuery.value = ''
   selectedSpriteCategory.value = 'all'
@@ -2282,7 +2243,7 @@ function saveSpriteSelection() {
   isChangeSpriteModalOpen.value = false
 }
 
-function updateSelectedBp(updates: any) {
+function updateSelectedBp(updates: BlueprintUpdate) {
   if (selectedBp.value) {
     towerStore.updateBlueprint(selectedBp.value.id, updates)
     if (updates.clanId && updates.clanId !== towerStore.selectedEditorClanId) {
@@ -2306,10 +2267,12 @@ function handleApplySelectedBp() {
 function changeBlueprintAsset(bpId: string, asset: AssetItem) {
   const preview = assetStore.getAssetPreview(asset)
   towerStore.updateBlueprint(bpId, {
-    assetId: asset.id,
-    assetName: `${asset.name}.webp`,
-    assetPath: preview || asset.previewSrc || asset.src || '',
-    scale: asset.scale ?? 1.0,
+    asset: {
+      assetId: asset.id,
+      assetName: `${asset.name}.webp`,
+      assetPath: preview || asset.previewSrc || asset.src || '',
+      scale: asset.scale ?? 1.0,
+    },
   })
 }
 
@@ -2336,14 +2299,6 @@ function handleStartDrawingRoute() {
   routeStore.startDrawingCustomRoute(currentIdx)
 }
 
-function handleStartPlayModeFromModal() {
-  toolStore.closeGameConfig()
-  gameStore.entrySource = 'editor'
-  gameStore.startLoadingScreen(mapStore.project.name || 'Map')
-  const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
-  router.push(`/editor-game/${cleanId}`)
-  requestAppFullscreen()
-}
 </script>
 
 <style scoped>

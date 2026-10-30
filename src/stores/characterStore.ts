@@ -1,16 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { UnitVariantType, WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
-import { 
-  CharacterUnit, 
-  CharacterAction, 
-  CharacterModel, 
-  UnitStatusEffect, 
-  UnitIdentity, 
-  UnitMovement, 
-  UnitCombat, 
-  UnitAnimation, 
-  UnitLifecycle 
+import { WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
+import {
+  CharacterUnit,
+  CharacterAction,
+  CharacterModel,
+  UnitStatusEffect,
+  UnitIdentity,
+  UnitMovement,
+  UnitCombat,
+  UnitAnimation,
+  UnitLifecycle
 } from '../types/unit'
 import { useMapStore } from './mapStore'
 import { useTowerStore } from './towerStore'
@@ -20,7 +20,7 @@ import { useWaveStore } from './waveStore'
 import { useGameStore } from './gameStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { gridToScreen } from '../utils/isometric'
-import characterManifest from '../assets/generated/characterManifest.json'
+import { getModelActionFrameCount } from '../utils/characterUtils'
 import { CrowdSimulation, GameStateMachine } from '../domain/simulation'
 
 export type { 
@@ -78,7 +78,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const isPlaying = ref(false)
   const units = ref<CharacterUnit[]>([])
   const routeWaveProgress = ref<Record<number, number>>({})
-  const statusMessage = ref('Waiting at spawn point')
 
   // ==========================================
   // 2. COMPUTEDS
@@ -96,26 +95,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
       u => u.lifecycle.isSpawned && !u.lifecycle.isDead && !u.lifecycle.hasReachedEnd
     ).length
   })
-
-  // ==========================================
-  // 3. HELPERS
-  // ==========================================
-  /**
-   * Determines action frame count from character manifest metadata.
-   */
-  function getModelActionFrameCount(model: string = 'male', action: string = 'Run'): number {
-    const meta = (characterManifest as any)?.[String(model || 'male').toLowerCase()]
-    if (!meta || !meta.actions) {
-      return model === 'warrior' ? 24 : 10
-    }
-    const actions = Object.values(meta.actions) as any[]
-    const act = actions.find((a: any) => a.id.toLowerCase() === action.toLowerCase())
-      || actions.find((a: any) => action.toLowerCase() === 'run' && /run|walk|sprint|move/i.test(a.id))
-      || actions.find((a: any) => action.toLowerCase() === 'idle' && /idle|stand|wait/i.test(a.id))
-      || actions.find((a: any) => action.toLowerCase() === 'pickup' && /die|death|dead|pickup|hit|collapse/i.test(a.id))
-      || actions[0]
-    return act?.frameCount || (model === 'warrior' ? 24 : 10)
-  }
 
   // ==========================================
   // 4. UNIT CREATION & SPAWNING
@@ -287,11 +266,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     }
     initializeUnits()
     isPlaying.value = false
-    const totalCount = units.value.length
-    const hpStr = waveStore.currentWaveConfig ? `(HP: ${waveStore.currentWaveConfig.unitHp})` : ''
-    statusMessage.value = gameStore.spawnMode === 'all_routes' && routeStore.routes.length > 1
-      ? `All ${routeStore.routes.length} routes ready (${totalCount} units ${hpStr})`
-      : `${routeStore.selectedRoute?.name || 'Route'} ready (${totalCount} units ${hpStr})`
   }
 
   // ==========================================
@@ -310,8 +284,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
         u.animation.action = 'Run'
       }
     }
-    const waveName = waveStore.currentWaveConfig ? waveStore.currentWaveConfig.name : 'Units'
-    statusMessage.value = `${waveName} — ${units.value.length} units marching to target...`
   }
 
   /**
@@ -324,7 +296,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
         u.animation.action = 'Idle'
       }
     }
-    statusMessage.value = 'Movement paused'
   }
 
   /**
@@ -347,7 +318,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     routeWaveProgress.value = {}
     units.value = []
     initializeUnits()
-    statusMessage.value = 'Reset to spawn point and ready'
   }
 
   // ==========================================
@@ -532,7 +502,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
           if (lifeRes.isGameOver) {
             gameStore.gameState = 'game_over'
             isPlaying.value = false
-            statusMessage.value = 'Defeat! All lives lost.'
             towerStore.clearCombatEffects()
           }
         }
@@ -575,7 +544,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
           if (completion.isVictory) {
             gameStore.gameState = 'victory'
             isPlaying.value = false
-            statusMessage.value = 'Victory! All waves successfully cleared!'
             towerStore.clearCombatEffects()
           } else {
             waveStore.currentWaveIndex++
@@ -584,18 +552,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
             isPlaying.value = false
             towerStore.clearCombatEffects()
             spawnAtRoute(0)
-            if (multiplayerStore.roomId) {
-              statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. ${gameStore.wavePrepDuration}s build prep...`
-            } else {
-              statusMessage.value = `${completedWave?.name || 'Wave'} cleared! +${reward} Gold. Click Start to begin next wave.`
-            }
           }
         }
       } else {
         gameStore.gold += reward
         pauseTour()
         towerStore.clearCombatEffects()
-        statusMessage.value = `${completedWave?.name || 'Wave'} test completed!`
       }
     }
   }
@@ -625,14 +587,12 @@ export const useCharacterStore = defineStore('characterStore', () => {
    */
   function resetForNewProject(): void {
     units.value = []
-    statusMessage.value = 'Waiting at spawn point'
   }
 
   return {
     units,
     isEnabled,
     isPlaying,
-    statusMessage,
     aliveEnemiesCount,
     initializeUnits,
     syncLiveUnitsWithWaveConfig,

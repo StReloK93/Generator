@@ -17,7 +17,7 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
@@ -33,9 +33,6 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/env.d.ts",
-    "src/shims-vue.d.ts",
-    "src/vite-env.d.ts",
     "tests/**/*.ts",
     "tests/**/*.d.ts"
   ]

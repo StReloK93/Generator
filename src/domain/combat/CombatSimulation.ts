@@ -1,4 +1,4 @@
-import { Projectile, DamageFloater, ExplosionRing } from '../../stores/towerStore'
+import { Projectile, DamageFloater, ExplosionRing } from '../../types/combat'
 import { CombatUnitTarget } from './types'
 
 export class CombatSimulation {

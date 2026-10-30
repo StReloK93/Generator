@@ -148,7 +148,7 @@
             <div class="flex items-center gap-2 min-w-0">
               <div
                 class="size-11 rounded-xl bg-slate-900 border border-amber-500/40 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                <img v-if="getTowerSpriteUrl(activeSelectedBlueprint)" :src="getTowerSpriteUrl(activeSelectedBlueprint)"
+                <img v-if="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)" :src="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)"
                   :alt="activeSelectedBlueprint.name"
                   class="w-full h-full object-contain filter drop-shadow scale-110" />
                 <ShieldAlert v-else class="size-5 text-amber-400" />
@@ -156,7 +156,7 @@
               <div class="flex flex-col min-w-0 text-left">
                 <span class="font-bold text-white truncate text-xs sm:text-sm">{{ activeSelectedBlueprint.name }}</span>
                 <span class="font-mono text-xs text-amber-300 font-bold flex items-center gap-1 mt-0.5">
-                  <Coins class="size-3 text-amber-400" />{{ $t('game.cost', { amount: activeSelectedBlueprint.cost ?? 100 }) }}
+                  <Coins class="size-3 text-amber-400" />{{ $t('game.cost', { amount: activeSelectedBlueprint.levels[0].cost ?? 100 }) }}
                 </span>
               </div>
             </div>
@@ -170,36 +170,36 @@
               <span class="text-slate-400 flex items-center gap-1">
                 <Flame class="size-3 text-rose-400" />{{ $t('common.damage') }}
               </span>
-              <span class="font-bold text-white">{{ activeSelectedBlueprint.damage }}</span>
+              <span class="font-bold text-white">{{ activeSelectedBlueprint.levels[0].damage }}</span>
             </div>
             <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
               <span class="text-slate-400 flex items-center gap-1">
                 <Zap class="size-3 text-amber-400" />{{ $t('config.attackSpeed') }}
               </span>
-              <span class="font-bold text-white">{{ (1 / (activeSelectedBlueprint.attackSpeed || 1.0)).toFixed(1) }}/s</span>
+              <span class="font-bold text-white">{{ (1 / (activeSelectedBlueprint.levels[0].attackSpeed || 1.0)).toFixed(1) }}/s</span>
             </div>
             <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
               <span class="text-slate-400 flex items-center gap-1">
                 <Crosshair class="size-3 text-sky-400" />{{ $t('config.attackRange') }}
               </span>
-              <span class="font-bold text-white">{{ activeSelectedBlueprint.range }} k</span>
+              <span class="font-bold text-white">{{ activeSelectedBlueprint.levels[0].range }} k</span>
             </div>
             <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
               <span class="text-slate-400 flex items-center gap-1">
                 <Crosshair class="size-3 text-purple-400" />{{ $t('common.type') }}
               </span>
               <span class="font-bold text-purple-300 uppercase text-[9px] truncate max-w-16">{{
-                getProjectileLabel(activeSelectedBlueprint.projectileType) }}</span>
+                getProjectileLabel(activeSelectedBlueprint.projectileId) }}</span>
             </div>
           </div>
 
           <!-- Traits if configured -->
-          <div v-if="activeSelectedBlueprint.traits && activeSelectedBlueprint.traits.length > 0"
+          <div v-if="activeSelectedBlueprint.levels[0].traits && activeSelectedBlueprint.levels[0].traits.length > 0"
             class="flex flex-col gap-1">
             <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{{ $t('traits.title')
             }}</span>
             <div class="flex items-center gap-1 flex-wrap">
-              <span v-for="traitId in activeSelectedBlueprint.traits" :key="String(traitId)"
+              <span v-for="traitId in activeSelectedBlueprint.levels[0].traits" :key="String(traitId)"
                 class="px-1.5 py-0.5 rounded text-[9px] font-bold border flex items-center gap-0.5"
                 :class="getTraitDef(traitId as any).badgeClass">
                 <component :is="getTraitDef(traitId as any).icon" class="size-2.5" />
@@ -406,34 +406,29 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import {
-  Heart, Swords, Skull, Maximize2, Minimize2, Menu, Play, RotateCcw,
-  Layers, Home, Coins, Languages, Zap, Crosshair, Flame, Shield, ShieldAlert,
-  X, Check, Users, Footprints, Crown, List
+  Heart, Swords, Skull, Menu, Play,
+  Coins, Zap, Crosshair, Flame, Shield, ShieldAlert,
+  X, Check, Footprints
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs, UiLanguageSwitcher, UiModal } from '../ui'
+import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs } from '../ui'
 import CharacterLivePreview from './CharacterLivePreview.vue'
 import WavesOverviewModal from './WavesOverviewModal.vue'
 import InGameMenuModal from './InGameMenuModal.vue'
-import { useMapStore } from '../../stores/mapStore'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useWaveStore } from '../../stores/waveStore'
-import { useTowerStore, TowerBlueprint, PlacedTower } from '../../stores/towerStore'
+import { useTowerStore } from '../../stores/towerStore'
+import type { TowerBlueprint, PlacedTower } from '../../types/tower'
 import { useToolStore } from '../../stores/toolStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18nStore } from '../../stores/i18nStore'
-import { sanitizeMapId } from '../../services/mapManager'
-import { assetManager } from '../../services/assetManager'
+import { useGameExit } from '../../composables/useGameExit'
 import { getTraitDef } from '../../utils/towerTraits'
 import { toggleAppFullscreen, isAppFullscreen } from '../../utils/fullscreen'
 
-const router = useRouter()
-const route = useRoute()
-const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const gameStore = useGameStore()
 const waveStore = useWaveStore()
@@ -476,7 +471,7 @@ const playerGold = computed(() => {
 
 const isBuildAffordable = computed(() => {
   if (!activeSelectedBlueprint.value) return false
-  return playerGold.value >= (activeSelectedBlueprint.value.cost ?? 100)
+  return playerGold.value >= (activeSelectedBlueprint.value.levels[0].cost ?? 100)
 })
 
 function getProjectileLabel(type?: string): string {
@@ -490,36 +485,10 @@ function getProjectileLabel(type?: string): string {
   }
 }
 
-function getTowerSpriteUrl(bp: TowerBlueprint): string {
-  if (bp.assetPath && bp.assetPath.startsWith('data:')) {
-    return bp.assetPath
-  }
-  if (bp.assetId) {
-    const preview = assetStore.getAssetPreview(bp.assetId)
-    if (preview) return preview
-  }
-  if (bp.assetName) {
-    const preview = assetStore.getAssetPreview(bp.assetName)
-    if (preview) return preview
-  }
-  if (bp.assetPath) {
-    const preview = assetStore.getAssetPreview(bp.assetPath)
-    if (preview) return preview
-  }
-  return ''
-}
-
 function getPlacedTowerSprite(placedTower: PlacedTower): string {
   const bp = towerStore.blueprints.find(b => b.id === placedTower.blueprintId)
-  if (bp) return getTowerSpriteUrl(bp)
+  if (bp) return assetStore.getTowerAssetPreview(bp.asset)
   return ''
-}
-
-function getWaveEnemySprite(model?: string): string {
-  const m = (model || 'male').toLowerCase()
-  return assetManager.getCharacterPreviewDataUrl(m, 2, 'Idle', 0)
-    || assetManager.getCharacterPreviewDataUrl(m, 2, 'Run', 0)
-    || assetManager.getCharacterPreviewDataUrl('male', 2, 'Idle', 0)
 }
 
 function cancelBuild() {
@@ -531,7 +500,7 @@ function confirmPendingBuild() {
 
   if (!isBuildAffordable.value) {
     notify.gold(
-      t('game.needGoldForTower', { cost: activeSelectedBlueprint.value.cost ?? 100, current: playerGold.value }),
+      t('game.needGoldForTower', { cost: activeSelectedBlueprint.value.levels[0].cost ?? 100, current: playerGold.value }),
       t('game.notEnoughGold')
     )
     return
@@ -568,7 +537,7 @@ const sellRefund = computed(() => {
   const tower = towerStore.selectedPlacedTower
   if (!tower) return 50
   const bp = towerStore.blueprints.find(b => b.id === tower.blueprintId)
-  const baseCost = bp ? (bp.cost ?? 100) : 100
+  const baseCost = bp ? (bp.levels[0].cost ?? 100) : 100
   let investedUpgrades = 0
   if (bp && bp.levels && tower.level > 1) {
     for (let i = 1; i < Math.min(tower.level, bp.levels.length); i++) {
@@ -638,9 +607,7 @@ function handleStartWaveNow() {
 }
 
 function handleRestartGame() {
-  towerStore.initGameClanSelection()
   isMenuOpen.value = false
-  characterStore.resetTour()
   gameStore.restartGame()
 }
 
@@ -649,7 +616,7 @@ function handleExitFromMenu() {
   handleExitGame()
 }
 
-const isEditorMode = computed(() => gameStore.entrySource === 'editor' || route.name === 'editor-game')
+const { isEditorMode, exitGame } = useGameExit()
 
 async function handleExitGame() {
   const isEditor = isEditorMode.value
@@ -668,17 +635,6 @@ async function handleExitGame() {
     variant: 'danger',
   })
 
-  if (confirmed) {
-    characterStore.resetTour()
-    gameStore.exitPlayMode()
-    if (multiplayerStore.roomId) {
-      multiplayerStore.leaveRoom(router)
-    } else if (isEditor) {
-      const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
-      router.push(`/editor/${cleanId}`)
-    } else {
-      router.push('/')
-    }
-  }
+  if (confirmed) exitGame()
 }
 </script>

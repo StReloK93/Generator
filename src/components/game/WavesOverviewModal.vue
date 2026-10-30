@@ -191,18 +191,11 @@ import {
   Coins,
   ChevronLeft,
   ChevronRight,
-  Shield,
-  Flame,
-  Snowflake,
-  Skull,
-  Ghost,
-  Zap,
-  Droplet
 } from 'lucide-vue-next'
 import { UiModal, UiBadge, UiButton } from '../ui'
 import { useWaveStore } from '../../stores/waveStore'
 import { getTraitDef } from '../../utils/towerTraits'
-import { getVariantDef } from '../../utils/unitVariants'
+import { getVariantDef, getVariantIcon } from '../../utils/unitVariants'
 import CharacterLivePreview from './CharacterLivePreview.vue'
 
 const props = defineProps<{
@@ -248,18 +241,4 @@ function nextCarouselWave() {
   }
 }
 
-const variantIconMap: Record<string, any> = {
-  Shield,
-  Flame,
-  Snowflake,
-  Skull,
-  Ghost,
-  Zap,
-  Droplet,
-  Crown,
-}
-
-function getVariantIcon(iconName?: string) {
-  return variantIconMap[iconName || 'Shield'] || Shield
-}
 </script>

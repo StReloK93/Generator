@@ -1,4 +1,4 @@
-import { TowerTraitType, TowerTraitsConfig, TowerLevelConfig, ProjectileType } from '../../types/map'
+import { TowerTraitType, ProjectileType } from '../../types/map'
 
 export type { ProjectileType }
 export type SplashType = 'constant' | 'falloff'

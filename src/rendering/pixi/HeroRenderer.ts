@@ -2,7 +2,7 @@ import { Container, Graphics, Sprite, ColorMatrixFilter } from 'pixi.js'
 import { MapProject } from '../../types/map'
 import { gridToScreen } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
-import characterManifest from '../../assets/generated/characterManifest.json'
+import { getCharacterMeta } from '../../utils/characterUtils'
 import { useHeroStore } from '../../stores/heroStore'
 
 export class HeroRenderer {
@@ -95,7 +95,7 @@ export class HeroRenderer {
       this.sprite.visible = true
 
       const modelKey = String(hero.model).toLowerCase()
-      const modelMeta = (characterManifest as any)?.[modelKey]
+      const modelMeta = getCharacterMeta(modelKey)
       const anchorX = modelMeta?.anchorX ?? 0.5
       const anchorY = modelMeta?.anchorY ?? 0.898
       const cellW = modelMeta?.cellWidth || 256

@@ -82,8 +82,7 @@ export class BoxTool implements IEditorTool {
     const assetId = assetStore.selectedAssetId
     const cells = getRectangleCells(p0.col, p0.row, p1.col, p1.row)
 
-    const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-    const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+    const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
 
     const mode: 'replace' | 'stack' = (isCtrl || toolStore.placementMode === 'replace') ? 'replace' : 'stack'
     const count = mapStore.fillTiles(cells, assetId, mapStore.activeLayerId, mode)

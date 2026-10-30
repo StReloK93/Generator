@@ -32,8 +32,6 @@ export class EditorController {
   public draggedWaypointIndex: number | null = null
 
   // Keyboard modifiers
-  public isCtrlPressed = false
-  public isShiftPressed = false
 
   constructor(ctx: EditorToolContext) {
     this.ctx = ctx
@@ -44,7 +42,7 @@ export class EditorController {
     if (active === 'eraser') return this.eraserTool
     if (active === 'bucket') return this.bucketTool
     if (active === 'line') return this.lineTool
-    if (active === 'box-fill' || active === 'box' || active === 'rect') {
+    if (active === 'box-fill' || active === 'rect') {
       this.boxTool.mode = 'fill'
       return this.boxTool
     }

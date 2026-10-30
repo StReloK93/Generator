@@ -3,7 +3,8 @@ import { ref, computed } from 'vue'
 import { MapProject, Layer, TileItem, ProjectHistoryItem, GridCoord, BoxClearModalData, BoxAssetSummary, SelectedElementRef } from '../types/map'
 import { cellKey, isInsideGrid } from '../utils/isometric'
 import { assetManager } from '../services/assetManager'
-import { MapQueries, TileMutations } from '../domain/map'
+import { MapQueries } from '../domain/map'
+import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 
 export interface PlacedElementEntry {
   item: TileItem
@@ -280,16 +281,7 @@ export const useMapStore = defineStore('mapStore', () => {
           tiles: {},
         }
       ],
-      gameSettings: {
-        startingGold: 150,
-        startingLives: 20,
-        wavePrepTime: 10,
-        spawnMode: 'all_routes',
-        formation: 'pairs',
-        pairDistance: 0.35,
-        unitElevation: 0,
-        unitScaleMultiplier: 1.0,
-      },
+      gameSettings: normalizeGameSettings(),
       routes: [],
       waveConfigs: [],
       towerBlueprints: [],
@@ -965,7 +957,7 @@ export const useMapStore = defineStore('mapStore', () => {
     let updatedCount = 0
 
     for (const layer of project.value.layers) {
-      for (const [key, items] of Object.entries(layer.tiles)) {
+      for (const items of Object.values(layer.tiles)) {
         const itemArr = Array.isArray(items) ? items : [items]
         for (const item of itemArr) {
           if (!item || !item.assetId) continue

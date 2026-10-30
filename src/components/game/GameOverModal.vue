@@ -106,17 +106,17 @@
             variant="danger"
             size="sm"
             :leading-icon="RotateCcw"
-            @click="handleRestartGame"
+            @click="gameStore.restartGame()"
           >
             {{ $t('common.playAgain') }}
           </UiButton>
           <UiButton
             variant="secondary"
             size="sm"
-            :leading-icon="gameStore.entrySource === 'editor' || route.name === 'editor-game' ? Layers : Home"
-            @click="handleExit"
+            :leading-icon="isEditorMode ? Layers : Home"
+            @click="exitGame"
           >
-            {{ gameStore.entrySource === 'editor' || route.name === 'editor-game' ? $t('game.returnEditor') : $t('game.returnHome') }}
+            {{ isEditorMode ? $t('game.returnEditor') : $t('game.returnHome') }}
           </UiButton>
         </template>
       </div>
@@ -125,33 +125,18 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { Skull, Home, LogOut, RotateCcw, Layers, Coins, Castle } from 'lucide-vue-next'
 import { UiModal, UiButton } from '../ui'
-import { useMapStore } from '../../stores/mapStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useWaveStore } from '../../stores/waveStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
-import { sanitizeMapId } from '../../services/mapManager'
+import { useGameExit } from '../../composables/useGameExit'
 
 const router = useRouter()
-const route = useRoute()
-const mapStore = useMapStore()
 const gameStore = useGameStore()
 const waveStore = useWaveStore()
 const multiplayerStore = useMultiplayerStore()
 
-function handleRestartGame() {
-  gameStore.restartGame()
-}
-
-function handleExit() {
-  gameStore.exitPlayMode()
-  if (gameStore.entrySource === 'editor' || route.name === 'editor-game') {
-    const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || (route.params.mapId as string) || 'julion')
-    router.push(`/editor/${cleanId}`)
-  } else {
-    router.push('/')
-  }
-}
+const { isEditorMode, exitGame } = useGameExit()
 </script>

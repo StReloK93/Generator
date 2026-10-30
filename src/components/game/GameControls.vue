@@ -9,14 +9,14 @@
           towerStore.activeBuildTowerId === bp.id
             ? 'bg-amber-500/50 border-amber-400 ring-2 ring-amber-400/40'
             : 'bg-slate-900/90 border-slate-700/80 hover:border-slate-500'
-        ]" :title="`${bp.name} — ${$t('game.cost', { amount: bp.cost ?? 100 })}`">
+        ]" :title="`${bp.name} — ${$t('game.cost', { amount: bp.levels[0].cost ?? 100 })}`">
         <div class="size-12 sm:size-14  flex items-center justify-center">
-          <img v-if="getTowerSpriteUrl(bp)" :src="getTowerSpriteUrl(bp)" :alt="bp.name"
+          <img v-if="assetStore.getTowerAssetPreview(bp.asset)" :src="assetStore.getTowerAssetPreview(bp.asset)" :alt="bp.name"
             class="size-9 object-contain filter drop-shadow scale-110" />
           <ShieldAlert v-else class="size-4 text-amber-400" />
         </div>
         <div class="absolute -top-2 -right-2 z-10 bg-slate-900/80 size-6.5 aspect-square flex justify-center items-center border border-slate-700 rounded-full  text-[10px]  font-bold text-amber-300">
-          {{ bp.cost }}
+          {{ bp.levels[0].cost }}
         </div>
       </button>
 
@@ -42,10 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldAlert, Coins } from 'lucide-vue-next'
+import { ShieldAlert } from 'lucide-vue-next'
 import { UiCard, UiTabs } from '../ui'
 import { useGameStore } from '../../stores/gameStore'
-import { useTowerStore, TowerBlueprint } from '../../stores/towerStore'
+import { useTowerStore } from '../../stores/towerStore'
+import type { TowerBlueprint } from '../../types/tower'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useAssetStore } from '../../stores/assetStore'
 
@@ -60,25 +61,6 @@ const speedTabs = [
   { id: 3, label: '3x' },
   { id: 5, label: '5x' },
 ]
-
-function getTowerSpriteUrl(bp: TowerBlueprint): string {
-  if (bp.assetPath && bp.assetPath.startsWith('data:')) {
-    return bp.assetPath
-  }
-  if (bp.assetId) {
-    const preview = assetStore.getAssetPreview(bp.assetId)
-    if (preview) return preview
-  }
-  if (bp.assetName) {
-    const preview = assetStore.getAssetPreview(bp.assetName)
-    if (preview) return preview
-  }
-  if (bp.assetPath) {
-    const preview = assetStore.getAssetPreview(bp.assetPath)
-    if (preview) return preview
-  }
-  return ''
-}
 
 function selectTowerToBuild(bp: TowerBlueprint) {
   if (towerStore.activeBuildTowerId === bp.id) {

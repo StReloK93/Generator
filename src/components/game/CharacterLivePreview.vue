@@ -47,7 +47,7 @@ import { CharacterAction, CharacterModel } from '../../stores/characterStore'
 import { UnitVariantType } from '../../types/map'
 import { getVariantDef } from '../../utils/unitVariants'
 import { renderCanvasUnitEffect } from '../../utils/unitEffectRenderer'
-import characterManifest from '../../assets/generated/characterManifest.json'
+import { getCharacterMeta } from '../../utils/characterUtils'
 import { assetManager } from '../../services/assetManager'
 
 const props = withDefaults(
@@ -103,23 +103,8 @@ const currentAction = ref<CharacterAction>(props.initialAction || 'Run')
 const currentDirection = ref<number>(2) // Default 2: South-East (Down-Right)
 const currentFrameIndex = ref<number>(0)
 
-// Dynamic Manifest Data
-const availableModels = computed(() => {
-  const models = Object.values(characterManifest) as Array<{
-    id: string
-    name: string
-    cellWidth: number
-    cellHeight: number
-    actions: Record<string, { id: string; label: string; icon: string; frameCount: number }>
-  }>
-  return models.length > 0 ? models : [
-    { id: 'male', name: 'Male (Peasant)', cellWidth: 256, cellHeight: 512, actions: {} },
-    { id: 'warrior', name: 'Warrior (Knight)', cellWidth: 256, cellHeight: 256, actions: {} },
-  ]
-})
-
 const currentModelActions = computed(() => {
-  const modelInfo = (characterManifest as any)[currentModel.value]
+  const modelInfo = getCharacterMeta(currentModel.value)
   if (modelInfo && modelInfo.actions && Object.keys(modelInfo.actions).length > 0) {
     return Object.values(modelInfo.actions) as Array<{
       id: string
@@ -419,7 +404,7 @@ function renderFrame(timestamp: number) {
   if (activeEntry && activeEntry.img.complete && activeEntry.img.naturalWidth > 0) {
     lastRenderedEntry = activeEntry
     const modelKey = String(currentModel.value || 'male').toLowerCase()
-    const modelMeta = (characterManifest as any)?.[modelKey]
+    const modelMeta = getCharacterMeta(modelKey)
     const baseModelScale = modelMeta?.scale ?? 0.8
     const baseDrawScale = (modelKey === 'male' ? 0.52 : baseModelScale * 0.6)
     const drawScale = baseDrawScale * customUnitScale

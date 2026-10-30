@@ -408,13 +408,11 @@ export class ProjectileRenderer {
         // Jagged lightning segments
         g.moveTo(cx, beamTop)
         const segments = 6
-        let curX = cx
         for (let s = 1; s <= segments; s++) {
           const segY = beamTop + ((cy - beamTop) * s) / segments
           const offset = s === segments ? 0 : Math.sin(time * 30 + s * 3.7) * 14 * scale
           const nextX = cx + offset
           g.lineTo(nextX, segY)
-          curX = nextX
         }
         g.stroke({ width: r * 1.5, color: glowCol, alpha: 0.35, cap: 'round', join: 'round' })
 
@@ -464,7 +462,6 @@ export class ProjectileRenderer {
         g.moveTo(cx, beamTop).lineTo(cx, cy).stroke({ width: r * 0.6, color: 0xffffff, alpha: 0.95 })
 
         // Ground Holy Rings
-        const rot = time * 2
         g.ellipse(cx, cy, r * 2.5, r * 1.25).stroke({ width: 2.2 * scale, color: glowCol, alpha: 0.9 })
         g.ellipse(cx, cy, r * 1.5, r * 0.75).stroke({ width: 1.5 * scale, color: 0xffffff, alpha: 0.95 })
         break

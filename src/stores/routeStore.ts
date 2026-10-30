@@ -30,7 +30,6 @@ export const useRouteStore = defineStore('routeStore', () => {
   const showSpawnPoints = ref(true)
 
   // Status message for route actions
-  const statusMessage = ref('Waiting at spawn point')
 
   // --- COMPUTEDS ---
   const selectedRoute = computed<RouteInfo | null>(() => {
@@ -263,7 +262,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     }
 
     const currentRoute = selectedRoute.value
-    const idx = selectedRouteIndex.value ?? 0
     const startPt = currentRoute && currentRoute.routePoints && currentRoute.routePoints.length > 0
       ? currentRoute.routePoints[0]
       : { col: 2, row: 2 }
@@ -275,7 +273,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     }
     
     routeUndoStack.value = [JSON.parse(JSON.stringify(drawingWaypoints.value))]
-    statusMessage.value = `Drawing route for ${currentRoute?.name || `Route ${idx + 1}`}. Click map to add points.`
   }
 
   function selectWaypoint(index: number | null) {
@@ -283,8 +280,6 @@ export const useRouteStore = defineStore('routeStore', () => {
       selectedWaypointIndex.value = null
     } else if (index >= 0 && index < drawingWaypoints.value.length) {
       selectedWaypointIndex.value = index
-      const pt = drawingWaypoints.value[index]
-      statusMessage.value = `Point #${index + 1} (${pt.col}, ${pt.row}) selected. Click any cell to relocate it.`
     }
   }
 
@@ -308,7 +303,6 @@ export const useRouteStore = defineStore('routeStore', () => {
       }
 
       pushRouteState()
-      statusMessage.value = `Moved Point #${idx + 1} to (${coord.col}, ${coord.row})`
       selectedWaypointIndex.value = null
     }
   }
@@ -345,7 +339,6 @@ export const useRouteStore = defineStore('routeStore', () => {
       }
 
       pushRouteState()
-      statusMessage.value = `Deleted Point #${index + 1}`
     }
   }
 
@@ -370,7 +363,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     }
     drawingWaypoints.value.push({ col: coord.col, row: coord.row })
     pushRouteState()
-    statusMessage.value = `Added Point #${drawingWaypoints.value.length} at (${coord.col}, ${coord.row})`
   }
 
   function addPathTile(coord: GridCoord) {
@@ -388,7 +380,6 @@ export const useRouteStore = defineStore('routeStore', () => {
         selectedRoute.value.routePoints = [...drawingWaypoints.value]
         syncRoutesToProject()
       }
-      statusMessage.value = `Undo route (${drawingWaypoints.value.length} points)`
     }
   }
 
@@ -402,7 +393,6 @@ export const useRouteStore = defineStore('routeStore', () => {
         selectedRoute.value.routePoints = [...drawingWaypoints.value]
         syncRoutesToProject()
       }
-      statusMessage.value = `Redo route (${drawingWaypoints.value.length} points)`
     }
   }
 
@@ -417,7 +407,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     drawingWaypoints.value = [startPt]
     selectedWaypointIndex.value = null
     pushRouteState()
-    statusMessage.value = 'Route reset to start point'
   }
 
   function finishDrawingRoute() {
@@ -431,18 +420,15 @@ export const useRouteStore = defineStore('routeStore', () => {
       selectedWaypointIndex.value = null
       routeCache.value = {}
       mapStore.pushHistory(`Saved route (${drawingWaypoints.value.length} waypoints)`)
-      statusMessage.value = `Route saved (${drawingWaypoints.value.length} points)! Ready to begin.`
     } else {
       isDrawingRoute.value = false
       selectedWaypointIndex.value = null
-      statusMessage.value = 'Route drawing cancelled (at least 2 points required)'
     }
   }
 
   function cancelDrawingRoute() {
     isDrawingRoute.value = false
     selectedWaypointIndex.value = null
-    statusMessage.value = 'Route drawing cancelled'
   }
 
   function resetForNewProject() {
@@ -456,7 +442,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     isSettingPlayerStartPoint.value = false
     showPathTrail.value = true
     showSpawnPoints.value = true
-    statusMessage.value = 'Waiting at spawn point'
   }
 
   return {
@@ -479,7 +464,6 @@ export const useRouteStore = defineStore('routeStore', () => {
     isSettingPlayerStartPoint,
     showPathTrail,
     showSpawnPoints,
-    statusMessage,
     blockedBuildingCellsSet,
     isCellBlockedForBuilding,
     syncRoutesFromProject,

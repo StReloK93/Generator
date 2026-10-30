@@ -66,8 +66,7 @@ export class LineTool implements IEditorTool {
 
     if (assetStore.selectedAssetId) {
       const assetId = assetStore.selectedAssetId
-      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-      const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
       const mode: 'replace' | 'stack' = (isCtrl || toolStore.placementMode === 'replace') ? 'replace' : 'stack'
       
       const count = mapStore.fillTiles(cells, assetId, mapStore.activeLayerId, mode)
@@ -89,8 +88,8 @@ export class LineTool implements IEditorTool {
         }
       }
 
-      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-      const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
+      const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || ctx.modifiers.shift
 
       if (selectedRefs.length > 0) {
         if (isCtrl || isShift) {

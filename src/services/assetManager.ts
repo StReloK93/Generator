@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { AssetItem } from '../types/map'
 import spriteManifestRaw from '../assets/generated/spriteManifest.json'
 import atlasIndexRaw from '../assets/generated/atlasIndex.json'
-import characterManifest from '../assets/generated/characterManifest.json'
+import { getCharacterMeta } from '../utils/characterUtils'
 
 export type AssetBundleName = 'core' | 'structures' | 'props' | 'characters' | 'editor' | 'game'
 
@@ -435,7 +435,7 @@ class AssetManagerService {
     if (tex) return tex
 
     // 2. Action alias matching from manifest
-    const modelInfo = (characterManifest as any)?.[modelStr]
+    const modelInfo = getCharacterMeta(modelStr)
     if (modelInfo && modelInfo.actions) {
       const actions = Object.values(modelInfo.actions) as any[]
       let matchedAct: any = null
@@ -514,7 +514,7 @@ class AssetManagerService {
     const key = `${prefix}_${direction}_${actionPrefix}${frameIndex}`
     const fullKey = `stabilized_${key}`
 
-    const modelInfo = (characterManifest as any)?.[modelStr.toLowerCase()]
+    const modelInfo = getCharacterMeta(modelStr.toLowerCase())
     const defaultAnchorX = modelInfo?.anchorX ?? 0.5
     const defaultAnchorY = modelInfo?.anchorY ?? (modelStr.toLowerCase() === 'male' ? 0.898 : 0.67)
     const origW = modelInfo?.cellWidth ?? 256

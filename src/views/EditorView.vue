@@ -93,7 +93,6 @@ import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'
 import HistoryModal from '../components/editor/HistoryModal.vue'
 import { useMapStore } from '../stores/mapStore'
-import { useToolStore } from '../stores/toolStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useRouteStore } from '../stores/routeStore'
 import { useWaveStore } from '../stores/waveStore'
@@ -110,7 +109,6 @@ import {
 const router = useRouter()
 const route = useRoute()
 const mapStore = useMapStore()
-const toolStore = useToolStore()
 const assetStore = useAssetStore()
 const routeStore = useRouteStore()
 const waveStore = useWaveStore()

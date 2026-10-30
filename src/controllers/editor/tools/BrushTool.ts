@@ -30,8 +30,8 @@ export class BrushTool implements IEditorTool {
       }
 
       const allEls = mapStore.getAllElementsAtOrCoveringCell(coord.col, coord.row)
-      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-      const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+      const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
+      const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || ctx.modifiers.shift
 
       if (allEls.length > 0) {
         const activeLayerEntry = allEls.find((item: any) => item.layerId === mapStore.activeLayerId)
@@ -67,8 +67,8 @@ export class BrushTool implements IEditorTool {
     const placedAssetId = assetStore.selectedAssetId
     const existingDirect = mapStore.getCellItems(coord.col, coord.row, mapStore.activeLayerId)
 
-    const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-    const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+    const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
+    const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || ctx.modifiers.shift
 
     let effectiveMode: 'replace' | 'stack' | 'ask' = toolStore.placementMode
     if (isCtrl) {
@@ -145,8 +145,8 @@ export class BrushTool implements IEditorTool {
         isInsideGrid(coord.col, coord.row, mapStore.project.cols, mapStore.project.rows)
       ) {
         this.lastDrawnCell = { col: coord.col, row: coord.row }
-        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-        const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
+        const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || ctx.modifiers.shift
         const mode = isCtrl
           ? 'replace'
           : isShift
@@ -183,8 +183,8 @@ export class BrushTool implements IEditorTool {
           coord.col,
           coord.row
         )
-        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || toolStore.isCtrlPressed
-        const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || toolStore.isShiftPressed
+        const isCtrl = !!(e && 'ctrlKey' in e && (e.ctrlKey || (e as MouseEvent).metaKey)) || ctx.modifiers.ctrl
+        const isShift = !!(e && 'shiftKey' in e && e.shiftKey) || ctx.modifiers.shift
 
         if (elements.length > 0) {
           if (isCtrl || isShift) {

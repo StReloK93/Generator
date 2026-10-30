@@ -32,7 +32,7 @@
         class="flex flex-col gap-1.5 max-h-96 overflow-y-auto pr-1 select-none custom-scrollbar"
       >
         <div
-          v-for="(item, idx) in reversedHistoryList"
+          v-for="item in reversedHistoryList"
           :key="item.originalIndex"
           @click="handleJump(item.originalIndex)"
           class="group relative flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer"

@@ -1,29 +1,60 @@
-import { TowerBlueprint, PlacedTower, TowerLevel, TowerAsset } from '../../types/tower'
-import { SplashType, TargetStrategy } from '../../types/combat'
+import { TowerBlueprint, PlacedTower, TowerLevel, TowerAsset, TowerTraitParams } from '../../types/tower'
+import { SplashType, TargetStrategy, TowerTraitType, CombatEffect } from '../../types/combat'
 import { EffectProcessor } from '../combat/EffectProcessor'
 
 /**
+ * Raw blueprint shape as found in saved/legacy map files and editor forms:
+ * the canonical nested structure, or the older flat one (level-1 stats, asset fields and
+ * `projectileType` on the root, or `stats: {...}`).
+ */
+export type RawTowerBlueprint = Partial<Omit<TowerBlueprint, 'asset' | 'levels'>> &
+  Partial<TowerAsset> &
+  Partial<Omit<TowerLevel, 'level'>> & {
+    asset?: Partial<TowerAsset>
+    levels?: Array<Partial<TowerLevel>>
+    projectileType?: string
+    projectile?: { type?: string }
+    stats?: Partial<Pick<TowerLevel, 'cost' | 'damage' | 'attackSpeed' | 'range'>>
+  }
+
+const TRAIT_PARAM_KEYS: Array<keyof TowerTraitParams> = [
+  'fireBonusDamage', 'burnDps', 'burnDuration', 'fireSplash', 'fireIsSplash',
+  'slowPercent', 'slowDuration', 'frostBonusDamage', 'frostSplash', 'frostIsSplash',
+  'poisonDps', 'poisonDuration', 'poisonSlowPercent', 'poisonSplash', 'poisonIsSplash',
+  'stackBonusDamage', 'maxStacks', 'stackingSplash', 'stackingIsSplash',
+  'bleedDps', 'bleedDuration', 'bloodSplash', 'bloodIsSplash',
+  'electricBonusDamage', 'chainTargets', 'stunDuration', 'electricSplash', 'electricIsSplash',
+  'voidVulnPercent', 'voidDuration', 'voidSplash', 'voidIsSplash',
+]
+
+function pickTraitParams(src: TowerTraitParams): TowerTraitParams {
+  const out: Record<string, unknown> = {}
+  for (const key of TRAIT_PARAM_KEYS) {
+    if (src[key] !== undefined) out[key] = src[key]
+  }
+  return out as TowerTraitParams
+}
+
+/**
  * TowerBlueprintManager — Domain logic for Tower Blueprints, Upgrades, Normalization, and Synchronization.
- * 
- * SOLID: Single Responsibility Principle (SRP) and Composition over Property Accumulation.
+ *
  * Single Source of Truth: All level-specific stats reside inside `bp.levels[]`, and visual asset data in `bp.asset`.
  */
 export class TowerBlueprintManager {
   /**
    * Normalizes an incoming raw/legacy blueprint object into the standardized composable TowerBlueprint structure.
    */
-  public static normalizeBlueprint(raw: any): TowerBlueprint {
+  public static normalizeBlueprint(raw: RawTowerBlueprint): TowerBlueprint {
     const name = raw.name || 'Tower'
     const id = raw.id || `tower-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const description = raw.description || ''
-    const clanId = raw.clanId
-    const targetStrategy: TargetStrategy = raw.targetStrategy || 'first'
     const projectileId = raw.projectileId || raw.projectileType || raw.projectile?.type || 'fireball'
+    const targetStrategy: TargetStrategy = raw.targetStrategy || 'first'
 
     const rawName = (raw.asset?.assetName || raw.assetName || name).trim()
     const assetId = raw.asset?.assetId || raw.assetId || (rawName ? (rawName.startsWith('sprite-') ? rawName : `sprite-${rawName.replace(/\.[^/.]+$/, '')}`) : 'sprite-stoneColumn_W')
     const assetName = raw.asset?.assetName || raw.assetName || (rawName ? (rawName.endsWith('.webp') || rawName.endsWith('.png') ? rawName : `${rawName}.webp`) : 'stoneColumn_W.webp')
-    const assetPath = raw.asset?.assetPath || (raw.assetPath && (raw.assetPath.startsWith('http://') || raw.assetPath.startsWith('https://')) ? raw.assetPath : '')
+    const rawPath = raw.asset?.assetPath || raw.assetPath || ''
+    const assetPath = raw.asset?.assetPath || (rawPath.startsWith('http://') || rawPath.startsWith('https://') ? rawPath : '')
 
     const asset: TowerAsset = {
       assetId,
@@ -38,114 +69,46 @@ export class TowerBlueprintManager {
       muzzleOffsetY: Number(raw.asset?.muzzleOffsetY ?? raw.muzzleOffsetY ?? 0),
     }
 
-    // Default tower is NEVER splash unless explicitly specified as true
-    const rawIsSplash = Boolean(raw.isSplash)
+    const rawLevels: Array<Partial<TowerLevel>> = Array.isArray(raw.levels) && raw.levels.length > 0 ? raw.levels : [{}]
+    const levels = rawLevels.map((lvl, idx) => {
+      const lvlNum = lvl.level || (idx + 1)
+      const isLvl1 = lvlNum === 1
+      // Root-level (flat legacy) values only describe level 1. Default tower is NEVER splash unless explicit.
+      const root: RawTowerBlueprint = isLvl1 ? raw : {}
+      const isSplash = lvl.isSplash !== undefined ? Boolean(lvl.isSplash) : Boolean(root.isSplash)
+      const traits = (Array.isArray(lvl.traits) ? lvl.traits : (Array.isArray(raw.traits) ? raw.traits : [])) as TowerTraitType[]
+      const level: TowerLevel = {
+        ...pickTraitParams(root),
+        ...pickTraitParams(lvl),
+        level: lvlNum,
+        name: lvl.name || (isLvl1 ? name : `${name} ${lvlNum}`),
+        cost: Number(lvl.cost ?? raw.cost ?? raw.stats?.cost ?? 100),
+        damage: Number(lvl.damage ?? raw.damage ?? raw.stats?.damage ?? 20),
+        attackSpeed: Number(lvl.attackSpeed ?? raw.attackSpeed ?? raw.stats?.attackSpeed ?? 1.0),
+        range: Number(lvl.range ?? raw.range ?? raw.stats?.range ?? 3.0),
+        isSplash,
+        splashRadius: isSplash ? Number(lvl.splashRadius ?? raw.splashRadius ?? 1.5) : undefined,
+        splashType: isSplash ? ((lvl.splashType || raw.splashType || 'falloff') as SplashType) : undefined,
+        traits: [...traits],
+      }
+      const explicitEffects: CombatEffect[] | undefined =
+        (Array.isArray(lvl.effects) && lvl.effects.length > 0 && lvl.effects) ||
+        (Array.isArray(raw.effects) && raw.effects.length > 0 && raw.effects) ||
+        undefined
+      level.effects = explicitEffects ? [...explicitEffects] : EffectProcessor.traitsToEffects(level)
+      return level
+    })
 
-    let levels: TowerLevel[] = []
-    if (Array.isArray(raw.levels) && raw.levels.length > 0) {
-      levels = raw.levels.map((lvl: any, idx: number) => {
-        const lvlNum = lvl.level || (idx + 1)
-        const isLvl1 = lvlNum === 1
-        const lvlIsSplash = lvl.isSplash !== undefined ? Boolean(lvl.isSplash) : (isLvl1 ? rawIsSplash : false)
-
-        return {
-          ...lvl,
-          level: lvlNum,
-          name: lvl.name || (isLvl1 ? name : `${name} ${lvlNum}`),
-          cost: Number(lvl.cost ?? raw.cost ?? raw.stats?.cost ?? 100),
-          damage: Number(lvl.damage ?? raw.damage ?? raw.stats?.damage ?? 20),
-          attackSpeed: Number(lvl.attackSpeed ?? raw.attackSpeed ?? raw.stats?.attackSpeed ?? 1.0),
-          range: Number(lvl.range ?? raw.range ?? raw.stats?.range ?? 3.0),
-          isSplash: lvlIsSplash,
-          splashRadius: lvlIsSplash ? Number(lvl.splashRadius ?? raw.splashRadius ?? 1.5) : undefined,
-          splashType: lvlIsSplash ? (lvl.splashType || raw.splashType || 'falloff') : undefined,
-          traits: Array.isArray(lvl.traits) ? [...lvl.traits] : (Array.isArray(raw.traits) ? [...raw.traits] : []),
-          effects: Array.isArray(lvl.effects) && lvl.effects.length > 0
-            ? [...lvl.effects]
-            : (Array.isArray(raw.effects) && raw.effects.length > 0 ? [...raw.effects] : EffectProcessor.traitsToEffects({ ...lvl, isSplash: lvlIsSplash })),
-        }
-      })
-    } else {
-      levels = [
-        {
-          ...raw,
-          level: 1,
-          name: name,
-          cost: Number(raw.cost ?? raw.stats?.cost ?? 100),
-          damage: Number(raw.damage ?? raw.stats?.damage ?? 20),
-          attackSpeed: Number(raw.attackSpeed ?? raw.stats?.attackSpeed ?? 1.0),
-          range: Number(raw.range ?? raw.stats?.range ?? 3.0),
-          isSplash: rawIsSplash,
-          splashRadius: rawIsSplash ? Number(raw.splashRadius ?? 1.5) : undefined,
-          splashType: rawIsSplash ? (raw.splashType || 'falloff') : undefined,
-          traits: Array.isArray(raw.traits) ? [...raw.traits] : [],
-          effects: Array.isArray(raw.effects) && raw.effects.length > 0 ? [...raw.effects] : EffectProcessor.traitsToEffects({ ...raw, isSplash: rawIsSplash }),
-        }
-      ]
-    }
-
-    const bp: TowerBlueprint = {
+    return {
       id,
       name,
-      description,
-      clanId,
+      description: raw.description || '',
+      clanId: raw.clanId,
       asset,
       projectileId,
       targetStrategy,
       levels,
     }
-
-    // Attach reactive property proxies for backward-compatible convenience without duplicating state
-    this.attachPropertyProxies(bp)
-
-    return bp
-  }
-
-  /**
-   * Attaches backward-compatible property accessors mapping directly to `bp.levels[0]` and `bp.asset`.
-   */
-  public static attachPropertyProxies(bp: TowerBlueprint): void {
-    if (!bp.levels || bp.levels.length === 0) {
-      this.ensureBlueprintLevels(bp)
-    }
-
-    const defineProp = (prop: string, getter: () => any, setter?: (val: any) => void) => {
-      try {
-        Object.defineProperty(bp, prop, {
-          get: getter,
-          set: setter || (() => {}),
-          enumerable: true,
-          configurable: true,
-        })
-      } catch {
-        // Ignored if already configured
-      }
-    }
-
-    defineProp('cost', () => bp.levels[0]?.cost ?? 100, (v) => { if (bp.levels[0]) bp.levels[0].cost = Number(v) })
-    defineProp('damage', () => bp.levels[0]?.damage ?? 20, (v) => { if (bp.levels[0]) bp.levels[0].damage = Number(v) })
-    defineProp('attackSpeed', () => bp.levels[0]?.attackSpeed ?? 1.0, (v) => { if (bp.levels[0]) bp.levels[0].attackSpeed = Number(v) })
-    defineProp('range', () => bp.levels[0]?.range ?? 3.0, (v) => { if (bp.levels[0]) bp.levels[0].range = Number(v) })
-    defineProp('isSplash', () => Boolean(bp.levels[0]?.isSplash), (v) => { if (bp.levels[0]) bp.levels[0].isSplash = Boolean(v) })
-    defineProp('splashRadius', () => bp.levels[0]?.splashRadius ?? 1.5, (v) => { if (bp.levels[0]) bp.levels[0].splashRadius = Number(v) })
-    defineProp('splashType', () => bp.levels[0]?.splashType || 'falloff', (v) => { if (bp.levels[0]) bp.levels[0].splashType = v })
-    defineProp('traits', () => bp.levels[0]?.traits || [], (v) => { if (bp.levels[0]) bp.levels[0].traits = v })
-    defineProp('effects', () => bp.levels[0]?.effects || [], (v) => { if (bp.levels[0]) bp.levels[0].effects = v })
-
-    defineProp('assetId', () => bp.asset?.assetId || '', (v) => { if (bp.asset) bp.asset.assetId = v })
-    defineProp('assetName', () => bp.asset?.assetName || '', (v) => { if (bp.asset) bp.asset.assetName = v })
-    defineProp('assetPath', () => bp.asset?.assetPath || '', (v) => { if (bp.asset) bp.asset.assetPath = v })
-    defineProp('scale', () => bp.asset?.scale ?? 1.0, (v) => { if (bp.asset) bp.asset.scale = Number(v) })
-    defineProp('spanX', () => bp.asset?.spanX ?? 1, (v) => { if (bp.asset) bp.asset.spanX = Number(v) })
-    defineProp('spanY', () => bp.asset?.spanY ?? 1, (v) => { if (bp.asset) bp.asset.spanY = Number(v) })
-    defineProp('anchorX', () => bp.asset?.anchorX ?? 0.5, (v) => { if (bp.asset) bp.asset.anchorX = Number(v) })
-    defineProp('anchorY', () => bp.asset?.anchorY ?? 0.88, (v) => { if (bp.asset) bp.asset.anchorY = Number(v) })
-    defineProp('muzzleOffsetX', () => bp.asset?.muzzleOffsetX ?? 0, (v) => { if (bp.asset) bp.asset.muzzleOffsetX = Number(v) })
-    defineProp('muzzleOffsetY', () => bp.asset?.muzzleOffsetY ?? 0, (v) => { if (bp.asset) bp.asset.muzzleOffsetY = Number(v) })
-
-    defineProp('projectileType', () => bp.projectileId || 'fireball', (v) => { bp.projectileId = v })
-    defineProp('projectileSpeed', () => 14.0)
-    defineProp('projectileColor', () => 0xd97706)
   }
 
   /**
@@ -159,15 +122,11 @@ export class TowerBlueprintManager {
     }
     const lvl1 = bp.levels[0]
     return {
+      ...lvl1,
       level,
       name: `${bp.name} ${level}`,
       cost: Math.round(lvl1.cost * (0.8 + (level - 1) * 0.5)),
       damage: Math.round(lvl1.damage * (1 + (level - 1) * 0.3)),
-      attackSpeed: lvl1.attackSpeed,
-      range: lvl1.range,
-      isSplash: Boolean(lvl1.isSplash),
-      splashRadius: lvl1.splashRadius,
-      splashType: lvl1.splashType,
       traits: lvl1.traits ? [...lvl1.traits] : [],
       effects: lvl1.effects ? [...lvl1.effects] : [],
     }
@@ -177,31 +136,14 @@ export class TowerBlueprintManager {
    * Ensures the levels array is populated and correctly indexed.
    */
   public static ensureBlueprintLevels(bp: TowerBlueprint): TowerLevel[] {
-    if (!bp.levels || !Array.isArray(bp.levels) || bp.levels.length === 0) {
-      const isSplash = Boolean((bp as any).isSplash)
-      bp.levels = [
-        {
-          level: 1,
-          name: bp.name,
-          cost: Number(bp.cost || (bp as any).stats?.cost || 100),
-          damage: Number(bp.damage || (bp as any).stats?.damage || 20),
-          attackSpeed: Number(bp.attackSpeed || (bp as any).stats?.attackSpeed || 1.0),
-          range: Number(bp.range || (bp as any).stats?.range || 3.0),
-          isSplash,
-          splashRadius: isSplash ? Number(bp.splashRadius ?? 1.5) : undefined,
-          splashType: isSplash ? (bp.splashType || 'falloff') : undefined,
-          traits: (bp as any).traits ? [...(bp as any).traits] : [],
-          effects: (bp as any).effects ? [...(bp as any).effects] : [],
-        }
-      ]
+    if (!Array.isArray(bp.levels) || bp.levels.length === 0) {
+      bp.levels = this.normalizeBlueprint({ ...bp, levels: undefined }).levels
     } else {
       bp.levels.forEach((lvl, idx) => {
         lvl.level = idx + 1
         lvl.isSplash = Boolean(lvl.isSplash)
       })
     }
-
-    this.attachPropertyProxies(bp)
     return bp.levels
   }
 
@@ -225,6 +167,7 @@ export class TowerBlueprintManager {
     const nextLvlNum = currentLevels.length + 1
 
     const newLvl: TowerLevel = {
+      ...pickTraitParams(prevLvl),
       level: nextLvlNum,
       name: `${bp.name} ${nextLvlNum}`,
       cost: Math.round((prevLvl.cost || 100) * 1.5),
@@ -258,27 +201,27 @@ export class TowerBlueprintManager {
 
   /**
    * Synchronizes placed towers on the map when their blueprint changes.
+   * A tower whose level no longer exists keeps its level number and uses the highest remaining level's stats.
    */
   public static syncBlueprintToPlacedTowers(bp: TowerBlueprint, placedTowers: PlacedTower[]): void {
     this.ensureBlueprintLevels(bp)
 
     for (const t of placedTowers) {
-      if (t.blueprintId === bp.id) {
-        const lvlIdx = Math.max(0, (t.level || 1) - 1)
-        const lvlCfg = bp.levels[lvlIdx] || bp.levels[0]
+      if (t.blueprintId !== bp.id) continue
+      const lvlIdx = Math.min(bp.levels.length - 1, Math.max(0, (t.level || 1) - 1))
+      const lvlCfg = bp.levels[lvlIdx]
 
-        Object.assign(t, lvlCfg)
-        t.damage = lvlCfg.damage
-        t.attackSpeed = lvlCfg.attackSpeed
-        t.range = lvlCfg.range
-        t.isSplash = Boolean(lvlCfg.isSplash)
-        t.splashRadius = lvlCfg.splashRadius ?? 1.5
-        t.splashType = (lvlCfg.splashType as SplashType) ?? 'falloff'
-        t.projectileId = bp.projectileId || 'fireball'
-        t.targetStrategy = bp.targetStrategy || t.targetStrategy || 'first'
-        t.traits = (lvlCfg.traits ? [...lvlCfg.traits] : []) as any
-        t.effects = EffectProcessor.traitsToEffects(lvlCfg)
-      }
+      t.level = lvlIdx + 1
+      t.damage = lvlCfg.damage
+      t.attackSpeed = lvlCfg.attackSpeed
+      t.range = lvlCfg.range
+      t.isSplash = Boolean(lvlCfg.isSplash)
+      t.splashRadius = lvlCfg.splashRadius ?? 1.5
+      t.splashType = lvlCfg.splashType ?? 'falloff'
+      t.projectileId = bp.projectileId || 'fireball'
+      t.targetStrategy = bp.targetStrategy || t.targetStrategy || 'first'
+      t.traits = lvlCfg.traits ? [...lvlCfg.traits] : []
+      t.effects = EffectProcessor.traitsToEffects(lvlCfg)
     }
   }
 }
