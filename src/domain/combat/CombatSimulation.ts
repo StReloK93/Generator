@@ -1,4 +1,4 @@
-import { Projectile, DamageFloater, ExplosionRing } from '../../types/combat'
+import { Projectile, DamageFloater } from '../../types/combat'
 import { CombatUnitTarget } from './types'
 
 export class CombatSimulation {
@@ -14,24 +14,6 @@ export class CombatSimulation {
       df.alpha = Math.max(0, 1.0 - df.lifeTimer / 0.85)
       if (df.lifeTimer < 0.85) {
         floaters[activeCount++] = df
-      }
-    }
-    return activeCount
-  }
-
-  /**
-   * Advances explosion rings in-place, returning active count.
-   */
-  public static updateExplosionRings(rings: ExplosionRing[], deltaSec: number): number {
-    let activeCount = 0
-    for (let i = 0; i < rings.length; i++) {
-      const ring = rings[i]
-      ring.lifeTimer += deltaSec
-      const prog = ring.lifeTimer / 0.45
-      ring.radius = ring.maxRadius * prog
-      ring.alpha = Math.max(0, 1.0 - prog)
-      if (ring.lifeTimer < 0.45) {
-        rings[activeCount++] = ring
       }
     }
     return activeCount

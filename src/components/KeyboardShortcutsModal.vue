@@ -106,7 +106,7 @@ const shortcutCategories: ShortcutCategory[] = [
     id: 'tools',
     titleKey: 'shortcuts.categoryTools',
     icon: Paintbrush,
-    badgeClass: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+    badgeClass: 'bg-brand-500/15 text-brand-300 border-brand-500/30',
     items: [
       { actionKey: 'shortcuts.brushSelect', keys: [['S']] },
       { actionKey: 'shortcuts.eraser', keys: [['R']] },

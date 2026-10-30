@@ -10,7 +10,7 @@
     >
       <div 
         v-if="isOpen"
-        class="fixed inset-0 z-1000! flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none pt-safe pb-safe"
+        class="fixed inset-0 z-1000! flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md select-none pt-safe pb-safe"
         @mousedown.stop
         @mouseup.stop
         @click.stop
@@ -26,7 +26,7 @@
         <!-- Modal Dialog Box -->
         <div 
           :class="[
-            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] animate-in zoom-in-95 duration-200 z-10',
+            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl shadow-black/60 inset-shadow-[0_1px_0_rgba(240,203,94,0.12)] overflow-hidden flex flex-col max-h-[94dvh] animate-in zoom-in-95 duration-200 z-10',
             sizeClasses,
             customClass
           ]"
@@ -34,7 +34,7 @@
           <!-- Modal Header -->
           <div 
             v-if="!hideHeader"
-            class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50 shrink-0"
+            class="px-4 sm:px-6 py-3.5 sm:py-4 short:py-2 border-b border-slate-800 flex items-center justify-between bg-linear-to-b from-slate-850 to-slate-900 shrink-0"
           >
             <slot name="header">
               <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2">
@@ -51,7 +51,7 @@
 
                 <!-- Titles -->
                 <div class="min-w-0">
-                  <h2 class="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+                  <h2 class="text-sm sm:text-base font-extrabold text-slate-50 tracking-wide truncate">
                     <slot name="title">{{ title }}</slot>
                   </h2>
                   <p v-if="subtitle || $slots.subtitle" class="text-[11px] sm:text-xs text-slate-400 truncate">
@@ -62,14 +62,7 @@
             </slot>
 
             <!-- Close button -->
-            <button 
-              v-if="showClose"
-              type="button"
-              class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer touch-target shrink-0"
-              @click="close"
-            >
-              <X class="w-4 h-4" />
-            </button>
+            <UiIconButton v-if="showClose" :icon="X" size="md" class="shrink-0" @click="close" />
           </div>
 
           <!-- Modal Body (Scrollable) -->
@@ -80,7 +73,7 @@
           <!-- Modal Footer -->
           <div 
             v-if="$slots.footer"
-            class="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-end gap-2.5 shrink-0"
+            class="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-800 bg-slate-950/40 flex items-center justify-end gap-2.5 shrink-0"
           >
             <slot name="footer" />
           </div>
@@ -93,6 +86,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
+import UiIconButton from './UiIconButton.vue'
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | 'full'
 export type IconColor = 'amber' | 'brand' | 'emerald' | 'rose' | 'danger' | 'cyan' | 'slate'

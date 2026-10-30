@@ -132,16 +132,3 @@ export interface DamageFloater {
   lifeTimer: number
 }
 
-/**
- * Splash va to'qnashuv to'lqin halqasi (Explosion Ring).
- */
-export interface ExplosionRing {
-  id: string
-  x: number
-  y: number
-  radius: number
-  maxRadius: number
-  color: number
-  alpha: number
-  lifeTimer: number
-}

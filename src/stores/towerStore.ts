@@ -14,7 +14,7 @@ import { TowerBlueprintManager } from '../domain/tower/TowerBlueprintManager'
 import { CombatEngine } from '../domain/combat'
 
 import type { TowerBlueprint, PlacedTower, TowerLevel, BlueprintUpdate } from '../types/tower'
-import type { Projectile, DamageFloater, ExplosionRing } from '../types/combat'
+import type { Projectile, DamageFloater } from '../types/combat'
 
 /**
  * useTowerStore — Minoralar (Towers), shablonlar (Blueprints), klanlar (Clans)
@@ -45,7 +45,6 @@ export const useTowerStore = defineStore('towerStore', () => {
   // Jang vizual effektlari
   const projectiles = ref<Projectile[]>([])
   const damageFloaters = ref<DamageFloater[]>([])
-  const explosionRings = ref<ExplosionRing[]>([])
 
   const mapStore = useMapStore()
   const toolStore = useToolStore()
@@ -530,7 +529,6 @@ export const useTowerStore = defineStore('towerStore', () => {
   function clearCombatEffects(): void {
     projectiles.value = []
     damageFloaters.value = []
-    explosionRings.value = []
   }
 
   // ==========================================
@@ -613,11 +611,30 @@ export const useTowerStore = defineStore('towerStore', () => {
       activeUnits,
       projectiles: projectiles.value,
       damageFloaters: damageFloaters.value,
-      explosionRings: explosionRings.value,
       tileWidth: mapStore.project.tileWidth,
       tileHeight: mapStore.project.tileHeight,
       deltaSec,
       isPaused,
+      onFire: (proj) => {
+        if (!multiplayerStore.roomId || !multiplayerStore.isHost) return
+        multiplayerStore.queueCombatEvent({
+          id: proj.id,
+          type: 'TOWER_FIRE',
+          towerId: proj.towerId,
+          unitId: proj.targetUnitId,
+          projType: proj.projectileType,
+          startX: proj.startX,
+          startY: proj.startY,
+          targetX: proj.targetX,
+          targetY: proj.targetY,
+          color: proj.color,
+          speed: proj.speed,
+          isSplash: proj.isSplash,
+          splashRadius: proj.splashRadius,
+          offsetPerp: proj.offsetPerp,
+          phaseOffset: proj.phaseOffset,
+        })
+      },
       onKill: (tower, unit) => {
         gameStore.totalKills++
 
@@ -662,6 +679,18 @@ export const useTowerStore = defineStore('towerStore', () => {
             alpha: 1.0,
             lifeTimer: 0,
           })
+
+          if (multiplayerStore.roomId && multiplayerStore.isHost) {
+            multiplayerStore.queueCombatEvent({
+              id: `die-${unit.id}`,
+              type: 'UNIT_DIED',
+              unitId: unit.id,
+              targetX: screenPos.x + unit.identity.sideOffset,
+              targetY: screenPos.y,
+              killerId: tower.builderId,
+              goldReward: unitBounty,
+            })
+          }
         }
       },
     })
@@ -671,11 +700,7 @@ export const useTowerStore = defineStore('towerStore', () => {
    * Ko'p o'yinchili mijoz uchun jang vizual effektlari interpolyatsiyasi.
    */
   function updateClientCombatInterpolation(deltaSec: number): void {
-    CombatEngine.updateClientCombatInterpolation(
-      damageFloaters.value,
-      explosionRings.value,
-      deltaSec
-    )
+    CombatEngine.updateClientCombatInterpolation(damageFloaters.value, deltaSec)
   }
 
   return {
@@ -692,7 +717,6 @@ export const useTowerStore = defineStore('towerStore', () => {
     selectedBlueprintId,
     projectiles,
     damageFloaters,
-    explosionRings,
     blueprintMap,
     selectedPlacedTower,
     selectedClan,

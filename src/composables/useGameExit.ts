@@ -17,8 +17,8 @@ export function useGameExit() {
 
   const isEditorMode = computed(() => gameStore.entrySource === 'editor' || route.name === 'editor-game')
 
+  // Session teardown happens in GameStage once the page has left, so the screen never flashes a reset state.
   function exitGame() {
-    gameStore.exitPlayMode()
     if (multiplayerStore.roomId) {
       multiplayerStore.leaveRoom(router)
     } else if (isEditorMode.value) {

@@ -643,7 +643,7 @@ async function handleApplyCrop(replaceCurrent = true) {
 
 <style scoped>
 .checker-pattern {
-  background-color: #090d16;
+  background-color: #161210;
   background-image: 
     linear-gradient(45deg, #111827 25%, transparent 25%), 
     linear-gradient(-45deg, #111827 25%, transparent 25%), 

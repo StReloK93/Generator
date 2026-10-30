@@ -1,14 +1,41 @@
-import Peer, { DataConnection } from 'peerjs'
+import Peer, { DataConnection, PeerOptions } from 'peerjs'
 import { NetMessage, ActiveRoomSummary } from '../types/multiplayer'
 import { networkSyncBuffer } from './networkSync'
+
+/**
+ * Multiplayer backend (server/multiplayer.js): PeerJS signaling on /peer and the public room list on /api.
+ * Same origin as the app by default (dev server and `npm start` both host it); VITE_SERVER_URL points elsewhere.
+ */
+const SERVER_URL = new URL(import.meta.env.VITE_SERVER_URL || globalThis.location?.origin || 'http://localhost')
+const API_URL = `${SERVER_URL.origin}/api`
+const isSecure = SERVER_URL.protocol === 'https:'
+const PEER_OPTIONS: PeerOptions = {
+  host: SERVER_URL.hostname,
+  port: Number(SERVER_URL.port) || (isSecure ? 443 : 80),
+  path: '/peer',
+  secure: isSecure,
+  debug: 1,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  },
+}
+
+/** How often a host re-announces its room to the public list (server drops it after 10s of silence). */
+const ROOM_HEARTBEAT_MS = 2000
+
+/** Transient signaling failures worth retrying (connection reset, server hiccup). */
+const RETRYABLE_PEER_ERRORS = new Set(['network', 'server-error', 'socket-error', 'socket-closed'])
+const MAX_PEER_RETRIES = 3
 
 class NetworkService {
   private peer: Peer | null = null
   private hostConnection: DataConnection | null = null
   private clientConnections: Map<string, DataConnection> = new Map()
   private broadcastChannel: BroadcastChannel | null = null
-  private discoveryChannel: BroadcastChannel | null = null
-  private discoveryInterval: any = null
+  private discoveryInterval: ReturnType<typeof setInterval> | null = null
   private processedMessageIds: Set<string> = new Set()
   private isHost = false
   private roomId = ''
@@ -20,14 +47,6 @@ class NetworkService {
   private onHostConnectCallback: (() => void) | null = null
   private onHostDisconnectCallback: (() => void) | null = null
 
-  // Active rooms discovery cache
-  private discoveredRooms: Map<string, ActiveRoomSummary> = new Map()
-  private onDiscoveryUpdateCallback: ((rooms: ActiveRoomSummary[]) => void) | null = null
-
-  constructor() {
-    this.initGlobalDiscoveryListener()
-  }
-
   /**
    * Initializes host P2P server node
    */
@@ -36,7 +55,7 @@ class NetworkService {
     onMessage: (msg: NetMessage) => void,
     onPeerConnect: (peerId: string) => void,
     onPeerDisconnect: (peerId: string) => void
-  ): Promise<string> {
+  ): Promise<boolean> {
     this.disconnect()
     this.isHost = true
     this.roomId = roomId
@@ -47,186 +66,94 @@ class NetworkService {
     // BroadcastChannel for instant local tab testing
     this.initBroadcastChannel(roomId)
 
+    const formattedHostPeerId = `isocraft-host-${roomId.toLowerCase()}`
+    this.myPeerId = formattedHostPeerId
+
+    // Resolves true once registered on the signaling server; false means only same-browser tabs can join.
     return new Promise((resolve) => {
-      const formattedHostPeerId = `isocraft-host-${roomId.toLowerCase()}`
-      this.myPeerId = formattedHostPeerId
+      const attempt = (retry: number) => {
+        let peer: Peer
+        try {
+          peer = new Peer(formattedHostPeerId, PEER_OPTIONS)
+        } catch (e) {
+          console.warn('[P2P Host Init Fallback]:', e)
+          resolve(false)
+          return
+        }
+        this.peer = peer
+        let abandoned = false
+        let wasOpen = false
 
-      try {
-        this.peer = new Peer(formattedHostPeerId, {
-          debug: 1,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:global.stun.twilio.com:3478' }
-            ]
-          }
-        })
-
-        this.peer.on('open', (id) => {
+        peer.on('open', (id) => {
           console.log(`[P2P Host] Registered with ID: ${id}`)
-          resolve(id)
+          wasOpen = true
+          resolve(true)
         })
 
-        this.peer.on('connection', (conn) => {
+        peer.on('connection', (conn) => {
           this.handleIncomingClientConnection(conn)
         })
 
-        this.peer.on('error', (err: any) => {
-          console.warn('[P2P Host Error]:', err)
-          resolve(formattedHostPeerId)
+        // Signaling socket dropped mid-session: re-register (after a pause, so an offline device doesn't spin)
+        peer.on('disconnected', () => {
+          if (!wasOpen || abandoned || this.peer !== peer) return
+          setTimeout(() => {
+            if (!abandoned && this.peer === peer && peer.disconnected && !peer.destroyed) peer.reconnect()
+          }, 2000)
         })
-      } catch (e) {
-        console.warn('[P2P Host Init Fallback]:', e)
-        resolve(formattedHostPeerId)
+
+        peer.on('error', (err) => {
+          console.warn('[P2P Host Error]:', err)
+          // Errors after the first registration are handled by the 'disconnected' reconnect above
+          if (wasOpen || abandoned || this.peer !== peer) return
+          abandoned = true
+          peer.destroy()
+          if (RETRYABLE_PEER_ERRORS.has(err.type) && retry < MAX_PEER_RETRIES) {
+            setTimeout(() => {
+              if (this.peer === peer) attempt(retry + 1)
+            }, 1000 * 2 ** retry)
+          } else {
+            resolve(false)
+          }
+        })
       }
+      attempt(0)
     })
   }
 
   /**
-   * Starts periodic discovery beacon advertising this room to other tabs/browsers/LAN
+   * Announces this room on the server room list until stopDiscoveryBeacon() (host only).
    */
   public startDiscoveryBeacon(summaryProvider: () => ActiveRoomSummary) {
     this.stopDiscoveryBeacon()
 
-    const broadcastBeacon = () => {
-      try {
-        const summary = summaryProvider()
-        summary.lastHeartbeat = Date.now()
-
-        // 1. Broadcast via Discovery Channel (Same browser multi-tab)
-        if (this.discoveryChannel) {
-          try {
-            this.discoveryChannel.postMessage({
-              type: 'ROOM_HEARTBEAT',
-              payload: summary,
-            })
-          } catch {}
-        }
-
-        // 2. Write to LocalStorage (Instant cross-tab discovery)
-        let activeMap: Record<string, ActiveRoomSummary> = {}
-        try {
-          activeMap = JSON.parse(localStorage.getItem('isocraft_active_rooms') || '{}')
-        } catch {}
-        
-        activeMap[summary.roomId] = summary
-
-        // Prune stale rooms (> 12 seconds without heartbeat)
-        const now = Date.now()
-        for (const [rId, room] of Object.entries(activeMap)) {
-          if (!room || now - (room.lastHeartbeat || 0) > 12000) {
-            delete activeMap[rId]
-          }
-        }
-        localStorage.setItem('isocraft_active_rooms', JSON.stringify(activeMap))
-      } catch (e) {
-        console.warn('[Discovery Beacon Error]:', e)
-      }
+    const announce = () => {
+      fetch(`${API_URL}/rooms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(summaryProvider()),
+      }).catch(() => {})
     }
 
-    broadcastBeacon()
-    this.discoveryInterval = setInterval(broadcastBeacon, 1000)
+    announce()
+    this.discoveryInterval = setInterval(announce, ROOM_HEARTBEAT_MS)
   }
 
   public stopDiscoveryBeacon() {
-    if (this.discoveryInterval) {
-      clearInterval(this.discoveryInterval)
-      this.discoveryInterval = null
-    }
-    if (this.roomId) {
-      try {
-        const activeMap: Record<string, ActiveRoomSummary> = JSON.parse(
-          localStorage.getItem('isocraft_active_rooms') || '{}'
-        )
-        delete activeMap[this.roomId]
-        localStorage.setItem('isocraft_active_rooms', JSON.stringify(activeMap))
-      } catch {}
-    }
+    if (!this.discoveryInterval) return
+    clearInterval(this.discoveryInterval)
+    this.discoveryInterval = null
+    // keepalive lets the removal go through even while the page is closing
+    fetch(`${API_URL}/rooms/${this.roomId}`, { method: 'DELETE', keepalive: true }).catch(() => {})
   }
 
-  /**
-   * Global discovery listener for available games
-   */
-  private initGlobalDiscoveryListener() {
-    if (typeof BroadcastChannel !== 'undefined') {
-      try {
-        this.discoveryChannel = new BroadcastChannel('isocraft_discovery_channel')
-        this.discoveryChannel.onmessage = (event) => {
-          if (event.data && event.data.type === 'ROOM_HEARTBEAT') {
-            const summary = event.data.payload as ActiveRoomSummary
-            if (summary && summary.roomId) {
-              summary.lastHeartbeat = Date.now()
-              this.discoveredRooms.set(summary.roomId, summary)
-              this.notifyDiscoveryUpdate()
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('[Discovery Channel Init Error]:', e)
-      }
-    }
-
-    // Cross-tab window storage event listener (instant 0ms cross-tab sync)
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'isocraft_active_rooms') {
-          this.syncFromLocalStorage()
-        }
-      })
-    }
-
-    // Periodic fast check to prune expired rooms
-    setInterval(() => {
-      this.syncFromLocalStorage()
-    }, 1000)
-  }
-
-  public async syncAllDiscoverySources(): Promise<ActiveRoomSummary[]> {
-    return this.syncFromLocalStorage()
-  }
-
-  public syncFromLocalStorage(): ActiveRoomSummary[] {
-    const now = Date.now()
+  /** Public rooms from the server, or null when the server is unreachable. */
+  public async fetchRooms(): Promise<ActiveRoomSummary[] | null> {
     try {
-      const activeMap: Record<string, ActiveRoomSummary> = JSON.parse(
-        localStorage.getItem('isocraft_active_rooms') || '{}'
-      )
-      for (const [rId, room] of Object.entries(activeMap)) {
-        if (room && now - (room.lastHeartbeat || 0) <= 12000) {
-          this.discoveredRooms.set(rId, room)
-        } else {
-          this.discoveredRooms.delete(rId)
-        }
-      }
-    } catch {}
-
-    for (const [rId, room] of this.discoveredRooms.entries()) {
-      if (!room || now - (room.lastHeartbeat || 0) > 12000) {
-        this.discoveredRooms.delete(rId)
-      }
-    }
-
-    const list = Array.from(this.discoveredRooms.values())
-    this.notifyDiscoveryUpdate()
-    return list
-  }
-
-  public listenToDiscovery(callback: (rooms: ActiveRoomSummary[]) => void): () => void {
-    this.onDiscoveryUpdateCallback = callback
-    this.syncAllDiscoverySources().then((list) => {
-      callback(list)
-    })
-
-    return () => {
-      if (this.onDiscoveryUpdateCallback === callback) {
-        this.onDiscoveryUpdateCallback = null
-      }
-    }
-  }
-
-  private notifyDiscoveryUpdate() {
-    if (this.onDiscoveryUpdateCallback) {
-      this.onDiscoveryUpdateCallback(Array.from(this.discoveredRooms.values()))
+      const res = await fetch(`${API_URL}/rooms`)
+      return res.ok ? await res.json() : null
+    } catch {
+      return null
     }
   }
 
@@ -255,15 +182,7 @@ class NetworkService {
       let connected = false
 
       try {
-        this.peer = new Peer({
-          debug: 1,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:global.stun.twilio.com:3478' }
-            ]
-          }
-        })
+        this.peer = new Peer(PEER_OPTIONS)
 
         this.peer.on('open', () => {
           if (!this.peer) return
@@ -479,10 +398,12 @@ class NetworkService {
     }
 
     if (this.peer) {
-      try {
-        this.peer.destroy()
-      } catch {}
+      // Drop the reference first: destroy() emits 'disconnected', which must not trigger a reconnect
+      const peer = this.peer
       this.peer = null
+      try {
+        peer.destroy()
+      } catch {}
     }
 
     if (this.broadcastChannel) {

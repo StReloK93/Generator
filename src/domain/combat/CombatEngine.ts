@@ -1,9 +1,10 @@
 import { PlacedTower, TowerBlueprint } from '../../types/tower'
-import { Projectile, DamageFloater, ExplosionRing } from '../../types/combat'
+import { Projectile, DamageFloater } from '../../types/combat'
 import { CharacterUnit } from '../../types/unit'
 import { TargetingSystem, DamageCalculator, CombatSimulation, CombatUnitTarget } from './index'
-import { getProjectileDefinition } from '../../utils/projectileCatalog'
+import { getProjectileDefinition, isInstantProjectile } from '../../utils/projectileCatalog'
 import { combatEvents } from '../../services/combatEvents'
+import { emitProjectileImpact, emitProjectileStrike, SPLASH_PX_PER_TILE } from '../../services/projectileImpact'
 import { gridToScreen } from '../../utils/isometric'
 
 export interface CombatTickContext {
@@ -12,12 +13,13 @@ export interface CombatTickContext {
   activeUnits: CharacterUnit[]
   projectiles: Projectile[]
   damageFloaters: DamageFloater[]
-  explosionRings: ExplosionRing[]
   tileWidth: number
   tileHeight: number
   deltaSec: number
   isPaused: boolean
   onKill?: (tower: PlacedTower, unit: CharacterUnit) => void
+  /** Called once per projectile spawned this tick, before it flies (multiplayer host mirrors it to clients). */
+  onFire?: (projectile: Projectile) => void
 }
 
 /**
@@ -39,17 +41,16 @@ export class CombatEngine {
       activeUnits,
       projectiles,
       damageFloaters,
-      explosionRings,
       tileWidth,
       tileHeight,
       deltaSec,
       isPaused,
       onKill,
+      onFire,
     } = ctx
 
     // 1. Update visual effects
     damageFloaters.length = CombatSimulation.updateDamageFloaters(damageFloaters, deltaSec)
-    explosionRings.length = CombatSimulation.updateExplosionRings(explosionRings, deltaSec)
 
     if (isPaused) {
       if (projectiles.length > 0) {
@@ -59,6 +60,7 @@ export class CombatEngine {
     }
 
     // 2. Tower targeting and shooting
+    const firstFiredIndex = projectiles.length
     for (let tIdx = 0; tIdx < placedTowers.length; tIdx++) {
       const tower = placedTowers[tIdx]
       tower.cooldownTimer -= deltaSec
@@ -89,17 +91,8 @@ export class CombatEngine {
 
           const projId = tower.projectileId || 'fireball'
           const projDef = getProjectileDefinition(projId)
-          const isInstant = Boolean(projDef.movement.isInstant || projDef.visual.shape === 'instant_strike')
-
-          if (isInstant) {
-            combatEvents.emitStrike({
-              x: targetX,
-              y: targetY,
-              startX: muzzleX,
-              startY: muzzleY,
-              projectileType: projId,
-              duration: 0.45,
-            })
+          if (isInstantProjectile(projDef)) {
+            emitProjectileStrike(muzzleX, muzzleY, targetX, targetY, projId)
 
             const dummyProj: Projectile = {
               id: `instant-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -122,12 +115,13 @@ export class CombatEngine {
               traveledDistance: 1,
             }
 
+            // Instant hits never enter the flying list, so report them to onFire here
+            onFire?.(dummyProj)
             this.processImpact(
               dummyProj,
               placedTowers,
               activeUnits,
               damageFloaters,
-              explosionRings,
               tileWidth,
               tileHeight,
               onKill
@@ -157,6 +151,10 @@ export class CombatEngine {
       }
     }
 
+    if (onFire) {
+      for (let i = firstFiredIndex; i < projectiles.length; i++) onFire(projectiles[i])
+    }
+
     // 3. Projectile flight and impacts
     let remainingCount = 0
     for (let pIdx = 0; pIdx < projectiles.length; pIdx++) {
@@ -174,7 +172,7 @@ export class CombatEngine {
       const moveStep = proj.speed * deltaSec
 
       if (distToTarget <= moveStep || distToTarget < 12) {
-        this.processImpact(proj, placedTowers, activeUnits, damageFloaters, explosionRings, tileWidth, tileHeight, onKill)
+        this.processImpact(proj, placedTowers, activeUnits, damageFloaters, tileWidth, tileHeight, onKill)
       } else {
         const dirX = dx / distToTarget
         const dirY = dy / distToTarget
@@ -340,7 +338,6 @@ export class CombatEngine {
     placedTowers: PlacedTower[],
     activeUnits: CharacterUnit[],
     damageFloaters: DamageFloater[],
-    explosionRings: ExplosionRing[],
     tileWidth: number,
     tileHeight: number,
     onKill?: (tower: PlacedTower, unit: CharacterUnit) => void
@@ -351,26 +348,8 @@ export class CombatEngine {
     // Strict single-source rule: splash ONLY if tower and projectile both have splash enabled
     const isSplash = Boolean(originTower ? originTower.isSplash : proj.isSplash)
 
-    if (isSplash) {
-      explosionRings.push({
-        id: `ring-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        x: proj.targetX,
-        y: proj.targetY,
-        radius: 0,
-        maxRadius: (proj.splashRadius || originTower?.splashRadius || 1.5) * 64,
-        color: proj.color,
-        alpha: 0.85,
-        lifeTimer: 0,
-      })
-    }
-
-    combatEvents.emitImpact({
-      x: proj.targetX,
-      y: proj.targetY,
-      projectileType: proj.projectileType,
-      isSplash: isSplash,
-      color: proj.color,
-    })
+    const splashRadiusTiles = proj.splashRadius || originTower?.splashRadius || 1.5
+    emitProjectileImpact(proj.targetX, proj.targetY, proj.projectileType, isSplash ? splashRadiusTiles : 0)
 
     let directTarget = targetUnit
     if (!directTarget) {
@@ -391,13 +370,11 @@ export class CombatEngine {
     }
 
     if (isSplash) {
-      const splashRadiusTiles = proj.splashRadius || originTower?.splashRadius || 1.5
-
       for (const u of activeUnits) {
         if (u.lifecycle.isDead || !u.lifecycle.isSpawned || u.lifecycle.hasReachedEnd) continue
         const uScreen = gridToScreen(u.movement.currentCol, u.movement.currentRow, tileWidth, tileHeight)
         const distPx = Math.hypot(uScreen.x - proj.targetX, uScreen.y - proj.targetY)
-        const distTiles = distPx / 64
+        const distTiles = distPx / SPLASH_PX_PER_TILE
 
         if (distTiles <= splashRadiusTiles) {
           const splashDmg = DamageCalculator.calculateSplashDamage(
@@ -631,12 +608,7 @@ export class CombatEngine {
   /**
    * Updates client-side combat interpolation for multiplayer.
    */
-  public static updateClientCombatInterpolation(
-    damageFloaters: DamageFloater[],
-    explosionRings: ExplosionRing[],
-    deltaSec: number
-  ): void {
+  public static updateClientCombatInterpolation(damageFloaters: DamageFloater[], deltaSec: number): void {
     damageFloaters.length = CombatSimulation.updateDamageFloaters(damageFloaters, deltaSec)
-    explosionRings.length = CombatSimulation.updateExplosionRings(explosionRings, deltaSec)
   }
 }

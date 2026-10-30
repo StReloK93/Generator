@@ -56,7 +56,6 @@
         variant="brand"
         interactive
         padding="sm"
-        custom-class="bg-linear-to-r! from-brand-600! to-indigo-600! hover:from-brand-500! hover:to-indigo-500! text-white"
         @click="chooseStack"
       >
         <div class="flex items-center justify-between w-full">

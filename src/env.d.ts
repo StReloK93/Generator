@@ -1,5 +1,10 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  /** Multiplayer server origin (server/index.js) when the frontend is hosted elsewhere; defaults to same origin. */
+  readonly VITE_SERVER_URL?: string
+}
+
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
   const component: DefineComponent<{}, {}, any>

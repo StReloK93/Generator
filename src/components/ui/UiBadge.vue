@@ -71,7 +71,7 @@ const variantClasses = computed(() => {
         return 'bg-slate-700 text-white border-slate-600'
       case 'brand':
       default:
-        return 'bg-brand-600 text-white border-brand-500'
+        return 'bg-brand-400 text-slate-950 border-brand-300 font-black'
     }
   }
 
@@ -91,7 +91,7 @@ const variantClasses = computed(() => {
         return 'bg-slate-800 text-slate-300 border-slate-600'
       case 'brand':
       default:
-        return 'bg-brand-500/20 text-brand-300 border-brand-400/40 shadow-[0_0_12px_rgba(99,102,241,0.3)]'
+        return 'bg-brand-500/20 text-brand-300 border-brand-400/40 shadow-[0_0_12px_rgba(233,182,60,0.3)]'
     }
   }
 
@@ -138,7 +138,7 @@ const variantClasses = computed(() => {
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'xs':
-      return 'px-1.5 py-0.2 text-[9px]'
+      return 'px-1.5 py-px text-[9px]'
     case 'md':
       return 'px-3 py-1 text-xs'
     case 'sm':

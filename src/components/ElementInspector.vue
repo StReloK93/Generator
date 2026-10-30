@@ -43,8 +43,7 @@
           </UiButton>
           <UiIconButton
             :icon="X"
-            size="sm"
-            variant="ghost"
+            size="md"
             :title="$t('common.close')"
             @click="toolStore.clearSelection()"
           />
@@ -313,8 +312,7 @@
         </div>
         <UiIconButton
           :icon="X"
-          size="sm"
-          variant="ghost"
+          size="md"
           :title="$t('common.close')"
           @click="toolStore.setSelectedElement(null)"
         />

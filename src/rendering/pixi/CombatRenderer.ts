@@ -25,6 +25,9 @@ export interface CombatSparkParticle {
   vRot: number
 }
 
+const SHOCKWAVE_LIFE = 0.55
+const FLASH_LIFE = 0.24
+
 export class CombatRenderer {
   public combatGraphics: Graphics
   private combatTrails = new Map<string, { x: number; y: number; alpha: number; size: number }[]>()
@@ -32,8 +35,13 @@ export class CombatRenderer {
   public activeStrikes: { x: number; y: number; startX?: number; startY?: number; life: number; maxLife: number; def: any }[] = []
 
   private activeProjIds = new Set<string>()
+  /** Splash shockwave rings and short hit flashes — owned here, fed by combatEvents (host and clients alike). */
+  private activeShockwaves: { x: number; y: number; maxRadius: number; color: number; life: number }[] = []
+  private activeFlashes: { x: number; y: number; color: number; life: number }[] = []
+
   private unsubscribeImpact?: () => void
   private unsubscribeStrike?: () => void
+  private unsubscribeShockwave?: () => void
   private lastTime = 0
 
   constructor() {
@@ -54,9 +62,19 @@ export class CombatRenderer {
       })
     })
 
+    this.unsubscribeShockwave = combatEvents.onShockwave((evt) => {
+      this.activeShockwaves.push({ ...evt, life: SHOCKWAVE_LIFE })
+    })
+
     // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
       const projDef = evt.projectileType ? getProjectileDefinition(evt.projectileType) : null
+      this.activeFlashes.push({
+        x: evt.x,
+        y: evt.y,
+        color: evt.color ?? projDef?.impact?.sparkColorHex ?? 0xfbbf24,
+        life: FLASH_LIFE,
+      })
       const sparkType = projDef?.impact?.sparkType || 'default'
       const cat = projDef?.identity?.category || (evt.isSplash ? 'fire' : 'siege')
       const count = evt.count || projDef?.impact?.sparkCount || (evt.isSplash ? 20 : 10)
@@ -135,7 +153,6 @@ export class CombatRenderer {
       blueprints?: any[]
       activeBlueprint?: any
       projectiles: any[]
-      explosionRings: any[]
       damageFloaters: any[]
     },
     project: MapProject,
@@ -149,9 +166,7 @@ export class CombatRenderer {
     const hasProjectiles =
       (towerStore.projectiles && towerStore.projectiles.length > 0) ||
       networkSyncBuffer.projectilesPool.some((p) => p.active)
-    const hasRings =
-      (towerStore.explosionRings && towerStore.explosionRings.length > 0) ||
-      networkSyncBuffer.explosionRingsPool.some((r) => r.active)
+    const hasRings = this.activeShockwaves.length > 0 || this.activeFlashes.length > 0
     const towerToHighlight = towerStore.placedTowers.find(
       (t) => t.id === towerStore.selectedPlacedTowerId
     )
@@ -210,7 +225,7 @@ export class CombatRenderer {
       const bp =
         towerStore.blueprints?.find((b: any) => b.id === towerStore.activeBuildTowerId) ||
         towerStore.activeBlueprint
-      const r = bp ? bp.range : 3.5
+      const r = bp?.levels?.[0]?.range ?? 3.5
       const rx = (r * tileWidth) / Math.SQRT2
       const ry = (r * tileHeight) / Math.SQRT2
       const pt = gridToScreen(hoveredGridCoord.col, hoveredGridCoord.row, tileWidth, tileHeight)
@@ -224,14 +239,15 @@ export class CombatRenderer {
           }
           buildGhostSprite.visible = true
           buildGhostSprite.position.set(pt.x, pt.y)
-          const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
-          const spanX = bp?.spanX || asset?.spanX || 1
+          const bpAsset = bp.asset
+          const asset = bpAsset?.assetId ? assetManager.getAssetItem(bpAsset.assetId) : (bpAsset?.assetName ? assetManager.getAssetItem(bpAsset.assetName) : undefined)
+          const spanX = bpAsset?.spanX || asset?.spanX || 1
           const assetWidth = asset?.width || (texture.width > 0 ? texture.width : tileWidth)
           const baseScale = (tileWidth * spanX) / (assetWidth || tileWidth)
 
-          const scale = baseScale * (bp?.scale || asset?.scale || 1.0)
-          const anchorX = asset?.anchorX ?? bp?.anchorX ?? 0.5
-          const anchorY = asset?.anchorY ?? bp?.anchorY ?? 0.88
+          const scale = baseScale * (bpAsset?.scale || asset?.scale || 1.0)
+          const anchorX = asset?.anchorX ?? bpAsset?.anchorX ?? 0.5
+          const anchorY = asset?.anchorY ?? bpAsset?.anchorY ?? 0.88
           buildGhostSprite.scale.set(scale)
           buildGhostSprite.anchor.set(anchorX, anchorY)
         } else {
@@ -386,6 +402,12 @@ export class CombatRenderer {
         // 1. Render Trail with unified ProjectileRenderer
         ProjectileRenderer.renderTrail(this.combatGraphics, projDef, trail, nowTime)
 
+        // Soft light halo under the head so shots read clearly over the bright terrain
+        if (!projDef.movement.isLaser) {
+          const halo = Math.max(6, projDef.visual.size || 6) * 2.2
+          this.combatGraphics.circle(renderX, renderY, halo).fill({ color: projDef.visual.glowColorHex ?? projDef.visual.colorHex, alpha: 0.22 })
+        }
+
         // 2. Render Projectile Head with unified ProjectileRenderer
         ProjectileRenderer.renderHead(
           this.combatGraphics,
@@ -407,24 +429,47 @@ export class CombatRenderer {
       }
     }
 
-    // 3. Explosion Shockwave Rings
-    if (hasRings) {
-      const isLocal = Boolean(towerStore.explosionRings && towerStore.explosionRings.length > 0)
-      const ringsCount = isLocal ? towerStore.explosionRings.length : networkSyncBuffer.explosionRingsPool.length
-
-      for (let i = 0; i < ringsCount; i++) {
-        const ring = isLocal ? towerStore.explosionRings[i] : networkSyncBuffer.explosionRingsPool[i]
-        if (!ring || (ring.active === false && !isLocal)) continue
-
-        const rx = ring.radius
-        const ry = ring.radius * 0.5
-        this.combatGraphics
-          .ellipse(ring.x, ring.y, rx, ry)
-          .stroke({ width: 2.5, color: ring.color, alpha: ring.alpha * 0.85 })
-        this.combatGraphics
-          .ellipse(ring.x, ring.y, rx * 0.8, ry * 0.8)
-          .fill({ color: ring.color, alpha: ring.alpha * 0.2 })
+    // 3. Splash shockwaves: eased isometric ground ring + trailing inner ring + soft scorch fill
+    for (let i = this.activeShockwaves.length - 1; i >= 0; i--) {
+      const w = this.activeShockwaves[i]
+      w.life -= dt
+      if (w.life <= 0) {
+        this.activeShockwaves.splice(i, 1)
+        continue
       }
+      const t = 1 - w.life / SHOCKWAVE_LIFE
+      const ease = 1 - Math.pow(1 - t, 3)
+      const fade = 1 - t
+      const rx = w.maxRadius * ease
+      // Opening burst: hot core that collapses as the ring travels out
+      if (t < 0.35) {
+        const burst = 1 - t / 0.35
+        const br = w.maxRadius * 0.45 * (0.6 + t)
+        this.combatGraphics.ellipse(w.x, w.y, br, br * 0.5).fill({ color: w.color, alpha: 0.45 * burst })
+        this.combatGraphics.ellipse(w.x, w.y, br * 0.5, br * 0.25).fill({ color: 0xffffff, alpha: 0.55 * burst })
+      }
+      this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).fill({ color: w.color, alpha: 0.14 * fade })
+      // Glow band + crisp edge
+      this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).stroke({ width: 3 + 7 * fade, color: w.color, alpha: 0.28 * fade })
+      this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).stroke({ width: 1.5 + 2 * fade, color: w.color, alpha: 0.95 * fade })
+      this.combatGraphics
+        .ellipse(w.x, w.y, rx * 0.97, rx * 0.485)
+        .stroke({ width: 1, color: 0xffffff, alpha: 0.6 * fade })
+    }
+
+    // 3b. Hit flash: quick bright bloom at the impact point
+    for (let i = this.activeFlashes.length - 1; i >= 0; i--) {
+      const f = this.activeFlashes[i]
+      f.life -= dt
+      if (f.life <= 0) {
+        this.activeFlashes.splice(i, 1)
+        continue
+      }
+      const k = f.life / FLASH_LIFE
+      const r = 8 + (1 - k) * 18
+      this.combatGraphics.circle(f.x, f.y, r * 1.6).fill({ color: f.color, alpha: 0.18 * k })
+      this.combatGraphics.circle(f.x, f.y, r).fill({ color: f.color, alpha: 0.45 * k })
+      this.combatGraphics.circle(f.x, f.y, r * 0.42).fill({ color: 0xffffff, alpha: 0.9 * k })
     }
 
     // 4. Impact Spark Particles
@@ -574,6 +619,7 @@ export class CombatRenderer {
       if (this.unsubscribeImpact) {
         this.unsubscribeImpact()
       }
+      this.unsubscribeShockwave?.()
       if (this.unsubscribeStrike) {
         this.unsubscribeStrike()
       }

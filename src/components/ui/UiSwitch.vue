@@ -86,7 +86,7 @@ const activeTrackClass = computed(() => {
       return 'bg-amber-600 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
     case 'brand':
     default:
-      return 'bg-brand-600 border-brand-400 shadow-[0_0_10px_rgba(99,102,241,0.4)]'
+      return 'bg-brand-500 border-brand-300 shadow-[0_0_10px_rgba(233,182,60,0.4)]'
   }
 })
 </script>

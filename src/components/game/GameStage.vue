@@ -11,7 +11,7 @@
           class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-center select-none"
         >
           <!-- Ambient Background Glows -->
-          <div class="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(#e9b63c_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none"></div>
           <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-87.5 bg-amber-500/10 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
 
           <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
@@ -35,7 +35,7 @@
                 :style="{ width: `${gameStore.loadingProgress}%` }"
               ></div>
             </div>
-            <span class="font-mono text-xs text-slate-500 font-bold">
+            <span class="text-xs text-slate-500 font-bold">
               {{ Math.round(gameStore.loadingProgress) }}%
             </span>
           </div>
@@ -244,7 +244,6 @@ function cleanupGameSession() {
 
 onBeforeRouteLeave((_to, _from, next) => {
   isLeavingRoute.value = true
-  cleanupGameSession()
   next()
 })
 

@@ -1309,7 +1309,7 @@
         <UiCard variant="default" padding="md" custom-class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-              <Timer class="w-4 h-4 text-indigo-400" />
+              <Timer class="w-4 h-4 text-brand-300" />
               {{ $t('config.wavePrepTimer') }}
             </span>
             <UiBadge variant="brand" size="sm">{{ gameStore.wavePrepDuration }}s</UiBadge>

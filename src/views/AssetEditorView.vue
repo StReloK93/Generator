@@ -6,14 +6,7 @@
       
       <!-- Left: Back Button & Title -->
       <div class="flex items-center gap-3 min-w-0">
-        <UiButton 
-          variant="secondary" 
-          size="sm" 
-          :leading-icon="ArrowLeft" 
-          @click="handleBackToHome"
-        >
-          <span class="hidden sm:inline">{{ $t('common.home') }}</span>
-        </UiButton>
+        <UiIconButton :icon="ArrowLeft" size="md" :title="$t('common.home')" @click="handleBackToHome" />
 
         <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
 

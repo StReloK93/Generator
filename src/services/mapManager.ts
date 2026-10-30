@@ -1,4 +1,5 @@
-import { MapProject, AssetItem } from '../types/map'
+import { MapProject, AssetItem, MapGameMode } from '../types/map'
+import { getMapMode } from '../domain/map'
 import { 
   buildFullProjectJsonPayload, 
   normalizeTileItem 
@@ -11,17 +12,43 @@ import { useMapStore } from '../stores/mapStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useRouteStore } from '../stores/routeStore'
 import { useWaveStore } from '../stores/waveStore'
+import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 
-export interface BuiltinMapSummary {
+/** Map list entry (built-in or imported) for the single player and multiplayer map pickers. */
+export interface MapSummary {
   id: string
   name: string
+  mode: MapGameMode
   cols: number
   rows: number
   playersCount: number
-  wavesCount: number
   raw: any
+}
+
+export interface MapDetails {
+  waves: number
+  bossWaves: number
+  towers: number
+  startingGold: number
+  startingLives: number
+  clans: Array<{ id: string; name: string; color: string }>
+}
+
+/** Player-facing summary of a raw map payload (shown in the map picker). */
+export function getMapDetails(raw: any): MapDetails {
+  const project = raw?.project || raw || {}
+  const waves: Array<{ isBoss?: boolean }> = raw?.waveData?.waveConfigs || raw?.waveConfigs || project.waveConfigs || []
+  const settings = normalizeGameSettings(project.gameSettings)
+  return {
+    waves: waves.length,
+    bossWaves: waves.filter(w => w.isBoss).length,
+    towers: (project.towerBlueprints || []).length,
+    startingGold: settings.startingGold,
+    startingLives: settings.startingLives,
+    clans: (project.clans || []).map((c: any) => ({ id: c.id, name: c.name, color: c.color || '#e9b63c' })),
+  }
 }
 
 // Session cache for custom uploaded maps
@@ -35,30 +62,39 @@ export function registerSessionCustomMap(id: string, rawPayload: any) {
 // 1. Scan and index all built-in maps from src/maps/*.json
 const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
 
-export function getBuiltinMaps(): BuiltinMapSummary[] {
+function summarizeMap(raw: any, id: string, fallbackName: string): MapSummary {
+  const project = raw.project || raw
+  const explicitPlayers = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
+  const routesCount = project.routes?.length || 0
+  return {
+    id,
+    name: project.name || fallbackName,
+    mode: getMapMode(project),
+    cols: project.cols || 60,
+    rows: project.rows || 60,
+    playersCount: typeof explicitPlayers === 'number' && explicitPlayers > 0
+      ? explicitPlayers
+      : routesCount > 0 ? routesCount : (project.cols >= 60 ? 4 : 2),
+    raw,
+  }
+}
+
+export function getBuiltinMaps(): MapSummary[] {
   return Object.entries(mapModules).map(([path, mod]) => {
     const raw = (mod as any).default || mod
-    const project = raw.project || raw
     const fileName = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
-    const id = fileName.toLowerCase().replace(/[^a-z0-9]/g, '-')
-    const waves = raw.waveData?.waveConfigs || raw.waveConfigs || project.waveConfigs || []
-
-    return {
-      id,
-      name: project.name || fileName,
-      cols: project.cols || 60,
-      rows: project.rows || 60,
-      playersCount: (() => {
-        const explicit = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
-        if (explicit && typeof explicit === 'number' && explicit > 0) return explicit
-        const routesCount = project.routes?.length || 0
-        if (routesCount > 0) return routesCount
-        return project.cols >= 60 ? 4 : 2
-      })(),
-      wavesCount: waves.length || 24,
-      raw,
-    }
+    return summarizeMap(raw, fileName.toLowerCase().replace(/[^a-z0-9]/g, '-'), fileName)
   })
+}
+
+/** Reads a user-picked map JSON, registers it for this session and returns its list entry. Throws on invalid JSON. */
+export async function importMapFile(file: File): Promise<MapSummary> {
+  const raw = JSON.parse(await file.text())
+  const project = raw.project || raw
+  const fallbackName = file.name.replace(/\.json$/i, '')
+  const id = sanitizeMapId(`custom-${(project.name || fallbackName).toLowerCase()}-${Date.now().toString(36)}`)
+  registerSessionCustomMap(id, raw)
+  return summarizeMap(raw, id, fallbackName)
 }
 
 export function sanitizeMapId(nameOrId: string): string {

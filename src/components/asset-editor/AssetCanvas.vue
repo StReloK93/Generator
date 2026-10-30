@@ -369,8 +369,8 @@
           </div>
           <UiIconButton 
             :icon="X"
-            size="xs"
-            variant="ghost"
+            size="md"
+            :title="$t('common.close')"
             @click="closeQuickScale"
           />
         </div>

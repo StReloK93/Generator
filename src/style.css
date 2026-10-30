@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "@fontsource-variable/nunito/wght.css";
+@import "@fontsource/cinzel/700.css";
+@import "@fontsource/cinzel/900.css";
 
 @font-face {
   font-family: 'SpaceMono';
@@ -8,94 +11,111 @@
   font-display: swap;
 }
 
+/*
+ * Defensor design tokens — "Warm Citadel".
+ * Neutrals (`slate-*`) are warm stone so the UI frames the sunlit isometric art;
+ * `brand-*` is citadel gold, the single primary accent (matches the gold currency).
+ * Status colors: emerald = go/success, rose = lives/danger, cyan/sky = frost/info.
+ */
+/* Short landscape phones: compact layouts */
+@custom-variant short (@media (max-height: 480px));
+
 @theme {
-  --color-dark-950: #090d16;
-  --color-dark-900: #0d1322;
-  --color-dark-850: #11182c;
-  --color-dark-800: #162038;
-  --color-dark-750: #1b2744;
-  --color-dark-700: #213054;
-  --color-dark-600: #2f4373;
+  --color-slate-50: #f8f5f0;
+  --color-slate-100: #f0ebe3;
+  --color-slate-200: #e2d9cc;
+  --color-slate-300: #c9bcaa;
+  --color-slate-400: #a89a87;
+  --color-slate-500: #86796b;
+  --color-slate-600: #665b50;
+  --color-slate-700: #4b423a;
+  --color-slate-750: #3f3730;
+  --color-slate-800: #332c26;
+  --color-slate-850: #29231e;
+  --color-slate-900: #201b17;
+  --color-slate-950: #161210;
 
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-dark-950: #120f0d;
+  --color-dark-900: #1a1613;
+  --color-dark-850: #201b17;
+  --color-dark-800: #29231e;
+  --color-dark-750: #332c26;
+  --color-dark-700: #3f3730;
+  --color-dark-600: #4b423a;
 
-  --color-emerald-400: #34d399;
-  --color-emerald-500: #10b981;
-  --color-emerald-600: #059669;
+  --color-brand-50: #fdf8e8;
+  --color-brand-100: #faefc5;
+  --color-brand-200: #f5df8d;
+  --color-brand-300: #f0cb5e;
+  --color-brand-400: #e9b63c;
+  --color-brand-500: #da9b20;
+  --color-brand-600: #b97c16;
+  --color-brand-700: #935d14;
+  --color-brand-800: #774a17;
+  --color-brand-900: #633e18;
+  --color-brand-950: #3a2109;
 
-  --color-amber-300: #fcd34d;
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #f59e0b;
+  --font-sans: 'Nunito Variable', 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Cinzel', 'Nunito Variable', Georgia, serif;
+  --font-mono: 'SpaceMono', ui-monospace, monospace;
 
-  --font-sans: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'SpaceMono', monospace;
-
-  --shadow-glow-brand: 0 0 20px -5px rgba(99, 102, 241, 0.5);
+  --shadow-glow-brand: 0 0 20px -5px rgba(233, 182, 60, 0.5);
   --shadow-glow-emerald: 0 0 20px -5px rgba(16, 185, 129, 0.5);
 }
 
-
-/* Global styles */
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #090d16;
-  color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden;
-  user-select: none;
-}
-
-/* Smooth Game Route Page Transitions */
-.game-page-enter-active,
-.game-page-leave-active {
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.game-page-enter-from {
-  opacity: 0;
-  transform: scale(0.992) translateY(2px);
-}
-
-.game-page-leave-to {
-  opacity: 0;
-  transform: scale(1.008) translateY(-2px);
-}
-
 @layer base {
-  *,
-  *::before,
-  *::after {
-    font-family: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  }
-
   html,
   body,
-  #app,
+  #app {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-slate-100);
+    background-color: var(--color-slate-950);
+    overflow: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   input,
   button,
   select,
   textarea,
   optgroup,
   option {
-    font-family: 'SpaceMono', monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    color: #f1f5f9;
-    background-color: #090d16;
-    overflow: hidden;
-    user-select: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: inherit;
+    color: var(--color-slate-100);
   }
+
+  select,
+  option,
+  optgroup {
+    background-color: var(--color-slate-900);
+  }
+
+  ::selection {
+    background-color: rgba(233, 182, 60, 0.35);
+    color: var(--color-slate-50);
+  }
+}
+
+/* Route transitions: opacity only (scaling a full-screen WebGL canvas resamples and flickers) */
+.game-page-enter-active {
+  transition: opacity 0.22s ease-out;
+}
+
+.game-page-leave-active {
+  transition: opacity 0.16s ease-in;
+}
+
+.game-page-enter-from,
+.game-page-leave-to {
+  opacity: 0;
 }
 
 /* Custom modern scrollbars */
@@ -105,28 +125,34 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(22, 18, 16, 0.6);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.5);
+  background: rgba(134, 121, 107, 0.45);
   border-radius: 4px;
   transition: background-color 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(233, 182, 60, 0.6);
 }
 
+/* Frosted panel surface (HUD, floating editor toasts, modals) */
+.glass-panel {
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+}
 
-
-/* Tool button active glow */
-.btn-tool-active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(79, 70, 229, 0.45));
-  border: 1px solid #6366f1;
-  color: #c7d2fe;
-  box-shadow: 0 0 15px -2px rgba(99, 102, 241, 0.5);
+/* Warm ambient backdrop for full-screen menu pages */
+.citadel-backdrop {
+  background-color: var(--color-slate-950);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(233, 182, 60, 0.12), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 110%, rgba(185, 124, 22, 0.1), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(240, 235, 227, 0.035) 1px, transparent 0);
+  background-size: auto, auto, 22px 22px;
 }
 
 /* Custom isometric preview grid background */
@@ -189,49 +215,6 @@ body {
 .max-h-dvh {
   max-height: 100vh;
   max-height: 100dvh;
-}
-
-/* Game Arcade Tactile Button Styling */
-.btn-game-primary {
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(52, 211, 153, 0.6);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-game-primary:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
-}
-
-.btn-game-amber {
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
-  color: #090d16;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(251, 191, 36, 0.8);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-game-amber:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
-}
-
-.btn-game-brand {
-  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(129, 140, 248, 0.6);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-game-brand:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
 }
 
 /* Mobile Touch Tap Target helper */

@@ -3,14 +3,7 @@
     <!-- TOP HEADER -->
     <header class="h-14 shrink-0 bg-slate-900/90 border-b border-slate-800/80 px-4 flex items-center justify-between z-20 backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <UiButton
-          variant="secondary"
-          size="sm"
-          :leading-icon="ArrowLeft"
-          @click="handleBack"
-        >
-          {{ t('common.back') }}
-        </UiButton>
+        <UiIconButton :icon="ArrowLeft" size="md" :title="t('common.back')" @click="handleBack" />
 
         <div class="h-5 w-px bg-slate-800" />
 
@@ -929,7 +922,7 @@ function getLocalizedName(proj?: ProjectileDefinition): string {
 }
 
 function handleBack() {
-  router.push('/play')
+  router.push('/')
 }
 
 function handleCreateClean() {

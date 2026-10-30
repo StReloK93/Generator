@@ -34,7 +34,7 @@
         </div>
         <div class="flex justify-between items-center">
           <span class="text-slate-400">{{ $t('export.customAssets') }}</span>
-          <span class="font-mono text-indigo-400 font-semibold">{{ $t('common.itemsCount', { count: assetStore.assets.length }) }}</span>
+          <span class="font-mono text-brand-300 font-semibold">{{ $t('common.itemsCount', { count: assetStore.assets.length }) }}</span>
         </div>
       </div>
 

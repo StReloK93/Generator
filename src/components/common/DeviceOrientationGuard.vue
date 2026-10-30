@@ -9,12 +9,12 @@
   >
     <div
       v-if="shouldShowGuard"
-      class="fixed inset-0 z-999999 flex flex-col items-center justify-center p-6 bg-slate-950/98 backdrop-blur-2xl text-slate-100 select-none overflow-hidden touch-none"
+      class="fixed inset-0 z-999999 flex flex-col items-center justify-center p-6 citadel-backdrop text-slate-100 select-none overflow-hidden touch-none"
     >
       <!-- Background Ambient Glow -->
       <div class="absolute inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-sky-500/10 rounded-full blur-2xl" />
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl animate-pulse" />
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-amber-500/10 rounded-full blur-2xl" />
       </div>
 
       <!-- Main Modal Card -->

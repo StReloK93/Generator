@@ -1,14 +1,10 @@
 <template>
-  <UiCard 
-    variant="slate" 
-    padding="none" 
-    custom-class="flex flex-col h-full rounded-3xl border-slate-800/90 shadow-2xl overflow-hidden backdrop-blur-md"
-  >
+  <UiCard padding="none" custom-class="flex-col h-full">
     <!-- Chat Header -->
-    <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 shrink-0">
+    <div class="px-3 pt-3 pb-2 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-2">
-        <MessageSquare class="w-4 h-4 text-brand-400" />
-        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $t('lobby.chatTitle') }}</span>
+        <MessageSquare class="size-4 text-brand-300" />
+        <h2 class="text-sm font-extrabold text-slate-50">{{ $t('lobby.chatTitle') }}</h2>
       </div>
       <UiBadge variant="slate" size="xs">
         {{ multiplayerStore.chatMessages.length }}
@@ -18,7 +14,7 @@
     <!-- Messages Container -->
     <div 
       ref="chatScrollRef"
-      class="flex-1 p-3.5 overflow-y-auto space-y-2.5 custom-scrollbar text-xs"
+      class="flex-1 min-h-0 px-3 pb-2 overflow-y-auto space-y-2 text-xs"
     >
       <div 
         v-if="multiplayerStore.chatMessages.length === 0"
@@ -46,7 +42,7 @@
             >
               {{ msg.senderName }}:
             </span>
-            <span class="text-[9px] text-slate-500 font-mono">
+            <span class="text-[9px] text-slate-500">
               {{ formatTime(msg.timestamp) }}
             </span>
           </div>
@@ -58,7 +54,7 @@
     </div>
 
     <!-- Input Bar -->
-    <div class="p-2.5 border-t border-slate-800/80 bg-slate-900/60 flex items-center gap-2 shrink-0">
+    <div class="p-2 border-t border-slate-800 flex items-center gap-2 shrink-0">
       <UiInput 
         v-model="inputMsg"
         size="sm"
@@ -67,13 +63,12 @@
         custom-class="flex-1"
         @keyup.enter="handleSend"
       />
-      <UiIconButton 
-        :icon="Send"
-        size="md"
-        variant="default"
+      <UiButton
+        variant="primary"
+        size="icon"
+        :leading-icon="Send"
         :disabled="!inputMsg.trim()"
         :title="$t('lobby.send')"
-        custom-class="bg-brand-600 hover:bg-brand-500 text-white border-brand-500/40"
         @click="handleSend"
       />
     </div>
@@ -83,7 +78,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { MessageSquare, Send } from 'lucide-vue-next'
-import { UiCard, UiInput, UiIconButton, UiBadge } from './ui'
+import { UiCard, UiInput, UiButton, UiBadge } from './ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 
 const multiplayerStore = useMultiplayerStore()

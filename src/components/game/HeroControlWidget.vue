@@ -42,7 +42,7 @@
             RUN
           </span>
         </div>
-        <span class="text-[10px] text-slate-400 font-mono">
+        <span class="text-[10px] text-slate-400">
           ({{ Math.round(heroStore.hero.currentCol) }}, {{ Math.round(heroStore.hero.currentRow) }})
         </span>
       </div>
@@ -83,7 +83,7 @@
           <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
             Hero Model
           </span>
-          <span class="text-[10px] text-emerald-400 font-mono">
+          <span class="text-[10px] text-emerald-400">
             {{ HERO_MODELS.length }} models
           </span>
         </div>
@@ -112,7 +112,7 @@
             <button 
               v-for="s in [2.5, 4.0, 6.0, 8.0]" 
               :key="s"
-              class="px-1.5 py-0.5 text-[10px] rounded font-mono font-bold transition-all"
+              class="px-1.5 py-0.5 text-[10px] rounded font-bold transition-all"
               :class="heroStore.hero.speed === s ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-400 hover:text-slate-200'"
               @click="heroStore.setHeroSpeed(s)"
             >

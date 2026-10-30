@@ -8,15 +8,21 @@
       <!-- ================= 1. TOP GLOBAL STATS BAR ================= -->
       <div class="px-3 bg-slate-900/90 border-b border-slate-800/80 flex flex-col gap-2 shrink-0">
         <!-- Main Stats Row -->
-        <div class="flex items-center justify-between gap-1.5">
+        <div v-if="!isTdMode" class="flex items-center justify-between gap-1.5 py-2">
+          <span class="flex items-center gap-1.5 text-xs font-extrabold text-brand-200">
+            <Swords class="size-3.5 text-brand-300" /> {{ $t('game.modePvp') }}
+          </span>
+          <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
+        </div>
+        <div v-else class="flex items-center justify-between gap-1.5">
           <!-- Gold -->
-          <div class="flex items-center gap-1 font-mono text-xs font-black text-amber-300" :title="$t('common.gold')">
+          <div class="flex items-center gap-1 text-xs font-black text-amber-300" :title="$t('common.gold')">
             <Coins class="size-3.5 text-amber-400 shrink-0" />
             <span>{{ playerGold }}</span>
           </div>
 
           <!-- Lives -->
-          <div class="flex items-center gap-1 font-mono text-xs font-black"
+          <div class="flex items-center gap-1 text-xs font-black"
             :class="gameStore.playerLives <= 5 ? 'text-rose-400 animate-pulse' : 'text-slate-100'"
             :title="$t('common.lives')">
             <Heart class="size-3.5 text-rose-500 fill-rose-500 shrink-0" />
@@ -24,14 +30,14 @@
           </div>
 
           <!-- Total Kills -->
-          <div class="flex items-center gap-1 font-mono text-xs font-bold text-rose-300" :title="$t('game.kills')">
+          <div class="flex items-center gap-1 text-xs font-bold text-rose-300" :title="$t('game.kills')">
             <Skull class="size-3.5 text-rose-400 shrink-0" />
             <span>{{ gameStore.totalKills }}</span>
           </div>
 
           <!-- Wave Number (Click to open all waves overview) -->
           <button type="button"
-            class="flex items-center gap-1 font-mono text-xs font-bold text-purple-200 hover:text-purple-100 cursor-pointer p-0.5 rounded hover:bg-slate-800 transition-all"
+            class="flex items-center gap-1 text-xs font-bold text-purple-200 hover:text-purple-100 cursor-pointer p-0.5 rounded hover:bg-slate-800 transition-all"
             :title="$t('game.allWaves')" @click="isWaveModalOpen = true">
             <Swords class="size-3.5 text-purple-400 shrink-0" />
             <span>
@@ -45,170 +51,117 @@
         </div>
 
         <!-- Multiplayer Players Mini-Leaderboard (If in multiplayer room) -->
-        <div v-if="multiplayerStore.roomId"
-          class="flex flex-wrap items-center gap-1 pt-1.5 border-t border-slate-800/60">
-          <div v-for="p in multiplayerStore.players" :key="p.id"
-            class="px-1.5 py-0.5 rounded-lg flex items-center gap-1 text-[10px] border transition-all"
-            :class="p.id === multiplayerStore.myPlayerId ? 'bg-slate-900 border-emerald-500/60 text-white' : 'bg-slate-950/80 border-slate-800/80 text-slate-300'">
-            <div class="size-2.5 rounded-full border border-white/40 shrink-0"
-              :style="{ backgroundColor: p.color || '#38bdf8' }" />
-            <span class="truncate max-w-14 font-semibold">{{ p.name }}</span>
-            <span class="font-mono text-amber-300 font-bold flex items-center text-[9px]">
-              <Coins class="size-2.5 text-amber-400 inline mr-0.5" />{{ p.gold ?? 0 }}
+        <ul v-if="multiplayerStore.roomId" class="flex flex-col gap-0.5 pb-2">
+          <li v-for="p in multiplayerStore.players" :key="p.id"
+            class="flex items-center gap-2 px-2 py-1 rounded-lg text-[11px]"
+            :class="p.id === multiplayerStore.myPlayerId ? 'bg-brand-500/10 ring-1 ring-brand-400/30' : 'bg-slate-950/40'">
+            <span class="size-2 rounded-full shrink-0" :style="{ backgroundColor: p.color || '#38bdf8' }" />
+            <span class="flex-1 min-w-0 truncate font-semibold"
+              :class="p.id === multiplayerStore.myPlayerId ? 'text-brand-100' : 'text-slate-300'">{{ p.name }}</span>
+            <span v-if="isTdMode" class="shrink-0 flex items-center gap-1 font-extrabold text-amber-300">
+              <Coins class="size-3 text-amber-400" />{{ p.gold ?? 0 }}
             </span>
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
 
 
       <!-- ================= 2. DYNAMIC CONTENT AREA (SCROLLABLE) ================= -->
       <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-3 min-h-0 text-xs">
 
-        <!-- ===== CASE A: PLACED TOWER SELECTED ON MAP ===== -->
-        <div v-if="towerStore.selectedPlacedTower" class="flex flex-col gap-2.5 animate-in fade-in duration-150">
-          <!-- Tower Header -->
-          <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2 min-w-0">
-              <div
-                class="size-11 rounded-xl bg-slate-900 border border-sky-500/40 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                <img v-if="getPlacedTowerSprite(towerStore.selectedPlacedTower)"
-                  :src="getPlacedTowerSprite(towerStore.selectedPlacedTower)" :alt="towerStore.selectedPlacedTower.name"
-                  class="w-full h-full object-contain filter drop-shadow scale-110" />
-                <ShieldAlert v-else class="size-5 text-sky-400" />
+        <!-- ===== CASE A: PLACED TOWER SELECTED ON MAP (tap the map elsewhere to close) ===== -->
+        <div v-if="towerStore.selectedPlacedTower" class="flex flex-col gap-2 animate-in fade-in duration-150">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="size-10 rounded-lg bg-slate-900 border border-slate-700/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+              <img v-if="getPlacedTowerSprite(towerStore.selectedPlacedTower)"
+                :src="getPlacedTowerSprite(towerStore.selectedPlacedTower)" :alt="towerStore.selectedPlacedTower.name"
+                class="w-full h-full object-contain" />
+              <ShieldAlert v-else class="size-5 text-sky-400" />
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-extrabold text-slate-50 truncate text-xs">{{ towerStore.selectedPlacedTower.name }}</span>
+                <UiBadge v-if="selectedTowerHasLevels" variant="cyan" size="xs" class="shrink-0">
+                  {{ $t('game.lvl', { level: towerStore.selectedPlacedTower.level }) }}
+                </UiBadge>
               </div>
-              <div class="flex flex-col min-w-0 text-left">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-sky-200 truncate text-xs sm:text-sm">{{
-                    towerStore.selectedPlacedTower.name }}</span>
-                  <UiBadge variant="cyan" size="xs">
-                    {{ $t('game.lvl', { level: towerStore.selectedPlacedTower.level }) }}
-                  </UiBadge>
-                </div>
-                <!-- Trait Badges -->
-                <div v-if="towerStore.selectedPlacedTower.traits && towerStore.selectedPlacedTower.traits.length > 0"
-                  class="flex items-center gap-1 flex-wrap mt-0.5">
-                  <span v-for="traitId in towerStore.selectedPlacedTower.traits" :key="traitId"
-                    class="px-1.5 py-0.5 rounded text-[9px] font-bold border flex items-center gap-0.5"
-                    :class="getTraitDef(traitId).badgeClass">
-                    <component :is="getTraitDef(traitId).icon" class="size-2.5" />
-                    <span>{{ $t(getTraitDef(traitId).nameKey) }}</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <UiIconButton :icon="X" size="xs" variant="ghost" :title="$t('common.close')"
-              @click="towerStore.selectPlacedTower(null)" />
-          </div>
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 gap-1.5 font-mono text-[10px] sm:text-[11px] text-slate-300">
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Flame class="size-3 text-rose-400" />{{ $t('common.damage') }}
-              </span>
-              <span class="font-bold text-white">{{ towerStore.selectedPlacedTower.damage }}</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Zap class="size-3 text-amber-400" />{{ $t('config.attackSpeed') }}
-              </span>
-              <span class="font-bold text-white">{{ (1 / towerStore.selectedPlacedTower.attackSpeed).toFixed(1)
-              }}/s</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Crosshair class="size-3 text-sky-400" />{{ $t('config.attackRange') }}
-              </span>
-              <span class="font-bold text-white">{{ towerStore.selectedPlacedTower.range }} k</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Skull class="size-3 text-rose-400" />{{ $t('game.kills') }}
-              </span>
-              <span class="font-bold text-rose-300">{{ towerStore.selectedPlacedTower.killsCount }}</span>
-            </div>
-          </div>
-
-          <!-- Target Strategy Selector -->
-          <div v-if="isOwnerOfSelectedTower" class="flex flex-col gap-1 pt-1">
-            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{{ $t('game.targetStrategy')
-            }}</span>
-            <UiTabs :model-value="towerStore.selectedPlacedTower.targetStrategy || 'first'" :items="targetStrategies"
-              variant="segmented" size="xs"
-              @update:model-value="(val) => towerStore.setTowerTargetStrategy(towerStore.selectedPlacedTower!.id, val as any)" />
-          </div>
-        </div>
-
-
-        <!-- ===== CASE B: PLACING A TOWER (BLUEPRINT ACTIVE) ===== -->
-        <div v-else-if="activeSelectedBlueprint" class="flex flex-col gap-2.5 animate-in fade-in duration-150">
-          <!-- Blueprint Header -->
-          <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2 min-w-0">
-              <div
-                class="size-11 rounded-xl bg-slate-900 border border-amber-500/40 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                <img v-if="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)" :src="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)"
-                  :alt="activeSelectedBlueprint.name"
-                  class="w-full h-full object-contain filter drop-shadow scale-110" />
-                <ShieldAlert v-else class="size-5 text-amber-400" />
-              </div>
-              <div class="flex flex-col min-w-0 text-left">
-                <span class="font-bold text-white truncate text-xs sm:text-sm">{{ activeSelectedBlueprint.name }}</span>
-                <span class="font-mono text-xs text-amber-300 font-bold flex items-center gap-1 mt-0.5">
-                  <Coins class="size-3 text-amber-400" />{{ $t('game.cost', { amount: activeSelectedBlueprint.levels[0].cost ?? 100 }) }}
+              <div v-if="towerStore.selectedPlacedTower.traits?.length" class="flex items-center gap-1 flex-wrap mt-0.5">
+                <span v-for="traitId in towerStore.selectedPlacedTower.traits" :key="String(traitId)"
+                  class="px-1 py-px rounded text-[9px] font-bold border flex items-center gap-0.5"
+                  :class="getTraitDef(traitId as any).badgeClass">
+                  <component :is="getTraitDef(traitId as any).icon" class="size-2.5" />{{ $t(getTraitDef(traitId as any).nameKey) }}
                 </span>
               </div>
             </div>
-
-            <UiIconButton :icon="X" size="xs" variant="ghost" :title="$t('game.cancelBuild')" @click="cancelBuild" />
           </div>
 
-          <!-- Blueprint Stats Grid -->
-          <div class="grid grid-cols-2 gap-1.5 font-mono text-[10px] sm:text-[11px] text-slate-300">
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Flame class="size-3 text-rose-400" />{{ $t('common.damage') }}
-              </span>
-              <span class="font-bold text-white">{{ activeSelectedBlueprint.levels[0].damage }}</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Zap class="size-3 text-amber-400" />{{ $t('config.attackSpeed') }}
-              </span>
-              <span class="font-bold text-white">{{ (1 / (activeSelectedBlueprint.levels[0].attackSpeed || 1.0)).toFixed(1) }}/s</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Crosshair class="size-3 text-sky-400" />{{ $t('config.attackRange') }}
-              </span>
-              <span class="font-bold text-white">{{ activeSelectedBlueprint.levels[0].range }} k</span>
-            </div>
-            <div class="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-slate-400 flex items-center gap-1">
-                <Crosshair class="size-3 text-purple-400" />{{ $t('common.type') }}
-              </span>
-              <span class="font-bold text-purple-300 uppercase text-[9px] truncate max-w-16">{{
-                getProjectileLabel(activeSelectedBlueprint.projectileId) }}</span>
+          <div class="grid grid-cols-4 gap-1">
+            <div v-for="stat in selectedTowerStats" :key="stat.label" :title="stat.label"
+              class="flex flex-col items-center gap-1 py-1.5 rounded-lg bg-slate-900/70 border border-slate-800">
+              <component :is="stat.icon" :class="['size-3.5', stat.color]" />
+              <span class="text-[11px] font-extrabold text-slate-50 leading-none">{{ stat.value }}</span>
             </div>
           </div>
 
-          <!-- Traits if configured -->
-          <div v-if="activeSelectedBlueprint.levels[0].traits && activeSelectedBlueprint.levels[0].traits.length > 0"
-            class="flex flex-col gap-1">
-            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{{ $t('traits.title')
-            }}</span>
-            <div class="flex items-center gap-1 flex-wrap">
-              <span v-for="traitId in activeSelectedBlueprint.levels[0].traits" :key="String(traitId)"
-                class="px-1.5 py-0.5 rounded text-[9px] font-bold border flex items-center gap-0.5"
-                :class="getTraitDef(traitId as any).badgeClass">
-                <component :is="getTraitDef(traitId as any).icon" class="size-2.5" />
-                <span>{{ $t(getTraitDef(traitId as any).nameKey) }}</span>
-              </span>
+          <div v-if="isOwnerOfSelectedTower" class="flex flex-col gap-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ $t('game.targetStrategy') }}</span>
+            <UiTabs :model-value="towerStore.selectedPlacedTower.targetStrategy || 'first'" :items="targetStrategies"
+              variant="pills" size="xs" custom-class="grid! grid-cols-3"
+              @update:model-value="(val) => towerStore.setTowerTargetStrategy(towerStore.selectedPlacedTower!.id, val as any)" />
+          </div>
+
+          <div v-if="isOwnerOfSelectedTower" class="flex items-center gap-1.5">
+            <UiButton v-if="nextLevelConfig" variant="game-green" size="xs" :leading-icon="Zap"
+              :disabled="playerGold < upgradeCost" @click="upgradeSelectedTower">
+              <Coins class="size-3 inline" /> {{ upgradeCost }}
+            </UiButton>
+            <UiButton variant="danger" size="xs" class="ml-auto" @click="sellSelectedTower">
+              {{ $t('common.sell') }}
+              <span class="text-amber-200 inline-flex items-center gap-0.5 ml-1"><Coins class="size-3" />{{ sellRefund }}</span>
+            </UiButton>
+          </div>
+        </div>
+
+        <!-- ===== CASE B: PLACING A TOWER (BLUEPRINT ACTIVE) ===== -->
+        <div v-else-if="activeSelectedBlueprint" class="flex flex-col gap-2 animate-in fade-in duration-150">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="size-10 rounded-lg bg-slate-900 border border-amber-500/40 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+              <img v-if="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)"
+                :src="assetStore.getTowerAssetPreview(activeSelectedBlueprint.asset)" :alt="activeSelectedBlueprint.name"
+                class="w-full h-full object-contain" />
+              <ShieldAlert v-else class="size-5 text-amber-400" />
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-extrabold text-slate-50 truncate text-xs">{{ activeSelectedBlueprint.name }}</span>
+                <span class="ml-auto shrink-0 text-[11px] text-amber-300 font-extrabold flex items-center gap-0.5">
+                  <Coins class="size-3 text-amber-400" />{{ activeSelectedBlueprint.levels[0].cost ?? 100 }}
+                </span>
+              </div>
+              <div v-if="activeSelectedBlueprint.levels[0].traits?.length" class="flex items-center gap-1 flex-wrap mt-0.5">
+                <span v-for="traitId in activeSelectedBlueprint.levels[0].traits" :key="String(traitId)"
+                  class="px-1 py-px rounded text-[9px] font-bold border flex items-center gap-0.5"
+                  :class="getTraitDef(traitId as any).badgeClass">
+                  <component :is="getTraitDef(traitId as any).icon" class="size-2.5" />{{ $t(getTraitDef(traitId as any).nameKey) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1">
+            <div v-for="stat in blueprintStats" :key="stat.label" :title="stat.label"
+              class="flex flex-col items-center gap-1 py-1.5 rounded-lg bg-slate-900/70 border border-slate-800">
+              <component :is="stat.icon" :class="['size-3.5', stat.color]" />
+              <span class="text-[11px] font-extrabold text-slate-50 leading-none">{{ stat.value }}</span>
             </div>
           </div>
         </div>
 
+        <!-- ===== PvP / hero maps: no waves or towers ===== -->
+        <div v-else-if="!isTdMode" class="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
+          <Footprints class="size-5 text-emerald-400" />
+          <p class="text-[11px] text-slate-300 leading-relaxed">{{ $t('game.heroTapToMove') }}</p>
+        </div>
 
         <!-- ===== CASE C: DEFAULT WAVE INFORMATION (NO TOWER SELECTED) ===== -->
         <div v-else class="flex flex-col gap-2.5 animate-in fade-in duration-150">
@@ -251,7 +204,7 @@
           <!-- Immunities / Resistances -->
           <div class="flex flex-col gap-1 p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
             <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-              <Shield class="size-3 text-indigo-400" /> {{ $t('game.immunities') }}
+              <Shield class="size-3 text-brand-300" /> {{ $t('game.immunities') }}
             </span>
 
             <div v-if="currentWaveConfig?.immunities && currentWaveConfig.immunities.length > 0"
@@ -274,40 +227,10 @@
 
 
       <!-- ================= 3. BOTTOM ACTIONS FOOTER ================= -->
-      <div class="p-2.5 bg-slate-900/95 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
-
-        <!-- ===== BOTTOM ACTIONS FOR PLACED TOWER ===== -->
-        <div v-if="towerStore.selectedPlacedTower" class="flex items-center gap-1.5 w-full">
-          <!-- Upgrade button -->
-          <UiButton v-if="isOwnerOfSelectedTower && nextLevelConfig" variant="game-green" size="sm"
-            class="flex-1 font-bold shadow-md shadow-emerald-500/10" :leading-icon="Zap"
-            :disabled="playerGold < upgradeCost" @click="upgradeSelectedTower">
-            <span>+{{ Math.max(0, nextLevelConfig.damage - towerStore.selectedPlacedTower.damage) }}</span>
-            <span class="font-mono text-amber-300 flex items-center gap-0.5 ml-1">
-              <Coins class="size-3 text-amber-400 inline" />{{ upgradeCost }}
-            </span>
-          </UiButton>
-
-          <!-- Max level badge -->
-          <div v-else-if="isOwnerOfSelectedTower && !nextLevelConfig"
-            class="flex-1 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-[10px] font-bold text-slate-400 flex items-center justify-center gap-1">
-            <Shield class="size-3 text-amber-400" />
-            <span>{{ $t('game.maxLevel') }}</span>
-          </div>
-
-          <!-- Sell button -->
-          <UiButton v-if="isOwnerOfSelectedTower" variant="danger" size="sm" class="font-bold shrink-0"
-            @click="sellSelectedTower">
-            <span>{{ $t('common.sell') }}</span>
-            <span class="font-mono text-amber-300 flex items-center gap-0.5 ml-1">
-              <Coins class="size-3 text-amber-400 inline" />{{ sellRefund }}
-            </span>
-          </UiButton>
-        </div>
-
+      <div v-if="isTdMode" class="p-2.5 bg-slate-900/95 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
 
         <!-- ===== BOTTOM ACTIONS FOR TOWER PLACEMENT (CONFIRM / CANCEL) ===== -->
-        <div v-else-if="activeSelectedBlueprint" class="flex flex-col gap-1.5 w-full">
+        <div v-if="activeSelectedBlueprint" class="flex flex-col gap-1.5 w-full">
           <!-- When cell is selected on map -->
           <div v-if="towerStore.pendingBuildCell" class="flex items-center gap-1.5 w-full">
             <UiButton variant="danger" size="sm" class="flex-1 font-bold" :leading-icon="X" @click="cancelBuild">
@@ -336,12 +259,12 @@
 
 
         <!-- ===== BOTTOM ACTIONS FOR WAVE / PREPARATION ===== -->
-        <div v-else class="flex flex-col gap-2 w-full">
+        <div v-else-if="isTdMode" class="flex flex-col gap-2 w-full">
           <!-- Build Prep Mode Countdown / Start button OR Wave Running Status -->
           <div class="flex items-center gap-1.5 w-full">
             <template v-if="gameStore.gameState === 'build_prep' || gameStore.gameState === 'ready'">
               <div v-if="multiplayerStore.roomId"
-                class="flex items-center gap-1.5 text-amber-300 font-mono text-xs font-bold shrink-0">
+                class="flex items-center gap-1.5 text-amber-300 text-xs font-bold shrink-0">
                 <span class="size-2 rounded-full bg-amber-400 animate-ping"></span>
                 <span>{{ Math.ceil(gameStore.prepCountdown) }}s</span>
               </div>
@@ -354,7 +277,7 @@
 
             <!-- Wave Running Status -->
             <template v-else-if="gameStore.gameState === 'wave_running'">
-              <div class="flex items-center justify-between w-full text-[11px] text-emerald-300 font-mono">
+              <div class="flex items-center justify-between w-full text-[11px] text-emerald-300">
                 <span class="flex items-center gap-1 font-bold">
                   <Swords class="size-3.5 text-emerald-400 animate-pulse" />
                   {{ $t('game.waveRunning') }}
@@ -381,7 +304,7 @@
             </span>
             <div class="flex items-center gap-1">
               <button v-for="s in [1, 2, 3, 5]" :key="s" type="button" :class="[
-                'px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all cursor-pointer border',
+                'px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer border',
                 gameStore.gameSpeed === s
                   ? 'bg-amber-400 border-amber-300 text-slate-950 shadow-sm font-black'
                   : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:text-white'
@@ -423,6 +346,8 @@ import type { TowerBlueprint, PlacedTower } from '../../types/tower'
 import { useToolStore } from '../../stores/toolStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useAssetStore } from '../../stores/assetStore'
+import { useMapStore } from '../../stores/mapStore'
+import { getMapMode } from '../../domain/map'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18nStore } from '../../stores/i18nStore'
 import { useGameExit } from '../../composables/useGameExit'
@@ -436,6 +361,10 @@ const towerStore = useTowerStore()
 const toolStore = useToolStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
+const mapStore = useMapStore()
+
+/** Tower defense maps get waves, lives and towers; PvP (hero) maps only players and the hero. */
+const isTdMode = computed(() => getMapMode(mapStore.project) === 'td')
 const notify = useNotificationStore()
 const { t } = useI18nStore()
 
@@ -474,16 +403,28 @@ const isBuildAffordable = computed(() => {
   return playerGold.value >= (activeSelectedBlueprint.value.levels[0].cost ?? 100)
 })
 
-function getProjectileLabel(type?: string): string {
-  switch (type) {
-    case 'arrow': return t('config.projectileArrow')
-    case 'fireball': return t('config.projectileFireball')
-    case 'lightning': return t('config.projectileLightning')
-    case 'frost': return t('config.projectileFrost')
-    case 'boulder': return t('config.projectileBoulder')
-    default: return type || t('common.default')
-  }
+/** Compact stat cells (icon + value, label as tooltip) shared by the placed-tower and build panels. */
+function combatStats(damage: number, attackSpeed: number, range: number) {
+  return [
+    { icon: Flame, color: 'text-rose-400', value: damage, label: t('common.damage') },
+    { icon: Zap, color: 'text-amber-400', value: `${(1 / (attackSpeed || 1)).toFixed(1)}/s`, label: t('config.attackSpeed') },
+    { icon: Crosshair, color: 'text-sky-400', value: range, label: t('config.attackRange') },
+  ]
 }
+
+const selectedTowerStats = computed(() => {
+  const tower = towerStore.selectedPlacedTower
+  if (!tower) return []
+  return [
+    ...combatStats(tower.damage, tower.attackSpeed, tower.range),
+    { icon: Skull, color: 'text-rose-300', value: tower.killsCount, label: t('game.kills') },
+  ]
+})
+
+const blueprintStats = computed(() => {
+  const lvl = activeSelectedBlueprint.value?.levels[0]
+  return lvl ? combatStats(lvl.damage, lvl.attackSpeed, lvl.range) : []
+})
 
 function getPlacedTowerSprite(placedTower: PlacedTower): string {
   const bp = towerStore.blueprints.find(b => b.id === placedTower.blueprintId)
@@ -521,6 +462,13 @@ const isOwnerOfSelectedTower = computed(() => {
   const tower = towerStore.selectedPlacedTower
   if (!tower || !tower.builderId) return true
   return tower.builderId === multiplayerStore.myPlayerId
+})
+
+/** Level badge and upgrades only make sense when the blueprint defines more than one level. */
+const selectedTowerHasLevels = computed(() => {
+  const tower = towerStore.selectedPlacedTower
+  const bp = tower ? towerStore.blueprints.find(b => b.id === tower.blueprintId) : null
+  return (bp?.levels.length ?? 0) > 1
 })
 
 const nextLevelConfig = computed(() => {

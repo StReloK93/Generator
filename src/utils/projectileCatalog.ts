@@ -71,10 +71,15 @@ export function getProjectileArchetypeMeta(proj: ProjectileDefinition): Projecti
   return PROJECTILE_ARCHETYPES.find(a => a.id === arch) || PROJECTILE_ARCHETYPES[0]
 }
 
+/** Instant attacks (sky strikes, beams) hit immediately instead of flying. */
+export function isInstantProjectile(proj: ProjectileDefinition): boolean {
+  return Boolean(proj.movement.isInstant || proj.visual.shape === 'instant_strike')
+}
+
 export function getProjectileArchetype(proj: ProjectileDefinition): ProjectileArchetype {
   if (!proj) return 'flying'
   if (proj.movement.isLaser || proj.formation.type === 'laser_beam') return 'laser'
-  if (proj.movement.isInstant || proj.visual.shape === 'instant_strike') {
+  if (isInstantProjectile(proj)) {
     const inst = proj.movement.instantType || ''
     if (['sky_thunder', 'heavenly_pillar', 'meteor_fall', 'solar_beam', 'arrow_rain', 'holy_spear', 'sky_strike'].includes(inst)) {
       return 'sky_strike'

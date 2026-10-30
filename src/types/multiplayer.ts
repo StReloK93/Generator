@@ -1,4 +1,4 @@
-import { MapProject, UnitVariantType } from './map'
+import { MapProject, UnitVariantType, MapGameMode } from './map'
 
 export interface PlayerInfo {
   id: string
@@ -45,6 +45,7 @@ export interface ActiveRoomSummary {
   hostName: string
   hostColor: string
   mapName: string
+  gameMode: MapGameMode
   playersCount: number
   maxPlayers: number
   createdAt: number
@@ -176,6 +177,8 @@ export interface CompactCombatEvent {
   isSplash?: boolean
   splashRadius?: number
   splashType?: string
+  offsetPerp?: number
+  phaseOffset?: number
   killerId?: string
   goldReward?: number
 }

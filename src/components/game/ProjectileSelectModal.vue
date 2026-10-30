@@ -29,7 +29,7 @@
             </span>
           </div>
 
-          <span class="text-[10px] font-mono text-slate-400 bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
+          <span class="text-[10px] text-slate-400 bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
             PixiJS Arena
           </span>
         </div>
@@ -44,12 +44,12 @@
           <!-- Top-Right Type Badges -->
           <div class="absolute top-2.5 right-2.5 pointer-events-none flex flex-col items-end gap-1">
             <span 
-              class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md border shadow-md"
+              class="text-[9px] font-bold px-2 py-0.5 rounded-md border shadow-md"
               :class="activeArchetypeMeta.badgeClass"
             >
               {{ activeArchetypeMeta.nameUz.toUpperCase() }}
             </span>
-            <span v-if="activeDef?.movement.hasArc" class="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/90 px-2 py-0.5 rounded-md border border-amber-800/60 shadow-md">
+            <span v-if="activeDef?.movement.hasArc" class="text-[9px] font-bold text-amber-300 bg-amber-950/90 px-2 py-0.5 rounded-md border border-amber-800/60 shadow-md">
               ARC
             </span>
           </div>
@@ -66,7 +66,7 @@
             {{ activeDef?.identity.description || t('projectiles.defaultDesc') }}
           </p>
 
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+          <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-800 text-[10px] text-slate-400">
             <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
               {{ t('projectiles.shapeLabel') || 'Shakl' }}: {{ activeDef?.movement.isInstant ? activeDef?.movement.instantType : activeDef?.visual.shape }}
             </span>

@@ -1,6 +1,7 @@
 import { Container, Graphics, Sprite, Texture, ImageSource } from 'pixi.js'
 import { assetManager } from '../../services/assetManager'
 import { gridToScreen } from '../../utils/isometric'
+import type { TowerBlueprint } from '../../types/tower'
 
 export class TowerRenderer {
   public towerTextures = new Map<string, Texture>()
@@ -8,12 +9,12 @@ export class TowerRenderer {
   private loadingPromises = new Map<string, Promise<Texture | null>>()
   public fallbackTextureCache?: Map<string, Texture>
 
-  public getBlueprintTexture(bp: any): Texture | null {
-    if (!bp) return null
-    const assetName = bp.assetName || ''
+  public getBlueprintTexture(bp: TowerBlueprint | undefined): Texture | null {
+    if (!bp?.asset) return null
+    const assetName = bp.asset.assetName || ''
     const baseName = assetName.replace(/\.[^/.]+$/, '')
-    const assetPath = bp.assetPath || ''
-    const assetId = bp.assetId || ''
+    const assetPath = bp.asset.assetPath || ''
+    const assetId = bp.asset.assetId || ''
 
     let texture: Texture | null =
       (assetId ? assetManager.getTexture(assetId) : null) ||
@@ -126,14 +127,15 @@ export class TowerRenderer {
         if (sprite.texture !== texture) {
           sprite.texture = texture
         }
-        const asset = bp?.assetId ? assetManager.getAssetItem(bp.assetId) : (bp?.assetName ? assetManager.getAssetItem(bp.assetName) : undefined)
-        const spanX = (tower as any).spanX || bp?.spanX || asset?.spanX || 1
+        const bpAsset = bp?.asset
+        const asset = bpAsset?.assetId ? assetManager.getAssetItem(bpAsset.assetId) : (bpAsset?.assetName ? assetManager.getAssetItem(bpAsset.assetName) : undefined)
+        const spanX = (tower as any).spanX || bpAsset?.spanX || asset?.spanX || 1
         const assetWidth = asset?.width || (texture.width > 0 ? texture.width : tileWidth)
         const baseScale = (tileWidth * spanX) / (assetWidth || tileWidth)
 
-        const scale = baseScale * (bp?.scale || asset?.scale || 1.0) * ((tower as any).scale || 1.0)
-        const anchorX = (tower as any).anchorX !== undefined ? (tower as any).anchorX : (asset?.anchorX ?? bp?.anchorX ?? 0.5)
-        const anchorY = (tower as any).anchorY !== undefined ? (tower as any).anchorY : (asset?.anchorY ?? bp?.anchorY ?? 0.88)
+        const scale = baseScale * (bpAsset?.scale || asset?.scale || 1.0) * ((tower as any).scale || 1.0)
+        const anchorX = (tower as any).anchorX !== undefined ? (tower as any).anchorX : (asset?.anchorX ?? bpAsset?.anchorX ?? 0.5)
+        const anchorY = (tower as any).anchorY !== undefined ? (tower as any).anchorY : (asset?.anchorY ?? bpAsset?.anchorY ?? 0.88)
         
         sprite.scale.set(scale)
         sprite.anchor.set(anchorX, anchorY)

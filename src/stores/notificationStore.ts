@@ -36,7 +36,7 @@ export const useNotificationStore = defineStore('notificationStore', () => {
     duration?: number
   }): string {
     const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const duration = options.duration ?? (options.type === 'error' ? 4500 : 3200)
+    const duration = options.duration ?? (options.type === 'error' ? 4000 : 2600)
 
     const item: ToastItem = {
       id,
@@ -47,8 +47,8 @@ export const useNotificationStore = defineStore('notificationStore', () => {
       createdAt: Date.now(),
     }
 
-    // Keep maximum 4 visible toasts at a time
-    if (toasts.value.length >= 4) {
+    // Keep at most 3 compact notices on screen so they never cover the play field
+    if (toasts.value.length >= 3) {
       toasts.value.shift()
     }
 

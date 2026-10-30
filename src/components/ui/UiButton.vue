@@ -79,35 +79,35 @@ defineEmits<{
 const variantClasses = computed(() => {
   if (props.variant === 'tool') {
     return props.active
-      ? 'bg-brand-500/25 text-brand-300 border border-brand-500/60 shadow-[0_0_12px_rgba(99,102,241,0.4)]'
+      ? 'bg-brand-500/25 text-brand-300 border border-brand-500/60 shadow-[0_0_12px_rgba(233,182,60,0.35)]'
       : 'text-slate-400 hover:text-white border border-transparent hover:bg-slate-800/80 hover:border-slate-700/60'
   }
 
   switch (props.variant) {
     case 'primary':
     case 'game-brand':
-      return 'bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white shadow-md shadow-brand-600/30 border border-brand-400/40'
+      return 'bg-linear-to-b from-brand-300 to-brand-500 hover:from-brand-200 hover:to-brand-400 text-slate-950 font-extrabold shadow-md shadow-brand-500/30 border border-brand-200/60 inset-shadow-[0_1px_0_rgba(255,255,255,0.35)]'
     
     case 'game-green':
-      return 'bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/30 border border-emerald-400/40'
+      return 'bg-linear-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white font-extrabold text-shadow-sm text-shadow-emerald-900/50 shadow-md shadow-emerald-600/30 border border-emerald-300/50 inset-shadow-[0_1px_0_rgba(255,255,255,0.35)]'
     
     case 'game-amber':
-      return 'bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30 border border-amber-300/60'
+      return 'bg-linear-to-b from-amber-300 to-orange-500 hover:from-amber-200 hover:to-orange-400 text-slate-950 font-black shadow-md shadow-orange-500/30 border border-amber-200/70 inset-shadow-[0_1px_0_rgba(255,255,255,0.35)]'
     
     case 'danger':
-      return 'bg-linear-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-md shadow-rose-600/30 border border-rose-400/40'
+      return 'bg-linear-to-b from-rose-500 to-rose-700 hover:from-rose-400 hover:to-rose-600 text-white font-extrabold shadow-md shadow-rose-700/30 border border-rose-300/40 inset-shadow-[0_1px_0_rgba(255,255,255,0.35)]'
     
     case 'secondary':
-      return 'bg-slate-800/90 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700 hover:border-slate-600 shadow-sm'
+      return 'bg-slate-800/90 hover:bg-slate-750 text-slate-100 hover:text-white border border-slate-700 hover:border-slate-600 shadow-sm inset-shadow-[0_1px_0_rgba(255,255,255,0.06)]'
     
     case 'outline':
-      return 'bg-transparent border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white hover:bg-slate-800/50'
+      return 'bg-transparent border border-slate-700 hover:border-brand-400/60 text-slate-300 hover:text-brand-200 hover:bg-slate-800/50'
     
     case 'ghost':
-      return 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800/70 border border-transparent'
+      return 'bg-transparent text-slate-400 hover:text-slate-50 hover:bg-slate-800/70 border border-transparent'
     
     default:
-      return 'bg-brand-600 text-white'
+      return 'bg-brand-400 text-slate-950'
   }
 })
 

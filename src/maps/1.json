@@ -33676,12 +33676,12 @@
           {
             "level": 1,
             "name": "Tower",
-            "cost": 50,
-            "damage": 25,
-            "attackSpeed": 1.2,
+            "cost": 45,
+            "damage": 30,
+            "attackSpeed": 1,
             "range": 4,
             "isSplash": true,
-            "splashRadius": 1,
+            "splashRadius": 1.2,
             "splashType": "falloff",
             "traits": [
               "fire"
@@ -33724,9 +33724,9 @@
           {
             "level": 1,
             "name": "Fast fire tower",
-            "cost": 80,
-            "damage": 35,
-            "attackSpeed": 0.3,
+            "cost": 120,
+            "damage": 30,
+            "attackSpeed": 0.35,
             "range": 6,
             "isSplash": true,
             "traits": [
@@ -33757,7 +33757,7 @@
                 "isSplash": false
               }
             ],
-            "splashRadius": 0.5,
+            "splashRadius": 0.8,
             "splashType": "falloff",
             "electricSplash": false,
             "electricBonusDamage": 5,
@@ -33789,9 +33789,9 @@
           {
             "level": 1,
             "name": "Stone Ballista Tower",
-            "cost": 200,
-            "damage": 90,
-            "attackSpeed": 0.8,
+            "cost": 220,
+            "damage": 130,
+            "attackSpeed": 0.7,
             "range": 5,
             "isSplash": true,
             "splashRadius": 1.5,
@@ -33883,9 +33883,9 @@
           {
             "level": 1,
             "name": "Tower_ice1",
-            "cost": 40,
+            "cost": 60,
             "damage": 45,
-            "attackSpeed": 0.5,
+            "attackSpeed": 0.6,
             "range": 5,
             "isSplash": false,
             "traits": [
@@ -33929,12 +33929,12 @@
           {
             "level": 1,
             "name": "Tower_ice3",
-            "cost": 130,
-            "damage": 40,
-            "attackSpeed": 2.5,
-            "range": 3,
+            "cost": 120,
+            "damage": 60,
+            "attackSpeed": 1.5,
+            "range": 4,
             "isSplash": true,
-            "splashRadius": 1,
+            "splashRadius": 2,
             "splashType": "constant",
             "traits": [
               "frost"
@@ -33977,9 +33977,9 @@
           {
             "level": 1,
             "name": "Tower_ice4",
-            "cost": 200,
-            "damage": 90,
-            "attackSpeed": 1,
+            "cost": 230,
+            "damage": 120,
+            "attackSpeed": 0.8,
             "range": 6,
             "isSplash": true,
             "splashRadius": 1.5,
@@ -34025,12 +34025,12 @@
           {
             "level": 1,
             "name": "Tower_fire4",
-            "cost": 400,
-            "damage": 235,
+            "cost": 480,
+            "damage": 240,
             "attackSpeed": 0.5,
             "range": 5,
             "isSplash": true,
-            "splashRadius": 1,
+            "splashRadius": 1.2,
             "splashType": "constant",
             "traits": [
               "fire",
@@ -34039,7 +34039,7 @@
             "effects": [
               {
                 "type": "damage",
-                "amount": 10,
+                "amount": 20,
                 "element": "fire"
               },
               {
@@ -34087,12 +34087,12 @@
           {
             "level": 1,
             "name": "Tower_ice5",
-            "cost": 340,
-            "damage": 365,
-            "attackSpeed": 3,
+            "cost": 380,
+            "damage": 380,
+            "attackSpeed": 1.6,
             "range": 7,
             "isSplash": true,
-            "splashRadius": 1.5,
+            "splashRadius": 1.8,
             "splashType": "falloff",
             "traits": [
               "frost",
@@ -34116,7 +34116,7 @@
               },
               {
                 "type": "stun",
-                "duration": 1
+                "duration": 0.5
               },
               {
                 "type": "chain",
@@ -34135,7 +34135,7 @@
           "assetId": "sprite-tower blood1",
           "assetName": "Tower blood1.webp",
           "assetPath": "",
-          "scale": 1,
+          "scale": 2.8,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34149,12 +34149,12 @@
           {
             "level": 1,
             "name": "Tower_ice3",
-            "cost": 10,
-            "damage": 5,
+            "cost": 15,
+            "damage": 8,
             "attackSpeed": 1,
             "range": 6,
             "isSplash": true,
-            "splashRadius": 0.5,
+            "splashRadius": 1,
             "splashType": "falloff",
             "traits": [
               "blood"
@@ -34162,7 +34162,7 @@
             "effects": [
               {
                 "type": "bleed",
-                "dps": 3,
+                "dps": 4,
                 "duration": 4
               }
             ]
@@ -34178,7 +34178,7 @@
           "assetId": "sprite-tower blood3",
           "assetName": "Tower blood3.webp",
           "assetPath": "",
-          "scale": 1,
+          "scale": 1.55,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34192,12 +34192,12 @@
           {
             "level": 1,
             "name": "Tower blood2",
-            "cost": 40,
-            "damage": 20,
-            "attackSpeed": 1.5,
+            "cost": 45,
+            "damage": 22,
+            "attackSpeed": 1.2,
             "range": 5,
             "isSplash": true,
-            "splashRadius": 1,
+            "splashRadius": 1.2,
             "splashType": "falloff",
             "traits": [
               "blood"
@@ -34221,7 +34221,7 @@
           "assetId": "sprite-tower blood2",
           "assetName": "Tower blood2.webp",
           "assetPath": "",
-          "scale": 1,
+          "scale": 1.9,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34235,8 +34235,8 @@
           {
             "level": 1,
             "name": "Tower blood2",
-            "cost": 100,
-            "damage": 100,
+            "cost": 110,
+            "damage": 120,
             "attackSpeed": 1,
             "range": 5,
             "isSplash": false,
@@ -34246,7 +34246,7 @@
             "effects": [
               {
                 "type": "bleed",
-                "dps": 10,
+                "dps": 12,
                 "duration": 3
               }
             ]
@@ -34275,7 +34275,7 @@
       {
         "waveNumber": 2,
         "name": "Wave 2",
-        "unitHp": 30,
+        "unitHp": 35,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
@@ -34292,8 +34292,8 @@
       {
         "waveNumber": 3,
         "name": "Wave 3",
-        "unitHp": 60,
-        "unitSpeed": 2,
+        "unitHp": 55,
+        "unitSpeed": 2.6,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 1,
@@ -34309,7 +34309,7 @@
       {
         "waveNumber": 4,
         "name": "Wave 4",
-        "unitHp": 90,
+        "unitHp": 120,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
@@ -34326,12 +34326,12 @@
       {
         "waveNumber": 5,
         "name": "Wave 5",
-        "unitHp": 120,
-        "unitSpeed": 2,
-        "unitCount": 20,
+        "unitHp": 450,
+        "unitSpeed": 1.6,
+        "unitCount": 6,
         "isBoss": true,
-        "goldReward": 2,
-        "unitBonus": 2,
+        "goldReward": 7,
+        "unitBonus": 7,
         "endWaveBonus": 40,
         "characterModel": "barry",
         "animSpeed": 1,
@@ -34345,8 +34345,8 @@
       {
         "waveNumber": 6,
         "name": "Wave 6",
-        "unitHp": 160,
-        "unitSpeed": 2.5,
+        "unitHp": 210,
+        "unitSpeed": 2.6,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 2,
@@ -34364,7 +34364,7 @@
       {
         "waveNumber": 7,
         "name": "Wave 7",
-        "unitHp": 230,
+        "unitHp": 400,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
@@ -34383,7 +34383,7 @@
       {
         "waveNumber": 8,
         "name": "Wave 8",
-        "unitHp": 300,
+        "unitHp": 550,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
@@ -34400,13 +34400,13 @@
       {
         "waveNumber": 9,
         "name": "Wave 9",
-        "unitHp": 590,
-        "unitSpeed": 2.4,
+        "unitHp": 540,
+        "unitSpeed": 2.6,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 3,
         "unitBonus": 3,
-        "endWaveBonus": 50,
+        "endWaveBonus": 55,
         "characterModel": "zombi",
         "animSpeed": 1,
         "offsetY": -11,
@@ -34419,13 +34419,13 @@
       {
         "waveNumber": 10,
         "name": "Wave 10",
-        "unitHp": 810,
-        "unitSpeed": 2.3,
-        "unitCount": 20,
+        "unitHp": 2550,
+        "unitSpeed": 1.6,
+        "unitCount": 6,
         "isBoss": true,
-        "goldReward": 3,
-        "unitBonus": 3,
-        "endWaveBonus": 50,
+        "goldReward": 10,
+        "unitBonus": 10,
+        "endWaveBonus": 60,
         "characterModel": "bird",
         "animSpeed": 1.2,
         "offsetY": -11,
@@ -34438,13 +34438,13 @@
       {
         "waveNumber": 11,
         "name": "Wave 11",
-        "unitHp": 1215,
+        "unitHp": 1250,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 3,
         "unitBonus": 3,
-        "endWaveBonus": 60,
+        "endWaveBonus": 65,
         "characterModel": "barry",
         "animSpeed": 1.2,
         "offsetY": -20,
@@ -34458,13 +34458,13 @@
       {
         "waveNumber": 12,
         "name": "Wave 12",
-        "unitHp": 1800,
-        "unitSpeed": 2,
+        "unitHp": 1200,
+        "unitSpeed": 2.6,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 3,
         "unitBonus": 3,
-        "endWaveBonus": 60,
+        "endWaveBonus": 70,
         "characterModel": "orc",
         "animSpeed": 2.4,
         "offsetY": -1,
@@ -34475,13 +34475,13 @@
       {
         "waveNumber": 13,
         "name": "Wave 13",
-        "unitHp": 2500,
+        "unitHp": 1950,
         "unitSpeed": 2,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 4,
         "unitBonus": 4,
-        "endWaveBonus": 60,
+        "endWaveBonus": 75,
         "characterModel": "zombi",
         "animSpeed": 1.5,
         "offsetY": -12,
@@ -34494,13 +34494,13 @@
       {
         "waveNumber": 14,
         "name": "Wave 14",
-        "unitHp": 3500,
+        "unitHp": 2450,
         "unitSpeed": 2.1,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 4,
         "unitBonus": 4,
-        "endWaveBonus": 70,
+        "endWaveBonus": 80,
         "characterModel": "male",
         "animSpeed": 1.1,
         "offsetY": -3,
@@ -34514,13 +34514,13 @@
       {
         "waveNumber": 15,
         "name": "Wave 15",
-        "unitHp": 4800,
-        "unitSpeed": 2.1,
-        "unitCount": 20,
+        "unitHp": 7950,
+        "unitSpeed": 1.6,
+        "unitCount": 6,
         "isBoss": true,
-        "goldReward": 4,
-        "unitBonus": 4,
-        "endWaveBonus": 75,
+        "goldReward": 14,
+        "unitBonus": 14,
+        "endWaveBonus": 90,
         "characterModel": "warrior",
         "animSpeed": 2,
         "offsetY": -3,
@@ -34533,13 +34533,13 @@
       {
         "waveNumber": 16,
         "name": "Wave 16",
-        "unitHp": 6500,
+        "unitHp": 3600,
         "unitSpeed": 1.9,
         "unitCount": 20,
         "isBoss": false,
         "goldReward": 4,
         "unitBonus": 4,
-        "endWaveBonus": 75,
+        "endWaveBonus": 100,
         "characterModel": "barry",
         "animSpeed": 2,
         "offsetY": -20,
@@ -34547,6 +34547,84 @@
         "unitVariant": "frost",
         "immunities": [
           "frost",
+          "electric"
+        ]
+      },
+      {
+        "waveNumber": 17,
+        "name": "Wave 17",
+        "unitHp": 3200,
+        "unitSpeed": 2.6,
+        "unitCount": 20,
+        "isBoss": false,
+        "goldReward": 5,
+        "unitBonus": 5,
+        "endWaveBonus": 110,
+        "characterModel": "orc",
+        "animSpeed": 2.4,
+        "offsetY": -1,
+        "unitScale": 0.95,
+        "unitVariant": "electric",
+        "immunities": [
+          "electric"
+        ]
+      },
+      {
+        "waveNumber": 18,
+        "name": "Wave 18",
+        "unitHp": 5100,
+        "unitSpeed": 2,
+        "unitCount": 20,
+        "isBoss": false,
+        "goldReward": 5,
+        "unitBonus": 5,
+        "endWaveBonus": 120,
+        "characterModel": "zombi",
+        "animSpeed": 1.5,
+        "offsetY": -12,
+        "unitScale": 0.75,
+        "unitVariant": "poison",
+        "immunities": [
+          "poison",
+          "fire"
+        ]
+      },
+      {
+        "waveNumber": 19,
+        "name": "Wave 19",
+        "unitHp": 6000,
+        "unitSpeed": 2,
+        "unitCount": 20,
+        "isBoss": false,
+        "goldReward": 5,
+        "unitBonus": 5,
+        "endWaveBonus": 130,
+        "characterModel": "male",
+        "animSpeed": 1.1,
+        "offsetY": -3,
+        "unitScale": 0.8,
+        "unitVariant": "demon",
+        "immunities": [
+          "frost"
+        ]
+      },
+      {
+        "waveNumber": 20,
+        "name": "Final Wave",
+        "unitHp": 19500,
+        "unitSpeed": 1.6,
+        "unitCount": 6,
+        "isBoss": true,
+        "goldReward": 17,
+        "unitBonus": 17,
+        "endWaveBonus": 0,
+        "characterModel": "warrior",
+        "animSpeed": 2,
+        "offsetY": -3,
+        "unitScale": 0.7,
+        "unitVariant": "fire",
+        "immunities": [
+          "fire",
           "electric"
         ]
       }

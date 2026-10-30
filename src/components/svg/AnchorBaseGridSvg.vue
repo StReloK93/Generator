@@ -31,8 +31,8 @@
       <!-- Highlight Active Target Footprint Diamond Base -->
       <polygon 
         :points="footprintPolygon"
-        fill="rgba(99, 102, 241, 0.2)"
-        stroke="rgba(129, 140, 248, 0.9)"
+        fill="rgba(233, 182, 60, 0.2)"
+        stroke="rgba(240, 203, 94, 0.9)"
         stroke-width="2"
       />
     </g>

@@ -307,16 +307,16 @@ function renderFrame(timestamp: number) {
 
   // Studio Lighting Backdrop (Slate-Gray with Center Soft Glow)
   const bgGrad = ctx.createRadialGradient(centerX, centerY - 35, 15, centerX, centerY - 35, Math.max(width, height) * 0.75)
-  bgGrad.addColorStop(0, '#475569') // slate-600 center illumination
-  bgGrad.addColorStop(0.55, '#334155') // slate-700
-  bgGrad.addColorStop(1, '#1e293b') // slate-800 outer corners
+  bgGrad.addColorStop(0, '#665b50') // slate-600 center illumination
+  bgGrad.addColorStop(0.55, '#4b423a') // slate-700
+  bgGrad.addColorStop(1, '#332c26') // slate-800 outer corners
   ctx.fillStyle = bgGrad
   ctx.fillRect(0, 0, width, height)
 
   // Soft studio rim backlight behind character body for contrast
   const studioLight = ctx.createRadialGradient(centerX, centerY - 35, 5, centerX, centerY - 35, 85)
-  studioLight.addColorStop(0, 'rgba(241, 245, 249, 0.15)')
-  studioLight.addColorStop(1, 'rgba(241, 245, 249, 0.0)')
+  studioLight.addColorStop(0, 'rgba(240, 235, 227, 0.15)')
+  studioLight.addColorStop(1, 'rgba(240, 235, 227, 0.0)')
   ctx.fillStyle = studioLight
   ctx.beginPath()
   ctx.arc(centerX, centerY - 35, 85, 0, Math.PI * 2)
@@ -333,9 +333,9 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
   ctx.lineTo(centerX - tileRadiusX, centerY + slabDepth)
   ctx.closePath()
-  ctx.fillStyle = '#475569'
+  ctx.fillStyle = '#665b50'
   ctx.fill()
-  ctx.strokeStyle = '#64748b'
+  ctx.strokeStyle = '#86796b'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -346,9 +346,9 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX + tileRadiusX, centerY + slabDepth)
   ctx.lineTo(centerX, centerY + tileRadiusY + slabDepth)
   ctx.closePath()
-  ctx.fillStyle = '#334155'
+  ctx.fillStyle = '#4b423a'
   ctx.fill()
-  ctx.strokeStyle = '#475569'
+  ctx.strokeStyle = '#665b50'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -362,8 +362,8 @@ function renderFrame(timestamp: number) {
 
   // Clean tile fill gradient (Lighter Slate Gray)
   const tileGrad = ctx.createLinearGradient(centerX - tileRadiusX, centerY - tileRadiusY, centerX + tileRadiusX, centerY + tileRadiusY)
-  tileGrad.addColorStop(0, '#64748b') // slate-500
-  tileGrad.addColorStop(1, '#475569') // slate-600
+  tileGrad.addColorStop(0, '#86796b') // slate-500
+  tileGrad.addColorStop(1, '#665b50') // slate-600
   ctx.fillStyle = tileGrad
   ctx.fill()
 
@@ -375,7 +375,7 @@ function renderFrame(timestamp: number) {
   // West-to-East axis line
   ctx.moveTo(centerX - tileRadiusX, centerY)
   ctx.lineTo(centerX + tileRadiusX, centerY)
-  ctx.strokeStyle = 'rgba(226, 232, 240, 0.4)'
+  ctx.strokeStyle = 'rgba(226, 217, 204, 0.4)'
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -386,7 +386,7 @@ function renderFrame(timestamp: number) {
   ctx.lineTo(centerX, centerY + tileRadiusY)
   ctx.lineTo(centerX - tileRadiusX, centerY)
   ctx.closePath()
-  ctx.strokeStyle = 'rgba(203, 213, 225, 0.85)'
+  ctx.strokeStyle = 'rgba(201, 188, 170, 0.85)'
   ctx.lineWidth = 1.5
   ctx.stroke()
 

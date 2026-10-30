@@ -7,13 +7,13 @@
       <!-- Absolute Top-Left Asset / Sprite Name Badge -->
       <div class="absolute top-2.5 left-2.5 z-10 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-slate-200">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span class="text-[11px] font-mono font-bold text-amber-300 truncate max-w-40 sm:max-w-48">
+        <span class="text-[11px] font-bold text-amber-300 truncate max-w-40 sm:max-w-48">
           {{ blueprint.asset.assetName || blueprint.name || 'Custom' }}
         </span>
       </div>
 
       <!-- Live Speed & Projectile Info -->
-      <div class="absolute bottom-2.5 right-2.5 z-10 pointer-events-none flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-800 text-[10px] font-mono text-slate-300">
+      <div class="absolute bottom-2.5 right-2.5 z-10 pointer-events-none flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-800 text-[10px] text-slate-300">
         <span class="text-amber-400 font-bold truncate max-w-32">{{ activeDef.identity.name }}</span>
         <span>|</span>
         <span>{{ currentAttackSpeed }}s</span>

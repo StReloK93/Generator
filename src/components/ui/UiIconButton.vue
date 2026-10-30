@@ -51,7 +51,7 @@ defineEmits<{
 const variantClasses = computed(() => {
   if (props.variant === 'tool') {
     return props.active
-      ? 'bg-brand-500/25 text-brand-300 border border-brand-500/60 shadow-[0_0_12px_rgba(99,102,241,0.4)]'
+      ? 'bg-brand-500/25 text-brand-300 border border-brand-500/60 shadow-[0_0_12px_rgba(233,182,60,0.35)]'
       : 'text-slate-400 hover:text-white border border-transparent hover:bg-slate-800/80 hover:border-slate-700/60'
   }
 

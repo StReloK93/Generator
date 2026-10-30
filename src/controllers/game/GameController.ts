@@ -2,6 +2,7 @@ import { GridCoord } from '../../types/map'
 import { isInsideGrid } from '../../utils/isometric'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { useHeroStore } from '../../stores/heroStore'
+import { startBackgroundTicker } from '../../utils/backgroundTicker'
 import type { useMapStore } from '../../stores/mapStore'
 import type { useToolStore } from '../../stores/toolStore'
 import type { useTowerStore } from '../../stores/towerStore'
@@ -30,6 +31,8 @@ export class GameController {
   public pendingBuildCell: GridCoord | null = null
   public lastBuildTimestamp = 0
   public lastTouchTimestamp = 0
+  private stopBackgroundTicker: (() => void) | null = null
+  private onVisibilityChange: (() => void) | null = null
 
   constructor(dependencies: GameControllerDependencies) {
     this.deps = dependencies
@@ -45,7 +48,7 @@ export class GameController {
       heroStore.selectHero(true)
     }
 
-    engine.onTick = (rawDeltaSec: number) => {
+    const simulate = (rawDeltaSec: number) => {
       const simSpeed = Math.max(0.1, Math.min(50.0, gameStore?.gameSpeed || 1.0))
       const effectiveDelta = rawDeltaSec * simSpeed
 
@@ -67,7 +70,10 @@ export class GameController {
       if (isHeroMode) {
         heroStore.updateHero(effectiveDelta, mapStore.project.tileWidth, mapStore.project.tileHeight)
       }
+    }
 
+    engine.onTick = (rawDeltaSec: number) => {
+      simulate(rawDeltaSec)
       engine.renderCharacter(characterStore, mapStore.project)
 
       if (!isHeroMode) {
@@ -80,10 +86,27 @@ export class GameController {
       }
       engine.renderTeammateHovers(multiplayerStore.teammateHovers, mapStore.project)
     }
+
+    // A hidden tab gets no animation frames. The multiplayer host is the authoritative simulation,
+    // so keep it (and its broadcasts) running from a worker timer until the tab is visible again.
+    this.onVisibilityChange = () => {
+      this.stopBackgroundTicker?.()
+      this.stopBackgroundTicker = null
+      if (document.hidden && multiplayerStore.roomId && multiplayerStore.isHost) {
+        this.stopBackgroundTicker = startBackgroundTicker(40, simulate)
+      }
+    }
+    document.addEventListener('visibilitychange', this.onVisibilityChange)
   }
 
   public stopSimulationLoop(): void {
     this.deps.engine.stopTicker()
+    this.stopBackgroundTicker?.()
+    this.stopBackgroundTicker = null
+    if (this.onVisibilityChange) {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange)
+      this.onVisibilityChange = null
+    }
   }
 
   public handleCellClick(gridCoord: GridCoord): void {

@@ -6,10 +6,10 @@ import { useI18nStore } from './stores/i18nStore'
 import './style.css'
 
 async function initApp() {
-  // Ensure the primary SpaceMono font is loaded before rendering UI
+  // Ensure the primary UI font is loaded before rendering UI
   if (typeof document !== 'undefined' && 'fonts' in document) {
     try {
-      await document.fonts.load('16px SpaceMono')
+      await document.fonts.load('16px "Nunito Variable"')
       await document.fonts.ready
     } catch {
       // Graceful fallback

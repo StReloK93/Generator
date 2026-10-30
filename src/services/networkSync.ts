@@ -5,8 +5,8 @@ import {
   NetworkSyncConfig,
 } from '../types/multiplayer'
 import { UnitVariantType } from '../types/map'
-import { combatEvents } from './combatEvents'
-import { getProjectileTheme } from '../utils/projectileEffectRenderer'
+import { emitProjectileImpact, emitProjectileStrike } from './projectileImpact'
+import { getProjectileDefinition, isInstantProjectile } from '../utils/projectileCatalog'
 import { getModelActionFrameCount } from '../utils/characterUtils'
 
 /**
@@ -65,17 +65,9 @@ export interface ClientVisualProjectile {
   projectileType: string
   isSplash: boolean
   splashRadius: number
-  active: boolean
-}
-
-export interface ClientExplosionRing {
-  id: string
-  x: number
-  y: number
-  radius: number
-  maxRadius: number
-  color: number
-  alpha: number
+  /** Formation offsets (twin helix, side-by-side volleys) mirrored from the host projectile */
+  offsetPerp?: number
+  phaseOffset?: number
   active: boolean
 }
 
@@ -263,7 +255,6 @@ class NetworkSyncBuffer {
 
   // Client-side visual combat effect pools (zero garbage collection during active play)
   public projectilesPool: ClientVisualProjectile[] = []
-  public explosionRingsPool: ClientExplosionRing[] = []
   public damageFloatersPool: ClientDamageFloater[] = []
 
   // Telemetry metrics
@@ -306,19 +297,6 @@ class NetworkSyncBuffer {
         projectileType: 'cannonball',
         isSplash: false,
         splashRadius: 1.5,
-        active: false,
-      })
-    }
-
-    for (let i = 0; i < 30; i++) {
-      this.explosionRingsPool.push({
-        id: `pool-exp-${i}`,
-        x: 0,
-        y: 0,
-        radius: 0,
-        maxRadius: 30,
-        color: 0xff4400,
-        alpha: 0,
         active: false,
       })
     }
@@ -572,6 +550,15 @@ class NetworkSyncBuffer {
     if (!event || !event.type) return
 
     if (event.type === 'TOWER_FIRE') {
+      const projectileType = event.projType || 'fireball'
+      if (isInstantProjectile(getProjectileDefinition(projectileType))) {
+        const x = event.targetX || 0
+        const y = event.targetY || 0
+        emitProjectileStrike(event.startX ?? x, event.startY ?? y, x, y, projectileType)
+        emitProjectileImpact(x, y, projectileType, event.isSplash ? event.splashRadius || 1.5 : 0)
+        return
+      }
+
       let proj: ClientVisualProjectile | null = null
       for (let i = 0; i < this.projectilesPool.length; i++) {
         if (!this.projectilesPool[i].active) {
@@ -607,44 +594,16 @@ class NetworkSyncBuffer {
         // Speed in px/s: event.speed if already in px/s (>50), or convert from tile/s
         proj.speed = event.speed && event.speed > 50 ? event.speed : (event.speed || 10) * 128 * 1.5
         proj.color = event.color || 0xf97316
-        proj.projectileType = event.projType || 'cannonball'
+        proj.projectileType = projectileType
         proj.isSplash = Boolean(event.isSplash)
         proj.splashRadius = event.splashRadius || 1.5
+        proj.offsetPerp = event.offsetPerp
+        proj.phaseOffset = event.phaseOffset
         proj.active = true
       }
     } else if (event.type === 'COMBAT_HIT') {
       const hitX = event.currentX || event.targetX || 0
       const hitY = event.currentY || event.targetY || 0
-
-      // Spawn shockwave ring ONLY for AoE splash hits
-      const isSplash = Boolean(event.isSplash)
-      if (isSplash) {
-        const hasNearbyRing = this.explosionRingsPool.some(
-          r => r.active && Math.hypot(r.x - hitX, r.y - hitY) < 20
-        )
-        if (!hasNearbyRing) {
-          let ring: ClientExplosionRing | null = null
-          for (let i = 0; i < this.explosionRingsPool.length; i++) {
-            if (!this.explosionRingsPool[i].active) {
-              ring = this.explosionRingsPool[i]
-              break
-            }
-          }
-          if (!ring) ring = this.explosionRingsPool[0]
-
-          if (ring) {
-            const theme = getProjectileTheme(event.projType || 'fireball')
-            ring.id = `ring-${Date.now()}`
-            ring.x = hitX
-            ring.y = hitY
-            ring.radius = 3
-            ring.maxRadius = (event.splashRadius || 1.5) * 128 * 0.65
-            ring.color = theme.shockwaveColorHex
-            ring.alpha = 0.95
-            ring.active = true
-          }
-        }
-      }
 
       // If hit has damage floater
       if (event.damage !== undefined && event.damage > 0) {
@@ -707,45 +666,9 @@ class NetworkSyncBuffer {
     }
   }
 
-  /**
-   * Emits spark particles and splash explosion ring right at the exact impact position
-   */
+  /** Hit visuals for a mirrored projectile — the same shared impact the host simulation emits. */
   private triggerLocalImpact(proj: ClientVisualProjectile) {
-    const theme = getProjectileTheme(proj.projectileType, proj.color)
-    const isArrow = proj.projectileType === 'arrow'
-    const isSplash = Boolean(proj.isSplash && proj.splashRadius > 0)
-    const sparkCount = isArrow ? 8 : (isSplash ? 16 : 10)
-
-    combatEvents.emitImpact({
-      x: proj.currentX,
-      y: proj.currentY,
-      color: theme.sparkColorHex,
-      count: sparkCount,
-      projectileType: proj.projectileType,
-    })
-
-    // Spawn Impact Shockwave Ring ONLY for splash hits
-    if (isSplash) {
-      let ring: ClientExplosionRing | null = null
-      for (let i = 0; i < this.explosionRingsPool.length; i++) {
-        if (!this.explosionRingsPool[i].active) {
-          ring = this.explosionRingsPool[i]
-          break
-        }
-      }
-      if (!ring) ring = this.explosionRingsPool[0]
-
-      if (ring) {
-        ring.id = `ring-${Date.now()}-${Math.random()}`
-        ring.x = proj.currentX
-        ring.y = proj.currentY
-        ring.radius = 3
-        ring.maxRadius = (proj.splashRadius || 1.5) * 128 * 0.65
-        ring.color = theme.shockwaveColorHex
-        ring.alpha = 0.95
-        ring.active = true
-      }
-    }
+    emitProjectileImpact(proj.currentX, proj.currentY, proj.projectileType, proj.isSplash ? proj.splashRadius : 0)
   }
 
   /**
@@ -786,20 +709,7 @@ class NetworkSyncBuffer {
       }
     }
 
-    // 2. Update Explosion Rings
-    for (let i = 0; i < this.explosionRingsPool.length; i++) {
-      const ring = this.explosionRingsPool[i]
-      if (!ring.active) continue
-
-      ring.radius += (ring.maxRadius - ring.radius) * Math.min(1.0, deltaSec * 14)
-      ring.alpha = Math.max(0, ring.alpha - deltaSec * 3.5)
-
-      if (ring.alpha <= 0.02 || ring.radius >= ring.maxRadius * 0.96) {
-        ring.active = false
-      }
-    }
-
-    // 3. Update Damage Floaters
+    // 2. Update Damage Floaters
     for (let i = 0; i < this.damageFloatersPool.length; i++) {
       const df = this.damageFloatersPool[i]
       if (!df.active) continue
@@ -819,7 +729,6 @@ class NetworkSyncBuffer {
     this.renderUnitsMap.clear()
     this.renderUnitsList.length = 0
     for (let i = 0; i < this.projectilesPool.length; i++) this.projectilesPool[i].active = false
-    for (let i = 0; i < this.explosionRingsPool.length; i++) this.explosionRingsPool[i].active = false
     for (let i = 0; i < this.damageFloatersPool.length; i++) this.damageFloatersPool[i].active = false
   }
 }

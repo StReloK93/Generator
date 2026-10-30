@@ -19,12 +19,12 @@
         <div class="flex items-center gap-2.5 min-w-0">
           <div 
             v-if="icon" 
-            class="w-7 h-7 rounded-lg bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shrink-0"
+            class="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-400/25 flex items-center justify-center shrink-0"
           >
-            <component :is="icon" class="w-3.5 h-3.5 text-slate-300" />
+            <component :is="icon" class="w-3.5 h-3.5 text-brand-300" />
           </div>
           <div class="min-w-0">
-            <h3 class="font-bold text-xs sm:text-sm text-white tracking-wide truncate">
+            <h3 class="font-extrabold text-xs sm:text-sm text-slate-50 tracking-wide truncate">
               {{ title }}
             </h3>
             <p v-if="subtitle" class="text-[10px] sm:text-[11px] text-slate-400 truncate">
@@ -102,7 +102,7 @@ const variantClasses = computed(() => {
       return 'bg-transparent border-transparent'
     case 'default':
     default:
-      return 'bg-slate-900/70 border-slate-800 backdrop-blur-sm hover:border-slate-700/80 shadow-md'
+      return 'bg-slate-900/75 border-slate-800 backdrop-blur-sm hover:border-slate-700/80 shadow-md shadow-black/30 inset-shadow-[0_1px_0_rgba(255,255,255,0.04)]'
   }
 })
 
@@ -114,7 +114,7 @@ const selectedClasses = computed(() => {
       return 'ring-2 ring-emerald-400 border-emerald-400 bg-emerald-500/20 shadow-[0_0_16px_rgba(16,185,129,0.3)]'
     case 'brand':
     default:
-      return 'ring-2 ring-brand-400 border-brand-400 bg-brand-500/20 shadow-[0_0_16px_rgba(99,102,241,0.3)]'
+      return 'ring-2 ring-brand-400 border-brand-400 bg-brand-500/20 shadow-[0_0_16px_rgba(233,182,60,0.25)]'
   }
 })
 

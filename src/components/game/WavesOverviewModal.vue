@@ -3,197 +3,125 @@
     :is-open="isOpen"
     :title="$t('game.waveList')"
     :subtitle="`${waveStore.waveConfigs.length} ${$t('game.wave')}`"
+    :icon="Swords"
     :teleport="true"
-    size="md"
+    size="4xl"
+    custom-class="h-120"
+    body-class="p-0! space-y-0! overflow-hidden! flex"
     @close="emit('update:isOpen', false)"
   >
-    <div v-if="waveStore.waveConfigs.length > 0" class="flex flex-col gap-3">
-      
-      <!-- ========================================================================= -->
-      <!-- FEATURED ACTIVE WAVE CAROUSEL PREVIEW CARD                                -->
-      <!-- ========================================================================= -->
-      <div class="relative rounded-2xl bg-linear-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-slate-700/80 shadow-2xl p-3 sm:p-4 flex flex-col gap-3 overflow-hidden">
-        
-        <!-- Header Carousel Bar: Wave Name + Boss Badge + Carousel Nav -->
-        <div class="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-800/80">
-          <div class="flex items-center gap-2">
-            <UiBadge variant="brand" size="xs" class="font-mono font-bold">
-              {{ $t('game.wave') }} {{ activeCarouselIndex + 1 }} / {{ waveStore.waveConfigs.length }}
+    <template v-if="waveStore.waveConfigs.length > 0">
+      <!-- Left: wave list -->
+      <aside ref="listRef" class="w-36 sm:w-48 shrink-0 min-h-0 overflow-y-auto p-2 flex flex-col gap-1 border-r border-slate-800 bg-slate-950/30">
+        <UiButton
+          v-for="(wave, idx) in waveStore.waveConfigs"
+          :key="idx"
+          variant="tool"
+          size="sm"
+          block
+          :active="selectedIndex === idx"
+          :data-active="selectedIndex === idx"
+          :custom-class="['justify-start! text-left min-h-9 shrink-0 [&>span]:flex-1 [&>span]:min-w-0', idx < waveStore.currentWaveIndex && selectedIndex !== idx ? 'opacity-50' : '']"
+          @click="selectedIndex = idx"
+        >
+          <span class="flex items-center gap-2 min-w-0">
+            <span class="w-5 shrink-0 text-right font-extrabold">{{ idx + 1 }}</span>
+            <span class="flex-1 min-w-0 truncate">{{ wave.name || `${$t('game.wave')} ${idx + 1}` }}</span>
+            <Crown v-if="wave.isBoss" class="size-3.5 shrink-0 text-amber-400" />
+            <span v-if="idx === waveStore.currentWaveIndex" class="size-2 shrink-0 rounded-full bg-emerald-400" />
+          </span>
+        </UiButton>
+      </aside>
+
+      <!-- Right: selected wave -->
+      <section v-if="activeWave" class="flex-1 min-w-0 min-h-0 flex">
+        <div class="w-2/5 shrink-0 p-2.5 sm:p-3">
+          <CharacterLivePreview
+            class="h-full"
+            :model-value="activeWave.characterModel || 'male'"
+            initial-action="Run"
+            :unit-variant="activeWave.unitVariant || 'normal'"
+            :variant-tint="activeWave.variantTint"
+            :unit-scale="activeWave.unitScale || 1.0"
+            :anim-speed="activeWave.animSpeed || 1.0"
+            :offset-y="activeWave.offsetY || 0"
+            :show-model-selector="false"
+            :show-direction-bar="false"
+            :show-action-buttons="false"
+            height-class="h-full"
+          />
+        </div>
+
+        <div class="flex-1 min-w-0 min-h-0 overflow-y-auto py-2.5 sm:py-3 pr-2.5 sm:pr-3 flex flex-col gap-2.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h3 class="text-sm sm:text-base font-extrabold text-brand-200 truncate">
+              {{ activeWave.name || `${$t('game.wave')} ${selectedIndex + 1}` }}
+            </h3>
+            <UiBadge v-if="activeWave.isBoss" variant="amber" size="xs">
+              <Crown class="size-3 inline mr-0.5" /> BOSS
             </UiBadge>
-
-            <span class="font-bold text-slate-100 text-sm truncate max-w-44 sm:max-w-64">
-              {{ activeWave?.name || `Wave ${activeCarouselIndex + 1}` }}
-            </span>
-
-            <UiBadge v-if="activeWave?.isBoss" variant="amber" size="xs">
-              <Crown class="size-3 text-amber-400 inline mr-0.5" /> BOSS
-            </UiBadge>
-
-            <UiBadge v-if="activeCarouselIndex === waveStore.currentWaveIndex" variant="amber" size="xs" class="animate-pulse">
+            <UiBadge v-if="selectedIndex === waveStore.currentWaveIndex" variant="emerald" size="xs">
               {{ $t('game.active') }}
             </UiBadge>
           </div>
 
-          <!-- Carousel Controls: Prev / Next Buttons -->
-          <div class="flex items-center gap-1.5 ml-auto">
-            <UiButton
-              variant="secondary"
-              size="xs"
-              :leading-icon="ChevronLeft"
-              :disabled="activeCarouselIndex <= 0"
-              @click="prevCarouselWave"
-            >
-              {{ $t('common.prev') || 'Prev' }}
-            </UiButton>
-
-            <UiButton
-              variant="secondary"
-              size="xs"
-              :trailing-icon="ChevronRight"
-              :disabled="activeCarouselIndex >= waveStore.waveConfigs.length - 1"
-              @click="nextCarouselWave"
-            >
-              {{ $t('common.next') || 'Next' }}
-            </UiButton>
-          </div>
-        </div>
-
-        <!-- Live Unit Running Animation & Elemental Variant Card -->
-        <div v-if="activeWave" class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-          
-          <!-- Left: Live Character 'Run' Animation Canvas with Elemental Effects -->
-          <div class="relative w-full rounded-xl overflow-hidden border border-slate-700 shadow-inner bg-slate-950/80">
-            <CharacterLivePreview
-              :model-value="activeWave.characterModel || 'male'"
-              initial-action="Run"
-              :unit-variant="activeWave.unitVariant || 'normal'"
-              :variant-tint="activeWave.variantTint"
-              :unit-scale="activeWave.unitScale || 1.0"
-              :anim-speed="activeWave.animSpeed || 1.0"
-              :offset-y="activeWave.offsetY || 0"
-              :show-model-selector="false"
-              :show-direction-bar="false"
-              :show-action-buttons="false"
-              height-class="h-44 sm:h-52"
-            />
-          </div>
-
-          <!-- Right: Detailed Wave Stats & Elemental Properties -->
-          <div class="flex flex-col gap-2.5 justify-center text-xs">
-            
-            <!-- Elemental Variant Badge Row -->
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-slate-400 text-xs">{{ $t('config.unitVariant') }}:</span>
-              <span 
-                class="px-2 py-0.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 capitalize"
-                :style="{ 
-                  color: activeVariant.color, 
-                  borderColor: activeVariant.color + '60', 
-                  backgroundColor: activeVariant.color + '20' 
-                }"
-              >
-                <component :is="getVariantIcon(activeVariant.icon)" class="size-3.5" />
-                <span>{{ $t(activeVariant.nameKey) }}</span>
-              </span>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
-              <div class="flex items-center gap-1.5 text-rose-300">
-                <Heart class="size-3.5 text-rose-500 fill-rose-500 shrink-0" />
-                <span class="text-slate-400">HP:</span>
-                <span class="font-bold">{{ activeWave.unitHp }}</span>
-              </div>
-
-              <div class="flex items-center gap-1.5 text-emerald-300">
-                <Footprints class="size-3.5 text-emerald-400 shrink-0" />
-                <span class="text-slate-400">Speed:</span>
-                <span class="font-bold">{{ activeWave.unitSpeed || 2.5 }}</span>
-              </div>
-
-              <div class="flex items-center gap-1.5 text-sky-300">
-                <Users class="size-3.5 text-sky-400 shrink-0" />
-                <span class="text-slate-400">Count:</span>
-                <span class="font-bold">{{ activeWave.unitCount }}x</span>
-              </div>
-
-              <div class="flex items-center gap-1.5 text-amber-300">
-                <Coins class="size-3.5 text-amber-400 shrink-0" />
-                <span class="text-slate-400">Reward:</span>
-                <span class="font-bold">+{{ activeWave.goldReward }}</span>
-              </div>
-            </div>
-
-            <!-- Immunities & Resistances -->
-            <div class="flex flex-col gap-1">
-              <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
-                {{ $t('traits.title') || 'Immunities' }}:
-              </span>
-              <div v-if="activeWave.immunities && activeWave.immunities.length > 0" class="flex items-center gap-1 flex-wrap">
-                <span 
-                  v-for="immId in activeWave.immunities" 
-                  :key="immId"
-                  class="px-1.5 py-0.5 rounded text-[9px] font-bold border flex items-center gap-1"
-                  :class="getTraitDef(immId).badgeClass"
-                >
-                  <component :is="getTraitDef(immId).icon" class="size-2.5" />
-                  <span>{{ $t(getTraitDef(immId).nameKey) }}</span>
-                </span>
-              </div>
-              <span v-else class="text-[10px] text-slate-500 italic">
-                {{ $t('game.noImmunities') }}
-              </span>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Quick Wave Quick-Navigation Pills Bar -->
-        <div class="flex items-center justify-center gap-1.5 pt-2 border-t border-slate-800/80 flex-wrap">
-          <button
-            v-for="(_, idx) in waveStore.waveConfigs"
-            :key="idx"
-            type="button"
-            class="min-w-6 h-6 px-1 rounded-md text-[11px] font-mono font-bold transition-all flex items-center justify-center cursor-pointer select-none"
-            :class="[
-              activeCarouselIndex === idx
-                ? 'bg-amber-400 text-slate-950 shadow-sm scale-105'
-                : idx === waveStore.currentWaveIndex
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30'
-                  : idx < waveStore.currentWaveIndex
-                    ? 'bg-slate-800/40 text-slate-500 hover:bg-slate-800 hover:text-slate-300'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-            ]"
-            @click="activeCarouselIndex = idx"
+          <span
+            class="self-start px-2 py-0.5 rounded-lg text-xs font-bold border flex items-center gap-1.5"
+            :style="{
+              color: activeVariant.color,
+              borderColor: activeVariant.color + '60',
+              backgroundColor: activeVariant.color + '20'
+            }"
           >
-            {{ idx + 1 }}
-          </button>
+            <component :is="getVariantIcon(activeVariant.icon)" class="size-3.5" />
+            {{ $t(activeVariant.nameKey) }}
+          </span>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <div
+              v-for="stat in stats"
+              :key="stat.label"
+              class="rounded-xl bg-slate-950/50 border border-slate-800 px-2.5 py-1.5 flex items-center gap-2 min-w-0"
+            >
+              <component :is="stat.icon" :class="['size-4 shrink-0', stat.color]" />
+              <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-50 leading-tight">{{ stat.value }}</div>
+                <div class="text-[10px] text-slate-400 truncate">{{ stat.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ $t('game.immunities') }}</span>
+            <div v-if="activeWave.immunities && activeWave.immunities.length > 0" class="flex items-center gap-1 flex-wrap">
+              <span
+                v-for="immId in activeWave.immunities"
+                :key="immId"
+                class="px-1.5 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1"
+                :class="getTraitDef(immId).badgeClass"
+              >
+                <component :is="getTraitDef(immId).icon" class="size-3" />
+                {{ $t(getTraitDef(immId).nameKey) }}
+              </span>
+            </div>
+            <span v-else class="text-[11px] text-slate-500">{{ $t('game.noImmunities') }}</span>
+          </div>
         </div>
+      </section>
+    </template>
 
-      </div>
-
-    </div>
-
-    <!-- Empty Waves State -->
-    <div v-else class="text-center py-8 text-slate-400 text-xs">
+    <div v-else class="flex-1 flex items-center justify-center text-slate-400 text-xs">
       {{ $t('config.noWaves') }}
     </div>
   </UiModal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import {
-  Heart,
-  Crown,
-  Footprints,
-  Users,
-  Coins,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-vue-next'
+import { ref, computed, watch, nextTick } from 'vue'
+import { Heart, Crown, Footprints, Users, Coins, Swords } from 'lucide-vue-next'
 import { UiModal, UiBadge, UiButton } from '../ui'
 import { useWaveStore } from '../../stores/waveStore'
+import { useI18n } from '../../stores/i18nStore'
 import { getTraitDef } from '../../utils/towerTraits'
 import { getVariantDef, getVariantIcon } from '../../utils/unitVariants'
 import CharacterLivePreview from './CharacterLivePreview.vue'
@@ -207,38 +135,30 @@ const emit = defineEmits<{
 }>()
 
 const waveStore = useWaveStore()
+const { t } = useI18n()
+const selectedIndex = ref(0)
+const listRef = ref<HTMLElement | null>(null)
 
-// Active carousel index (defaults to active match wave, or 0)
-const activeCarouselIndex = ref(0)
-
-watch(() => props.isOpen, (open) => {
-  if (open) {
-    activeCarouselIndex.value = Math.max(
-      0, 
-      Math.min(waveStore.waveConfigs.length - 1, waveStore.currentWaveIndex || 0)
-    )
-  }
+// Open on the current wave and keep it visible in the list
+watch(() => props.isOpen, async (open) => {
+  if (!open) return
+  selectedIndex.value = Math.max(0, Math.min(waveStore.waveConfigs.length - 1, waveStore.currentWaveIndex || 0))
+  await nextTick()
+  listRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'center' })
 })
 
-const activeWave = computed(() => {
-  if (waveStore.waveConfigs.length === 0) return null
-  return waveStore.waveConfigs[activeCarouselIndex.value] || waveStore.waveConfigs[0]
+const activeWave = computed(() => waveStore.waveConfigs[selectedIndex.value] || waveStore.waveConfigs[0] || null)
+
+const activeVariant = computed(() => getVariantDef(activeWave.value?.unitVariant))
+
+const stats = computed(() => {
+  const w = activeWave.value
+  if (!w) return []
+  return [
+    { icon: Heart, color: 'text-rose-400', value: w.unitHp, label: t('game.hp') },
+    { icon: Footprints, color: 'text-emerald-400', value: w.unitSpeed, label: t('common.speed') },
+    { icon: Users, color: 'text-sky-400', value: `${w.unitCount}×`, label: t('game.count') },
+    { icon: Coins, color: 'text-amber-300', value: `+${w.unitBonus}`, label: t('game.bounty') },
+  ]
 })
-
-const activeVariant = computed(() => {
-  return getVariantDef(activeWave.value?.unitVariant)
-})
-
-function prevCarouselWave() {
-  if (activeCarouselIndex.value > 0) {
-    activeCarouselIndex.value--
-  }
-}
-
-function nextCarouselWave() {
-  if (activeCarouselIndex.value < waveStore.waveConfigs.length - 1) {
-    activeCarouselIndex.value++
-  }
-}
-
 </script>

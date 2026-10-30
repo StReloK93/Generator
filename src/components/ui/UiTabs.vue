@@ -137,28 +137,28 @@ const tabButtonSizeClasses = computed(() => {
 const activeTabClass = computed(() => {
   switch (props.variant) {
     case 'amber':
-      return 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+      return 'bg-linear-to-b from-amber-300 to-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
     case 'emerald':
-      return 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
+      return 'bg-linear-to-b from-emerald-500 to-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
     case 'cyan':
       return 'bg-cyan-500 text-slate-950 font-black shadow-md shadow-cyan-500/20'
     case 'pills':
-      return 'bg-brand-600 text-white font-bold shadow-md shadow-brand-600/30'
+      return 'bg-linear-to-b from-brand-300 to-brand-500 text-slate-950 font-extrabold shadow-md shadow-brand-500/25'
     case 'subtle':
-      return 'bg-slate-800 text-brand-300 font-bold shadow-xs'
+      return 'bg-slate-800 text-brand-300 font-bold shadow-xs ring-1 ring-brand-400/25'
     case 'brand':
     case 'segmented':
     default:
-      return 'bg-brand-600 text-white font-bold shadow-md shadow-brand-600/30'
+      return 'bg-linear-to-b from-brand-300 to-brand-500 text-slate-950 font-extrabold shadow-md shadow-brand-500/25'
   }
 })
 
 const inactiveTabClass = computed(() => {
   switch (props.variant) {
     case 'pills':
-      return 'bg-slate-950/60 text-slate-400 hover:text-white border border-slate-800'
+      return 'bg-slate-900/70 text-slate-400 hover:text-slate-100 border border-slate-800 hover:border-slate-700'
     default:
-      return 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+      return 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
   }
 })
 </script>

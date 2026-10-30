@@ -21,7 +21,9 @@ import { useWaveStore } from './waveStore'
 import { useGameStore } from './gameStore'
 import { useTowerStore } from './towerStore'
 import { useNotificationStore } from './notificationStore'
+import { useI18n } from './i18nStore'
 import { MapProject } from '../types/map'
+import { getMapMode } from '../domain/map'
 import { gridToScreen } from '../utils/isometric'
 
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
@@ -32,6 +34,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const gameStore = useGameStore()
   const towerStore = useTowerStore()
   const notify = useNotificationStore()
+  const { t } = useI18n()
 
   // Local Player Identity
   const savedName = localStorage.getItem('isocraft_player_name') || `Player_${Math.floor(Math.random() * 900 + 100)}`
@@ -73,15 +76,13 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const connectionStatus = ref<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected')
   const chatMessages = ref<ChatMessage[]>([])
 
-  // Initialize discovery listener
-  networkService.listenToDiscovery((rooms) => {
-    // Filter out our own room if hosting
-    availableRooms.value = rooms.filter(r => !roomId.value || r.roomId !== roomId.value)
-  })
+  /** False when the multiplayer server could not be reached on the last room list refresh. */
+  const isServerReachable = ref(true)
 
   async function refreshDiscovery() {
-    const list = await networkService.syncAllDiscoverySources()
-    availableRooms.value = list.filter(r => !roomId.value || r.roomId !== roomId.value)
+    const list = await networkService.fetchRooms()
+    isServerReachable.value = list !== null
+    availableRooms.value = (list || []).filter(r => !roomId.value || r.roomId !== roomId.value)
     return availableRooms.value
   }
 
@@ -191,8 +192,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // Add System Chat
     addSystemMessage(`Room created: ${code}. Share this PIN code with your friends!`)
 
-    // Start P2P Host Node
-    await networkService.initHost(
+    // Start P2P Host Node (retries transient signaling failures internally)
+    const isReachable = await networkService.initHost(
       code,
       handleIncomingMessage,
       handlePeerConnected,
@@ -206,6 +207,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       hostName: myPlayerName.value,
       hostColor: myPlayerColor.value,
       mapName: mapName.value,
+      gameMode: getMapMode(mapStore.project),
       playersCount: players.value.length,
       maxPlayers: maxPlayers.value,
       createdAt: Date.now(),
@@ -213,7 +215,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       gameState: roomGameState.value,
     }))
 
-    connectionStatus.value = 'connected'
+    connectionStatus.value = isReachable ? 'connected' : 'error'
+    if (!isReachable) {
+      notify.warning(t('play.serverUnreachableDesc'), t('play.serverUnreachable'))
+    }
 
     if (globalRouter) {
       globalRouter.push(`/lobby/${code}`)
@@ -1244,6 +1249,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomGameState,
     countdownTimer,
     availableRooms,
+    isServerReachable,
     isNudgeModalOpen,
     isReadyButtonGlowing,
     nudgeHostName,

@@ -120,7 +120,9 @@ export async function lockLandscape(): Promise<boolean> {
         docEl.mozRequestFullScreen ||
         docEl.msRequestFullscreen
 
-      if (requestFs) {
+      // Browsers reject (and log) fullscreen requests without a user gesture, e.g. when the host starts a guest's game
+      const hasUserGesture = navigator.userActivation?.isActive ?? true
+      if (requestFs && hasUserGesture) {
         try {
           await requestFs.call(docEl)
         } catch {

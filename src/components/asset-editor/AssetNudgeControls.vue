@@ -517,10 +517,10 @@ function resetBothScales() {
   background: rgba(15, 23, 42, 0.4);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(233, 182, 60, 0.3);
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.6);
+  background: rgba(233, 182, 60, 0.6);
 }
 </style>
