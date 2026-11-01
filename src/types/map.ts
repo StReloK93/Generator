@@ -133,7 +133,21 @@ export interface RouteInfo {
   playerCameraPoint?: { col: number, row: number }
 }
 
-export type MapGameMode = 'td' | 'hero'
+export type MapGameMode = 'td' | 'hero' | 'hideseek'
+
+/** Hide & seek PvP rules stored per map (distances in tiles, times in seconds, angle in degrees). */
+export interface HideSeekSettings {
+  roundTime: number
+  hideTime: number
+  runSpeed: number
+  sneakSpeed: number
+  visionRange: number
+  visionAngle: number
+  hearingRange: number
+  catchDistance: number
+  /** Treasure chests the hider must open to win */
+  chestCount: number
+}
 
 export interface MapProject {
   id: string
@@ -149,6 +163,7 @@ export interface MapProject {
   layers: Layer[]
   routes?: RouteInfo[]
   gameSettings?: MapGameSettings
+  hideSeekSettings?: Partial<HideSeekSettings>
   clans?: TowerClan[]
   placedTowers?: any[]
   towerBlueprints?: any[]

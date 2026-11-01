@@ -10,7 +10,7 @@
         <!-- Main Stats Row -->
         <div v-if="!isTdMode" class="flex items-center justify-between gap-1.5 py-2">
           <span class="flex items-center gap-1.5 text-xs font-extrabold text-brand-200">
-            <Swords class="size-3.5 text-brand-300" /> {{ $t('game.modePvp') }}
+            <Swords class="size-3.5 text-brand-300" /> {{ isHideSeekMode ? $t('game.modeHideSeek') : $t('game.modePvp') }}
           </span>
           <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
         </div>
@@ -156,6 +156,9 @@
             </div>
           </div>
         </div>
+
+        <!-- ===== Hide & seek: role, clock and footsteps ===== -->
+        <HideSeekPanel v-else-if="isHideSeekMode" />
 
         <!-- ===== PvP / hero maps: no waves or towers ===== -->
         <div v-else-if="!isTdMode" class="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
@@ -336,6 +339,7 @@ import {
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs } from '../ui'
 import CharacterLivePreview from './CharacterLivePreview.vue'
+import HideSeekPanel from './HideSeekPanel.vue'
 import WavesOverviewModal from './WavesOverviewModal.vue'
 import InGameMenuModal from './InGameMenuModal.vue'
 import { useCharacterStore } from '../../stores/characterStore'
@@ -365,6 +369,7 @@ const mapStore = useMapStore()
 
 /** Tower defense maps get waves, lives and towers; PvP (hero) maps only players and the hero. */
 const isTdMode = computed(() => getMapMode(mapStore.project) === 'td')
+const isHideSeekMode = computed(() => getMapMode(mapStore.project) === 'hideseek')
 const notify = useNotificationStore()
 const { t } = useI18nStore()
 

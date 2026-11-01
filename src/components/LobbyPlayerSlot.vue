@@ -25,7 +25,9 @@
         <span class="font-extrabold text-sm text-slate-50 truncate">{{ slot.player.name }}</span>
         <UiBadge v-if="isMe" variant="brand" size="xs">{{ $t('lobby.slotYou') }}</UiBadge>
       </div>
-      <div class="text-[11px] text-slate-400 truncate">{{ slot.routeName }}</div>
+      <div class="text-[11px] text-slate-400 truncate">
+        {{ slotLabel }}<template v-if="multiplayerStore.isHideSeekRoom && slot.player.heroModel"> · {{ modelLabel(slot.player.heroModel) }}</template>
+      </div>
     </div>
 
     <UiBadge v-if="slot.player.isHost" variant="amber" size="sm" class="shrink-0">
@@ -48,7 +50,7 @@
   >
     <span class="flex items-center gap-2 min-w-0">
       <span>{{ $t('lobby.slotOpen') }}</span>
-      <span class="text-[11px] font-medium text-slate-500 truncate">· {{ slot.routeName }}</span>
+      <span class="text-[11px] font-medium text-slate-500 truncate">· {{ slotLabel }}</span>
     </span>
   </UiButton>
 </template>
@@ -59,12 +61,26 @@ import { UserPlus, Crown, Check, Clock } from 'lucide-vue-next'
 import { UiBadge, UiButton } from './ui'
 import { PlayerSlot } from '../types/multiplayer'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
+import { HERO_MODELS } from '../stores/heroStore'
+import { useI18n } from '../stores/i18nStore'
+import { roleForSlot } from '../domain/hideseek'
 
 const props = defineProps<{
   slot: PlayerSlot
 }>()
 
 const multiplayerStore = useMultiplayerStore()
+const { t } = useI18n()
 
 const isMe = computed(() => props.slot.player?.id === multiplayerStore.myPlayerId)
+
+/** Hide & seek slots are roles (taking the other slot switches role); other maps show the route name. */
+const slotLabel = computed(() => {
+  if (!multiplayerStore.isHideSeekRoom) return props.slot.routeName
+  return roleForSlot(props.slot.slotIndex) === 'seeker' ? t('hideseek.roleSeeker') : t('hideseek.roleHider')
+})
+
+function modelLabel(modelId: string): string {
+  return HERO_MODELS.find(m => m.id === modelId)?.label || modelId
+}
 </script>

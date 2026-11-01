@@ -1,4 +1,5 @@
 import { MapProject, UnitVariantType, MapGameMode } from './map'
+import type { HideSeekPhase, HideSeekRole, HideSeekEndReason } from '../domain/hideseek/HideSeekRules'
 
 export interface PlayerInfo {
   id: string
@@ -14,6 +15,8 @@ export interface PlayerInfo {
   towersBuilt: number
   killsCount: number
   livesContributed?: number
+  /** Character model picked in the lobby (hide & seek) */
+  heroModel?: string
 }
 
 export interface PlayerSlot {
@@ -88,6 +91,9 @@ export type NetMessageType =
   | 'PING_CELL'
   | 'PLAYER_HOVER'
   | 'GAME_OVER'
+  | 'SET_HERO_MODEL'
+  | 'HS_PLAYER_STATE'
+  | 'HS_MATCH_STATE'
 
 export interface NetMessage {
   type: NetMessageType
@@ -209,3 +215,22 @@ export interface NetworkSyncConfig {
   teleportThresholdSq: number
 }
 
+
+/** Hide & seek: one player's own movement (each client is authoritative over its character). */
+export interface HideSeekPlayerStatePayload {
+  id: string
+  c: number // col
+  r: number // row
+  f: number // facing angle (grid space, radians)
+  m: boolean // moving
+  s: boolean // sneaking (silent)
+}
+
+/** Hide & seek: host-owned match clock, chests and result. */
+export interface HideSeekMatchStatePayload {
+  phase: HideSeekPhase
+  timeLeft: number
+  winner: HideSeekRole | null
+  reason: HideSeekEndReason | null
+  chests: { c: number; r: number; o: boolean }[] // col, row, opened
+}

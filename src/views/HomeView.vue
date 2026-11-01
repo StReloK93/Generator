@@ -203,8 +203,9 @@ const rawAvailableMaps = getBuiltinMaps()
 
 const customImportedMaps = ref<MapSummary[]>([])
 
+// Hide & seek needs two online players, so it is offered only in multiplayer
 const availableMaps = computed<MapSummary[]>(() => {
-  return [...customImportedMaps.value, ...rawAvailableMaps]
+  return [...customImportedMaps.value, ...rawAvailableMaps].filter(m => m.mode !== 'hideseek')
 })
 
 function openMapModal() {

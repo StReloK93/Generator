@@ -51,7 +51,7 @@
     <!-- 3. FLOATING BOTTOM CONTROLS & TOWER SHOP (Slides smoothly in from bottom when canvas is ready - Only in TD mode) -->
     <Transition name="controls-slide-bottom">
       <div 
-        v-if="isCanvasReady && mapStore.project.gameMode !== 'hero'" 
+        v-if="isCanvasReady && mapMode === 'td'"
         class="absolute bottom-0 inset-x-0 z-30 pointer-events-none"
       >
         <GameControls />
@@ -69,19 +69,22 @@
     <!-- 5. Game Over, Victory, Clan Select & TD Config Modals -->
     <GameOverModal />
     <GameVictoryModal />
-    <ClanSelectModal v-if="mapStore.project.gameMode !== 'hero'" />
+    <ClanSelectModal v-if="mapMode === 'td'" />
     <GameConfigModal />
 
     <!-- Floating Hero Control Widget (Only in Hero Adventure mode) -->
     <div 
-      v-if="isCanvasReady && mapStore.project.gameMode === 'hero'"
+      v-if="isCanvasReady && mapMode === 'hero'"
       class="absolute top-3 left-3 sm:top-4 sm:left-4 z-40 pointer-events-auto"
     >
       <HeroControlWidget />
     </div>
 
+    <!-- Hide & seek: phase banner, touch joystick and match result -->
+    <HideSeekOverlay v-if="isCanvasReady && mapMode === 'hideseek'" />
+
     <!-- 6. Developer Test & Sandbox Toolbar (Only in TD Redactor/Editor Playtest Mode) -->
-    <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode && mapStore.project.gameMode !== 'hero'" />
+    <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode && mapMode === 'td'" />
 
     <!-- 7. Slot for Editor-Only Overlays -->
     <slot name="editor-tools" v-if="isCanvasReady" />
@@ -96,6 +99,7 @@ import GameCanvas from './GameCanvas.vue'
 import GameHud from './GameHud.vue'
 import GameControls from './GameControls.vue'
 import HeroControlWidget from './HeroControlWidget.vue'
+import HideSeekOverlay from './HideSeekOverlay.vue'
 import DevTestSandboxToolbar from './DevTestSandboxToolbar.vue'
 import GameOverModal from './GameOverModal.vue'
 import GameVictoryModal from './GameVictoryModal.vue'
@@ -109,6 +113,7 @@ import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
+import { getMapMode } from '../../domain/map'
 import { lockLandscape } from '../../utils/pwaOrientation'
 import { 
   getGameMapDataById, 
@@ -136,6 +141,8 @@ const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
+
+const mapMode = computed(() => getMapMode(mapStore.project))
 
 const isEditorPlaytestMode = computed(() => {
   return props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game'

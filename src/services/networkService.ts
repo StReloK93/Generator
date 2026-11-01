@@ -9,11 +9,7 @@ import { networkSyncBuffer } from './networkSync'
 const SERVER_URL = new URL(import.meta.env.VITE_SERVER_URL || globalThis.location?.origin || 'http://localhost')
 const API_URL = `${SERVER_URL.origin}/api`
 const isSecure = SERVER_URL.protocol === 'https:'
-const PEER_OPTIONS: PeerOptions = {
-  host: SERVER_URL.hostname,
-  port: Number(SERVER_URL.port) || (isSecure ? 443 : 80),
-  path: '/peer',
-  secure: isSecure,
+const CLOUD_PEER_OPTIONS: PeerOptions = {
   debug: 1,
   config: {
     iceServers: [
@@ -21,6 +17,25 @@ const PEER_OPTIONS: PeerOptions = {
       { urls: 'stun:global.stun.twilio.com:3478' }
     ]
   },
+}
+const OWN_SERVER_PEER_OPTIONS: PeerOptions = {
+  ...CLOUD_PEER_OPTIONS,
+  host: SERVER_URL.hostname,
+  port: Number(SERVER_URL.port) || (isSecure ? 443 : 80),
+  path: '/peer',
+  secure: isSecure,
+}
+
+/**
+ * Own server's signaling when it answers, otherwise the public PeerJS cloud: static hosting
+ * (GitHub Pages) has no backend, but joining by room code still works through the cloud.
+ */
+let peerOptionsPromise: Promise<PeerOptions> | null = null
+function resolvePeerOptions(): Promise<PeerOptions> {
+  peerOptionsPromise ??= fetch(`${API_URL}/rooms`)
+    .then(res => (res.ok ? OWN_SERVER_PEER_OPTIONS : CLOUD_PEER_OPTIONS))
+    .catch(() => CLOUD_PEER_OPTIONS)
+  return peerOptionsPromise
 }
 
 /** How often a host re-announces its room to the public list (server drops it after 10s of silence). */
@@ -68,13 +83,14 @@ class NetworkService {
 
     const formattedHostPeerId = `isocraft-host-${roomId.toLowerCase()}`
     this.myPeerId = formattedHostPeerId
+    const peerOptions = await resolvePeerOptions()
 
     // Resolves true once registered on the signaling server; false means only same-browser tabs can join.
     return new Promise((resolve) => {
       const attempt = (retry: number) => {
         let peer: Peer
         try {
-          peer = new Peer(formattedHostPeerId, PEER_OPTIONS)
+          peer = new Peer(formattedHostPeerId, peerOptions)
         } catch (e) {
           console.warn('[P2P Host Init Fallback]:', e)
           resolve(false)
@@ -176,13 +192,14 @@ class NetworkService {
     this.onHostDisconnectCallback = onDisconnect
 
     this.initBroadcastChannel(roomId)
+    const peerOptions = await resolvePeerOptions()
 
     return new Promise((resolve) => {
       const hostPeerId = `isocraft-host-${roomId.toLowerCase()}`
       let connected = false
 
       try {
-        this.peer = new Peer(PEER_OPTIONS)
+        this.peer = new Peer(peerOptions)
 
         this.peer.on('open', () => {
           if (!this.peer) return

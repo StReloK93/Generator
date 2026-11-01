@@ -38,6 +38,7 @@ import { usePixiCamera } from '../../composables/usePixiCamera'
 import {  AssetItem } from '../../types/map'
 import { assetManager } from '../../services/assetManager'
 import { GameController } from '../../controllers/game/GameController'
+import { getMapMode } from '../../domain/map'
 
 const mapStore = useMapStore()
 const toolStore = useToolStore()
@@ -64,6 +65,7 @@ const gameController = new GameController({
   multiplayerStore,
   notify,
   t,
+  followCamera: (col, row) => camera.focusOnCell(col, row, viewportContainerRef.value),
 })
 
 let resizeObserver: ResizeObserver | null = null
@@ -261,7 +263,9 @@ function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  if (e.button === 1 || camera.isSpacePressed.value || (!towerStore.activeBuildTowerId && e.button === 0 && e.shiftKey)) {
+  // Shift is "sneak" in hide & seek, so it must not start a camera pan there
+  const shiftPans = e.shiftKey && getMapMode(mapStore.project) !== 'hideseek'
+  if (e.button === 1 || camera.isSpacePressed.value || (!towerStore.activeBuildTowerId && e.button === 0 && shiftPans)) {
     camera.startPan(e.clientX, e.clientY)
     return
   }

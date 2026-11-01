@@ -20,6 +20,8 @@ import { useRouteStore } from './routeStore'
 import { useWaveStore } from './waveStore'
 import { useGameStore } from './gameStore'
 import { useTowerStore } from './towerStore'
+// Used inside handlers only: the hide & seek store itself depends on this store
+import { useHideSeekStore } from './hideSeekStore'
 import { useNotificationStore } from './notificationStore'
 import { useI18n } from './i18nStore'
 import { MapProject } from '../types/map'
@@ -87,7 +89,18 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   // Computed
+  const isHideSeekRoom = computed(() => getMapMode(mapStore.project) === 'hideseek')
+
+  /** Hide & seek needs every seat taken and every player's character picked before it can start. */
+  const hideSeekLobbyIssue = computed<'needPlayers' | 'needModels' | null>(() => {
+    if (!isHideSeekRoom.value) return null
+    if (players.value.length < maxPlayers.value) return 'needPlayers'
+    if (players.value.some(p => !p.heroModel)) return 'needModels'
+    return null
+  })
+
   const isAllReady = computed(() => {
+    if (hideSeekLobbyIssue.value) return false
     const activePlayers = players.value.filter(p => !p.isHost)
     if (activePlayers.length === 0) return true
     return activePlayers.every(p => p.isReady)
@@ -452,6 +465,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'RETURN_TO_LOBBY': {
         resetGameMatchStats()
+        useHideSeekStore().reset()
         roomGameState.value = 'lobby'
         gameStore.exitPlayMode()
         characterStore.resetTour()
@@ -549,6 +563,26 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
         }
+        break
+      }
+
+      case 'SET_HERO_MODEL': {
+        if (!isHost.value) return
+        const player = players.value.find(p => p.id === msg.senderId)
+        if (player && typeof msg.payload?.model === 'string') {
+          player.heroModel = msg.payload.model
+          syncLobbyState()
+        }
+        break
+      }
+
+      case 'HS_PLAYER_STATE': {
+        useHideSeekStore().applyPlayerState(msg.payload)
+        break
+      }
+
+      case 'HS_MATCH_STATE': {
+        useHideSeekStore().applyMatchState(msg.payload)
         break
       }
 
@@ -750,6 +784,22 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           playerId: myPlayerId.value,
           targetSlotIndex,
         },
+        senderId: myPlayerId.value,
+        timestamp: Date.now(),
+      })
+    }
+  }
+
+  /** Picks the lobby character (hide & seek). The host owns the lobby state and syncs it to everyone. */
+  function selectHeroModel(model: string) {
+    if (!myPlayer.value) return
+    myPlayer.value.heroModel = model
+    if (isHost.value) {
+      syncLobbyState()
+    } else {
+      networkService.sendToHost({
+        type: 'SET_HERO_MODEL',
+        payload: { model },
         senderId: myPlayerId.value,
         timestamp: Date.now(),
       })
@@ -1149,6 +1199,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     if (router) setRouter(router)
 
     resetGameMatchStats()
+    useHideSeekStore().reset()
 
     if (isHost.value) {
       roomGameState.value = 'lobby'
@@ -1223,6 +1274,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     isNudgeModalOpen.value = false
     isReadyButtonGlowing.value = false
     teammateHovers.value.clear()
+    useHideSeekStore().reset()
     gameStore.exitPlayMode()
     characterStore.resetTour()
     towerStore.clearAllTowers()
@@ -1257,6 +1309,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     connectionStatus,
     chatMessages,
     isAllReady,
+    isHideSeekRoom,
+    hideSeekLobbyIssue,
     unreadyCount,
     myPlayer,
     mySlot,
@@ -1265,6 +1319,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     hostNewGame,
     joinGame,
     selectSlot,
+    selectHeroModel,
     toggleReady,
     sendReadyCheck,
     broadcastTeammateHover,

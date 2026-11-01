@@ -9,7 +9,8 @@
         <p class="text-[11px] text-slate-400 truncate flex items-center gap-1.5">
           <Map class="size-3 text-brand-300 shrink-0" />
           <span class="truncate">{{ multiplayerStore.mapName || mapStore.project.name }}</span>
-          <span class="shrink-0">· {{ waveStore.waveConfigs.length }} {{ $t('home.info.waves') }}</span>
+          <span v-if="multiplayerStore.isHideSeekRoom" class="shrink-0">· {{ $t('game.modeHideSeek') }}</span>
+          <span v-else class="shrink-0">· {{ waveStore.waveConfigs.length }} {{ $t('home.info.waves') }}</span>
         </p>
       </div>
 
@@ -53,6 +54,7 @@
             :slot="slot"
           />
         </div>
+        <LobbyCharacterPicker v-if="multiplayerStore.isHideSeekRoom" />
       </UiCard>
 
       <!-- Chat -->
@@ -79,14 +81,25 @@
           size="lg"
           :leading-icon="multiplayerStore.myPlayer?.isReady ? Check : Clock"
           :custom-class="['min-w-44 short:py-2', multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady ? 'ring-4 ring-amber-400 animate-bounce' : '']"
+          :disabled="mustPickCharacter"
           @click="multiplayerStore.toggleReady()"
         >
-          {{ multiplayerStore.myPlayer?.isReady ? $t('common.ready') : $t('lobby.readyUp') }}
+          {{ mustPickCharacter ? $t('hideseek.pickCharacter') : multiplayerStore.myPlayer?.isReady ? $t('common.ready') : $t('lobby.readyUp') }}
         </UiButton>
 
         <template v-else>
           <UiButton
-            v-if="!multiplayerStore.isAllReady"
+            v-if="multiplayerStore.hideSeekLobbyIssue"
+            variant="secondary"
+            size="lg"
+            :leading-icon="Clock"
+            disabled
+            custom-class="min-w-44 short:py-2"
+          >
+            {{ multiplayerStore.hideSeekLobbyIssue === 'needPlayers' ? $t('hideseek.needPlayers') : $t('hideseek.needModels') }}
+          </UiButton>
+          <UiButton
+            v-else-if="!multiplayerStore.isAllReady"
             variant="game-amber"
             size="lg"
             :leading-icon="BellRing"
@@ -141,6 +154,7 @@ import { useI18n } from '../stores/i18nStore'
 import { lockLandscape } from '../utils/pwaOrientation'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
+import LobbyCharacterPicker from '../components/LobbyCharacterPicker.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -158,6 +172,9 @@ const mobileTabs = computed<TabItem[]>(() => [
   { id: 'slots', label: t('lobby.players', { current: filledSlotsCount.value, max: multiplayerStore.slots.length }), icon: Users },
   { id: 'chat', label: t('lobby.chatTitle') },
 ])
+
+/** Hide & seek: a player gets ready only after picking a character. */
+const mustPickCharacter = computed(() => multiplayerStore.isHideSeekRoom && !multiplayerStore.myPlayer?.heroModel)
 
 const filledSlotsCount = computed(() => {
   return multiplayerStore.slots.filter(s => s.player !== null).length

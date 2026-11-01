@@ -228,6 +228,8 @@ import {
 } from '../services/mapManager'
 import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
+import { normalizeHideSeekSettings } from '../domain/hideseek/HideSeekSettings'
+import { getMapMode } from '../domain/map/MapMode'
 
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
@@ -433,6 +435,9 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
 
     // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time, formation, etc.)
     mapStore.project.gameSettings = normalizeGameSettings(clonedProject.gameSettings || data.gameSettings || data.characterData?.gameSettings)
+    if (getMapMode(clonedProject) === 'hideseek') {
+      mapStore.project.hideSeekSettings = normalizeHideSeekSettings(clonedProject.hideSeekSettings)
+    }
     gameStore.restoreGameSettingsFromProject()
 
     // Restore clans, towers & blueprints

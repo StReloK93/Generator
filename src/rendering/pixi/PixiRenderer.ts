@@ -9,6 +9,8 @@ import { CombatRenderer } from './CombatRenderer'
 import { UnitRenderer } from './UnitRenderer'
 import { WaterRenderer } from './WaterRenderer'
 import { HeroRenderer } from './HeroRenderer'
+import { HideSeekRenderer } from './HideSeekRenderer'
+import { HideSeekRenderView } from '../types'
 import { useHeroStore } from '../../stores/heroStore'
 
 export class PixiRenderer {
@@ -21,6 +23,7 @@ export class PixiRenderer {
   public combat: CombatRenderer
   public units: UnitRenderer
   public hero: HeroRenderer
+  public hideSeek: HideSeekRenderer
 
   public isInitialized = false
 
@@ -34,6 +37,7 @@ export class PixiRenderer {
     this.combat = new CombatRenderer()
     this.units = new UnitRenderer()
     this.hero = new HeroRenderer()
+    this.hideSeek = new HideSeekRenderer()
 
     // Connect sub-renderers
     this.overlay.getTexture = (asset: AssetItem) => this.map.getTexture(asset)
@@ -141,6 +145,10 @@ export class PixiRenderer {
     } catch {
       // Ignored if outside Pinia scope
     }
+  }
+
+  renderHideSeek(view: HideSeekRenderView, project: MapProject): void {
+    this.hideSeek.render(view, project, this.map.layersContainer, this.context.worldContainer)
   }
 
   renderHoverCell(
@@ -262,6 +270,7 @@ export class PixiRenderer {
       this.combat?.clear()
       this.overlay?.clear()
       this.hero?.clear()
+      this.hideSeek?.clear()
       if (this.map?.layersContainer && !this.map.layersContainer.destroyed) {
         this.units?.clear(this.map.layersContainer)
         this.towers?.clear(this.map.layersContainer)
@@ -287,6 +296,7 @@ export class PixiRenderer {
       this.towers?.destroy()
       this.units?.destroy()
       this.hero?.destroy()
+      this.hideSeek?.destroy()
       this.overlay?.destroy()
       this.map?.destroy()
       this.combat?.destroy()

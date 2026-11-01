@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, Sprite, Texture } from 'pixi.js'
 import { MapProject, AssetItem, GridCoord, Point2D, SelectedElementRef } from '../types/map'
 import { PixiRenderer } from '../rendering/pixi/PixiRenderer'
+import { HideSeekRenderView } from '../rendering/types'
 import { assetManager } from '../services/assetManager'
 
 /**
@@ -260,6 +261,10 @@ export class IsoEngine {
 
   renderCharacter(characterStore: any, project: MapProject): void {
     this.renderer.renderCharacters(characterStore, project)
+  }
+
+  renderHideSeek(view: HideSeekRenderView, project: MapProject): void {
+    this.renderer.renderHideSeek(view, project)
   }
 
   screenPointToGrid(

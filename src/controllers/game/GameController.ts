@@ -2,6 +2,9 @@ import { GridCoord } from '../../types/map'
 import { isInsideGrid } from '../../utils/isometric'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { useHeroStore } from '../../stores/heroStore'
+import { useHideSeekStore } from '../../stores/hideSeekStore'
+import { getMapMode } from '../../domain/map'
+import { hideSeekAudio } from '../../services/hideSeekAudio'
 import { startBackgroundTicker } from '../../utils/backgroundTicker'
 import type { useMapStore } from '../../stores/mapStore'
 import type { useToolStore } from '../../stores/toolStore'
@@ -24,6 +27,8 @@ export interface GameControllerDependencies {
   multiplayerStore: ReturnType<typeof useMultiplayerStore>
   notify: ReturnType<typeof useNotificationStore>
   t: ReturnType<typeof useI18n>['t']
+  /** Centers the camera on a grid point (hide & seek follows the own character) */
+  followCamera: (col: number, row: number) => void
 }
 
 export class GameController {
@@ -33,12 +38,18 @@ export class GameController {
   public lastTouchTimestamp = 0
   private stopBackgroundTicker: (() => void) | null = null
   private onVisibilityChange: (() => void) | null = null
+  private removeInputListeners: (() => void) | null = null
 
   constructor(dependencies: GameControllerDependencies) {
     this.deps = dependencies
   }
 
   public setupSimulationLoop(): void {
+    if (getMapMode(this.deps.mapStore.project) === 'hideseek') {
+      this.setupHideSeekLoop()
+      return
+    }
+
     const { engine, characterStore, gameStore, towerStore, multiplayerStore, mapStore, toolStore } = this.deps
     const heroStore = useHeroStore()
     const isHeroMode = mapStore.project?.gameMode === 'hero'
@@ -99,10 +110,62 @@ export class GameController {
     document.addEventListener('visibilitychange', this.onVisibilityChange)
   }
 
+  /** Hide & seek: keyboard movement, own-character camera, match tick and fog of war rendering. */
+  private setupHideSeekLoop(): void {
+    const { engine, mapStore, multiplayerStore, followCamera } = this.deps
+    const hideSeekStore = useHideSeekStore()
+    hideSeekStore.startMatch()
+
+    const isTyping = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isTyping(e)) return
+      hideSeekAudio.unlock()
+      if (hideSeekStore.setKey(e.code, true)) e.preventDefault()
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      hideSeekStore.setKey(e.code, false)
+    }
+    const onBlur = () => hideSeekStore.releaseInput()
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    window.addEventListener('blur', onBlur)
+    this.removeInputListeners = () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', onBlur)
+    }
+
+    const simulate = (rawDeltaSec: number) => {
+      hideSeekStore.tick(rawDeltaSec, mapStore.project.tileWidth, mapStore.project.tileHeight)
+    }
+
+    engine.onTick = (rawDeltaSec: number) => {
+      simulate(rawDeltaSec)
+      engine.renderHideSeek(hideSeekStore.getRenderView(), mapStore.project)
+      const me = hideSeekStore.getMyPosition()
+      if (me) followCamera(me.col, me.row)
+    }
+
+    // The host owns the match clock: keep it running while its tab is hidden
+    this.onVisibilityChange = () => {
+      this.stopBackgroundTicker?.()
+      this.stopBackgroundTicker = null
+      if (document.hidden && multiplayerStore.isHost) {
+        this.stopBackgroundTicker = startBackgroundTicker(40, simulate)
+      }
+    }
+    document.addEventListener('visibilitychange', this.onVisibilityChange)
+  }
+
   public stopSimulationLoop(): void {
     this.deps.engine.stopTicker()
     this.stopBackgroundTicker?.()
     this.stopBackgroundTicker = null
+    this.removeInputListeners?.()
+    this.removeInputListeners = null
     if (this.onVisibilityChange) {
       document.removeEventListener('visibilitychange', this.onVisibilityChange)
       this.onVisibilityChange = null
@@ -114,6 +177,13 @@ export class GameController {
       this.deps
     const heroStore = useHeroStore()
     const isHeroMode = mapStore.project?.gameMode === 'hero'
+
+    // Hide & seek: click / tap walks there (WASD and the touch joystick steer directly)
+    if (getMapMode(mapStore.project) === 'hideseek') {
+      hideSeekAudio.unlock()
+      useHideSeekStore().moveTo(gridCoord.col, gridCoord.row)
+      return
+    }
 
     if (!isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)) {
       if (!isHeroMode) {

@@ -1,6 +1,8 @@
 import { MapProject, AssetItem } from '../types/map'
 import { registerCustomProjectiles, getAllProjectilesUnified } from './projectileCatalog'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
+import { normalizeHideSeekSettings } from '../domain/hideseek/HideSeekSettings'
+import { getMapMode } from '../domain/map/MapMode'
 import { WaveManager } from '../domain/simulation/WaveManager'
 import { TowerBlueprintManager, RawTowerBlueprint } from '../domain/tower/TowerBlueprintManager'
 
@@ -198,6 +200,7 @@ export function buildFullProjectJsonPayload(
       gridColor: project.gridColor,
       layers: compactedLayers,
       gameSettings: resolvedGameSettings,
+      ...(getMapMode(project) === 'hideseek' ? { hideSeekSettings: normalizeHideSeekSettings(project.hideSeekSettings) } : {}),
       clans: resolvedClans.map((c: any) => ({ ...c })),
       routes: resolvedRoutes,
       placedTowers: resolvedPlacedTowers,
@@ -367,7 +370,10 @@ export async function importProjectFromJson(
   project.waterCells = Array.isArray(project.waterCells) ? project.waterCells : []
   project.buildableCells = Array.isArray(project.buildableCells) ? project.buildableCells : []
   project.collisionSubcells = Array.isArray(project.collisionSubcells) ? project.collisionSubcells : []
-  
+  if (getMapMode(project) === 'hideseek') {
+    project.hideSeekSettings = normalizeHideSeekSettings(project.hideSeekSettings)
+  }
+
   onProgress?.(75, 'import.restoringLayers')
   await yieldToMain()
 

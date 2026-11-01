@@ -111,6 +111,7 @@
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="font-extrabold text-xs text-slate-50 truncate">{{ room.roomName }}</span>
               <UiBadge v-if="room.gameMode === 'hero'" variant="rose" size="xs" class="shrink-0">{{ $t('game.modePvp') }}</UiBadge>
+              <UiBadge v-else-if="room.gameMode === 'hideseek'" variant="purple" size="xs" class="shrink-0">{{ $t('game.modeHideSeek') }}</UiBadge>
               <UiBadge :variant="room.gameState === 'lobby' ? 'emerald' : 'amber'" size="xs" class="shrink-0">
                 {{ room.gameState === 'lobby' ? $t('play.statusWaiting') : $t('play.statusPlaying') }}
               </UiBadge>
@@ -142,8 +143,8 @@
             <p class="text-xs text-slate-400">{{ $t('play.noRooms') }}</p>
           </template>
           <template v-else>
-            <WifiOff class="size-5 text-rose-400" />
-            <p class="text-xs text-rose-300">{{ $t('play.serverUnreachable') }}</p>
+            <KeyRound class="size-5 text-slate-500" />
+            <p class="text-xs text-slate-400">{{ $t('play.roomListUnavailable') }}</p>
           </template>
         </div>
       </div>
@@ -154,7 +155,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Gamepad2, Globe, User, Users, KeyRound, Radio, RefreshCw, Map, WifiOff } from 'lucide-vue-next'
+import { ArrowRight, Gamepad2, Globe, User, Users, KeyRound, Radio, RefreshCw, Map } from 'lucide-vue-next'
 import { UiModal, UiButton, UiIconButton, UiInput, UiBadge } from '../ui'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
