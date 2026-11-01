@@ -97,7 +97,7 @@ class AssetManagerService {
     }
   }
 
-  // Get base URL for static assets (compatible with Vite base e.g. /Generator/)
+  // Get base URL for static assets (compatible with Vite base, e.g. / or /Generator/)
   private getBaseUrl(): string {
     const base = import.meta.env.BASE_URL || '/'
     return base.endsWith('/') ? base : `${base}/`

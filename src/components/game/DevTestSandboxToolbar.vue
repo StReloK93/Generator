@@ -13,14 +13,12 @@
       <button
         type="button"
         @click="isExpanded = true"
-        class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/90 hover:bg-slate-900 border-2 border-amber-400 text-amber-300 shadow-xl shadow-amber-500/10 backdrop-blur-md transition-all cursor-pointer group active:scale-95"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/80 hover:bg-slate-900 border border-amber-500/30 text-amber-300/80 shadow-md backdrop-blur-md transition-all cursor-pointer group active:scale-95"
       >
         <div class="w-5 h-5 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover:rotate-12 transition-transform">
           <Wrench class="w-3.5 h-3.5" />
         </div>
-        <span class="text-xs font-black tracking-wide uppercase">{{ $t('sandbox.title') }}</span>
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      </button>
+        <span class="text-xs font-black tracking-wide uppercase">{{ $t('sandbox.title') }}</span>      </button>
     </div>
 
     <!-- Expanded Sandbox Tools Card -->

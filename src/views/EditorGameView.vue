@@ -3,24 +3,20 @@
     <!-- Dedicated Editor Test Game Stage -->
     <GameStage :is-editor-mode="true">
       <template #editor-tools>
-        <!-- Top Center Editor Playtest Indicator Badge -->
-        <div class="fixed top-2.5 left-1/2 -translate-x-1/2 z-40 pointer-events-auto select-none flex items-center gap-2">
-          <div class="px-3 py-1 rounded-full bg-slate-950/90 border border-amber-500/60 shadow-lg shadow-amber-500/15 backdrop-blur-md flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            <span class="text-[11px] font-black uppercase tracking-wider text-amber-300">
-              {{ $t('sandbox.editorModeOnly') || 'XARITA TEST REJIMI' }}
-            </span>
-            <span class="text-slate-600">•</span>
-            <UiButton
-              variant="game-amber"
-              size="xs"
-              class="h-5 px-2! text-[10px]! font-black"
-              :leading-icon="Layers"
-              @click="handleReturnToEditor"
-            >
-              {{ $t('game.returnEditor') || 'Tahrirlash' }}
-            </UiButton>
-          </div>
+        <!-- Editor playtest marker: thin top edge line + compact label -->
+        <div class="fixed top-0 inset-x-0 h-0.5 bg-amber-500/40 z-40 pointer-events-none"></div>
+        <div class="fixed top-1.5 left-1/2 -translate-x-1/2 z-40 pointer-events-auto select-none flex items-center gap-1.5">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300/70">TEST</span>
+          <UiButton
+            variant="ghost"
+            size="xs"
+            class="h-5 px-1.5! text-[10px]! text-slate-300!"
+            :leading-icon="Layers"
+            :title="$t('sandbox.editorModeOnly')"
+            @click="handleReturnToEditor"
+          >
+            {{ $t('game.returnEditor') }}
+          </UiButton>
         </div>
       </template>
     </GameStage>

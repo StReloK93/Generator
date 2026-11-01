@@ -63,7 +63,8 @@ function assetAtlasWatcherPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/Generator/',
+  // Served from the domain root; set APP_BASE (e.g. /Generator/) to host under a sub-path
+  base: process.env.APP_BASE || '/',
   plugins: [
     vue(),
     tailwindcss(),

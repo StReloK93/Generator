@@ -2,7 +2,7 @@
   "name": "Defensor TD - Tactical Tower Defense",
   "short_name": "Defensor TD",
   "description": "Izometrik Tower Defense va Taktik Xarita Dvijogi",
-  "id": "/Generator/",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

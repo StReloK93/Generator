@@ -16,9 +16,18 @@ const AVATAR_SCALE = 0.9
 const NIGHT_COLOR = 0x140d08
 const NIGHT_ALPHA = 0.64
 const BLIND_ALPHA = 0.94
-/** Fog bands that darken the far end of the cone, as [fraction of the sight range, extra alpha] */
-const SOFT_EDGE_BANDS: [number, number][] = [[0.6, 0.1], [0.78, 0.12], [0.92, 0.14]]
+/** Many thin nested bands read as one smooth gradient */
+const FALLOFF_STEPS = 10
+/** Night starts creeping back into the cone from this fraction of the sight range... */
+const FOG_START = 0.45
+/** ...and each band adds this alpha, so the far end matches the outside night: 1 - (1 - a)^steps = NIGHT_ALPHA */
+const FOG_BAND_ALPHA = 1 - Math.pow(1 - NIGHT_ALPHA, 1 / FALLOFF_STEPS)
 const LIGHT_COLOR = 0xffe7a3
+/** Per-band lantern alpha: the bands stack up, so the light is warmest at the player and fades out at the range */
+const LIGHT_BAND_ALPHA = 0.018
+/** Faint lantern glow around the player's feet (also behind them), in tiles */
+const HALO_RADIUS = 0.9
+const HALO_BAND_ALPHA = 0.02
 const CHEST_CLOSED = 'sprite-chestClosed_E'
 const CHEST_OPEN = 'sprite-chestOpen_E'
 /** Above the ground plane (< 50,000) and below walls / props (100,000+) inside the layers container */
@@ -122,9 +131,11 @@ export class HideSeekRenderer {
     const g = this.lightGraphics
     g.clear()
     if (!view.vision || view.blind) return
-    // Warm light, brightest near the player
-    g.poly(this.toScreen(view.vision, project)).fill({ color: LIGHT_COLOR, alpha: 0.08 })
-    g.poly(this.toScreen(this.scaledCone(view.vision, 0.55, view.visionRange), project)).fill({ color: LIGHT_COLOR, alpha: 0.08 })
+    // Lantern light: shrinking nested cones stack up, warmest at the player and fading out at the sight range
+    for (let i = 1; i <= FALLOFF_STEPS; i++) {
+      g.poly(this.toScreen(this.scaledCone(view.vision, i / FALLOFF_STEPS, view.visionRange), project))
+        .fill({ color: LIGHT_COLOR, alpha: LIGHT_BAND_ALPHA })
+    }
   }
 
   private drawFog(view: HideSeekRenderView, project: MapProject): void {
@@ -150,10 +161,18 @@ export class HideSeekRenderer {
 
     const cone = this.toScreen(view.vision, project)
     g.poly(cone).cut()
-    // Soft far edge: the sight fades into the night instead of ending in a hard line
-    for (const [fraction, alpha] of SOFT_EDGE_BANDS) {
-      g.poly(cone).fill({ color: NIGHT_COLOR, alpha })
+    // Soft far edge: night creeps back in band by band, reaching the outside fog exactly at the sight range
+    for (let i = 0; i < FALLOFF_STEPS; i++) {
+      const fraction = FOG_START + ((1 - FOG_START) * i) / FALLOFF_STEPS
+      g.poly(cone).fill({ color: NIGHT_COLOR, alpha: FOG_BAND_ALPHA })
       g.poly(this.toScreen(this.scaledCone(view.vision, fraction, view.visionRange), project)).cut()
+    }
+
+    // Lantern glow around the player's feet: only tints the night, never reveals what is behind
+    const apex = gridToScreen(view.vision[0].col, view.vision[0].row, tileWidth, tileHeight)
+    for (let i = 1; i <= FALLOFF_STEPS / 2; i++) {
+      const rx = (HALO_RADIUS * tileWidth * i) / (FALLOFF_STEPS / 2) / Math.SQRT2
+      g.ellipse(apex.x, apex.y, rx, (rx * tileHeight) / tileWidth).fill({ color: LIGHT_COLOR, alpha: HALO_BAND_ALPHA })
     }
   }
 
