@@ -28,6 +28,7 @@
         :disabled="disabled"
         :readonly="readonly"
         :maxlength="maxlength"
+        :inputmode="inputmode"
         :class="[
           'w-full bg-slate-950/80 border rounded-xl text-white placeholder-slate-500 transition-all duration-150 focus:outline-none focus:ring-1 disabled:opacity-50 disabled:cursor-not-allowed',
           error 
@@ -77,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { X } from 'lucide-vue-next'
 
 export type InputSize = 'sm' | 'md' | 'lg'
@@ -94,6 +95,8 @@ interface Props {
   disabled?: boolean
   readonly?: boolean
   maxlength?: number | string
+  /** On-screen keyboard hint, e.g. 'numeric' for digit-only codes */
+  inputmode?: 'text' | 'numeric'
   clearable?: boolean
   size?: InputSize
   customClass?: string | string[] | Record<string, any>
@@ -125,6 +128,12 @@ function handleInput(event: Event) {
   const target = event.target as HTMLInputElement
   const val = props.type === 'number' ? (target.value === '' ? '' : Number(target.value)) : target.value
   emit('update:modelValue', val)
+  // Controlled text input: when the parent keeps a cleaned-up value (e.g. digits only), show that value
+  if (props.type !== 'number') {
+    nextTick(() => {
+      if (target.value !== String(props.modelValue)) target.value = String(props.modelValue)
+    })
+  }
 }
 
 function clearInput() {

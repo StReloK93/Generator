@@ -37,7 +37,7 @@ export function createMultiplayerApp(httpServer) {
 
   app.post('/api/rooms', express.json({ limit: '8kb' }), (req, res) => {
     const room = req.body
-    if (!room || typeof room.roomId !== 'string' || !/^[A-Z0-9]{4,12}$/.test(room.roomId)) {
+    if (!room || typeof room.roomId !== 'string' || !/^\d{6}$/.test(room.roomId)) {
       return res.status(400).json({ error: 'Invalid room' })
     }
     rooms.set(room.roomId, {
@@ -46,7 +46,7 @@ export function createMultiplayerApp(httpServer) {
       hostName: String(room.hostName || '').slice(0, 20),
       hostColor: String(room.hostColor || ''),
       mapName: String(room.mapName || '').slice(0, 40),
-      gameMode: room.gameMode === 'hero' ? 'hero' : 'td',
+      gameMode: ['hero', 'hideseek'].includes(room.gameMode) ? room.gameMode : 'td',
       playersCount: Number(room.playersCount) || 1,
       maxPlayers: Number(room.maxPlayers) || 2,
       gameState: String(room.gameState || 'lobby'),

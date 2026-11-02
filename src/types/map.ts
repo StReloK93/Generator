@@ -145,8 +145,62 @@ export interface HideSeekSettings {
   visionAngle: number
   hearingRange: number
   catchDistance: number
-  /** Treasure chests the hider must open to win */
+  /** Treasure chests the hider must loot to win */
   chestCount: number
+  /** Seconds the hider stands at a chest to take its treasure */
+  lootTime: number
+  /** Chests the hider must loot to win (fewer than all: guarding one chest cannot stop them) */
+  chestsToWin: number
+  /** Seconds of running before a player is out of breath */
+  staminaSeconds: number
+  /** Running seconds regained per second while walking quietly or standing */
+  staminaRegen: number
+  /** Every player sees this far all around them (their lantern's glow), even behind; 0 = only the sight cone */
+  lanternRadius: number
+  /** Speed while out of breath */
+  tiredSpeed: number
+  /** The seeker runs this much faster (short bursts, then tires like everyone) */
+  seekerSpeedBonus: number
+  /** Barrels / crates a hider can hide inside */
+  hideSpotCount: number
+  /** Stones each hider can throw per round to make a decoy noise */
+  stoneCount: number
+  stoneRange: number
+  /** How far a stone / bell is heard */
+  noiseRange: number
+  /** Flares the seeker can light per round: everything around them is lit for a moment */
+  flareCount: number
+  flareDuration: number
+  flareRadius: number
+  /** Bell traps the seeker can place per round */
+  trapCount: number
+  /** Points: per chest looted, per hider caught / freed, for winning a round, per second a hider stays free */
+  scoreChest: number
+  scoreCatch: number
+  scoreRescue: number
+  scoreWin: number
+  scorePerSecond: number
+  /** A new random labyrinth every round (the map's own layout is only the preview) */
+  randomMaze: boolean
+  mazeCols: number
+  mazeRows: number
+  /** Rooms carved into the random labyrinth, doors on their entrances, crawl holes only hiders get through, candle stands */
+  roomCount: number
+  doorCount: number
+  holeCount: number
+  torchCount: number
+  /** How far a candle stand lights the floor; anything in its light is seen from afar */
+  torchRadius: number
+  /** Exit gates on the labyrinth's edge: they open once the hiders took enough treasure, and a hider who gets out wins
+   * (0 = enough treasure wins right away) */
+  exitCount: number
+  /** Running leaves footprints on the floor for this long (sneaking leaves none) */
+  footprintSeconds: number
+  /** The last seconds of a round are the hunt: the seeker sees further and gets a hint where the nearest hider is */
+  huntTime: number
+  huntPingInterval: number
+  /** Extra sight range during the hunt (0.3 = 30% further) */
+  huntVisionBonus: number
 }
 
 export interface MapProject {

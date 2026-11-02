@@ -3,9 +3,18 @@ import { MapProject, AssetItem } from '../../types/map'
 import { assetManager } from '../../services/assetManager'
 import { getFootprintBaseCenter } from '../../utils/isometric'
 
+/** A wall / prop sprite (non-ground layers) and the map cell it stands on. */
+export interface EntitySprite {
+  sprite: Sprite
+  col: number
+  row: number
+  assetId: string
+}
+
 export class MapRenderer {
   public layersContainer: Container
   private layerSpriteMaps = new Map<string, Map<string, Sprite>>()
+  private entitySprites: EntitySprite[] = []
   private textureCache = new Map<string, Texture>()
   private loadingPromises = new Map<string, Promise<Texture | null>>()
   public onTextureLoaded?: (assetId: string, texture: Texture) => void
@@ -160,6 +169,7 @@ export class MapRenderer {
     }
 
     // 2. Sync each layer's sprites
+    this.entitySprites = []
     for (let layerIdx = 0; layerIdx < project.layers.length; layerIdx++) {
       const layer = project.layers[layerIdx]
       let spriteMap = this.layerSpriteMaps.get(layer.id)
@@ -268,6 +278,7 @@ export class MapRenderer {
             }
           }
           sprite.zIndex = maxDepthScore
+          if (!isGround) this.entitySprites.push({ sprite, col: posX, row: posY, assetId: item.assetId })
         }
       }
     }
@@ -275,7 +286,13 @@ export class MapRenderer {
     this.layersContainer.sortChildren()
   }
 
+  /** Walls and props as last synced (e.g. for lighting them). */
+  public getEntitySprites(): readonly EntitySprite[] {
+    return this.entitySprites
+  }
+
   public clear(): void {
+    this.entitySprites = []
     try {
       for (const spriteMap of this.layerSpriteMaps.values()) {
         for (const sprite of spriteMap.values()) {

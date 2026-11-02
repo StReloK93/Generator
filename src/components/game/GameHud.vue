@@ -51,7 +51,7 @@
         </div>
 
         <!-- Multiplayer Players Mini-Leaderboard (If in multiplayer room) -->
-        <ul v-if="multiplayerStore.roomId" class="flex flex-col gap-0.5 pb-2">
+        <ul v-if="multiplayerStore.roomId && !isHideSeekMode" class="flex flex-col gap-0.5 pb-2">
           <li v-for="p in multiplayerStore.players" :key="p.id"
             class="flex items-center gap-2 px-2 py-1 rounded-lg text-[11px]"
             :class="p.id === multiplayerStore.myPlayerId ? 'bg-brand-500/10 ring-1 ring-brand-400/30' : 'bg-slate-950/40'">

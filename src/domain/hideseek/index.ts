@@ -1,2 +1,7 @@
 ﻿export * from './HideSeekSettings'
 export * from './HideSeekRules'
+export * from './HideSeekGadgets'
+export * from './HideSeekMatch'
+export * from './HideSeekBot'
+export * from './HideSeekMaze'
+export * from './HideSeekMazeMap'

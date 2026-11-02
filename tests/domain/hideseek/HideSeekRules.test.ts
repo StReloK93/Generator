@@ -9,12 +9,16 @@ import {
   isCaught,
   castVision,
   footstepLoudness,
-  startMatchClock,
-  advanceMatchClock,
   canAct,
-  roleForSlot,
+  pickHideSpots,
   pickChestSpots,
-  findReachableChest,
+  findLootableChest,
+  advanceLoot,
+  hasLootedEnough,
+  NO_LOOT,
+  findWalkPath,
+  nearestWithin,
+  CHEST_CHECK_RADIUS,
   smoothPath,
   normalizeHideSeekSettings,
 } from '@/domain/hideseek'
@@ -59,9 +63,8 @@ describe('HideSeekRules', () => {
     expect(next.row).toBeLessThan(4.15)
   })
 
-  it('walks a click-to-move path and drops reached waypoints', () => {
-    const grid = buildCollisionGrid({ cols: 6, rows: 6, collisionSubcells: [] })
-    const step = stepAlongPath(grid, { col: 1, row: 1 }, [{ col: 2, row: 1 }, { col: 2, row: 3 }], 1.5)
+  it('walks a click-to-move path at a steady pace and drops reached waypoints', () => {
+    const step = stepAlongPath({ col: 1, row: 1 }, [{ col: 2, row: 1 }, { col: 2, row: 3 }], 1.5)
     expect(step.pos.col).toBeCloseTo(2)
     expect(step.pos.row).toBeCloseTo(1.5)
     expect(step.path).toEqual([{ col: 2, row: 3 }])
@@ -88,6 +91,14 @@ describe('HideSeekRules', () => {
     expect(canSee(walled, { col: 1, row: 1 }, 0, { col: 4, row: 1 }, settings)).toBe(false)
   })
 
+  it('sees a little all around (the lantern), but still not through walls', () => {
+    const grid = buildCollisionGrid({ cols: 20, rows: 20, collisionSubcells: [] })
+    const eye = { col: 5, row: 5 }
+    expect(canSee(grid, eye, 0, { col: 4, row: 5 }, settings, 1.5)).toBe(true) // right behind, within the glow
+    expect(canSee(grid, eye, 0, { col: 3, row: 5 }, settings, 1.5)).toBe(false) // behind, beyond the glow
+    expect(canSee(wallGrid(), { col: 2, row: 1 }, Math.PI, { col: 3, row: 1 }, settings, 1.5)).toBe(false) // wall in between
+  })
+
   it('casts a vision cone from the player whose rays stop at walls', () => {
     const grid = wallGrid()
     const cone = castVision(grid, { col: 1, row: 1 }, 0, settings)
@@ -108,16 +119,26 @@ describe('HideSeekRules', () => {
     expect(footstepLoudness(9, settings)).toBe(0)
   })
 
-  it('runs hiding -> seeking -> seeker wins when time runs out', () => {
-    let clock = startMatchClock(settings)
-    expect(clock.phase).toBe('hiding')
-    expect(canAct('seeker', clock.phase)).toBe(false)
-    expect(canAct('hider', clock.phase)).toBe(true)
-    clock = advanceMatchClock(clock, settings.hideTime + 0.1, settings)
-    expect(clock.phase).toBe('seeking')
-    expect(clock.timeLeft).toBe(settings.roundTime)
-    clock = advanceMatchClock(clock, settings.roundTime + 0.1, settings)
-    expect(clock).toEqual({ phase: 'ended', timeLeft: 0, winner: 'seeker', reason: 'time' })
+  it('lets only the hiders move while the seeker waits with closed eyes', () => {
+    expect(canAct('seeker', 'hiding')).toBe(false)
+    expect(canAct('hider', 'hiding')).toBe(true)
+    expect(canAct('seeker', 'seeking')).toBe(true)
+    expect(canAct('hider', 'roundOver')).toBe(false)
+    expect(canAct('seeker', 'ended')).toBe(false)
+  })
+
+  it('puts hiding spots in corners, away from spawns and chests', () => {
+    const project = labyrinth.project
+    const grid = buildCollisionGrid(project)
+    const spawns = project.routes.map(r => r.routePoints[0])
+    const chests = pickChestSpots(grid, spawns, 6, Math.random)
+    const spots = pickHideSpots(grid, spawns, chests, 6, Math.random)
+    expect(spots).toHaveLength(6)
+    for (const s of spots) {
+      for (const other of [...spawns, ...chests]) expect(Math.hypot(s.col - other.col, s.row - other.row)).toBeGreaterThanOrEqual(3)
+      const walls = [[0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]].filter(([dc, dr]) => isBlockedAt(grid, s.col + dc, s.row + dr)).length
+      expect(walls).toBeGreaterThanOrEqual(2)
+    }
   })
 
   it('places spaced chests on free cells away from the spawns', () => {
@@ -127,23 +148,58 @@ describe('HideSeekRules', () => {
     expect(chests).toHaveLength(5)
     for (const c of chests) expect(Math.hypot(c.col - spawn.col, c.row - spawn.row)).toBeGreaterThanOrEqual(5)
 
-    const states = chests.map(c => ({ ...c, opened: false }))
-    expect(findReachableChest(chests[2], states)).toBe(2)
-    states[2].opened = true
-    expect(findReachableChest(chests[2], states)).toBe(-1)
+    const states = chests.map(c => ({ ...c, looted: false }))
+    expect(findLootableChest(chests[2], states)).toBe(2)
+    states[2].looted = true
+    expect(findLootableChest(chests[2], states)).toBe(-1)
   })
 
-  it('places labyrinth chests only inside the walls, where players can walk', () => {
+  it('builds up looting time only while the hider stands still at a chest', () => {
+    const chests = [{ col: 3, row: 3, looted: false }]
+    let loot = advanceLoot(NO_LOOT, { col: 3, row: 3, moving: false }, chests, 1)
+    loot = advanceLoot(loot, { col: 3.2, row: 3, moving: false }, chests, 1.5)
+    expect(loot).toEqual({ index: 0, time: 2.5 })
+    expect(advanceLoot(loot, { col: 3, row: 3, moving: true }, chests, 1)).toEqual(NO_LOOT)
+    chests[0].looted = true
+    expect(advanceLoot(loot, { col: 3, row: 3, moving: false }, chests, 1)).toEqual(NO_LOOT)
+  })
+
+  it('lets the hider win with 5 of 6 chests, so guarding one chest cannot stop them', () => {
+    const rules = normalizeHideSeekSettings({ chestCount: 6, chestsToWin: 5 })
+    const chests = Array.from({ length: 6 }, (_, i) => ({ col: i, row: 0, looted: i < 4 }))
+    expect(hasLootedEnough(chests, rules)).toBe(false)
+    chests[4].looted = true
+    expect(hasLootedEnough(chests, rules)).toBe(true)
+    // A map with fewer chests than needed: all of them are enough
+    expect(hasLootedEnough(chests.slice(0, 3), rules)).toBe(true)
+  })
+
+  it('lets the seeker reach the nearest chest, looted or not', () => {
+    const chests = [{ col: 3, row: 3, looted: true }, { col: 5, row: 3, looted: false }]
+    expect(nearestWithin({ col: 3.8, row: 3 }, chests, CHEST_CHECK_RADIUS)).toBe(0)
+    expect(nearestWithin({ col: 4.4, row: 3 }, chests, CHEST_CHECK_RADIUS)).toBe(1)
+    expect(nearestWithin({ col: 9, row: 9 }, chests, CHEST_CHECK_RADIUS)).toBe(-1)
+  })
+
+  it('places labyrinth chests only where players can walk', () => {
     const project = labyrinth.project
     const grid = buildCollisionGrid(project)
     const spawns = project.routes.map(r => r.routePoints[0])
     for (let run = 0; run < 20; run++) {
-      for (const chest of pickChestSpots(grid, spawns, 5, Math.random)) {
-        // The last row / column lies outside the outer wall
-        expect(chest.col).toBeLessThan(project.cols - 1)
-        expect(chest.row).toBeLessThan(project.rows - 1)
+      for (const chest of pickChestSpots(grid, spawns, 6, Math.random)) {
+        expect(findWalkPath(grid, spawns[0], chest).at(-1)).toEqual(chest)
       }
     }
+  })
+
+  it('finds a straightened walking path around the end of a wall', () => {
+    // Wall on col = 2.5 from the top down to row 3.5; open below
+    const grid = buildCollisionGrid({ cols: 6, rows: 6, collisionSubcells: Array.from({ length: 8 }, (_, sr) => `5,${sr}`) })
+    const path = findWalkPath(grid, { col: 1, row: 1 }, { col: 4, row: 1 })
+    expect(path.at(-1)).toEqual({ col: 4, row: 1 })
+    expect(path.length).toBeLessThan(5)
+    // Every waypoint passes below the wall's end
+    expect(Math.max(...path.map(p => p.row))).toBeGreaterThan(3.5)
   })
 
   it('straightens zig-zag sub-cell paths into a few clear segments', () => {
@@ -158,11 +214,6 @@ describe('HideSeekRules', () => {
     const walled = wallGrid()
     const detour = smoothPath(walled, { col: 1, row: 1 }, [{ col: 2, row: 6.5 }, { col: 3.5, row: 6.5 }, { col: 4, row: 1 }])
     expect(detour.length).toBeGreaterThan(1)
-  })
-
-  it('gives the first slot the seeker role', () => {
-    expect(roleForSlot(0)).toBe('seeker')
-    expect(roleForSlot(1)).toBe('hider')
   })
 
   it('ships a labyrinth map whose spawns are free and every open cell is connected', () => {
@@ -186,8 +237,8 @@ describe('HideSeekRules', () => {
       }
     }
     // Every maze cell center that is not a prop is reachable
-    for (let col = 0; col < project.cols - 1; col++) {
-      for (let row = 0; row < project.rows - 1; row++) {
+    for (let col = 0; col < project.cols; col++) {
+      for (let row = 0; row < project.rows; row++) {
         if (!isBlockedAt(grid, col, row)) expect(seen.has(`${col * 2},${row * 2}`)).toBe(true)
       }
     }

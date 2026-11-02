@@ -33,6 +33,7 @@ import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
+import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import {  AssetItem } from '../../types/map'
@@ -49,6 +50,7 @@ const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
+const hideSeekStore = useHideSeekStore()
 const { t } = useI18n()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
@@ -213,7 +215,8 @@ onMounted(async () => {
   }
 })
 
-watch(() => [assetStore.isLoaded, assetManager.atlasRevision.value], () => {
+// Hide & seek: every round can bring a new labyrinth
+watch(() => [assetStore.isLoaded, assetManager.atlasRevision.value, hideSeekStore.mazeRevision], () => {
   if (engine.isInitialized) {
     updateEngineState()
   }

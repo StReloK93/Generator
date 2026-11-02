@@ -16,6 +16,9 @@ import type { useMultiplayerStore } from '../../stores/multiplayerStore'
 import type { useNotificationStore } from '../../stores/notificationStore'
 import type { useI18n } from '../../stores/i18nStore'
 
+/** How quickly the hide & seek camera catches up with the own character (per second) */
+const CAMERA_FOLLOW_RATE = 8
+
 export interface GameControllerDependencies {
   engine: IsoEngine
   mapStore: ReturnType<typeof useMapStore>
@@ -112,7 +115,7 @@ export class GameController {
 
   /** Hide & seek: keyboard movement, own-character camera, match tick and fog of war rendering. */
   private setupHideSeekLoop(): void {
-    const { engine, mapStore, multiplayerStore, followCamera } = this.deps
+    const { engine, mapStore, multiplayerStore, toolStore, followCamera } = this.deps
     const hideSeekStore = useHideSeekStore()
     hideSeekStore.startMatch()
 
@@ -142,11 +145,18 @@ export class GameController {
       hideSeekStore.tick(rawDeltaSec, mapStore.project.tileWidth, mapStore.project.tileHeight)
     }
 
+    // The camera eases after the own character instead of being glued to it (no jitter while walking)
+    let camera: GridCoord | null = null
     engine.onTick = (rawDeltaSec: number) => {
+      hideSeekStore.setPointerCell(toolStore.hoveredCell)
       simulate(rawDeltaSec)
-      engine.renderHideSeek(hideSeekStore.getRenderView(), mapStore.project)
+      const view = hideSeekStore.getRenderView()
+      if (view) engine.renderHideSeek(view, mapStore.project)
       const me = hideSeekStore.getMyPosition()
-      if (me) followCamera(me.col, me.row)
+      if (!me) return
+      const k = camera ? 1 - Math.exp(-CAMERA_FOLLOW_RATE * rawDeltaSec) : 1
+      camera = camera ? { col: camera.col + (me.col - camera.col) * k, row: camera.row + (me.row - camera.row) * k } : { ...me }
+      followCamera(camera.col, camera.row)
     }
 
     // The host owns the match clock: keep it running while its tab is hidden
@@ -178,10 +188,10 @@ export class GameController {
     const heroStore = useHeroStore()
     const isHeroMode = mapStore.project?.gameMode === 'hero'
 
-    // Hide & seek: click / tap walks there (WASD and the touch joystick steer directly)
+    // Hide & seek: click / tap walks there or lifts a chest lid (WASD and the touch joystick steer directly)
     if (getMapMode(mapStore.project) === 'hideseek') {
       hideSeekAudio.unlock()
-      useHideSeekStore().moveTo(gridCoord.col, gridCoord.row)
+      useHideSeekStore().clickCell(gridCoord.col, gridCoord.row)
       return
     }
 
@@ -309,8 +319,10 @@ export class GameController {
       toolStore.setHoveredCell(gridCoord)
     }
 
+    // Hide & seek never shares the cursor: it would give away where a player is looking
     if (
       multiplayerStore.roomId &&
+      getMapMode(mapStore.project) !== 'hideseek' &&
       isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)
     ) {
       multiplayerStore.broadcastTeammateHover(gridCoord.col, gridCoord.row)

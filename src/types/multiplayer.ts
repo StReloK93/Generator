@@ -1,5 +1,7 @@
 import { MapProject, UnitVariantType, MapGameMode } from './map'
 import type { HideSeekPhase, HideSeekRole, HideSeekEndReason } from '../domain/hideseek/HideSeekRules'
+import type { MatchEvent } from '../domain/hideseek/HideSeekMatch'
+import type { HideSpotKind, SpriteFacing } from '../domain/hideseek/HideSeekMaze'
 
 export interface PlayerInfo {
   id: string
@@ -94,6 +96,8 @@ export type NetMessageType =
   | 'SET_HERO_MODEL'
   | 'HS_PLAYER_STATE'
   | 'HS_MATCH_STATE'
+  | 'HS_ACTION'
+  | 'HS_EVENT'
 
 export interface NetMessage {
   type: NetMessageType
@@ -224,13 +228,43 @@ export interface HideSeekPlayerStatePayload {
   f: number // facing angle (grid space, radians)
   m: boolean // moving
   s: boolean // sneaking (silent)
+  h: number // hiding spot the player sits in (-1 = none)
 }
 
-/** Hide & seek: host-owned match clock, chests and result. */
+/** Hide & seek: host-owned match (round, roles, chests, hiding spots, traps, jail and scores). */
 export interface HideSeekMatchStatePayload {
+  round: number
+  rounds: number
   phase: HideSeekPhase
   timeLeft: number
   winner: HideSeekRole | null
   reason: HideSeekEndReason | null
-  chests: { c: number; r: number; o: boolean }[] // col, row, opened
+  champion: string | null
+  chests: { c: number; r: number; l: boolean }[] // col, row, looted
+  spots: { c: number; r: number; k: HideSpotKind; f: SpriteFacing }[] // col, row, kind, sprite facing
+  traps: { c: number; r: number; ring: number }[] // ring = seconds the bell still rings
+  /** Random labyrinth of this round (0 = the map's own layout): guests build it from the seed */
+  maze: number
+  doors: boolean[] // open?
+  torches: boolean[] // burning?
+  exits: { c: number; r: number }[] // spot inside each exit gate
+  exitsOpen: boolean
+  seats: { id: string; role: HideSeekRole; jailed: boolean; score: number }[]
 }
+
+/** Hide & seek: a player uses a gadget / opens a barrel (sent to the host, who applies it). */
+export type HideSeekActionPayload =
+  | { kind: 'stone'; c: number; r: number }
+  | { kind: 'flare'; c: number; r: number }
+  | { kind: 'trap'; c: number; r: number }
+  | { kind: 'search'; spot: number }
+  | { kind: 'door'; index: number; open: boolean }
+  | { kind: 'torch'; index: number }
+
+/** Hide & seek: something everyone should hear / see (host to all). */
+export type HideSeekEventPayload =
+  | MatchEvent
+  | { kind: 'stone'; col: number; row: number; by: string }
+  | { kind: 'flare'; col: number; row: number; by: string }
+  | { kind: 'door'; index: number; open: boolean }
+  | { kind: 'torch'; index: number; lit: boolean }

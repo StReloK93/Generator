@@ -1,40 +1,14 @@
 import { GridCoord, HideSeekSettings, MapProject } from '../../types/map'
 import { CrowdSimulation } from '../simulation/CrowdSimulation'
+import { AStarPathfinder } from '../pathfinding/AStarPathfinder'
 
 export type HideSeekRole = 'seeker' | 'hider'
-export type HideSeekPhase = 'hiding' | 'seeking' | 'ended'
+/** A round: hiding -> seeking -> roundOver (short break) -> next round ... -> ended after the last one */
+export type HideSeekPhase = 'hiding' | 'seeking' | 'roundOver' | 'ended'
 
-/** caught: the seeker reached the hider; chests: the hider opened every chest; time: the hider ran out of time */
-export type HideSeekEndReason = 'caught' | 'chests' | 'time' | 'left'
-
-export interface HideSeekMatchClock {
-  phase: HideSeekPhase
-  timeLeft: number
-  winner: HideSeekRole | null
-  reason: HideSeekEndReason | null
-}
-
-/** The first lobby slot (the map's first route) seeks, every other slot hides. */
-export function roleForSlot(slotIndex: number): HideSeekRole {
-  return slotIndex === 0 ? 'seeker' : 'hider'
-}
-
-export function startMatchClock(settings: HideSeekSettings): HideSeekMatchClock {
-  return { phase: 'hiding', timeLeft: settings.hideTime, winner: null, reason: null }
-}
-
-/** Hiding time runs out -> seeking starts; seeking time runs out -> the hider failed to open the chests. */
-export function advanceMatchClock(clock: HideSeekMatchClock, deltaSec: number, settings: HideSeekSettings): HideSeekMatchClock {
-  if (clock.phase === 'ended') return clock
-  const timeLeft = clock.timeLeft - deltaSec
-  if (timeLeft > 0) return { ...clock, timeLeft }
-  if (clock.phase === 'hiding') return { phase: 'seeking', timeLeft: settings.roundTime, winner: null, reason: null }
-  return endMatchClock('seeker', 'time')
-}
-
-export function endMatchClock(winner: HideSeekRole, reason: HideSeekEndReason): HideSeekMatchClock {
-  return { phase: 'ended', timeLeft: 0, winner, reason }
-}
+/** caught: every hider is in jail; chests: the hiders looted enough chests; time: the hiders ran out of time;
+ * left: the other side left */
+export type HideSeekEndReason = 'caught' | 'chests' | 'escaped' | 'time' | 'left'
 
 // ==========================================
 // Treasure chests (the hider's objective)
@@ -43,14 +17,16 @@ export function endMatchClock(winner: HideSeekRole, reason: HideSeekEndReason): 
 export interface ChestState {
   col: number
   row: number
-  opened: boolean
+  /** The hider took the treasure (the lid is closed again, so from outside it looks untouched) */
+  looted: boolean
 }
 
-const CHEST_OPEN_RADIUS = 0.7
-const CHEST_SPAWN_CLEARANCE = 5
-const CHEST_SPACING = 4
+const CHEST_LOOT_RADIUS = 0.7
+/** The seeker can lift a chest lid from a little further away (chests often stand against a wall) */
+export const CHEST_CHECK_RADIUS = 1.3
+const CHEST_SPAWN_CLEARANCE = 6
+const CHEST_SPACING = 6
 
-/** Random free cells away from the spawns and from each other. */
 /** Sub-cells a player can walk to from any of the given points (flood fill). 1 = reachable. */
 export function reachableSubCells(grid: CollisionGrid, from: GridCoord[]): Uint8Array {
   const reached = new Uint8Array(grid.subCols * grid.subRows)
@@ -76,36 +52,104 @@ export function reachableSubCells(grid: CollisionGrid, from: GridCoord[]): Uint8
   return reached
 }
 
-/** Random free cells inside the playable maze, away from the spawns and from each other. */
-export function pickChestSpots(grid: CollisionGrid, spawns: GridCoord[], count: number, random: () => number): GridCoord[] {
-  // Only where players can actually walk (never outside the outer walls)
+/** Cell centers inside the playable maze (never outside the outer walls), at least `clearance` from `avoid`, shuffled. */
+function freeCells(grid: CollisionGrid, spawns: GridCoord[], avoid: GridCoord[], clearance: number, random: () => number): GridCoord[] {
   const reachable = reachableSubCells(grid, spawns)
-  const candidates: GridCoord[] = []
+  const cells: GridCoord[] = []
   for (let col = 0; col < grid.subCols / 2; col++) {
     for (let row = 0; row < grid.subRows / 2; row++) {
       if (!reachable[row * 2 * grid.subCols + col * 2] || !bodyFits(grid, col, row)) continue
-      if (spawns.some(s => Math.hypot(s.col - col, s.row - row) < CHEST_SPAWN_CLEARANCE)) continue
-      candidates.push({ col, row })
+      if (avoid.some(a => Math.hypot(a.col - col, a.row - row) < clearance)) continue
+      cells.push({ col, row })
     }
   }
-  for (let i = candidates.length - 1; i > 0; i--) {
+  for (let i = cells.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1))
-    ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
+    ;[cells[i], cells[j]] = [cells[j], cells[i]]
   }
+  return cells
+}
+
+/** Takes `count` candidates in order, as far apart as possible (relaxing the spacing when the map is crowded). */
+function spreadOut(candidates: GridCoord[], count: number, spacing: number): GridCoord[] {
   const picked: GridCoord[] = []
-  for (const spacing of [CHEST_SPACING, 2, 0]) {
+  for (const minGap of [spacing, 2, 0]) {
     for (const c of candidates) {
       if (picked.length >= count) return picked
       if (picked.includes(c)) continue
-      if (picked.every(p => Math.hypot(p.col - c.col, p.row - c.row) >= spacing)) picked.push(c)
+      if (picked.every(p => Math.hypot(p.col - c.col, p.row - c.row) >= minGap)) picked.push(c)
     }
   }
   return picked
 }
 
-/** Index of a closed chest within reach, or -1. */
-export function findReachableChest(pos: GridCoord, chests: ChestState[]): number {
-  return chests.findIndex(c => !c.opened && Math.hypot(c.col - pos.col, c.row - pos.row) <= CHEST_OPEN_RADIUS)
+/** Chests keep this far from furniture, doors and candle stands */
+const CHEST_PROP_CLEARANCE = 1.5
+
+/** Random free cells inside the playable maze, away from the spawns, from `props` and from each other. */
+export function pickChestSpots(grid: CollisionGrid, spawns: GridCoord[], count: number, random: () => number, props: GridCoord[] = []): GridCoord[] {
+  const cells = freeCells(grid, spawns, spawns, CHEST_SPAWN_CLEARANCE, random).filter(c => !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < CHEST_PROP_CLEARANCE))
+  return spreadOut(cells, count, CHEST_SPACING)
+}
+
+const HIDE_SPOT_CLEARANCE = 3
+const HIDE_SPOT_SPACING = 4
+
+/** Walls touching a cell's four sides: 2+ = a corner, 3 = a dead end (where a barrel looks natural). */
+function wallSides(grid: CollisionGrid, cell: GridCoord): number {
+  return [[0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]].filter(([dc, dr]) => isBlockedAt(grid, cell.col + dc, cell.row + dr)).length
+}
+
+/** Hiding spots (barrels, crates): corners and dead ends, away from the spawns, the chests and each other. */
+export function pickHideSpots(grid: CollisionGrid, spawns: GridCoord[], avoid: GridCoord[], count: number, random: () => number): GridCoord[] {
+  const corners = freeCells(grid, spawns, [...spawns, ...avoid], HIDE_SPOT_CLEARANCE, random)
+    .filter(c => wallSides(grid, c) >= 2)
+    .sort((a, b) => wallSides(grid, b) - wallSides(grid, a))
+  return spreadOut(corners, count, HIDE_SPOT_SPACING)
+}
+
+/** Chests the hider needs (never more than there are on the map). */
+export function chestsNeededToWin(chests: ChestState[], settings: HideSeekSettings): number {
+  return Math.min(settings.chestsToWin, chests.length)
+}
+
+/** The hider has looted enough chests to win. */
+export function hasLootedEnough(chests: ChestState[], settings: HideSeekSettings): boolean {
+  return chests.length > 0 && chests.filter(ch => ch.looted).length >= chestsNeededToWin(chests, settings)
+}
+
+/** Index of a chest the hider stands at that still holds its treasure, or -1. */
+export function findLootableChest(pos: GridCoord, chests: ChestState[]): number {
+  return chests.findIndex(c => !c.looted && Math.hypot(c.col - pos.col, c.row - pos.row) <= CHEST_LOOT_RADIUS)
+}
+
+/** The hider looting a chest: which one and for how long they have stood at it. */
+export interface LootProgress {
+  index: number
+  time: number
+}
+
+export const NO_LOOT: LootProgress = { index: -1, time: 0 }
+
+/** Standing still at a chest with treasure builds up looting time; walking away resets it. */
+export function advanceLoot(progress: LootProgress, hider: GridCoord & { moving: boolean }, chests: ChestState[], deltaSec: number): LootProgress {
+  const index = hider.moving ? -1 : findLootableChest(hider, chests)
+  if (index === -1) return NO_LOOT
+  return { index, time: index === progress.index ? progress.time + deltaSec : deltaSec }
+}
+
+/** Nearest point (chest, hiding spot) within the radius, -1 when none. */
+export function nearestWithin(pos: GridCoord, chests: GridCoord[], radius: number): number {
+  let best = -1
+  let bestDist = radius
+  chests.forEach((c, i) => {
+    const d = Math.hypot(c.col - pos.col, c.row - pos.row)
+    if (d <= bestDist) {
+      best = i
+      bestDist = d
+    }
+  })
+  return best
 }
 
 /** Opening a chest rings across the whole maze: loud nearby, never fully silent. */
@@ -113,10 +157,9 @@ export function chestChimeLoudness(distance: number, settings: HideSeekSettings)
   return Math.max(0.2, 1 - distance / (settings.hearingRange * 2.5))
 }
 
-/** The seeker is frozen with closed eyes while the hider looks for a spot. */
+/** Players move while seeking; while hiding only the hiders do (the seeker waits with closed eyes). */
 export function canAct(role: HideSeekRole, phase: HideSeekPhase): boolean {
-  if (phase === 'ended') return false
-  return !(role === 'seeker' && phase === 'hiding')
+  return phase === 'seeking' || (phase === 'hiding' && role === 'hider')
 }
 
 // ==========================================
@@ -237,17 +280,24 @@ export function moveWithCollision(grid: CollisionGrid, pos: GridCoord, dCol: num
   return { col, row }
 }
 
-export function isSubCellWalkable(grid: CollisionGrid, subCol: number, subRow: number): boolean {
+function isSubCellWalkable(grid: CollisionGrid, subCol: number, subRow: number): boolean {
   if (subCol < 0 || subRow < 0 || subCol >= grid.subCols || subRow >= grid.subRows) return false
   return grid.blocked[subRow * grid.subCols + subCol] === 0
 }
 
+/** Path around the walls from `from` to `to`, straightened into a few clear segments (empty when unreachable). */
+export function findWalkPath(grid: CollisionGrid, from: GridCoord, to: GridCoord): GridCoord[] {
+  const path = AStarPathfinder.findPath(from, to, grid.subCols / 2, grid.subRows / 2, (sc, sr) => isSubCellWalkable(grid, sc, sr))
+  // The first waypoint is the sub-cell we are standing on
+  return smoothPath(grid, from, path.slice(1))
+}
+
 /**
- * Walks up to `distance` tiles along a waypoint path (click / tap to move).
+ * Walks up to `distance` tiles along a waypoint path at a steady pace, like the Hero mode: the path is already
+ * clear of walls, so there is no collision pushing (no stalls or squeezing at corners).
  * Returns the new position, the remaining waypoints and the heading (null when nothing moved).
  */
 export function stepAlongPath(
-  grid: CollisionGrid,
   pos: GridCoord,
   path: GridCoord[],
   distance: number
@@ -267,14 +317,14 @@ export function stepAlongPath(
       continue
     }
     facing = Math.atan2(dy, dx)
-    const step = Math.min(remaining, dist)
-    const next = moveWithCollision(grid, current, (dx / dist) * step, (dy / dist) * step)
-    const moved = Math.hypot(next.col - current.col, next.row - current.row)
-    current = next
-    remaining -= step
-    if (step >= dist - 1e-4 && moved >= dist - 0.05) rest.shift()
-    // Blocked by a wall corner: give up the path instead of pushing forever
-    if (moved < step * 0.1) return { pos: current, path: [], facing }
+    if (dist <= remaining) {
+      current = target
+      remaining -= dist
+      rest.shift()
+    } else {
+      current = { col: current.col + (dx / dist) * remaining, row: current.row + (dy / dist) * remaining }
+      remaining = 0
+    }
   }
   return { pos: current, path: rest, facing }
 }
@@ -346,6 +396,13 @@ function castRay(grid: CollisionGrid, origin: GridCoord, angle: number, maxLen: 
   return { col: origin.col + dx * reach, row: origin.row + dy * reach }
 }
 
+/** Rays of a light around `origin` (a candle stand): a polygon stopped by the walls, origin first. */
+export function castGlow(grid: CollisionGrid, origin: GridCoord, radius: number, steps = 96): GridCoord[] {
+  const glow: GridCoord[] = [origin]
+  for (let i = 0; i <= steps; i++) glow.push(castRay(grid, origin, (2 * Math.PI * i) / steps, radius))
+  return glow
+}
+
 export function hasLineOfSight(grid: CollisionGrid, a: GridCoord, b: GridCoord): boolean {
   const dist = Math.hypot(b.col - a.col, b.row - a.row)
   if (dist < 1e-6) return true
@@ -368,31 +425,45 @@ function angleDiff(a: number, b: number): number {
 }
 
 /**
- * What a player sees: only the cone in front of them (no eyes in the back), stopped by walls.
- * Grid-space polygon starting at the player.
+ * What a player sees: the cone in front of them (no eyes in the back), plus a small circle all around
+ * (`aroundRadius`: the lantern's glow, or a burning flare), stopped by walls.
+ * One grid-space polygon starting at the player: cone and circle share that point, so each direction keeps its longer ray.
  */
-export function castVision(grid: CollisionGrid, origin: GridCoord, facing: number, settings: HideSeekSettings): GridCoord[] {
+export function castVision(grid: CollisionGrid, origin: GridCoord, facing: number, settings: HideSeekSettings, aroundRadius = 0): GridCoord[] {
   const half = (settings.visionAngle * Math.PI) / 360
-  const steps = Math.max(8, Math.ceil(settings.visionAngle))
-  const cone: GridCoord[] = [origin]
-  for (let i = 0; i <= steps; i++) {
-    cone.push(castRay(grid, origin, facing - half + (2 * half * i) / steps, settings.visionRange))
+  const sight: GridCoord[] = [origin]
+  if (aroundRadius <= 0) {
+    const steps = Math.max(8, Math.ceil(settings.visionAngle))
+    for (let i = 0; i <= steps; i++) sight.push(castRay(grid, origin, facing - half + (2 * half * i) / steps, settings.visionRange))
+    return sight
   }
-  return cone
+  const steps = 360
+  for (let i = 0; i <= steps; i++) {
+    const angle = facing - Math.PI + (2 * Math.PI * i) / steps
+    const reach = Math.max(aroundRadius, angleDiff(angle, facing) <= half ? settings.visionRange : 0)
+    sight.push(castRay(grid, origin, angle, reach))
+  }
+  return sight
 }
 
+/** How far a player sees in the direction of `target`: the cone's range inside the cone, the glow all around elsewhere. */
+export function sightReach(observer: GridCoord, facing: number, target: GridCoord, settings: HideSeekSettings, aroundRadius = 0): number {
+  const angle = Math.atan2(target.row - observer.row, target.col - observer.col)
+  const inCone = angleDiff(angle, facing) <= (settings.visionAngle * Math.PI) / 360
+  return Math.max(aroundRadius, inCone ? settings.visionRange : 0)
+}
+
+/** Inside the sight cone, or within `aroundRadius` all around, and not behind a wall. */
 export function canSee(
   grid: CollisionGrid,
   observer: GridCoord,
   facing: number,
   target: GridCoord,
-  settings: HideSeekSettings
+  settings: HideSeekSettings,
+  aroundRadius = 0
 ): boolean {
   const dist = Math.hypot(target.col - observer.col, target.row - observer.row)
-  if (dist > settings.visionRange) return false
-  const angle = Math.atan2(target.row - observer.row, target.col - observer.col)
-  if (angleDiff(angle, facing) > (settings.visionAngle * Math.PI) / 360) return false
-  return hasLineOfSight(grid, observer, target)
+  return dist <= sightReach(observer, facing, target, settings, aroundRadius) && hasLineOfSight(grid, observer, target)
 }
 
 /** The seeker catches the hider by reaching them (not through a wall). */

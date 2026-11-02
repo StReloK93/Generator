@@ -28,6 +28,9 @@ import { MapProject } from '../types/map'
 import { getMapMode } from '../domain/map'
 import { gridToScreen } from '../utils/isometric'
 
+/** Room codes are 6 digits (easy to read out and type on a phone's number pad) */
+export const ROOM_CODE_LENGTH = 6
+
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const mapStore = useMapStore()
   const characterStore = useCharacterStore()
@@ -91,10 +94,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   // Computed
   const isHideSeekRoom = computed(() => getMapMode(mapStore.project) === 'hideseek')
 
-  /** Hide & seek needs every seat taken and every player's character picked before it can start. */
+  /** Hide & seek needs at least 2 players (1 seeker, the rest hide) and every character picked before it can start. */
   const hideSeekLobbyIssue = computed<'needPlayers' | 'needModels' | null>(() => {
     if (!isHideSeekRoom.value) return null
-    if (players.value.length < maxPlayers.value) return 'needPlayers'
+    if (players.value.length < 2) return 'needPlayers'
     if (players.value.some(p => !p.heroModel)) return 'needModels'
     return null
   })
@@ -167,7 +170,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   async function hostNewGame(customRoomName: string, mapProject: MapProject, router?: any): Promise<string> {
     if (router) setRouter(router)
 
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const smallest = 10 ** (ROOM_CODE_LENGTH - 1)
+    const code = String(smallest + Math.floor(Math.random() * 9 * smallest))
     roomId.value = code
     roomName.value = customRoomName || `${myPlayerName.value}'s Game`
     mapName.value = mapProject.name || 'Isometric TD Map'
@@ -245,7 +249,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   async function joinGame(targetRoomId: string, router?: any): Promise<boolean> {
     if (router) setRouter(router)
 
-    const cleanRoomId = targetRoomId.trim().toUpperCase()
+    const cleanRoomId = targetRoomId.replace(/\D/g, '')
     roomId.value = cleanRoomId
     isHost.value = false
     connectionStatus.value = 'connecting'
@@ -583,6 +587,16 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'HS_MATCH_STATE': {
         useHideSeekStore().applyMatchState(msg.payload)
+        break
+      }
+
+      case 'HS_ACTION': {
+        useHideSeekStore().applyRemoteAction(msg.payload, msg.senderId)
+        break
+      }
+
+      case 'HS_EVENT': {
+        useHideSeekStore().applyRemoteEvent(msg.payload)
         break
       }
 

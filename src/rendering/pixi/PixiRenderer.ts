@@ -148,7 +148,7 @@ export class PixiRenderer {
   }
 
   renderHideSeek(view: HideSeekRenderView, project: MapProject): void {
-    this.hideSeek.render(view, project, this.map.layersContainer, this.context.worldContainer)
+    this.hideSeek.render(view, project, this.map.layersContainer, this.context.worldContainer, this.map.getEntitySprites())
   }
 
   renderHoverCell(

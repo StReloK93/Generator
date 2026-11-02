@@ -64,15 +64,16 @@
           v-model="roomCodeInput"
           :placeholder="$t('home.enterCode')"
           :leading-icon="KeyRound"
-          :maxlength="12"
+          :maxlength="ROOM_CODE_LENGTH"
+          inputmode="numeric"
           size="sm"
-          custom-class="flex-1 [&_input]:uppercase [&_input]:font-bold [&_input]:tracking-widest [&_input]:placeholder:normal-case [&_input]:placeholder:tracking-normal [&_input]:placeholder:font-normal"
+          custom-class="flex-1 [&_input]:font-bold [&_input]:tracking-widest [&_input]:placeholder:tracking-normal [&_input]:placeholder:font-normal"
           @keyup.enter="handleJoinByCode"
         />
         <UiButton
           variant="game-green"
           size="md"
-          :disabled="!roomCodeInput.trim() || isJoining"
+          :disabled="roomCodeInput.length !== ROOM_CODE_LENGTH || isJoining"
           :leading-icon="ArrowRight"
           @click="handleJoinByCode"
         >
@@ -157,7 +158,7 @@ import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight, Gamepad2, Globe, User, Users, KeyRound, Radio, RefreshCw, Map } from 'lucide-vue-next'
 import { UiModal, UiButton, UiIconButton, UiInput, UiBadge } from '../ui'
-import { useMultiplayerStore } from '../../stores/multiplayerStore'
+import { useMultiplayerStore, ROOM_CODE_LENGTH } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
@@ -180,6 +181,11 @@ const { t } = useI18n()
 
 const playerName = ref(multiplayerStore.myPlayerName || 'Player')
 const roomCodeInput = ref('')
+// Room codes are digits only: anything else typed or pasted is dropped
+watch(roomCodeInput, code => {
+  const digits = code.replace(/\D/g, '')
+  if (digits !== code) roomCodeInput.value = digits
+})
 const isCreatingRoom = ref(false)
 const isJoining = ref(false)
 const isRefreshing = ref(false)
@@ -235,8 +241,8 @@ async function handleCreateRoom(mapItem: MapSummary) {
 }
 
 async function handleJoinByCode() {
-  const code = roomCodeInput.value.trim()
-  if (!code || isJoining.value) return
+  const code = roomCodeInput.value
+  if (code.length !== ROOM_CODE_LENGTH || isJoining.value) return
   await joinRoom(code)
 }
 
