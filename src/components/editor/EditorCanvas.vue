@@ -1336,17 +1336,17 @@ function handleContextMenu() {
 function handleTouchStart(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  camera.handleTouchStart(e, viewportContainerRef.value)
+  camera.handleTouchStart(Array.from(e.targetTouches), viewportContainerRef.value)
 }
 
 function handleTouchMove(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  camera.handleTouchMove(e, viewportContainerRef.value)
+  camera.handleTouchMove(Array.from(e.targetTouches), viewportContainerRef.value)
 }
 
 function handleTouchEnd(e: TouchEvent) {
-  camera.handleTouchEnd(e, (clientX, clientY) => {
+  camera.handleTouchEnd(Array.from(e.targetTouches), (clientX, clientY) => {
     const rect = camera.getViewportRect(viewportContainerRef.value)
     const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
     editorController.handlePointerDown(gridCoord, e)

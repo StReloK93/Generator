@@ -106,17 +106,20 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
 
   return {
     blind,
-    chests: match.chests.map((ch, i) => ({
-      col: ch.col,
-      row: ch.row,
-      lidOpen: !over && (ctx.heldLid === i || (ctx.lidTimers[i] ?? 0) > 0 || (iAmHider && ctx.myLoot.index === i)),
-      hasLoot: !ch.looted,
-      lootProgress: iAmHider && ctx.myLoot.index === i ? Math.min(1, ctx.myLoot.time / settings.lootTime) : 0,
-      // Hiders know what is left; the seeker only knows the chests they looked into
-      glow: over || me?.role !== 'seeker' ? !ch.looted : !ctx.seenEmpty.has(i),
+    chests: match.chests.map((ch, i) => {
       // Hidden in the dark until the player has seen its spot once; then it stays on their screen
-      visible: over || inSight(ch) || isExplored(ctx, ch),
-    })),
+      const visible = over || inSight(ch) || isExplored(ctx, ch)
+      return {
+        col: ch.col,
+        row: ch.row,
+        lidOpen: !over && (ctx.heldLid === i || (ctx.lidTimers[i] ?? 0) > 0 || (iAmHider && ctx.myLoot.index === i)),
+        hasLoot: !ch.looted,
+        lootProgress: iAmHider && ctx.myLoot.index === i ? Math.min(1, ctx.myLoot.time / settings.lootTime) : 0,
+        // Hiders know where the treasure is left (the beam shows through the dark); the seeker only knows the chests they found and did not see empty
+        glow: over || me?.role !== 'seeker' ? !ch.looted : visible && !ctx.seenEmpty.has(i),
+        visible,
+      }
+    }),
     spots: match.spots.map((s, i) => ({ col: s.col, row: s.row, kind: s.kind, facing: s.facing, occupied: me?.hidden === i })),
     doors: (ctx.maze?.doors ?? []).flatMap((door, i) =>
       door.edges.map(edge => ({ ...edgePlacement(edge, ctx.cols), open: !!match.doors[i] }))
@@ -178,8 +181,8 @@ export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView 
     explored,
     walls: ctx.grid.blocked,
     me: me ? { col: me.col, row: me.row } : null,
-    // Only chests the player has come across
-    chests: match.chests.filter((ch, i) => isExplored(ctx, ch) && (me?.role === 'seeker' ? !ctx.seenEmpty.has(i) : !ch.looted)),
+    // Hiders know every chest still holding treasure; the seeker only the ones they came across
+    chests: match.chests.filter((ch, i) => (me?.role === 'seeker' ? isExplored(ctx, ch) && !ctx.seenEmpty.has(i) : !ch.looted)),
     traps: me?.role === 'seeker' ? match.traps : [],
     exits: match.exitsOpen ? match.exits : [],
     mates: me?.role === 'hider'

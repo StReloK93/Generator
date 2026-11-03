@@ -1,8 +1,13 @@
 <template>
   <aside
-    class="absolute top-0 right-0 z-50 pointer-events-none flex flex-col h-full w-60 sm:w-64 max-w-[85vw] select-none">
+    class="absolute top-0 right-0 z-50 pointer-events-none flex flex-col select-none"
+    :class="isHideSeekMode ? 'p-2 pt-safe' : 'h-full w-60 sm:w-64 max-w-[85vw]'">
+    <!-- Hide & seek: the whole screen is the game, its HUD lives in HideSeekOverlay -->
+    <UiIconButton v-if="isHideSeekMode" :icon="Menu" size="lg" :title="$t('game.menu')"
+      custom-class="pointer-events-auto bg-slate-950/80! backdrop-blur-md" @click="isMenuOpen = true" />
+
     <!-- Right Panel Card Container -->
-    <UiCard variant="slate" padding="none"
+    <UiCard v-else variant="slate" padding="none"
       custom-class="pointer-events-auto h-full flex flex-col justify-between overflow-hidden shadow-2xl backdrop-blur-xl bg-slate-950/95 border-slate-800/80 rounded-none"
       @mousedown.stop @mouseup.stop @click.stop @touchstart.stop @touchend.stop @touchmove.stop>
       <!-- ================= 1. TOP GLOBAL STATS BAR ================= -->
@@ -10,7 +15,7 @@
         <!-- Main Stats Row -->
         <div v-if="!isTdMode" class="flex items-center justify-between gap-1.5 py-2">
           <span class="flex items-center gap-1.5 text-xs font-extrabold text-brand-200">
-            <Swords class="size-3.5 text-brand-300" /> {{ isHideSeekMode ? $t('game.modeHideSeek') : $t('game.modePvp') }}
+            <Swords class="size-3.5 text-brand-300" /> {{ $t('game.modePvp') }}
           </span>
           <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
         </div>
@@ -51,7 +56,7 @@
         </div>
 
         <!-- Multiplayer Players Mini-Leaderboard (If in multiplayer room) -->
-        <ul v-if="multiplayerStore.roomId && !isHideSeekMode" class="flex flex-col gap-0.5 pb-2">
+        <ul v-if="multiplayerStore.roomId" class="flex flex-col gap-0.5 pb-2">
           <li v-for="p in multiplayerStore.players" :key="p.id"
             class="flex items-center gap-2 px-2 py-1 rounded-lg text-[11px]"
             :class="p.id === multiplayerStore.myPlayerId ? 'bg-brand-500/10 ring-1 ring-brand-400/30' : 'bg-slate-950/40'">
@@ -156,9 +161,6 @@
             </div>
           </div>
         </div>
-
-        <!-- ===== Hide & seek: role, clock and footsteps ===== -->
-        <HideSeekPanel v-else-if="isHideSeekMode" />
 
         <!-- ===== PvP / hero maps: no waves or towers ===== -->
         <div v-else-if="!isTdMode" class="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
@@ -339,7 +341,6 @@ import {
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs } from '../ui'
 import CharacterLivePreview from './CharacterLivePreview.vue'
-import HideSeekPanel from './HideSeekPanel.vue'
 import WavesOverviewModal from './WavesOverviewModal.vue'
 import InGameMenuModal from './InGameMenuModal.vue'
 import { useCharacterStore } from '../../stores/characterStore'

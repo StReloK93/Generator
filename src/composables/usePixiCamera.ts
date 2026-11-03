@@ -16,8 +16,6 @@ export interface TouchGestureState {
   initialMidX: number
   initialMidY: number
   moved: boolean
-  lastTapTime: number
-  lastTapPos: { x: number; y: number }
 }
 
 export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
@@ -45,9 +43,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     initialDistance: 0,
     initialMidX: 0,
     initialMidY: 0,
-    moved: false,
-    lastTapTime: 0,
-    lastTapPos: { x: 0, y: 0 }
+    moved: false
   })
 
   function updateViewportRect(containerEl: HTMLElement | null) {
@@ -157,7 +153,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     isLocalDragging = false
   }
 
-  // --- Touch Gesture Utilities ---
+  // --- Touch gestures: the caller passes the fingers that belong to the camera (one = tap / pan, two = pinch) ---
   function getTouchDistance(t1: Touch, t2: Touch): number {
     return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY)
   }
@@ -169,11 +165,11 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     }
   }
 
-  function handleTouchStart(e: TouchEvent, containerEl: HTMLElement | null) {
+  function handleTouchStart(touches: Touch[], containerEl: HTMLElement | null) {
     updateViewportRect(containerEl)
 
-    if (e.touches.length === 1) {
-      const t = e.touches[0]
+    if (touches.length === 1) {
+      const t = touches[0]
       touchState.value = {
         isTouch: true,
         mode: 'tap_pending',
@@ -186,14 +182,12 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
         initialDistance: 0,
         initialMidX: 0,
         initialMidY: 0,
-        moved: false,
-        lastTapTime: touchState.value.lastTapTime,
-        lastTapPos: touchState.value.lastTapPos
+        moved: false
       }
       isLocalDragging = false
-    } else if (e.touches.length === 2) {
-      const t1 = e.touches[0]
-      const t2 = e.touches[1]
+    } else if (touches.length === 2) {
+      const t1 = touches[0]
+      const t2 = touches[1]
       const dist = getTouchDistance(t1, t2)
       const mid = getTouchMidpoint(t1, t2)
 
@@ -209,18 +203,16 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
         initialDistance: dist,
         initialMidX: mid.x,
         initialMidY: mid.y,
-        moved: true,
-        lastTapTime: touchState.value.lastTapTime,
-        lastTapPos: touchState.value.lastTapPos
+        moved: true
       }
       isLocalDragging = true
     }
   }
 
-  function handleTouchMove(e: TouchEvent, containerEl: HTMLElement | null) {
-    if (e.touches.length === 2) {
-      const t1 = e.touches[0]
-      const t2 = e.touches[1]
+  function handleTouchMove(touches: Touch[], containerEl: HTMLElement | null) {
+    if (touches.length === 2) {
+      const t1 = touches[0]
+      const t2 = touches[1]
       const curDist = getTouchDistance(t1, t2)
       const curMid = getTouchMidpoint(t1, t2)
 
@@ -241,8 +233,8 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
       return
     }
 
-    if (e.touches.length === 1) {
-      const t = e.touches[0]
+    if (touches.length === 1) {
+      const t = touches[0]
       const dx = t.clientX - touchState.value.startX
       const dy = t.clientY - touchState.value.startY
 
@@ -260,38 +252,20 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     }
   }
 
-  function handleTouchEnd(
-    e: TouchEvent, 
-    onSingleTap?: (clientX: number, clientY: number) => void,
-    disableDoubleTapZoom?: boolean
-  ) {
-    if (e.touches.length === 0) {
-      const now = performance.now()
-      const elapsed = now - touchState.value.startTime
+  /** remaining: the camera's fingers still on the screen */
+  function handleTouchEnd(remaining: Touch[], onSingleTap?: (clientX: number, clientY: number) => void) {
+    if (remaining.length === 0) {
+      const elapsed = performance.now() - touchState.value.startTime
 
       if (!touchState.value.moved && touchState.value.mode === 'tap_pending' && elapsed < 450) {
-        if (onSingleTap) {
-          onSingleTap(touchState.value.startX, touchState.value.startY)
-        }
-
-        const distFromLastTap = Math.hypot(
-          touchState.value.startX - touchState.value.lastTapPos.x,
-          touchState.value.startY - touchState.value.lastTapPos.y
-        )
-        if (!disableDoubleTapZoom && now - touchState.value.lastTapTime < 350 && distFromLastTap < 30) {
-          zoomIn()
-          touchState.value.lastTapTime = 0
-        } else {
-          touchState.value.lastTapTime = now
-          touchState.value.lastTapPos = { x: touchState.value.startX, y: touchState.value.startY }
-        }
+        onSingleTap?.(touchState.value.startX, touchState.value.startY)
       }
 
       isLocalDragging = false
       touchState.value.mode = 'none'
       touchState.value.isTouch = false
-    } else if (e.touches.length === 1) {
-      const t = e.touches[0]
+    } else if (remaining.length === 1) {
+      const t = remaining[0]
       touchState.value.startX = t.clientX
       touchState.value.startY = t.clientY
       touchState.value.startPanX = localPanX.value

@@ -6,31 +6,34 @@
     :style="{ opacity: hideSeekStore.dangerLevel * 0.85 }"
   />
 
-  <!-- Phase banner and status (left of the right HUD panel) -->
-  <div class="absolute top-3 left-3 right-64 sm:right-68 z-30 flex flex-col items-center gap-1.5 pointer-events-none">
-    <div
-      v-if="isPlaying"
-      class="flex items-center gap-2 rounded-2xl border px-3 py-1.5 bg-slate-950/85 backdrop-blur-md shadow-xl"
-      :class="hideSeekStore.exitsOpen ? 'border-emerald-400/70 animate-pulse' : hideSeekStore.isHunting ? 'border-rose-500/70 animate-pulse' : hideSeekStore.phase === 'hiding' ? 'border-amber-500/40' : 'border-slate-700/80'"
-    >
-      <component :is="bannerIcon" class="size-4 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : 'text-rose-300'" />
-      <span class="text-xs sm:text-sm font-extrabold text-slate-50">{{ bannerText }}</span>
-      <span class="text-xs sm:text-sm font-black tabular-nums text-amber-300">{{ hideSeekStore.secondsLeft }}s</span>
+  <!-- Top strip: clock first, then the indicators; the middle of the screen stays free (menu sits top-right) -->
+  <div class="absolute top-2 left-2 right-16 z-30 flex flex-col items-start gap-1.5 pointer-events-none pt-safe pl-safe">
+    <div class="flex items-start gap-1.5 w-full">
+      <div
+        v-if="isPlaying"
+        class="flex items-center gap-1.5 h-8 shrink-0 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md"
+        :class="hideSeekStore.exitsOpen ? 'border-emerald-400/70 animate-pulse' : hideSeekStore.isHunting ? 'border-rose-500/70 animate-pulse' : hideSeekStore.phase === 'hiding' ? 'border-amber-500/40' : 'border-slate-700/80'"
+        :title="bannerText"
+      >
+        <Timer class="size-3.5 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : 'text-rose-300'" />
+        <span class="text-xs font-black tabular-nums text-amber-300">{{ formattedTime }}</span>
+      </div>
+      <HideSeekPanel class="flex-1 min-w-0" />
     </div>
     <div
       v-if="statusText"
-      class="flex items-center gap-1.5 rounded-xl border px-2.5 py-1 bg-slate-950/80 backdrop-blur-md text-[11px] sm:text-xs font-bold"
+      class="flex items-center gap-1.5 h-7 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md text-[11px] font-bold"
       :class="statusClass"
     >
       <component :is="statusIcon" class="size-3.5 shrink-0" />{{ statusText }}
     </div>
   </div>
 
-  <!-- Touch controls: joystick, sneak and action buttons -->
-  <div class="hidden pointer-coarse:flex absolute bottom-4 left-4 right-64 sm:right-68 z-30 items-end justify-between pointer-events-none pb-safe">
+  <!-- Bottom-left: joystick on touch screens, key hints on desktop -->
+  <div class="absolute bottom-3 left-3 z-30 pointer-events-none pb-safe pl-safe">
     <div
       ref="joystickRef"
-      class="relative size-28 rounded-full bg-slate-900/60 border-2 border-slate-600/60 backdrop-blur-sm pointer-events-auto touch-none"
+      class="hidden pointer-coarse:block relative size-28 rounded-full bg-slate-900/60 border-2 border-slate-600/60 backdrop-blur-sm pointer-events-auto touch-none"
       @pointerdown="onJoystickDown"
       @pointermove="onJoystickMove"
       @pointerup="onJoystickUp"
@@ -42,16 +45,56 @@
       />
     </div>
 
+    <div class="flex pointer-coarse:hidden flex-col gap-0.5 max-w-72 rounded-xl bg-slate-950/70 backdrop-blur-md border border-slate-800/80 px-2.5 py-2 text-[10px] text-slate-400">
+      <span class="flex items-center gap-1.5"><MousePointerClick class="size-3" />{{ $t('hideseek.clickHint') }}</span>
+      <span class="flex items-center gap-1.5"><Move class="size-3" />{{ $t('hideseek.moveHint') }}</span>
+      <span class="flex items-center gap-1.5"><Footprints class="size-3" />{{ $t('hideseek.sneakHint') }}</span>
+      <span class="flex items-start gap-1.5 text-amber-200/70">
+        <Gem class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.chestHintSeeker') : $t('hideseek.chestHintHider') }}
+      </span>
+      <span class="flex items-start gap-1.5">
+        <DoorOpen class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.propHintSeeker') : $t('hideseek.propHintHider') }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Right edge: gadgets in a column (the middle of the screen stays free) -->
+  <div class="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2.5 pointer-events-none pr-safe">
     <UiButton
-      :variant="hideSeekStore.isSneaking ? 'game-green' : 'secondary'"
-      size="lg"
-      :leading-icon="Footprints"
-      :active="hideSeekStore.isSneaking"
-      custom-class="pointer-events-auto"
-      @click="toggleSneak"
+      v-for="gadget in gadgetButtons"
+      :key="gadget.key"
+      :variant="gadget.active ? 'game-green' : 'secondary'"
+      size="md"
+      :disabled="!hideSeekStore.canMove || gadget.count === 0"
+      custom-class="relative size-12 p-0! rounded-full! pointer-events-auto backdrop-blur-md"
+      :title="`${$t(gadget.label)} (${gadget.key})`"
+      @click="gadget.run"
     >
-      {{ $t('hideseek.sneak') }}
+      <template #leading>
+        <component :is="gadget.icon" class="size-5" />
+        <span
+          v-if="gadget.count !== null"
+          class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black leading-5 tabular-nums"
+        >{{ gadget.count }}</span>
+        <span class="pointer-coarse:hidden absolute -bottom-1 -right-1 px-1 rounded bg-slate-950 border border-slate-700 text-[9px] font-bold text-slate-300">{{ gadget.key }}</span>
+      </template>
     </UiButton>
+  </div>
+
+  <!-- Bottom-right corner: minimap (tap to enlarge); holding the empty right half of the screen sneaks -->
+  <div class="absolute bottom-3 right-3 z-30 flex flex-col items-end gap-1.5 pointer-events-none pb-safe pr-safe">
+    <span
+      class="hidden pointer-coarse:flex items-center gap-1 rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold transition-colors"
+      :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'"
+    >
+      <Footprints class="size-3" />{{ hideSeekStore.isSneaking ? $t('hideseek.sneak') : $t('hideseek.sneakTouchHint') }}
+    </span>
+    <HideSeekMinimap
+      class="pointer-events-auto cursor-pointer transition-[width] duration-200"
+      :class="isMapLarge ? 'w-72 sm:w-96' : 'w-36 sm:w-44'"
+      :title="$t('hideseek.map')"
+      @click="isMapLarge = !isMapLarge"
+    />
   </div>
 
   <!-- Solo: pick a role for round 1 (a bot plays the other one, round 2 swaps) -->
@@ -142,8 +185,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Shield, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, Crosshair, DoorOpen } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal } from '../ui'
+import HideSeekPanel from './HideSeekPanel.vue'
+import HideSeekMinimap from './HideSeekMinimap.vue'
 import { useGameExit } from '../../composables/useGameExit'
 import type { HideSeekRole } from '../../domain/hideseek'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
@@ -185,12 +230,6 @@ const isSeeker = computed(() => hideSeekStore.myRole === 'seeker')
 const isPlaying = computed(() => hideSeekStore.phase === 'hiding' || hideSeekStore.phase === 'seeking')
 const isRoundOver = computed(() => hideSeekStore.phase === 'roundOver')
 const isMatchOver = computed(() => hideSeekStore.phase === 'ended')
-
-const bannerIcon = computed(() => {
-  if (hideSeekStore.phase === 'hiding') return isSeeker.value ? EyeOff : Shield
-  if (hideSeekStore.exitsOpen) return DoorOpen
-  return hideSeekStore.isHunting ? Crosshair : Search
-})
 
 const bannerText = computed(() => {
   if (hideSeekStore.phase === 'hiding') {
@@ -249,10 +288,33 @@ const roundLine = computed(() => {
   return `${hideSeekStore.didIWin ? t('hideseek.youWin') : t('hideseek.youLose')} · ${side}`
 })
 
-function toggleSneak() {
-  hideSeekAudio.unlock()
-  hideSeekStore.toggleSneak()
+const formattedTime = computed(() => {
+  const total = Math.max(0, hideSeekStore.secondsLeft)
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+})
+
+const isMapLarge = ref(false)
+
+function run(action: () => void) {
+  return () => {
+    hideSeekAudio.unlock()
+    action()
+  }
 }
+
+/** Seeker: flare, bell trap, open; hider: stone, hide in a barrel. count null = unlimited */
+const gadgetButtons = computed(() =>
+  isSeeker.value
+    ? [
+        { key: 'F', label: 'hideseek.flare', icon: Flame, count: hideSeekStore.gadgets.flares, active: hideSeekStore.isFlareLit, run: run(hideSeekStore.lightFlare) },
+        { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, run: run(hideSeekStore.dropTrap) },
+        { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, run: run(hideSeekStore.useNearest) },
+      ]
+    : [
+        { key: 'Q', label: 'hideseek.stone', icon: CircleDot, count: hideSeekStore.gadgets.stones, active: hideSeekStore.isAimingStone, run: run(hideSeekStore.toggleStoneAim) },
+        { key: 'E', label: 'hideseek.hide', icon: Package, count: null, active: hideSeekStore.isHidden, run: run(hideSeekStore.useNearest) },
+      ]
+)
 
 // --- Virtual joystick (screen-space direction, length 0..1) ---
 const joystickRef = ref<HTMLElement | null>(null)

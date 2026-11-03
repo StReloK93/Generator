@@ -40,10 +40,6 @@ const FLARE_GLOW_FACTOR = 2.5
 /** Lantern flicker: tiny, irregular breathing of the glow and the light's reach */
 const FLICKER_GLOW = 0.12
 const FLICKER_REACH = 0.025
-/** Dust motes drifting in the beam */
-const MOTE_COUNT = 28
-const MOTE_LIFE_SEC = 3.2
-const MOTE_COLOR = 0xffe6b0
 /** Walls / props at the edge of the light are this dim before they fade into the night */
 const DIM_LEVEL = 0.3
 /** Below this light a wall / prop fades out into the night (so the dark maze shows no silhouettes) */
@@ -82,7 +78,6 @@ const BEAM_HEIGHT = 2.2
 const ROUTE_DOT_SPACING = 0.4
 const ROUTE_COLOR = 0xfff1c7
 const EFFECTS_Z_INDEX = 946000
-const MOTES_Z_INDEX = 947000
 /** Footprints lie on the floor under the night (only those in light are drawn) */
 const PRINTS_Z_INDEX = 85000
 const PRINT_COLOR = 0x24170c
@@ -96,8 +91,6 @@ const FLAME_CORE_COLOR = 0xfff3c4
 /** Candle light on the floor: share of its radius that fades out */
 const TORCH_FADE_SHARE = 0.75
 const TORCH_GLOW_ALPHA = 0.028
-/** Candle light is only drawn this close to the player (further away it is off screen) */
-const TORCH_DRAW_RANGE = 16
 const HUNT_COLOR = 0xef4444
 /** Open exit gates send up a green beam everyone sees */
 const EXIT_BEAM_COLOR = 0x4ade80
@@ -146,18 +139,9 @@ function edgeLine(cell: GridCoord, edge: [number, number]): [GridCoord, GridCoor
   return [{ col: mid.col - along0, row: mid.row - along1 }, { col: mid.col + along0, row: mid.row + along1 }]
 }
 
-interface Mote extends GridCoord {
-  age: number
-  /** Drift per second (grid) */
-  vc: number
-  vr: number
-  /** Height above the floor (screen px) */
-  lift: number
-}
-
 /**
  * Hide & seek visuals: a dim night over the whole maze with the player's sight cone erased out of it (GPU-blurred soft
- * edges), a flickering warm lantern glow and dust motes in the beam, walls / props / characters lit by it, treasure
+ * edges), a flickering warm lantern glow, walls / props / characters lit by it, treasure
  * chests, gadgets and the click-to-move route.
  */
 export class HideSeekRenderer {
@@ -166,8 +150,6 @@ export class HideSeekRenderer {
   private nightGraphics = new Graphics()
   private holeGraphics = new Graphics()
   private glowGraphics = new Graphics()
-  private moteGraphics = new Graphics()
-  private motes: Mote[] = []
   private xray = new Sprite()
   private beaconGraphics = new Graphics()
   private routeGraphics = new Graphics()
@@ -192,8 +174,6 @@ export class HideSeekRenderer {
     this.glowGraphics.blendMode = 'add'
     this.glowGraphics.filters = [new BlurFilter({ strength: GLOW_SOFTNESS, quality: 3 })]
     this.printGraphics.zIndex = PRINTS_Z_INDEX
-    this.moteGraphics.zIndex = MOTES_Z_INDEX
-    this.moteGraphics.blendMode = 'add'
     const white = new ColorMatrixFilter()
     white.brightness(10, false)
     this.xray.filters = [white]
@@ -208,7 +188,7 @@ export class HideSeekRenderer {
     for (const node of [this.night, this.glowGraphics, this.xray, this.printGraphics]) {
       if (node.parent !== layersContainer) layersContainer.addChild(node)
     }
-    for (const node of [this.beaconGraphics, this.routeGraphics, this.effectsGraphics, this.moteGraphics]) {
+    for (const node of [this.beaconGraphics, this.routeGraphics, this.effectsGraphics]) {
       if (node.parent !== worldContainer) worldContainer.addChild(node)
     }
 
@@ -240,7 +220,6 @@ export class HideSeekRenderer {
     const reaches = this.flicker(view.sightReaches, now / 1000)
     this.drawNight(view, reaches, project)
     this.drawGlow(view, reaches, now / 1000, project)
-    this.drawMotes(view, reaches, deltaSec, project)
     this.drawFootprints(view, project)
     this.drawRoute(view.route, project)
   }
@@ -416,7 +395,7 @@ export class HideSeekRenderer {
       hole.poly(this.toScreen(this.scaledSight(view.vision, fraction, reaches), project)).fill({ color: 0xffffff, alpha: ERASE_BAND_ALPHA })
     }
     // Burning candles light the floor around them (walls cast shadows)
-    for (const torch of this.nearTorches(view)) {
+    for (const torch of view.torches) {
       if (!torch.glow) continue
       const radii = torch.glow.slice(1).map(() => view.torchRadius)
       for (let i = 0; i < FALLOFF_STEPS; i++) {
@@ -424,12 +403,6 @@ export class HideSeekRenderer {
         hole.poly(this.toScreen(this.scaledSight(torch.glow, fraction, radii), project)).fill({ color: 0xffffff, alpha: ERASE_BAND_ALPHA })
       }
     }
-  }
-
-  /** Burning candles near the player (the far ones are off screen) */
-  private nearTorches(view: HideSeekRenderView): HideSeekRenderView['torches'] {
-    const me = view.vision?.[0]
-    return me ? view.torches.filter(t => t.glow && Math.hypot(t.col - me.col, t.row - me.row) <= TORCH_DRAW_RANGE) : []
   }
 
   /** Warm lantern light added on top of the lit floor: a soft wedge, brightest at the lantern, gently flickering. */
@@ -442,7 +415,7 @@ export class HideSeekRenderer {
     for (let i = 1; i <= FALLOFF_STEPS; i++) {
       g.poly(this.toScreen(this.scaledSight(view.vision, i / FALLOFF_STEPS, reaches), project)).fill({ color: GLOW_COLOR, alpha })
     }
-    this.nearTorches(view).forEach((torch, t) => {
+    view.torches.forEach((torch, t) => {
       if (!torch.glow) return
       const radii = torch.glow.slice(1).map(() => view.torchRadius)
       // Each candle flickers on its own
@@ -451,45 +424,6 @@ export class HideSeekRenderer {
         g.poly(this.toScreen(this.scaledSight(torch.glow, i / FALLOFF_STEPS, radii), project)).fill({ color: GLOW_COLOR, alpha: candle })
       }
     })
-  }
-
-  /** Dust motes floating in the beam: born at random spots in sight, drifting, fading in and out. */
-  private drawMotes(view: HideSeekRenderView, reaches: number[], deltaSec: number, project: MapProject): void {
-    const g = this.moteGraphics
-    g.clear()
-    if (!view.vision || view.blind || view.vision.length < 2) {
-      this.motes = []
-      return
-    }
-    const [origin, ...rays] = view.vision
-    while (this.motes.length < MOTE_COUNT) {
-      // A random ray, a random distance along it (inside the light, not beyond walls)
-      const i = Math.floor(Math.random() * rays.length)
-      const end = rays[i]
-      const length = Math.min(Math.hypot(end.col - origin.col, end.row - origin.row), reaches[i] ?? 0)
-      const d = Math.sqrt(Math.random()) * length
-      const angle = Math.atan2(end.row - origin.row, end.col - origin.col)
-      this.motes.push({
-        col: origin.col + Math.cos(angle) * d,
-        row: origin.row + Math.sin(angle) * d,
-        age: Math.random(),
-        vc: (Math.random() - 0.5) * 0.25,
-        vr: (Math.random() - 0.5) * 0.25,
-        lift: 10 + Math.random() * project.tileHeight * 1.2,
-      })
-    }
-    for (const m of this.motes) {
-      m.age += deltaSec / MOTE_LIFE_SEC
-      m.col += m.vc * deltaSec
-      m.row += m.vr * deltaSec
-      m.lift += 6 * deltaSec
-      const level = view.lightAt(m)
-      if (level <= 0) continue
-      const p = gridToScreen(m.col, m.row, project.tileWidth, project.tileHeight)
-      const fade = Math.sin(Math.min(1, m.age) * Math.PI)
-      g.circle(p.x, p.y - m.lift, 1.6).fill({ color: MOTE_COLOR, alpha: 0.55 * fade * level })
-    }
-    this.motes = this.motes.filter(m => m.age < 1)
   }
 
   private syncChests(view: HideSeekRenderView, project: MapProject, layersContainer: Container): void {
@@ -519,10 +453,10 @@ export class HideSeekRenderer {
       sprite.scale.set(tileWidth / (asset?.width || 256))
       sprite.zIndex = 100000 + Math.round((chest.col + chest.row) * 1000) + 400
       light(sprite, view.lightAt(chest))
+      // Chests that may still hold treasure send up a beam of light (hiders see it through the dark)
+      if (chest.glow) this.drawBeam(pos.x, pos.y, tileWidth, tileHeight, time + i * 0.7)
       if (!chest.visible) return
 
-      // Chests in sight that may still hold treasure send up a beam of light
-      if (chest.glow) this.drawBeam(pos.x, pos.y, tileWidth, tileHeight, time + i * 0.7)
       if (chest.lidOpen && chest.hasLoot) this.drawLoot(pos.x, pos.y, tileWidth, time)
       if (chest.lootProgress > 0) this.drawLootProgress(pos.x, pos.y, tileWidth, tileHeight, chest.lootProgress)
     })
@@ -822,8 +756,6 @@ export class HideSeekRenderer {
     this.nightGraphics.clear()
     this.holeGraphics.clear()
     this.glowGraphics.clear()
-    this.moteGraphics.clear()
-    this.motes = []
     this.xray.visible = false
     this.beaconGraphics.clear()
     this.routeGraphics.clear()
@@ -831,7 +763,7 @@ export class HideSeekRenderer {
 
   public destroy(): void {
     this.clear()
-    for (const node of [this.night, this.glowGraphics, this.moteGraphics, this.printGraphics, this.xray, this.beaconGraphics, this.routeGraphics, this.effectsGraphics]) {
+    for (const node of [this.night, this.glowGraphics, this.printGraphics, this.xray, this.beaconGraphics, this.routeGraphics, this.effectsGraphics]) {
       if (!node.destroyed) node.destroy({ children: true })
     }
   }

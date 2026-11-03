@@ -195,8 +195,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const players = new Map<string, HideSeekBody>()
   const pressedKeys = new Set<string>()
   const joystick = { x: 0, y: 0 }
-  let shiftHeld = false
-  let sneakToggled = false
+  let sneakHeld = false
   let clickPath: GridCoord[] = []
   let pending: PendingUse | null = null
   let pointerCell: GridCoord | null = null
@@ -453,7 +452,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     pressedKeys.clear()
     joystick.x = 0
     joystick.y = 0
-    shiftHeld = false
+    sneakHeld = false
   }
 
   function reset(): void {
@@ -462,7 +461,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     needsSoloRole.value = false
     players.clear()
     releaseInput()
-    sneakToggled = false
     match = createMatch([])
     botBrain = null
     winner.value = null
@@ -486,7 +484,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   // ==========================================
   function setKey(code: string, pressed: boolean): boolean {
     if (code === 'ShiftLeft' || code === 'ShiftRight') {
-      shiftHeld = pressed
+      sneakHeld = pressed
       return true
     }
     if (MOVE_KEYS[code]) {
@@ -511,8 +509,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     joystick.y = y
   }
 
-  function toggleSneak(): void {
-    sneakToggled = !sneakToggled
+  /** Shift or the touch sneak button: slow and silent while held */
+  function setSneakHeld(held: boolean): void {
+    sneakHeld = held
   }
 
   /** Hovered map cell (stone aiming preview). */
@@ -895,7 +894,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function updateMe(me: HideSeekBody, deltaSec: number): void {
-    const sneaking = shiftHeld || sneakToggled
+    const sneaking = sneakHeld
     isSneaking.value = sneaking
     me.sneaking = sneaking
     const wasMoving = me.moving
@@ -1271,7 +1270,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     reset,
     setKey,
     setJoystick,
-    toggleSneak,
+    setSneakHeld,
     setPointerCell,
     clickCell,
     useNearest,

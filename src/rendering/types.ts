@@ -58,9 +58,9 @@ export interface HideSeekChestView {
   hasLoot: boolean
   /** The hider taking the treasure: 0..1 */
   lootProgress: number
-  /** Light beam: the chest may still hold treasure as far as this player knows */
+  /** Light beam: the chest may still hold treasure as far as this player knows (hiders see it through the dark) */
   glow: boolean
-  /** Seen by the player (in sight now or found before); undiscovered chests are hidden, light and all */
+  /** Seen by the player (in sight now or found before); undiscovered chests are hidden in the dark */
   visible: boolean
 }
 

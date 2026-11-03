@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full aspect-2/1 rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
+  <div class="relative aspect-2/1 rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
     <canvas ref="canvasRef" class="absolute inset-0 size-full" />
     <span class="absolute top-1 left-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
       <MapIcon class="size-3" /> {{ $t('hideseek.map') }}
