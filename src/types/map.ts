@@ -145,12 +145,21 @@ export interface HideSeekSettings {
   visionAngle: number
   hearingRange: number
   catchDistance: number
-  /** Treasure chests the hider must loot to win */
+  /** Players in a room */
+  maxPlayers: number
+  /** The first lobby slots seek, the rest hide; the roles stay for the whole match */
+  seekerSlots: number
+  /** Rounds in a match (the side that wins most of them wins the match) */
+  roundCount: number
+  /** Treasure chests per hider on the seekers' side of the labyrinth */
   chestCount: number
   /** Seconds the hider stands at a chest to take its treasure */
   lootTime: number
-  /** Chests the hider must loot to win (fewer than all: guarding one chest cannot stop them) */
+  /** Treasures EVERY hider must bring home themself (fewer than chestCount, so guarding one chest cannot stop them);
+   * the exits open / the hiders win only once all of them have their share */
   chestsToWin: number
+  /** A hider carrying a treasure runs this much slower (0.85 = 15% slower) */
+  carrySpeedFactor: number
   /** Seconds of running before a player is out of breath */
   staminaSeconds: number
   /** Running seconds regained per second while walking quietly or standing */
@@ -182,9 +191,11 @@ export interface HideSeekSettings {
   scorePerSecond: number
   /** A new random labyrinth every round (the map's own layout is only the preview) */
   randomMaze: boolean
+  /** Labyrinth size with one seeker; every further seeker makes it this many cells bigger each way */
   mazeCols: number
   mazeRows: number
-  /** Rooms carved into the random labyrinth, doors on their entrances, crawl holes only hiders get through, candle stands */
+  mazeGrowPerSeeker: number
+  /** Rooms carved into the random labyrinth, doors on their entrances, crawl holes only the crawler gets through, candle stands */
   roomCount: number
   doorCount: number
   holeCount: number
@@ -201,6 +212,26 @@ export interface HideSeekSettings {
   huntPingInterval: number
   /** Extra sight range during the hunt (0.3 = 30% further) */
   huntVisionBonus: number
+  /** Candles the seeker can set down per round (they light the floor around them, hiders can blow them out) */
+  seekerCandleCount: number
+  /** Per hider caught this round the seeker runs this much faster (0.08 = 8%) and keeps running this much longer */
+  catchSpeedBonus: number
+  catchStaminaBonus: number
+  /** Character traits (each character has one, in both roles): swift runs faster, enduring keeps breath longer
+   * (and gets it back faster), keen-eyed sees further; only the crawler fits through the crawl holes */
+  traitSpeedBonus: number
+  traitStaminaBonus: number
+  traitVisionBonus: number
+  /** Rescuer: frees jailed teammates from this many times the catch distance; as the seeker catches from this much further */
+  traitRescueReach: number
+  traitCatchReach: number
+  /** Shadow: others spot them only this close (share of their sight range); their steps are this loud */
+  traitStealthSight: number
+  traitStealthNoise: number
+  /** Treasure sense: chests within this many tiles show through walls and darkness */
+  traitSenseRadius: number
+  /** Trickster: this many extra of each own gadget per round */
+  traitExtraGadgets: number
 }
 
 export interface MapProject {

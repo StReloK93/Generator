@@ -37,6 +37,17 @@
       <component :is="slot.player.isReady ? Check : Clock" class="size-3" />
       {{ slot.player.isReady ? $t('common.ready') : $t('common.notReady') }}
     </UiBadge>
+
+    <!-- Host: send a player out (also frees a seat stuck by a broken connection) -->
+    <UiIconButton
+      v-if="canKick"
+      :icon="UserX"
+      variant="danger"
+      size="md"
+      class="shrink-0"
+      :title="$t('lobby.kick')"
+      @click="confirmKick"
+    />
   </div>
 
   <!-- Open slot: tap to take it -->
@@ -57,27 +68,47 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { UserPlus, Crown, Check, Clock } from 'lucide-vue-next'
-import { UiBadge, UiButton } from './ui'
+import { UserPlus, Crown, Check, Clock, UserX } from 'lucide-vue-next'
+import { UiBadge, UiButton, UiIconButton } from './ui'
 import { PlayerSlot } from '../types/multiplayer'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { HERO_MODELS } from '../stores/heroStore'
 import { useI18n } from '../stores/i18nStore'
-import { roleForSlot } from '../domain/hideseek'
+import { useNotificationStore } from '../stores/notificationStore'
+import { roleForSlot, normalizeHideSeekSettings } from '../domain/hideseek'
+import { useMapStore } from '../stores/mapStore'
 
 const props = defineProps<{
   slot: PlayerSlot
 }>()
 
 const multiplayerStore = useMultiplayerStore()
+const mapStore = useMapStore()
 const { t } = useI18n()
 
 const isMe = computed(() => props.slot.player?.id === multiplayerStore.myPlayerId)
+const notify = useNotificationStore()
+
+const canKick = computed(() => multiplayerStore.isHost && !!props.slot.player && !props.slot.player.isHost)
+
+async function confirmKick() {
+  const player = props.slot.player
+  if (!player) return
+  const confirmed = await notify.confirm({
+    title: t('lobby.kickConfirmTitle'),
+    message: t('lobby.kickConfirmDesc', { name: player.name }),
+    confirmText: t('lobby.kick'),
+    cancelText: t('common.cancel'),
+    variant: 'danger',
+  })
+  if (confirmed) multiplayerStore.kickPlayer(player.id)
+}
 
 /** Hide & seek slots are roles (taking the other slot switches role); other maps show the route name. */
 const slotLabel = computed(() => {
   if (!multiplayerStore.isHideSeekRoom) return props.slot.routeName
-  return roleForSlot(props.slot.slotIndex) === 'seeker' ? t('hideseek.roleSeeker') : t('hideseek.roleHider')
+  const { seekerSlots } = normalizeHideSeekSettings(mapStore.project.hideSeekSettings)
+  return roleForSlot(props.slot.slotIndex, seekerSlots) === 'seeker' ? t('hideseek.roleSeeker') : t('hideseek.roleHider')
 })
 
 function modelLabel(modelId: string): string {

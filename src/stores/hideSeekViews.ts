@@ -14,6 +14,9 @@ import {
   HideSeekMaze,
   edgePlacement,
   torchLightAt,
+  torchSpots,
+  traitOf,
+  spottedWithin,
   TORCH_SIGHT_FACTOR,
 } from '../domain/hideseek'
 
@@ -68,6 +71,8 @@ export interface HideSeekViewContext {
   explored: Uint8Array
   cols: number
   rows: number
+  /** Treasure sense: chests this close show through walls and darkness (0 = none) */
+  senseRadius: number
 }
 
 /** Everything in sight is evenly lit; only the last stretch (tiles) of each direction fades into the dark */
@@ -84,12 +89,17 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
   const blind = !over && me?.role === 'seeker' && match.clock.phase === 'hiding'
   const iAmHider = !over && me?.role === 'hider'
   const around = sightAround(settings, ctx.flare)
-  const litTorches = ctx.maze?.torches.filter((_, i) => match.torches[i]) ?? []
+  const candles = torchSpots(match, ctx.maze)
+  const litTorches = candles.filter((_, i) => match.torches[i])
   const torchLight = (p: GridCoord) => (litTorches.length > 0 ? torchLightAt(grid, p, litTorches, settings) : 0)
-  const farSight = { ...settings, visionRange: settings.visionRange * TORCH_SIGHT_FACTOR }
-  /** In the own sight cone, or standing in a candle's light within the (longer) sight range */
-  const inSight = (p: GridCoord) =>
-    !!me && !blind && (canSee(grid, me, ctx.visionFacing, p, settings, around) || (torchLight(p) > 0 && canSee(grid, me, ctx.visionFacing, p, farSight)))
+  /** In the own sight cone, or standing in a candle's light within the (longer) sight range. `within` shortens the
+   * range for a shadow (spotted only from close by). */
+  const inSight = (p: GridCoord, within = 1) => {
+    if (!me || blind) return false
+    const near = within === 1 ? settings : { ...settings, visionRange: settings.visionRange * within }
+    const far = { ...near, visionRange: near.visionRange * TORCH_SIGHT_FACTOR }
+    return canSee(grid, me, ctx.visionFacing, p, near, around * within) || (torchLight(p) > 0 && canSee(grid, me, ctx.visionFacing, p, far))
+  }
   /** 0 = dark .. 1 = fully lit by the player's lantern / sight or by a candle */
   const lightAt = (p: GridCoord): number => {
     if (over) return 1
@@ -115,7 +125,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       // Hiders know what is left; the seeker only knows the chests they looked into
       glow: over || me?.role !== 'seeker' ? !ch.looted : !ctx.seenEmpty.has(i),
       // Hidden in the dark until the player has seen its spot once; then it stays on their screen
-      visible: over || inSight(ch) || isExplored(ctx, ch),
+      visible: over || inSight(ch) || isExplored(ctx, ch) || isSensed(ctx, ch),
     })),
     spots: match.spots.map((s, i) => ({ col: s.col, row: s.row, kind: s.kind, facing: s.facing, occupied: me?.hidden === i })),
     doors: (ctx.maze?.doors ?? []).flatMap((door, i) =>
@@ -123,7 +133,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     ),
     exits: (ctx.maze?.exits ?? []).flatMap(exit => exit.edges.map(edge => ({ ...edgePlacement(edge, ctx.cols), open: match.exitsOpen }))),
     exitBeacons: match.exitsOpen && !over ? match.exits : [],
-    torches: (ctx.maze?.torches ?? []).map((t, i) => ({ col: t.col, row: t.row, lit: !!match.torches[i], glow: match.torches[i] && !blind ? (ctx.torchGlows[i] ?? null) : null })),
+    treasures: match.drops.filter(d => over || me?.role === 'hider' || inSight(d)),
+    torches: candles.map((t, i) => ({ col: t.col, row: t.row, lit: !!match.torches[i], glow: match.torches[i] && !blind ? (ctx.torchGlows[i] ?? null) : null })),
     torchRadius: settings.torchRadius,
     footprints: over ? [] : ctx.footprints,
     huntHint: over ? null : ctx.huntHint,
@@ -143,7 +154,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     avatars: ctx.bodies.map(p => {
       const seat = seatOf(match, p.id)
       const jailed = !!seat?.jailed
-      const teammate = me?.role === 'hider' && p.role === 'hider'
+      // Both teams know where their own players are
+      const teammate = !!me && p.role === me.role
       return {
         id: p.id,
         col: p.col,
@@ -157,11 +169,17 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         isMe: p === me,
         jailed,
         hidden: p === me && p.hidden !== -1,
+        carrying: !!seat?.carrying,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
-        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || inSight(p))),
+        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || inSight(p, spottedWithin(settings, traitOf(p.model))))),
       }
     }),
   }
+}
+
+/** Treasure sense: a chest close enough is felt through walls and darkness. */
+function isSensed(ctx: HideSeekViewContext, p: GridCoord): boolean {
+  return !!ctx.me && ctx.senseRadius > 0 && Math.hypot(p.col - ctx.me.col, p.row - ctx.me.row) <= ctx.senseRadius
 }
 
 function isExplored(ctx: HideSeekViewContext, p: GridCoord): boolean {
@@ -179,11 +197,12 @@ export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView 
     walls: ctx.grid.blocked,
     me: me ? { col: me.col, row: me.row } : null,
     // Only chests the player has come across
-    chests: match.chests.filter((ch, i) => isExplored(ctx, ch) && (me?.role === 'seeker' ? !ctx.seenEmpty.has(i) : !ch.looted)),
+    chests: match.chests.filter((ch, i) => (isExplored(ctx, ch) || isSensed(ctx, ch)) && (me?.role === 'seeker' ? !ctx.seenEmpty.has(i) : !ch.looted)),
     traps: me?.role === 'seeker' ? match.traps : [],
     exits: match.exitsOpen ? match.exits : [],
-    mates: me?.role === 'hider'
-      ? ctx.bodies.filter(p => p !== me && p.role === 'hider').map(p => ({ col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed }))
-      : [],
+    seekerBase: ctx.maze?.seekerBase ?? null,
+    hiderBase: ctx.maze?.hiderBase ?? null,
+    treasures: me?.role === 'hider' ? match.drops : [],
+    mates: me ? ctx.bodies.filter(p => p !== me && p.role === me.role).map(p => ({ col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed })) : [],
   }
 }

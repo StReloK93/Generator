@@ -9,6 +9,12 @@ const MATE_COLOR = '#38bdf8'
 const EXIT_COLOR = '#4ade80'
 const JAILED_COLOR = '#94a3b8'
 const ME_COLOR = '#ffffff'
+// Faint marks: the bases are told apart by their floor in the game, the minimap only hints where they are
+const BASE_FILL = 'rgba(239, 68, 68, 0.12)'
+const BASE_EDGE = 'rgba(248, 113, 113, 0.35)'
+const HOME_FILL = 'rgba(34, 197, 94, 0.12)'
+const HOME_EDGE = 'rgba(74, 222, 128, 0.35)'
+const TREASURE_COLOR = '#38bdf8'
 
 /**
  * Hide & seek minimap on a 2D canvas: the isometric maze as far as the player has explored it,
@@ -45,6 +51,26 @@ export class HideSeekMinimapRenderer {
       }
     }
 
+    // Both bases: everyone knows where they are
+    const yard = (b: NonNullable<HideSeekMinimapView['seekerBase']>, fill: string, edge: string) => {
+      const corners = [
+        at({ col: b.col - 0.5, row: b.row - 0.5 }),
+        at({ col: b.col + b.cols - 0.5, row: b.row - 0.5 }),
+        at({ col: b.col + b.cols - 0.5, row: b.row + b.rows - 0.5 }),
+        at({ col: b.col - 0.5, row: b.row + b.rows - 0.5 }),
+      ]
+      ctx.beginPath()
+      corners.forEach((c, i) => (i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y)))
+      ctx.closePath()
+      ctx.fillStyle = fill
+      ctx.fill()
+      ctx.strokeStyle = edge
+      ctx.lineWidth = 1
+      ctx.stroke()
+    }
+    if (view.seekerBase) yard(view.seekerBase, BASE_FILL, BASE_EDGE)
+    if (view.hiderBase) yard(view.hiderBase, HOME_FILL, HOME_EDGE)
+
     // Walls next to explored cells
     ctx.fillStyle = WALL_COLOR
     const subCols = view.cols * 2
@@ -72,6 +98,7 @@ export class HideSeekMinimapRenderer {
       }
     }
     for (const chest of view.chests) dot(chest, Math.max(2, s * 0.45), CHEST_COLOR)
+    for (const treasure of view.treasures) dot(treasure, Math.max(2, s * 0.5), TREASURE_COLOR)
     for (const trap of view.traps) dot(trap, Math.max(2, s * 0.4), TRAP_COLOR, true)
     for (const exit of view.exits) dot(exit, Math.max(3, s * 0.7), EXIT_COLOR)
     for (const mate of view.mates) dot(mate, Math.max(2, s * 0.45), mate.jailed ? JAILED_COLOR : MATE_COLOR)

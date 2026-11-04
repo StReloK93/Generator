@@ -111,16 +111,19 @@ import { useCharacterStore } from '../../stores/characterStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
+import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { useI18n } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { getMapMode } from '../../domain/map'
 import { lockLandscape } from '../../utils/pwaOrientation'
-import { 
-  getGameMapDataById, 
+import {
+  getGameMapDataById,
   getEditorMapDataById,
   applyMapPayloadToStores,
-  sanitizeMapId
+  sanitizeMapId,
+  getProjectMapId
 } from '../../services/mapManager'
+import { saveMatch, restoreMatch, clearMatch } from '../../services/sessionResume'
 import { useNotificationStore } from '../../stores/notificationStore'
 
 const props = withDefaults(
@@ -139,6 +142,7 @@ const characterStore = useCharacterStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
+const hideSeekStore = useHideSeekStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
 
@@ -166,17 +170,32 @@ onMounted(async () => {
   // Lock screen to landscape orientation if supported
   lockLandscape()
 
+  const roomCode = (route.params.roomId as string) || ''
+
   // Track entry source explicitly based on mode
   if (props.isEditorMode) {
     gameStore.entrySource = 'editor'
+  } else if (roomCode) {
+    gameStore.entrySource = 'lobby'
   } else if (!gameStore.entrySource || gameStore.entrySource === 'editor') {
-    gameStore.entrySource = multiplayerStore.roomId ? 'lobby' : 'play'
+    gameStore.entrySource = 'play'
   }
 
-  // 1. Resolve Map or Multiplayer Room from route params
-  let rawId = (route.params.mapId as string) || (route.params.roomId as string) || ''
-  
-  if (!rawId) {
+  multiplayerStore.setRouter(router)
+
+  // 1. Multiplayer room game: after a refresh get back into the room (the host / saved session provides the map)
+  if (roomCode) {
+    if (multiplayerStore.roomId !== roomCode && !(await multiplayerStore.resumeRoom(roomCode, router))) {
+      // No saved seat in this tab: join like a new player (lands in the lobby, follows the room into the game)
+      multiplayerStore.joinGame(roomCode, router)
+      return
+    }
+  }
+
+  // 2. Resolve the map from route params
+  let rawId = (route.params.mapId as string) || ''
+
+  if (!rawId && !roomCode) {
     if (props.isEditorMode || route.name === 'editor-game' || gameStore.entrySource === 'editor') {
       rawId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
     } else {
@@ -186,10 +205,8 @@ onMounted(async () => {
     }
   }
 
-  const isRoomCode = rawId && /^[A-Za-z0-9]{6}$/.test(rawId) && !getGameMapDataById(rawId)
-
-  // 2. Single Player game / Editor game:
-  if (!isRoomCode && (!multiplayerStore.roomId || multiplayerStore.roomId === '')) {
+  // 3. Single Player game / Editor game:
+  if (!roomCode) {
     if (props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game') {
       const editorData = getEditorMapDataById(rawId) || getGameMapDataById(rawId)
       if (editorData) {
@@ -214,24 +231,65 @@ onMounted(async () => {
   gameStore.startLoadingScreen(mapStore.project.name || t('game.battlefield'))
 
   mapStore.isGameMap = true
-  multiplayerStore.setRouter(router)
 
   if (isMapLoaded.value) {
     initializeGameSession()
   }
 })
 
+/** Owner of the saved match: the room in multiplayer, otherwise the screen + map (so another map never resumes it) */
+const matchOwner = computed(() => {
+  const roomCode = route.params.roomId as string
+  return roomCode ? `room:${roomCode}` : `${String(route.name)}:${route.params.mapId || getProjectMapId(mapStore.project)}`
+})
+
+/** Single player and the multiplayer host run the simulation, so they keep the match for a page refresh. */
+const ownsSimulation = computed(() => !multiplayerStore.roomId || multiplayerStore.isHost)
+
+function saveRunningMatch() {
+  if (!gameStore.isGameMode) return
+  // Hide & seek: every player keeps their own character (the host / solo also the whole match)
+  if (mapMode.value === 'hideseek') hideSeekStore.saveSession()
+  else if (mapMode.value === 'td' && ownsSimulation.value) saveMatch(matchOwner.value)
+}
+
+let matchAutosaveTimer: ReturnType<typeof setInterval> | null = null
+function saveMatchWhenHidden() {
+  if (document.hidden) saveRunningMatch()
+}
+
 function initializeGameSession() {
   if (!isMapLoaded.value) return
   towerStore.initGameClanSelection()
-  if (!multiplayerStore.roomId || multiplayerStore.isHost) {
+  if (multiplayerStore.resumedClanId) {
+    towerStore.setPlayerClan(multiplayerStore.resumedClanId)
+    multiplayerStore.resumedClanId = ''
+  }
+  if (ownsSimulation.value) {
     characterStore.resetTour()
     gameStore.startPlayMode()
+    // Page refresh: continue the saved match instead of starting over
+    if (mapMode.value === 'td' && restoreMatch(matchOwner.value)) {
+      notify.info(t('game.matchResumed'))
+    }
   } else {
     gameStore.isGameMode = true
     characterStore.isEnabled = true
     towerStore.clearCombatEffects()
   }
+
+  if (!matchAutosaveTimer) {
+    matchAutosaveTimer = setInterval(saveRunningMatch, 1000)
+    window.addEventListener('pagehide', saveRunningMatch)
+    document.addEventListener('visibilitychange', saveMatchWhenHidden)
+  }
+}
+
+function stopMatchAutosave() {
+  if (matchAutosaveTimer) clearInterval(matchAutosaveTimer)
+  matchAutosaveTimer = null
+  window.removeEventListener('pagehide', saveRunningMatch)
+  document.removeEventListener('visibilitychange', saveMatchWhenHidden)
 }
 
 watch(isMapLoaded, (loaded) => {
@@ -242,6 +300,9 @@ watch(isMapLoaded, (loaded) => {
 
 // Full lifecycle teardown when leaving the game
 function cleanupGameSession() {
+  // The game screen was left on purpose (a refresh never unmounts): nothing to resume any more
+  stopMatchAutosave()
+  clearMatch()
   isCanvasReady.value = false
   characterStore.resetTour()
   gameStore.exitPlayMode()

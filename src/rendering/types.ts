@@ -43,10 +43,12 @@ export interface HideSeekAvatarView {
   color: string
   isMe: boolean
   visible: boolean
-  /** Caught: stands chained where they were caught until a teammate frees them */
+  /** Caught: stands in the jail (or where they were caught) until a teammate frees them */
   jailed: boolean
   /** Own character sitting inside a barrel (drawn faint) */
   hidden: boolean
+  /** Carries a treasure home (a gem over their head) */
+  carrying: boolean
 }
 
 /** One treasure chest as this player perceives it. */
@@ -125,6 +127,14 @@ export interface HideSeekRippleView {
   kind: 'stone' | 'bell'
 }
 
+/** A rectangle of map cells (the seekers' base). */
+export interface HideSeekAreaView {
+  col: number
+  row: number
+  cols: number
+  rows: number
+}
+
 export interface HideSeekRenderView {
   avatars: HideSeekAvatarView[]
   chests: HideSeekChestView[]
@@ -134,6 +144,8 @@ export interface HideSeekRenderView {
   /** Exit gate pieces (open once the hiders took enough treasure) and, when open, the spots to run to */
   exits: HideSeekDoorView[]
   exitBeacons: GridCoord[]
+  /** Treasures dropped by caught hiders (hiders always know where; seekers when they see one) */
+  treasures: GridCoord[]
   torches: HideSeekTorchView[]
   /** How far a burning candle lights the floor */
   torchRadius: number
@@ -175,6 +187,11 @@ export interface HideSeekMinimapView {
   traps: GridCoord[]
   /** Open exit gates */
   exits: GridCoord[]
-  /** Teammates (other hiders) and whether they wait in jail */
+  /** Both bases (always shown: everyone knows where they are) */
+  seekerBase: HideSeekAreaView | null
+  hiderBase: HideSeekAreaView | null
+  /** Dropped treasures (hiders only) */
+  treasures: GridCoord[]
+  /** Teammates (same role) and whether they wait in jail */
   mates: (GridCoord & { jailed: boolean })[]
 }

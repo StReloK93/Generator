@@ -96,7 +96,7 @@
             disabled
             custom-class="min-w-44 short:py-2"
           >
-            {{ multiplayerStore.hideSeekLobbyIssue === 'needPlayers' ? $t('hideseek.needPlayers') : $t('hideseek.needModels') }}
+            {{ multiplayerStore.hideSeekLobbyIssue === 'needTeams' ? $t('hideseek.needTeams') : $t('hideseek.needModels') }}
           </UiButton>
           <UiButton
             v-else-if="!multiplayerStore.isAllReady"
@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X, Users, Copy, Check, Play, BellRing, Map, Clock } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiModal, UiTabs, UiLanguageSwitcher, TabItem } from '../components/ui'
@@ -152,6 +152,8 @@ import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
 import { lockLandscape } from '../utils/pwaOrientation'
+import { getProjectMapId } from '../services/mapManager'
+import { gamePath, lobbyPath } from '../router/paths'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import LobbyCharacterPicker from '../components/LobbyCharacterPicker.vue'
@@ -180,13 +182,26 @@ const filledSlotsCount = computed(() => {
   return multiplayerStore.slots.filter(s => s.player !== null).length
 })
 
-onMounted(() => {
+onMounted(async () => {
   multiplayerStore.setRouter(router)
   const code = (route.params.roomId as string) || ''
-  if (code && !multiplayerStore.roomId) {
+  // Opened by URL (page refresh or shared link): get back into this tab's room, otherwise join it
+  if (code && !multiplayerStore.roomId && !(await multiplayerStore.resumeRoom(code, router))) {
     multiplayerStore.joinGame(code, router)
   }
 })
+
+// Keep the map in the address bar once the host has sent it
+watch(
+  () => mapStore.project,
+  (project) => {
+    const code = multiplayerStore.roomId || (route.params.roomId as string)
+    const mapId = getProjectMapId(project)
+    if (code && route.name === 'lobby' && route.params.mapId !== mapId) {
+      router.replace(lobbyPath(code, mapId))
+    }
+  }
+)
 
 // Auto-navigate to game whenever room game state becomes 'in_game'
 watch(
@@ -196,7 +211,7 @@ watch(
       lockLandscape()
       gameStore.entrySource = 'lobby'
       const code = multiplayerStore.roomId || (route.params.roomId as string)
-      router.push(`/game/${code}`)
+      router.push(gamePath(getProjectMapId(mapStore.project), code))
     }
   },
   { immediate: true }
@@ -231,18 +246,4 @@ async function handleLeave() {
     multiplayerStore.leaveRoom(router)
   }
 }
-
-function handleBeforeUnload() {
-  if (multiplayerStore.roomId) {
-    multiplayerStore.leaveRoom()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('beforeunload', handleBeforeUnload)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload)
-})
 </script>

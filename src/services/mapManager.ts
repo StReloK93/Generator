@@ -1,5 +1,6 @@
 import { MapProject, AssetItem, MapGameMode } from '../types/map'
 import { getMapMode } from '../domain/map'
+import { normalizeHideSeekSettings } from '../domain/hideseek'
 import { 
   buildFullProjectJsonPayload, 
   normalizeTileItem 
@@ -15,6 +16,7 @@ import { useWaveStore } from '../stores/waveStore'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
+import { readSession, writeSession } from './sessionResume'
 
 /** Map list entry (built-in or imported) for the single player and multiplayer map pickers. */
 export interface MapSummary {
@@ -51,12 +53,23 @@ export function getMapDetails(raw: any): MapDetails {
   }
 }
 
-// Session cache for custom uploaded maps
+// Custom uploaded maps live for the tab session (kept in sessionStorage so a refresh can reopen them)
 const sessionCustomMaps = new Map<string, any>()
+const CUSTOM_MAP_KEY_PREFIX = 'defensor_custom_map_'
 
 export function registerSessionCustomMap(id: string, rawPayload: any) {
   const cleanId = sanitizeMapId(id)
   sessionCustomMaps.set(cleanId, rawPayload)
+  writeSession(CUSTOM_MAP_KEY_PREFIX + cleanId, rawPayload)
+}
+
+function getSessionCustomMap(cleanId: string): any | null {
+  if (!sessionCustomMaps.has(cleanId)) {
+    const stored = readSession<any>(CUSTOM_MAP_KEY_PREFIX + cleanId)
+    if (!stored) return null
+    sessionCustomMaps.set(cleanId, stored)
+  }
+  return sessionCustomMaps.get(cleanId)
 }
 
 // 1. Scan and index all built-in maps from src/maps/*.json
@@ -64,12 +77,16 @@ const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
 
 function summarizeMap(raw: any, id: string, fallbackName: string): MapSummary {
   const project = raw.project || raw
-  const explicitPlayers = project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
+  const mode = getMapMode(project)
+  // Hide & seek seats two teams (its settings); other maps one player per route unless they say otherwise
+  const explicitPlayers = mode === 'hideseek'
+    ? normalizeHideSeekSettings(project.hideSeekSettings).maxPlayers
+    : project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
   const routesCount = project.routes?.length || 0
   return {
     id,
     name: project.name || fallbackName,
-    mode: getMapMode(project),
+    mode,
     cols: project.cols || 60,
     rows: project.rows || 60,
     playersCount: typeof explicitPlayers === 'number' && explicitPlayers > 0
@@ -102,6 +119,11 @@ export function sanitizeMapId(nameOrId: string): string {
   return nameOrId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-')
 }
 
+/** Readable URL id of a loaded map project (resolved back by getGameMapDataById, which also matches names). */
+export function getProjectMapId(project: Pick<MapProject, 'id' | 'name'>): string {
+  return sanitizeMapId(project.name || project.id)
+}
+
 /**
  * Loads map for GAME PLAY (Single Player / Multiplayer).
  * If the user has edited and saved changes in the editor, load their latest draft from LocalStorage!
@@ -112,8 +134,9 @@ export function getGameMapDataById(mapId: string): { payload: any; source: 'buil
   const cleanId = sanitizeMapId(mapId)
 
   // 1. Check session custom uploaded maps
-  if (sessionCustomMaps.has(cleanId)) {
-    return { payload: sessionCustomMaps.get(cleanId), source: 'custom' }
+  const customMap = getSessionCustomMap(cleanId)
+  if (customMap) {
+    return { payload: customMap, source: 'custom' }
   }
 
   // 2. Check in-progress edited draft in LocalStorage (so editor changes are immediately active in game)
@@ -178,8 +201,9 @@ export function getEditorMapDataById(mapId: string): { payload: any; source: 'ed
   }
 
   // 2. Check session custom maps
-  if (sessionCustomMaps.has(cleanId)) {
-    return { payload: sessionCustomMaps.get(cleanId), source: 'custom' }
+  const customMap = getSessionCustomMap(cleanId)
+  if (customMap) {
+    return { payload: customMap, source: 'custom' }
   }
 
   // 3. Fallback to clean built-in maps

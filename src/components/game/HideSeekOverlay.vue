@@ -207,6 +207,7 @@ const status = computed(() => {
   if (hideSeekStore.isJailed) return { text: t('hideseek.jailed'), icon: Lock, cls: 'border-slate-500/50 text-slate-200' }
   if (hideSeekStore.isAimingStone) return { text: t('hideseek.aimHint'), icon: CircleDot, cls: 'border-stone-400/50 text-stone-200' }
   if (hideSeekStore.isHidden) return { text: t('hideseek.hiddenHint'), icon: Package, cls: 'border-emerald-500/40 text-emerald-200' }
+  if (hideSeekStore.isCarrying) return { text: t('hideseek.carryHint'), icon: Gem, cls: 'border-sky-400/60 text-sky-200' }
   return null
 })
 const statusText = computed(() => status.value?.text ?? '')
@@ -221,26 +222,30 @@ const RESULT_KEYS = {
   left: 'hideseek.reasonLeft',
 } as const
 
-const myScoreRank = computed(() => hideSeekStore.scores.findIndex(r => r.isMe))
-const championName = computed(() => hideSeekStore.scores.find(r => r.id === hideSeekStore.champion)?.name ?? '')
+/** Rounds won: seekers : hiders */
+const roundScore = computed(() => `${hideSeekStore.roundWins.seeker} : ${hideSeekStore.roundWins.hider}`)
 
+/** The match is won by a side (the roles stay for the whole match) */
 const resultTitle = computed(() => {
   if (isRoundOver.value) return t('hideseek.roundOver', { n: hideSeekStore.round })
-  if (!hideSeekStore.champion) return t('hideseek.draw')
-  return hideSeekStore.champion === multiplayerStore.myPlayerId ? t('hideseek.championYou') : t('hideseek.championOther', { name: championName.value })
+  const side = hideSeekStore.matchWinner
+  if (!side) return t('hideseek.draw')
+  return t(side === 'seeker' ? 'hideseek.seekersWonMatch' : 'hideseek.hidersWonMatch', { score: roundScore.value })
 })
+
+const iWonMatch = computed(() => hideSeekStore.matchWinner !== null && hideSeekStore.matchWinner === hideSeekStore.myRole)
 
 const resultSubtitle = computed(() => (hideSeekStore.endReason ? t(RESULT_KEYS[hideSeekStore.endReason]) : ''))
 
 const resultIcon = computed(() => {
   if (isRoundOver.value) return Flag
-  if (!hideSeekStore.champion) return Scale
-  return myScoreRank.value === 0 ? Trophy : Skull
+  if (!hideSeekStore.matchWinner) return Scale
+  return iWonMatch.value ? Trophy : Skull
 })
 
 const resultColor = computed(() => {
-  if (isRoundOver.value || !hideSeekStore.champion) return 'cyan' as const
-  return myScoreRank.value === 0 ? ('amber' as const) : ('rose' as const)
+  if (isRoundOver.value || !hideSeekStore.matchWinner) return 'cyan' as const
+  return iWonMatch.value ? ('amber' as const) : ('rose' as const)
 })
 
 /** Who won the round that just ended, from my side's point of view */

@@ -9,8 +9,9 @@
         <component :is="isSeeker ? Search : EyeOff" class="size-4.5" />
       </div>
       <div class="flex flex-col min-w-0 flex-1">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 truncate">
           {{ $t('hideseek.round', { n: hideSeekStore.round, total: hideSeekStore.rounds }) }}
+          · <span class="text-rose-300">{{ hideSeekStore.roundWins.seeker }}</span>:<span class="text-emerald-300">{{ hideSeekStore.roundWins.hider }}</span>
         </span>
         <span class="font-extrabold text-sm text-slate-50 truncate">
           {{ isSeeker ? $t('hideseek.roleSeeker') : $t('hideseek.roleHider') }}
@@ -21,12 +22,33 @@
       </UiBadge>
     </div>
 
+    <!-- Own character trait, and the seeker's momentum from this round's catches -->
+    <div v-if="trait || momentum > 0" class="flex flex-wrap items-center gap-1.5">
+      <UiBadge v-if="trait" variant="amber" size="sm" :icon="trait.icon" :title="$t(trait.desc)">
+        {{ $t(trait.label) }}
+      </UiBadge>
+      <UiBadge v-if="momentum > 0" variant="rose" size="sm" :icon="Zap" :title="$t('hideseek.momentumDesc')">
+        {{ $t('hideseek.momentum', { n: momentum }) }}
+      </UiBadge>
+    </div>
+
     <!-- Chests and breath -->
     <div class="grid grid-cols-2 gap-1.5">
-      <div class="flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-2 py-1.5">
-        <Gem class="size-3.5 shrink-0 text-amber-300" />
-        <span class="text-[11px] font-semibold text-amber-100 flex-1 truncate">{{ $t('hideseek.chests') }}</span>
-        <span class="text-xs font-black tabular-nums text-amber-300">{{ hideSeekStore.chestsLooted }}/{{ hideSeekStore.chestsToWin }}</span>
+      <!-- Every hider needs their own share: a hider sees theirs and the team's; a seeker how many are ready -->
+      <div
+        class="flex flex-col justify-center rounded-xl bg-amber-500/10 border border-amber-500/25 px-2 py-1"
+        :title="$t('hideseek.chestsHint', { n: hideSeekStore.chestQuota })"
+      >
+        <span class="flex items-center gap-1.5">
+          <Gem class="size-3.5 shrink-0 text-amber-300" />
+          <span class="text-[11px] font-semibold text-amber-100 flex-1 truncate">{{ isSeeker ? $t('hideseek.hidersReady') : $t('hideseek.treasure') }}</span>
+          <span class="text-xs font-black tabular-nums text-amber-300">
+            {{ isSeeker ? `${hideSeekStore.hidersReady}/${hideSeekStore.hidersTotal}` : `${hideSeekStore.myChests}/${hideSeekStore.chestQuota}` }}
+          </span>
+        </span>
+        <span v-if="!isSeeker" class="text-[10px] tabular-nums truncate" :class="hideSeekStore.isCarrying ? 'text-sky-300 font-bold' : 'text-amber-200/70'">
+          {{ hideSeekStore.isCarrying ? $t('hideseek.carrying') : $t('hideseek.teamReady', { done: hideSeekStore.hidersReady, total: hideSeekStore.hidersTotal }) }}
+        </span>
       </div>
       <div class="flex flex-col justify-center gap-1 rounded-xl bg-slate-900/70 border border-slate-800 px-2 py-1.5" :title="$t('hideseek.stamina')">
         <span class="flex items-center gap-1 text-[10px] font-semibold" :class="hideSeekStore.isExhausted ? 'text-rose-300' : 'text-slate-400'">
@@ -43,7 +65,7 @@
     </div>
 
     <!-- Gadgets (keys on desktop, the same buttons on touch screens) -->
-    <div class="grid grid-cols-3 gap-1.5">
+    <div class="grid gap-1.5" :class="gadgetButtons.length > 3 ? 'grid-cols-4' : 'grid-cols-3'">
       <UiButton
         v-for="gadget in gadgetButtons"
         :key="gadget.key"
@@ -102,21 +124,35 @@
       <span class="flex items-start gap-1.5">
         <DoorOpen class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.propHintSeeker') : $t('hideseek.propHintHider') }}
       </span>
+      <span v-if="isSeeker" class="flex items-start gap-1.5">
+        <Lamp class="size-3 shrink-0 mt-px" />{{ $t('hideseek.candleHint') }}
+      </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Search, EyeOff, Timer, Ear, Move, Footprints, MousePointerClick, Gem, Wind, Lock, Flame, Bell, Hand, Package, CircleDot, DoorOpen } from 'lucide-vue-next'
+import { Search, EyeOff, Timer, Ear, Move, Footprints, MousePointerClick, Gem, Wind, Lock, Flame, Bell, Hand, Package, CircleDot, DoorOpen, Lamp, Zap } from 'lucide-vue-next'
 import { UiBadge, UiButton } from '../ui'
 import HideSeekMinimap from './HideSeekMinimap.vue'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { hideSeekAudio } from '../../services/hideSeekAudio'
+import { TRAIT_INFO } from './hideSeekTraitInfo'
+import { normalizeHideSeekSettings } from '../../domain/hideseek'
+import { useMapStore } from '../../stores/mapStore'
 
 const hideSeekStore = useHideSeekStore()
 
+const mapStore = useMapStore()
 const isSeeker = computed(() => hideSeekStore.myRole === 'seeker')
+const trait = computed(() => (hideSeekStore.myTrait ? TRAIT_INFO[hideSeekStore.myTrait] : null))
+/** Seeker: % faster from this round's catches */
+const momentum = computed(() => {
+  if (!isSeeker.value || hideSeekStore.seekerCatches === 0) return 0
+  const { catchSpeedBonus } = normalizeHideSeekSettings(mapStore.project.hideSeekSettings)
+  return Math.round(catchSpeedBonus * hideSeekStore.seekerCatches * 100)
+})
 
 const formattedTime = computed(() => {
   const total = Math.max(0, hideSeekStore.secondsLeft)
@@ -130,12 +166,13 @@ function run(action: () => void) {
   }
 }
 
-/** Seeker: flare, bell trap, open; hider: stone, hide in a barrel. count null = unlimited */
+/** Seeker: flare, bell trap, candle, open; hider: stone, hide in a barrel. count null = unlimited */
 const gadgetButtons = computed(() =>
   isSeeker.value
     ? [
         { key: 'F', label: 'hideseek.flare', icon: Flame, count: hideSeekStore.gadgets.flares, active: hideSeekStore.isFlareLit, run: run(hideSeekStore.lightFlare) },
         { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, run: run(hideSeekStore.dropTrap) },
+        { key: 'C', label: 'hideseek.candle', icon: Lamp, count: hideSeekStore.gadgets.candles, active: false, run: run(hideSeekStore.setCandle) },
         { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, run: run(hideSeekStore.useNearest) },
       ]
     : [

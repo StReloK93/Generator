@@ -28,14 +28,23 @@
           <UiSpinner v-else class="size-4 mb-5 text-slate-500" />
         </div>
         <span
-          class="w-full text-center text-[10px] font-bold py-0.5 truncate"
+          class="w-full text-center text-[10px] font-bold pt-0.5 truncate"
           :class="selectedModel === model.id ? 'text-emerald-300' : 'text-slate-300'"
         >
           {{ model.label }}
         </span>
+        <span v-if="traitInfo(model.id)" class="w-full flex items-center justify-center gap-0.5 pb-0.5 text-[9px] font-semibold text-amber-200/80 truncate">
+          <component :is="traitInfo(model.id)!.icon" class="size-2.5 shrink-0" />
+          <span class="truncate">{{ $t(traitInfo(model.id)!.label) }}</span>
+        </span>
         <Check v-if="selectedModel === model.id" class="absolute top-1 right-1 size-3.5 text-emerald-300" />
       </UiCard>
     </div>
+    <!-- What the picked character can do (kept in both roles) -->
+    <p v-if="traitInfo(selectedModel)" class="text-[11px] text-slate-300 flex items-start gap-1.5">
+      <component :is="traitInfo(selectedModel)!.icon" class="size-3.5 shrink-0 mt-px text-amber-300" />
+      <span><b class="text-amber-200">{{ $t(traitInfo(selectedModel)!.label) }}:</b> {{ $t(traitInfo(selectedModel)!.desc) }}</span>
+    </p>
   </div>
 </template>
 
@@ -46,6 +55,8 @@ import { UiCard, UiSpinner } from './ui'
 import { HERO_MODELS } from '../stores/heroStore'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { assetManager } from '../services/assetManager'
+import { traitOf } from '../domain/hideseek'
+import { TRAIT_INFO } from './game/hideSeekTraitInfo'
 
 /** Portraits face the viewer (direction 3 = south) */
 const PORTRAIT_DIRECTION = 3
@@ -53,6 +64,11 @@ const PORTRAIT_DIRECTION = 3
 const multiplayerStore = useMultiplayerStore()
 const selectedModel = computed(() => multiplayerStore.myPlayer?.heroModel || '')
 const portraits = ref<Record<string, string>>({})
+
+function traitInfo(model: string) {
+  const trait = traitOf(model)
+  return trait ? TRAIT_INFO[trait] : null
+}
 
 onMounted(async () => {
   // Character atlases for the portraits (also warms them up for the match)

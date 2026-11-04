@@ -41,9 +41,17 @@ function resolvePeerOptions(): Promise<PeerOptions> {
 /** How often a host re-announces its room to the public list (server drops it after 10s of silence). */
 const ROOM_HEARTBEAT_MS = 2000
 
-/** Transient signaling failures worth retrying (connection reset, server hiccup). */
-const RETRYABLE_PEER_ERRORS = new Set(['network', 'server-error', 'socket-error', 'socket-closed'])
-const MAX_PEER_RETRIES = 3
+/**
+ * Transient signaling failures worth retrying (connection reset, server hiccup).
+ * 'unavailable-id': a host that refreshed its page reclaims its room id while the server still holds the old socket.
+ */
+const RETRYABLE_PEER_ERRORS = new Set(['network', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id'])
+const MAX_PEER_RETRIES = 5
+
+/** Player id a client attaches to its connection, so the host knows who dropped. */
+function connectionPlayerId(conn: DataConnection): string {
+  return (conn.metadata as { playerId?: string } | undefined)?.playerId || conn.peer
+}
 
 class NetworkService {
   private peer: Peer | null = null
@@ -203,7 +211,7 @@ class NetworkService {
 
         this.peer.on('open', () => {
           if (!this.peer) return
-          const conn = this.peer.connect(hostPeerId, { reliable: true })
+          const conn = this.peer.connect(hostPeerId, { reliable: true, metadata: { playerId: myId } })
           this.hostConnection = conn
 
           conn.on('open', () => {
@@ -218,6 +226,8 @@ class NetworkService {
           })
 
           conn.on('close', () => {
+            // A connection replaced by a reconnect closing late is not a lost host
+            if (this.hostConnection !== conn) return
             console.log('[P2P Client] Host connection closed')
             if (this.onHostDisconnectCallback) this.onHostDisconnectCallback()
           })
@@ -269,8 +279,11 @@ class NetworkService {
     conn.on('close', () => {
       console.log(`[P2P Host] Client disconnected: ${conn.peer}`)
       this.clientConnections.delete(conn.peer)
-      if (this.onPeerDisconnectCallback) {
-        this.onPeerDisconnectCallback(conn.peer)
+      // The player may already be back on a new connection (page refresh)
+      const playerId = connectionPlayerId(conn)
+      const isStillConnected = [...this.clientConnections.values()].some(c => c.open && connectionPlayerId(c) === playerId)
+      if (!isStillConnected && this.onPeerDisconnectCallback) {
+        this.onPeerDisconnectCallback(playerId)
       }
     })
 
@@ -303,7 +316,9 @@ class NetworkService {
    */
   public receiveMessage(msg: NetMessage) {
     if (!msg || !msg.type) return
-    const key = `${msg.senderId}_${msg.seq || msg.timestamp}_${msg.type}`
+    // The same message can come twice (WebRTC and the same-browser channel). seq alone is not enough: a player keeps
+    // their id over a page refresh while seq starts again at 1, and the host would drop their new join request
+    const key = `${msg.senderId}_${msg.seq ?? ''}_${msg.timestamp}_${msg.type}`
     if (this.processedMessageIds.has(key)) return
 
     this.processedMessageIds.add(key)
@@ -408,10 +423,12 @@ class NetworkService {
     this.clientConnections.clear()
 
     if (this.hostConnection) {
-      try {
-        this.hostConnection.close()
-      } catch {}
+      // Drop the reference first: its 'close' event must not report a lost host
+      const conn = this.hostConnection
       this.hostConnection = null
+      try {
+        conn.close()
+      } catch {}
     }
 
     if (this.peer) {

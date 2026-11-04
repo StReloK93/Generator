@@ -6,6 +6,8 @@ import { HERO_MODELS } from './heroStore'
 import { networkService } from '../services/networkService'
 import { hideSeekAudio } from '../services/hideSeekAudio'
 import { getModelActionFrameCount } from '../utils/characterUtils'
+import { readSession, writeSession, HIDE_SEEK_MATCH_KEY } from '../services/sessionResume'
+import { getProjectMapId } from '../services/mapManager'
 import { HideSeekBody, HideSeekViewContext, buildMinimapView, buildRenderView, isRoundOver } from './hideSeekViews'
 import {
   HideSeekPhase,
@@ -33,7 +35,16 @@ import {
   footstepInterval,
   advanceLoot,
   chestChimeLoudness,
-  chestsNeededToWin,
+  lootQuota,
+  lootProgress,
+  splitSpawns,
+  allSpawns,
+  teamForSlot,
+  SpawnSets,
+  crawlsThroughHoles,
+  arenaOf,
+  jailSpot,
+  mazeSize,
   turnTowards,
   hasLineOfSight,
   CHEST_CHECK_RADIUS,
@@ -69,6 +80,16 @@ import {
   DOOR_REACH,
   TORCH_REACH,
   FOOTPRINT_SPACING,
+  HideSeekTrait,
+  torchSpots,
+  placeCandle,
+  canPlaceCandle,
+  traitOf,
+  playerRules,
+  spottedWithin,
+  stepLoudness,
+  treasureSenseRadius,
+  extraGadgets,
 } from '../domain/hideseek'
 import type { GridCoord, HideSeekSettings } from '../types/map'
 import type {
@@ -126,6 +147,21 @@ const MOVE_KEYS: Record<string, [number, number]> = {
 
 type PendingUse = { kind: 'lid' | 'search' | 'hide' | 'door' | 'torch'; index: number }
 
+/** What a page refresh needs to continue the match where it was. */
+interface SavedHideSeekMatch {
+  owner: string
+  /** The whole match (host / solo only: guests get it from the host) */
+  match: HideSeekMatch | null
+  mazeSeed: number
+  round: number
+  /** Host / solo: every character (and the bot); guest: its own */
+  bodies: HideSeekBody[]
+  gadgets: GadgetCounts
+  stamina: Stamina
+  explored: number[]
+  bot: { gadgets: GadgetCounts; stamina: Stamina } | null
+}
+
 /**
  * Hide & seek session: local input and movement, gadgets, the network, the solo bot and the per-frame views.
  * The rules live in domain/hideseek: the host (or a solo game) runs the referee (HideSeekMatch), guests mirror it.
@@ -144,8 +180,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const winner = ref<HideSeekRole | null>(null)
   const endReason = ref<HideSeekEndReason | null>(null)
   const champion = ref<string | null>(null)
-  const chestsLooted = ref(0)
-  const chestsToWin = ref(0)
+  /** Treasures I brought home this round, out of the share every hider needs; carrying one right now */
+  const myChests = ref(0)
+  const isCarrying = ref(false)
+  /** Rounds each side won, and the side that won the match */
+  const roundWins = ref<Record<HideSeekRole, number>>({ seeker: 0, hider: 0 })
+  const matchWinner = ref<HideSeekRole | null>(null)
+  const chestQuota = ref(0)
+  /** Hiders who already have their share, out of all hiders */
+  const hidersReady = ref(0)
+  const hidersTotal = ref(0)
   const myRole = ref<HideSeekRole>('hider')
   const isSneaking = ref(false)
   const heardLevel = ref(0)
@@ -153,7 +197,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const dangerLevel = ref(0)
   const staminaLevel = ref(1)
   const isExhausted = ref(false)
-  const gadgets = reactive<GadgetCounts>({ stones: 0, flares: 0, traps: 0 })
+  const gadgets = reactive<GadgetCounts>({ stones: 0, flares: 0, traps: 0, candles: 0 })
   const isAimingStone = ref(false)
   const isJailed = ref(false)
   const isHidden = ref(false)
@@ -167,6 +211,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const exitsOpen = ref(false)
   /** Bumped when this round's labyrinth replaced the map (the canvas redraws its layers) */
   const mazeRevision = ref(0)
+  /** Own character's trait (kept in both roles) */
+  const myTrait = ref<HideSeekTrait | null>(null)
+  /** Hiders the seeker caught this round (each makes the seeker faster and slower to tire) */
+  const seekerCatches = ref(0)
 
   const canMove = computed(() => !needsSoloRole.value && !isJailed.value && canAct(myRole.value, phase.value))
   const didIWin = computed(() => winner.value !== null && winner.value === myRole.value)
@@ -188,7 +236,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const lastPositions = new Map<string, GridCoord & { travel: number; left: boolean }>()
   let huntHint: { angle: number; strength: number } | null = null
   let huntTimer = 0
-  let spawns: GridCoord[] = []
+  let spawns: SpawnSets = { seekers: [], hiders: [] }
   let match: HideSeekMatch = createMatch([])
   let lastRound = -1
   let stateDirty = false
@@ -222,7 +270,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   // Solo bot
   let botBrain: BotBrain | null = null
   let botStamina: Stamina = freshStamina(settings)
-  let botGadgets: GadgetCounts = { stones: 0, flares: 0, traps: 0 }
+  let botGadgets: GadgetCounts = { stones: 0, flares: 0, traps: 0, candles: 0 }
   let botFlare = 0
   let botNoise: GridCoord | null = null
   let viewContext: HideSeekViewContext | null = null
@@ -232,6 +280,22 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   function myPlayer(): HideSeekBody | undefined {
     return players.get(myId())
+  }
+
+  /** A character's own rules: their trait, and for the seeker the momentum of this round's catches. */
+  function rulesOf(p: HideSeekBody): HideSeekSettings {
+    const seat = seatOf(match, p.id)
+    return playerRules(settings, traitOf(p.model), p.role, seat?.catches ?? 0, !!seat?.carrying)
+  }
+
+  /** All seekers' traps / candles this round together (what the referee lets them place in total). */
+  function seekersGadgets(kind: 'traps' | 'candles'): number {
+    return [...players.values()].filter(p => p.role === 'seeker').reduce((sum, p) => sum + gadgetsOf(p)[kind], 0)
+  }
+
+  /** A round's gadgets for a character (the trickster gets more). */
+  function gadgetsOf(p: HideSeekBody): GadgetCounts {
+    return gadgetsFor(p.role, settings, extraGadgets(settings, traitOf(p.model)))
   }
 
   /** Solo game without a room: the player picks a role, a bot plays the other one. */
@@ -245,7 +309,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function addPlayer(id: string, name: string, color: string, model: string, role: HideSeekRole): void {
-    const spawn = spawns[0] ?? { col: 0, row: 0 }
+    const spawn = allSpawns(spawns)[0] ?? { col: 0, row: 0 }
     players.set(id, {
       id, name, color, model, role,
       col: spawn.col, row: spawn.row, targetCol: spawn.col, targetRow: spawn.row,
@@ -258,8 +322,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     return (mapStore.project.routes ?? []).flatMap(r => r.routePoints?.slice(0, 1) ?? [])
   }
 
-  const moveGrid = (role: HideSeekRole) => (role === 'hider' ? hiderGrid : (grid ?? EMPTY_GRID))
-  const pathGrid = (role: HideSeekRole) => (role === 'hider' ? hiderPaths : seekerPaths)
+  /** Walking / route finding: only the crawler squeezes through the crawl holes */
+  const moveGrid = (p: HideSeekBody) => (crawlsThroughHoles(traitOf(p.model)) ? hiderGrid : (grid ?? EMPTY_GRID))
+  const pathGrid = (p: HideSeekBody) => (crawlsThroughHoles(traitOf(p.model)) ? hiderPaths : seekerPaths)
 
   /** Collision for the current doors (a random labyrinth) or the map's own walls. */
   function rebuildGrids(): void {
@@ -268,19 +333,25 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       hiderGrid = buildMazeGrid(maze, false, match.doors)
       seekerPaths = buildMazeGrid(maze, true, null)
       hiderPaths = buildMazeGrid(maze, false, null)
-      torchGlows = maze.torches.map(t => castGlow(grid!, t, settings.torchRadius))
     } else {
       grid = hiderGrid = seekerPaths = hiderPaths = buildCollisionGrid(mapStore.project)
-      torchGlows = []
     }
+    refreshTorchGlows()
+  }
+
+  /** Light polygon of every candle (walls and shut doors cast shadows). */
+  function refreshTorchGlows(): void {
+    const at = grid
+    torchGlows = at ? torchSpots(match, maze).map(t => castGlow(at, t, settings.torchRadius)) : []
   }
 
   /** Builds the round's labyrinth from its seed (every client gets the same one) and puts it on the map. */
   function loadMaze(seed: number): void {
-    if (!seed || maze?.seed === seed) return
+    const size = mazeSize(settings, Math.max(1, match.seats.filter(s => s.role === 'seeker').length))
+    if (!seed || (maze?.seed === seed && maze.cols === size.cols && maze.rows === size.rows)) return
     maze = generateMaze(seed, {
-      cols: settings.mazeCols,
-      rows: settings.mazeRows,
+      cols: size.cols,
+      rows: size.rows,
       roomCount: settings.roomCount,
       doorCount: settings.doorCount,
       holeCount: settings.holeCount,
@@ -289,7 +360,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       exitCount: settings.exitCount,
     })
     Object.assign(mapStore.project, buildMazeMap(maze))
-    spawns = maze.spawns
+    spawns = { seekers: maze.seekerSpawns, hiders: maze.hiderSpawns }
     explored = new Uint8Array(maze.cols * maze.rows)
     mazeRevision.value++
   }
@@ -303,7 +374,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function bodies(): MatchBody[] {
-    return [...players.values()].map(p => ({ id: p.id, col: p.col, row: p.row, moving: p.moving, hidden: p.hidden }))
+    return [...players.values()].map(p => ({ id: p.id, col: p.col, row: p.row, moving: p.moving, hidden: p.hidden, trait: traitOf(p.model) }))
   }
 
   // ==========================================
@@ -314,31 +385,115 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     maze = null
     match = createMatch([])
     rebuildGrids()
-    spawns = routeSpawns()
+    spawns = splitSpawns(routeSpawns())
     footprints = []
     explored = new Uint8Array(mapStore.project.cols * mapStore.project.rows)
     players.clear()
     botBrain = null
     lastRound = -1
+    // Only a solo game waits for a role pick (a solo game earlier in this tab must not leave it set for a room)
+    needsSoloRole.value = false
+
+    // Page refresh: this tab's saved match of the same game continues instead of a new one
+    const saved = readSession<SavedHideSeekMatch>(HIDE_SEEK_MATCH_KEY)
+    const resume = saved?.owner === sessionOwner() ? saved : null
 
     if (isSolo()) {
       addPlayer(myId(), multiplayerStore.myPlayerName, multiplayerStore.myPlayerColor, DEFAULT_HERO_MODEL, 'hider')
-      match = createMatch([myId()])
+      match = createMatch([{ id: myId(), team: 1 }])
       needsSoloRole.value = true
+      if (resume?.match) resumeAsReferee(resume, resume.match)
     } else {
       const ordered = [...multiplayerStore.players].sort((a, b) => a.slotIndex - b.slotIndex)
-      for (const p of ordered) addPlayer(p.id, p.name, p.color, p.heroModel || DEFAULT_HERO_MODEL, roleForSlot(p.slotIndex))
-      match = createMatch(ordered.map(p => p.id))
+      for (const p of ordered) addPlayer(p.id, p.name, p.color, p.heroModel || DEFAULT_HERO_MODEL, roleForSlot(p.slotIndex, settings.seekerSlots))
+      match = createMatch(ordered.map(p => ({ id: p.id, team: teamForSlot(p.slotIndex, settings.seekerSlots) })), settings.roundCount)
       if (multiplayerStore.isHost) {
-        setupRound(0)
-        onRoundStarted()
+        if (resume?.match) {
+          resumeAsReferee(resume, resume.match)
+        } else {
+          setupRound(0)
+          onRoundStarted()
+        }
         broadcastState()
       } else {
         myRole.value = myPlayer()?.role ?? 'hider'
+        if (resume) resumeAsGuest(resume)
       }
     }
     isActive.value = true
     applyHud()
+  }
+
+  // ==========================================
+  // Page refresh (sessionStorage)
+  // ==========================================
+  /** One running game: the room, or the solo map */
+  function sessionOwner(): string {
+    return multiplayerStore.roomId ? `room:${multiplayerStore.roomId}` : `solo:${getProjectMapId(mapStore.project)}`
+  }
+
+  /** Saves where this tab is in the match: the referee (host / solo) the whole match, a guest its own character. */
+  function saveSession(): void {
+    if (!isActive.value) return
+    const me = myPlayer()
+    const isRunningReferee = isReferee() && !needsSoloRole.value
+    const snapshot: SavedHideSeekMatch = {
+      owner: sessionOwner(),
+      match: isRunningReferee ? match : null,
+      mazeSeed: match.mazeSeed,
+      round: match.round,
+      bodies: isRunningReferee ? [...players.values()] : me ? [me] : [],
+      gadgets: { ...gadgets },
+      stamina,
+      explored: Array.from(explored),
+      bot: players.has(BOT_ID) ? { gadgets: botGadgets, stamina: botStamina } : null,
+    }
+    writeSession(HIDE_SEEK_MATCH_KEY, snapshot)
+  }
+
+  /** Puts the saved labyrinth back on the map and the own character, gadgets and explored fog back in place. */
+  function restoreOwnState(saved: SavedHideSeekMatch): void {
+    if (saved.mazeSeed) loadMaze(saved.mazeSeed)
+    rebuildGrids()
+    lastRound = saved.round
+    const me = myPlayer()
+    const savedMe = saved.bodies.find(b => b.id === myId())
+    if (me && savedMe) Object.assign(me, savedMe, { moving: false })
+    visionFacing = me?.facing ?? 0
+    isHidden.value = (me?.hidden ?? -1) !== -1
+    Object.assign(gadgets, saved.gadgets)
+    stamina = saved.stamina
+    if (saved.explored.length === explored.length) explored = Uint8Array.from(saved.explored)
+  }
+
+  /** Host / solo: the match goes on from the saved state (same round, clock, chests, seats and scores). */
+  function resumeAsReferee(saved: SavedHideSeekMatch, savedMatch: HideSeekMatch): void {
+    match = savedMatch
+    for (const body of saved.bodies) {
+      // Solo brings its bot back; in a room only players still in it come back
+      if (isSolo() || players.has(body.id)) players.set(body.id, { ...body, moving: false })
+    }
+    restoreOwnState(saved)
+    needsSoloRole.value = false
+    myRole.value = seatOf(match, myId())?.role ?? 'hider'
+    // Everyone else is already where they were: this tune has played
+    lastTuneKey = `${match.round}:${match.clock.phase}`
+
+    const bot = players.get(BOT_ID)
+    if (bot && saved.bot) {
+      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.chests.length, match.spots.length)
+      botGadgets = saved.bot.gadgets
+      botStamina = saved.bot.stamina
+    }
+  }
+
+  /** Guest: back on the same labyrinth and spot; the host's next state brings the match itself. */
+  function resumeAsGuest(saved: SavedHideSeekMatch): void {
+    match.mazeSeed = saved.mazeSeed
+    match.round = saved.round
+    restoreOwnState(saved)
+    const me = myPlayer()
+    if (me) sendMyState(me)
   }
 
   /** Solo: the player takes `role` in round 1, the bot the other one; round 2 swaps. */
@@ -348,7 +503,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     players.delete(BOT_ID)
     const botModels = HERO_MODELS.filter(m => m.id !== me.model)
     addPlayer(BOT_ID, 'Bot', BOT_COLOR, botModels[Math.floor(Math.random() * botModels.length)].id, role === 'seeker' ? 'hider' : 'seeker')
-    match = createMatch(role === 'seeker' ? [me.id, BOT_ID] : [BOT_ID, me.id])
+    // Team 0 seeks for the whole match
+    match = createMatch([
+      { id: me.id, team: role === 'seeker' ? 0 : 1 },
+      { id: BOT_ID, team: role === 'seeker' ? 1 : 0 },
+    ], settings.roundCount)
     setupRound(0)
     needsSoloRole.value = false
     onRoundStarted()
@@ -374,8 +533,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
     const me = myPlayer()
     myRole.value = me?.role ?? 'hider'
-    stamina = freshStamina(settings)
-    Object.assign(gadgets, gadgetsFor(myRole.value, settings))
+    stamina = freshStamina(me ? rulesOf(me) : settings)
+    Object.assign(gadgets, me ? gadgetsOf(me) : gadgetsFor(myRole.value, settings))
     flareTimer = 0
     guestLoot = NO_LOOT
     lidTimers = []
@@ -396,9 +555,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     const bot = players.get(BOT_ID)
     if (bot && grid) {
-      botBrain = createBotBrain(pathGrid(bot.role), spawns, match.chests.length, match.spots.length)
-      botStamina = freshStamina(settings)
-      botGadgets = gadgetsFor(bot.role, settings)
+      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.chests.length, match.spots.length)
+      botStamina = freshStamina(rulesOf(bot))
+      botGadgets = gadgetsOf(bot)
       botFlare = 0
       botNoise = null
     }
@@ -416,9 +575,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     champion.value = match.champion
     round.value = match.round + 1
     rounds.value = Math.max(1, match.rounds)
-    chestsLooted.value = match.chests.filter(ch => ch.looted).length
-    chestsToWin.value = chestsNeededToWin(match.chests, settings)
+    const mySeat = seatOf(match, myId())
+    myChests.value = mySeat?.delivered ?? 0
+    isCarrying.value = !!mySeat?.carrying
+    roundWins.value = { ...match.wins }
+    matchWinner.value = match.matchWinner
+    chestQuota.value = lootQuota(settings)
+    const progress = lootProgress(match, settings)
+    hidersReady.value = progress.done
+    hidersTotal.value = progress.total
     exitsOpen.value = match.exitsOpen
+    seekerCatches.value = mySeat?.catches ?? 0
+    myTrait.value = traitOf(myPlayer()?.model)
     isJailed.value = !!seatOf(match, myId())?.jailed
     scores.value = match.seats
       .map(seat => {
@@ -468,8 +636,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     winner.value = null
     endReason.value = null
     champion.value = null
-    chestsLooted.value = 0
-    chestsToWin.value = 0
+    myChests.value = 0
+    isCarrying.value = false
+    roundWins.value = { seeker: 0, hider: 0 }
+    matchWinner.value = null
+    chestQuota.value = 0
+    hidersReady.value = 0
+    hidersTotal.value = 0
     heardLevel.value = 0
     dangerLevel.value = 0
     isJailed.value = false
@@ -501,6 +674,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     else if (code === 'KeyQ') toggleStoneAim()
     else if (code === 'KeyF') lightFlare()
     else if (code === 'KeyT') dropTrap()
+    else if (code === 'KeyC') setCandle()
     else if (code === 'Escape' && isAimingStone.value) isAimingStone.value = false
     else return false
     return true
@@ -533,7 +707,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const list: Usable[] = []
     if (role === 'seeker') match.chests.forEach((at, index) => list.push({ use: { kind: 'lid', index }, at, reach: CHEST_CHECK_RADIUS }))
     match.spots.forEach((at, index) => list.push({ use: { kind: role === 'seeker' ? 'search' : 'hide', index }, at, reach: HIDE_SPOT_REACH }))
-    maze?.torches.forEach((at, index) => {
+    torchSpots(match, maze).forEach((at, index) => {
       if (match.torches[index] === (role === 'hider')) list.push({ use: { kind: 'torch', index }, at, reach: TORCH_REACH })
     })
     maze?.doors.forEach((door, index) => list.push({ use: { kind: 'door', index }, at: door.center, reach: DOOR_REACH }))
@@ -543,7 +717,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function usePosition(use: PendingUse): GridCoord | undefined {
     if (use.kind === 'lid') return match.chests[use.index]
     if (use.kind === 'door') return maze?.doors[use.index]?.center
-    if (use.kind === 'torch') return maze?.torches[use.index]
+    if (use.kind === 'torch') return torchSpots(match, maze)[use.index]
     return match.spots[use.index]
   }
 
@@ -632,7 +806,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function moveTo(col: number, row: number): void {
     const me = myPlayer()
     if (!me || !canMove.value) return
-    clickPath = findWalkPath(pathGrid(me.role), me, { col, row })
+    clickPath = findWalkPath(pathGrid(me), me, { col, row })
     pending = null
   }
 
@@ -683,6 +857,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     performAction({ kind: 'trap', c: Math.round(me.col * 2) / 2, r: Math.round(me.row * 2) / 2 })
   }
 
+  /** Seeker: set a burning candle down where they stand (a few per round). */
+  function setCandle(): void {
+    const me = myPlayer()
+    if (!me || !canMove.value || myRole.value !== 'seeker' || gadgets.candles <= 0) return
+    const at = { col: Math.round(me.col * 2) / 2, row: Math.round(me.row * 2) / 2 }
+    if (!canPlaceCandle(match, at, maze)) return
+    gadgets.candles--
+    performAction({ kind: 'candle', c: at.col, r: at.row })
+  }
+
   /** The referee applies an action right away; a guest sends it to the host. */
   function performAction(action: HideSeekActionPayload): void {
     if (isReferee()) applyAction(action, myId())
@@ -692,13 +876,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Referee: applies a player's (or the bot's) action. */
   function applyAction(action: HideSeekActionPayload, by: string): void {
     if (action.kind === 'stone' || action.kind === 'flare') emitEvent({ kind: action.kind, col: action.c, row: action.r, by })
-    else if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, settings) || stateDirty
+    else if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
+    else if (action.kind === 'candle') {
+      if (players.get(by)?.role === 'seeker' && placeCandle(match, { col: action.c, row: action.r }, seekersGadgets('candles'), maze)) {
+        emitEvent({ kind: 'candle', col: action.c, row: action.r })
+      }
+    }
     else if (action.kind === 'door') {
       if (setDoor(match, action.index, action.open)) emitEvent({ kind: 'door', index: action.index, open: action.open })
     } else if (action.kind === 'torch') {
       const role = seatOf(match, by)?.role
       if (role && useTorch(match, action.index, role)) emitEvent({ kind: 'torch', index: action.index, lit: match.torches[action.index] })
-    } else searchSpot(match, action.spot, bodies(), settings).forEach(emitEvent)
+    } else searchSpot(match, action.spot, bodies(), settings, by).forEach(emitEvent)
   }
 
   // ==========================================
@@ -708,6 +897,25 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     handleEvent(event)
     if (!isSolo()) send('HS_EVENT', event)
     if (event.kind !== 'stone' && event.kind !== 'flare') stateDirty = true
+  }
+
+  /**
+   * Each client moves its own character (and the solo bot): a caught one into the jail, a freed one back to its start.
+   * Without a jail (a map's own layout) the caught stay where they are.
+   */
+  function placeOwnCharacter(id: string, to: 'jail' | 'home'): void {
+    if (id !== myId() && !(id === BOT_ID && isReferee())) return
+    const p = players.get(id)
+    const jailAt = maze?.jail
+    if (!p || (to === 'jail' && !jailAt)) return
+    const jailed = match.seats.filter(s => s.jailed)
+    const at = to === 'jail' && jailAt ? jailSpot(jailAt, Math.max(0, jailed.findIndex(s => s.id === id))) : spawnForSeat(match, id, spawns)
+    Object.assign(p, { col: at.col, row: at.row, targetCol: at.col, targetRow: at.row, moving: false, hidden: -1 })
+    if (id === myId()) {
+      clickPath = []
+      pending = null
+      if (!isSolo()) sendMyState(p)
+    }
   }
 
   /** Volume / pan of a sound at `pos` for the local player. */
@@ -734,9 +942,20 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       case 'caught':
         hideSeekAudio.playJail(0.7, false)
         if (event.id === myId()) leaveSpot()
+        placeOwnCharacter(event.id, 'jail')
         break
       case 'freed':
         hideSeekAudio.playJail(0.6, true)
+        placeOwnCharacter(event.id, 'home')
+        break
+      case 'delivered':
+        if (event.by === myId()) hideSeekAudio.playChime(0.8, 0)
+        break
+      case 'pickup':
+        if (event.by === myId()) hideSeekAudio.playChime(0.5, 0)
+        break
+      case 'drop':
+        hideSeekAudio.playStone(...noiseAt(event))
         break
       case 'bell':
         hideSeekAudio.playBell(...noiseAt(event))
@@ -768,9 +987,19 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         }
         break
       }
+      case 'candle': {
+        // The referee already added it; a guest adds it now (the next state confirms it)
+        if (!isReferee()) {
+          match.candles.push({ col: event.col, row: event.row })
+          match.torches.push(true)
+        }
+        refreshTorchGlows()
+        hideSeekAudio.playCandle(...noiseAt(event), true)
+        break
+      }
       case 'torch': {
         match.torches[event.index] = event.lit
-        const torch = maze?.torches[event.index]
+        const torch = torchSpots(match, maze)[event.index]
         if (torch) hideSeekAudio.playCandle(...noiseAt(torch), event.lit)
         break
       }
@@ -815,9 +1044,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       maze: match.mazeSeed,
       doors: [...match.doors],
       torches: [...match.torches],
+      candles: match.candles.map(c => ({ c: c.col, r: c.row })),
       exits: match.exits.map(e => ({ c: e.col, r: e.row })),
       exitsOpen: match.exitsOpen,
       seats: match.seats.map(s => ({ ...s })),
+      drops: match.drops.map(d => ({ c: d.col, r: d.row })),
+      wins: { ...match.wins },
+      matchWinner: match.matchWinner,
     }
     send('HS_MATCH_STATE', payload)
   }
@@ -845,9 +1078,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     match.spots = state.spots.map(s => ({ col: s.c, row: s.r, kind: s.k, facing: s.f }))
     match.traps = state.traps.map(t => ({ col: t.c, row: t.r, ringing: t.ring }))
     match.seats = state.seats.map(s => ({ ...s }))
+    match.drops = state.drops.map(d => ({ col: d.c, row: d.r }))
+    match.wins = { ...state.wins }
+    match.matchWinner = state.matchWinner
     match.mazeSeed = state.maze
     match.doors = [...state.doors]
     match.torches = [...state.torches]
+    match.candles = state.candles.map(c => ({ col: c.c, row: c.r }))
     match.exits = state.exits.map(e => ({ col: e.c, row: e.r }))
     match.exitsOpen = state.exitsOpen
     loadMaze(state.maze)
@@ -876,7 +1113,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         if (!multiplayerStore.players.some(p => p.id === id)) players.delete(id)
       }
     }
-    const events: MatchEvent[] = tickMatch(match, bodies(), grid, spawns, settings, deltaSec, Math.random)
+    const events: MatchEvent[] = tickMatch(match, bodies(), grid, settings, deltaSec, arenaOf(maze))
     for (const event of events) {
       if (event.kind !== 'roundDue') {
         emitEvent(event)
@@ -903,7 +1140,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const dir = screenInputToGrid(input.x, input.y)
     const steering = Math.hypot(dir.col, dir.row) > 0.05
     if (steering && me.hidden !== -1) leaveSpot()
-    const distance = moveSpeed(me.role, sneaking, stamina, settings) * deltaSec
+    const rules = rulesOf(me)
+    const distance = moveSpeed(me.role, sneaking, stamina, rules) * deltaSec
 
     if (!canMove.value || me.hidden !== -1 || !grid) {
       clickPath = []
@@ -912,7 +1150,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       // Keyboard / joystick steering overrides a click-to-move path
       clickPath = []
       pending = null
-      const next = moveWithCollision(moveGrid(me.role), me, dir.col * distance, dir.row * distance)
+      const next = moveWithCollision(moveGrid(me), me, dir.col * distance, dir.row * distance)
       me.col = next.col
       me.row = next.row
       me.facing = Math.atan2(dir.row, dir.col)
@@ -951,8 +1189,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
 
     const gait = me.hidden !== -1 ? 'hidden' : !me.moving ? 'still' : sneaking ? 'sneak' : 'run'
-    stamina = advanceStamina(stamina, gait, deltaSec, settings)
-    const level = Math.round((stamina.value / settings.staminaSeconds) * 50) / 50
+    stamina = advanceStamina(stamina, gait, deltaSec, rules)
+    const level = Math.round((Math.min(1, stamina.value / rules.staminaSeconds)) * 50) / 50
     if (level !== staminaLevel.value) staminaLevel.value = level
     if (stamina.exhausted !== isExhausted.value) isExhausted.value = stamina.exhausted
 
@@ -977,6 +1215,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     })
   }
 
+/** Where the solo bot runs to besides chests: home with a treasure, otherwise an open exit gate. */
+  function botGoals(bot: HideSeekBody): GridCoord[] {
+    const home = maze?.hiderBase
+    if (seatOf(match, bot.id)?.carrying && home) return [{ col: home.col + home.cols / 2 - 0.5, row: home.row + home.rows / 2 - 0.5 }]
+    return match.exitsOpen ? match.exits : []
+  }
+
   /** Solo opponent: thinks with its own eyes / ears, then walks its path and uses gadgets like a player. */
   function updateBot(me: HideSeekBody | undefined, deltaSec: number): void {
     const bot = players.get(BOT_ID)
@@ -988,6 +1233,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
     // A player inside a barrel or in jail cannot be sensed
     const sensed = me && me.hidden === -1 && !seatOf(match, me.id)?.jailed
+    const botRules = rulesOf(bot)
+    const meTrait = traitOf(me?.model)
+    const senseRules = {
+      ...botRules,
+      visionRange: botRules.visionRange * spottedWithin(settings, meTrait),
+      hearingRange: botRules.hearingRange * Math.max(0.1, stepLoudness(settings, meTrait)),
+    }
     const action = thinkBot(
       botBrain,
       bot.role,
@@ -1002,10 +1254,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         hiddenIn: bot.hidden,
         gadgets: botGadgets,
         flareActive: botFlare > 0,
-        exits: match.exitsOpen ? match.exits : [],
+        exits: botGoals(bot),
       },
-      pathGrid(bot.role),
-      bot.role === 'seeker' && isHunting.value ? huntSettings(settings) : settings,
+      pathGrid(bot),
+      bot.role === 'seeker' && isHunting.value ? huntSettings(senseRules) : senseRules,
       Math.random,
       deltaSec
     )
@@ -1035,21 +1287,22 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     bot.sneaking = action.sneak
     if (bot.hidden !== -1) {
       bot.moving = false
-      botStamina = advanceStamina(botStamina, 'hidden', deltaSec, settings)
+      botStamina = advanceStamina(botStamina, 'hidden', deltaSec, botRules)
       return
     }
     if (botBrain.path.length > 0) openDoorsAhead(bot, index => applyAction({ kind: 'door', index, open: true }, BOT_ID))
-    const step = stepAlongPath(bot, botBrain.path, moveSpeed(bot.role, bot.sneaking, botStamina, settings) * deltaSec)
+    const step = stepAlongPath(bot, botBrain.path, moveSpeed(bot.role, bot.sneaking, botStamina, botRules) * deltaSec)
     botBrain.path = step.path
     bot.col = bot.targetCol = step.pos.col
     bot.row = bot.targetRow = step.pos.row
     if (step.facing !== null) bot.facing = step.facing
     bot.moving = step.facing !== null
-    botStamina = advanceStamina(botStamina, !bot.moving ? 'still' : bot.sneaking ? 'sneak' : 'run', deltaSec, settings)
+    botStamina = advanceStamina(botStamina, !bot.moving ? 'still' : bot.sneaking ? 'sneak' : 'run', deltaSec, botRules)
   }
 
   function animate(p: HideSeekBody, deltaSec: number): void {
-    const speed = p.sneaking ? settings.sneakSpeed : settings.runSpeed
+    const rules = rulesOf(p)
+    const speed = p.sneaking ? rules.sneakSpeed : rules.runSpeed
     const frameDuration = p.moving ? Math.max(0.04, RUN_FRAME_SEC / speed) : 0.16
     p.animTimer += deltaSec
     if (p.animTimer < frameDuration) return
@@ -1060,6 +1313,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Remote characters ease towards their network position; footsteps and the heartbeat are heard. */
   function updateOthers(me: HideSeekBody | undefined, deltaSec: number): void {
     const playing = match.clock.phase === 'hiding' || match.clock.phase === 'seeking'
+    const ears = me ? rulesOf(me) : settings
     let loudest = 0
     let nearestSeeker = Infinity
     for (const p of players.values()) {
@@ -1071,14 +1325,15 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         }
         if (me && playing && p.moving && !p.sneaking && p.hidden === -1) {
           p.stepTimer += deltaSec
-          if (p.stepTimer >= footstepInterval(settings.runSpeed)) {
+          if (p.stepTimer >= footstepInterval(rulesOf(p).runSpeed)) {
             p.stepTimer = 0
-            const [volume, pan] = soundAt(p, d => footstepLoudness(d, settings))
+            const quiet = stepLoudness(settings, traitOf(p.model))
+            const [volume, pan] = soundAt(p, d => footstepLoudness(d, ears) * quiet)
             hideSeekAudio.playFootstep(volume, pan)
             loudest = Math.max(loudest, volume)
           }
         }
-        if (me && p.role === 'seeker') nearestSeeker = Math.min(nearestSeeker, distTo(p, me))
+        if (me && p.role === 'seeker') nearestSeeker = Math.min(nearestSeeker, distTo(p, me) / spottedWithin(settings, traitOf(p.model)))
         if (playing) leaveFootprints(p)
       }
       animate(p, deltaSec)
@@ -1091,7 +1346,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (heard !== heardLevel.value) heardLevel.value = heard
 
     // Heartbeat: a free hider feels the seeker coming
-    const danger = me?.role === 'hider' && !isJailed.value && match.clock.phase === 'seeking' ? heartbeatDanger(nearestSeeker, settings) : 0
+    const danger = me?.role === 'hider' && !isJailed.value && match.clock.phase === 'seeking' ? heartbeatDanger(nearestSeeker, ears) : 0
     heartbeatTimer -= deltaSec
     if (danger > 0.05 && heartbeatTimer <= 0) {
       hideSeekAudio.playHeartbeat(0.25 + 0.55 * danger)
@@ -1180,15 +1435,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     const me = myPlayer()
     if (me) updateMe(me, deltaSec)
-    if (me?.role === 'hider' && !isReferee()) guestLoot = me.hidden === -1 && !isJailed.value ? advanceLoot(guestLoot, me, match.chests, deltaSec) : NO_LOOT
+    const mySeat = seatOf(match, myId())
+    const needsTreasure = !!mySeat && !mySeat.carrying && mySeat.delivered < lootQuota(settings)
+    if (me?.role === 'hider' && !isReferee()) guestLoot = me.hidden === -1 && !isJailed.value && needsTreasure ? advanceLoot(guestLoot, me, match.chests, deltaSec) : NO_LOOT
     if (isSolo() && !needsSoloRole.value) updateBot(me, deltaSec)
     updateOthers(me, deltaSec)
 
     updateHunt(me, deltaSec)
     const over = isRoundOver(match)
     const flare = flareTimer > 0
-    // The seeker sees further during the hunt
-    const sight = isHunting.value && me?.role === 'seeker' ? huntSettings(settings) : settings
+    // Own eyes (a keen eye sees further); the seeker sees further still during the hunt
+    const own = me ? rulesOf(me) : settings
+    const sight = isHunting.value && me?.role === 'seeker' ? huntSettings(own) : own
     const vision = over || !me ? null : castVision(grid, me, visionFacing, sight, sightAround(sight, flare))
     updateEffects(me, vision, deltaSec)
 
@@ -1217,6 +1475,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       explored,
       cols: mapStore.project.cols,
       rows: mapStore.project.rows,
+      senseRadius: me ? treasureSenseRadius(settings, traitOf(me.model)) : 0,
       aim: isAimingStone.value && me && pointerCell ? { from: { col: me.col, row: me.row }, to: stoneLanding(grid, me, pointerCell, settings) } : null,
     }
     renderView = buildRenderView(viewContext)
@@ -1245,8 +1504,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     winner,
     endReason,
     champion,
-    chestsLooted,
-    chestsToWin,
+    myChests,
+    isCarrying,
+    roundWins,
+    matchWinner,
+    chestQuota,
+    hidersReady,
+    hidersTotal,
     myRole,
     isSneaking,
     heardLevel,
@@ -1265,9 +1529,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     isHunting,
     exitsOpen,
     mazeRevision,
+    myTrait,
+    seekerCatches,
+    setCandle,
     startSoloRound,
     chooseSoloRole,
     startMatch,
+    saveSession,
     reset,
     setKey,
     setJoystick,

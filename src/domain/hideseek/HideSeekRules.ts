@@ -86,9 +86,18 @@ function spreadOut(candidates: GridCoord[], count: number, spacing: number): Gri
 /** Chests keep this far from furniture, doors and candle stands */
 const CHEST_PROP_CLEARANCE = 1.5
 
-/** Random free cells inside the playable maze, away from the spawns, from `props` and from each other. */
-export function pickChestSpots(grid: CollisionGrid, spawns: GridCoord[], count: number, random: () => number, props: GridCoord[] = []): GridCoord[] {
-  const cells = freeCells(grid, spawns, spawns, CHEST_SPAWN_CLEARANCE, random).filter(c => !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < CHEST_PROP_CLEARANCE))
+/** Random free cells inside the playable maze (and inside `zone`), away from the spawns, from `props` and from each other. */
+export function pickChestSpots(
+  grid: CollisionGrid,
+  spawns: GridCoord[],
+  count: number,
+  random: () => number,
+  props: GridCoord[] = [],
+  zone: (p: GridCoord) => boolean = () => true
+): GridCoord[] {
+  const cells = freeCells(grid, spawns, spawns, CHEST_SPAWN_CLEARANCE, random).filter(
+    c => zone(c) && !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < CHEST_PROP_CLEARANCE)
+  )
   return spreadOut(cells, count, CHEST_SPACING)
 }
 
@@ -108,14 +117,9 @@ export function pickHideSpots(grid: CollisionGrid, spawns: GridCoord[], avoid: G
   return spreadOut(corners, count, HIDE_SPOT_SPACING)
 }
 
-/** Chests the hider needs (never more than there are on the map). */
-export function chestsNeededToWin(chests: ChestState[], settings: HideSeekSettings): number {
-  return Math.min(settings.chestsToWin, chests.length)
-}
-
-/** The hider has looted enough chests to win. */
-export function hasLootedEnough(chests: ChestState[], settings: HideSeekSettings): boolean {
-  return chests.length > 0 && chests.filter(ch => ch.looted).length >= chestsNeededToWin(chests, settings)
+/** Chests every hider has to loot themself (never more than each hider's share on the map). */
+export function lootQuota(settings: HideSeekSettings): number {
+  return Math.min(settings.chestsToWin, settings.chestCount)
 }
 
 /** Index of a chest the hider stands at that still holds its treasure, or -1. */

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { 
   PlayerInfo, 
   PlayerSlot, 
@@ -26,10 +26,40 @@ import { useNotificationStore } from './notificationStore'
 import { useI18n } from './i18nStore'
 import { MapProject } from '../types/map'
 import { getMapMode } from '../domain/map'
+import { normalizeHideSeekSettings, teamForSlot } from '../domain/hideseek'
 import { gridToScreen } from '../utils/isometric'
+import { readSession, writeSession, removeSession, clearMatch } from '../services/sessionResume'
+import { getProjectMapId } from '../services/mapManager'
+import { gamePath, lobbyPath } from '../router/paths'
 
 /** Room codes are 6 digits (easy to read out and type on a phone's number pad) */
 export const ROOM_CODE_LENGTH = 6
+
+/** sessionStorage keys: this tab's player identity and room, so a page refresh rejoins the same seat */
+const PLAYER_ID_KEY = 'defensor_player_id'
+const ROOM_SESSION_KEY = 'defensor_room'
+const ROOM_PROJECT_KEY = 'defensor_room_project'
+
+/** How long a dropped player keeps their seat (and gold) before the host frees it */
+const REJOIN_GRACE_MS = 30_000
+/** How long a client keeps trying to reach a host that dropped (e.g. the host refreshed) */
+const HOST_RECONNECT_TIMEOUT_MS = 45_000
+const HOST_RECONNECT_INTERVAL_MS = 3_000
+
+interface SavedRoomSession {
+  roomId: string
+  isHost: boolean
+  mySlotIndex: number
+  roomName: string
+  mapName: string
+  maxPlayers: number
+  slots: PlayerSlot[]
+  players: PlayerInfo[]
+  roomGameState: 'lobby' | 'countdown' | 'in_game' | 'ended'
+  chatMessages: ChatMessage[]
+  /** Clan picked for the running game, so a refresh does not ask again */
+  selectedClanId: string
+}
 
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const mapStore = useMapStore()
@@ -44,7 +74,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   // Local Player Identity
   const savedName = localStorage.getItem('isocraft_player_name') || `Player_${Math.floor(Math.random() * 900 + 100)}`
 
-  const myPlayerId = ref<string>(`p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`)
+  // Kept for the tab's lifetime: after a refresh the host recognizes the same player and gives the seat back
+  const myPlayerId = ref<string>(
+    readSession<string>(PLAYER_ID_KEY) || `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+  )
+  writeSession(PLAYER_ID_KEY, myPlayerId.value)
   const myPlayerName = ref<string>(savedName)
   const mySlotIndex = ref<number>(0)
   const myPlayerColor = computed(() => getSlotColor(mySlotIndex.value))
@@ -94,10 +128,14 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   // Computed
   const isHideSeekRoom = computed(() => getMapMode(mapStore.project) === 'hideseek')
 
-  /** Hide & seek needs at least 2 players (1 seeker, the rest hide) and every character picked before it can start. */
-  const hideSeekLobbyIssue = computed<'needPlayers' | 'needModels' | null>(() => {
+  /** Hide & seek: the first lobby slots seek, the rest hide (the map's settings) */
+  const hideSeekSeekerSlots = computed(() => normalizeHideSeekSettings(mapStore.project.hideSeekSettings).seekerSlots)
+
+  /** Hide & seek needs a player on each side and every character picked before it can start. */
+  const hideSeekLobbyIssue = computed<'needTeams' | 'needModels' | null>(() => {
     if (!isHideSeekRoom.value) return null
-    if (players.value.length < 2) return 'needPlayers'
+    const teams = new Set(players.value.map(p => teamForSlot(p.slotIndex, hideSeekSeekerSlots.value)))
+    if (teams.size < 2) return 'needTeams'
     if (players.value.some(p => !p.heroModel)) return 'needModels'
     return null
   })
@@ -137,7 +175,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    */
   function initializeSlotsFromMap(project: MapProject): PlayerSlot[] {
     const routesList = project.routes || routeStore.routes || []
-    const count = Math.max(1, Math.min(8, routesList.length > 0 ? routesList.length : 4))
+    // Hide & seek seats two teams (from its settings); other maps one player per route
+    const count = getMapMode(project) === 'hideseek'
+      ? normalizeHideSeekSettings(project.hideSeekSettings).maxPlayers
+      : Math.max(1, Math.min(8, routesList.length > 0 ? routesList.length : 4))
     maxPlayers.value = count
 
     const newSlots: PlayerSlot[] = []
@@ -164,6 +205,39 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     return newSlots
   }
 
+  /** Registers this tab as the room's host node and advertises the room on the public list. */
+  async function startHosting(code: string): Promise<void> {
+    connectionStatus.value = 'connecting'
+
+    // Start P2P Host Node (retries transient signaling failures internally)
+    const isReachable = await networkService.initHost(
+      code,
+      handleIncomingMessage,
+      handlePeerConnected,
+      handlePeerDropped
+    )
+
+    // Start advertising this room for discovery
+    networkService.startDiscoveryBeacon(() => ({
+      roomId: roomId.value,
+      roomName: roomName.value,
+      hostName: myPlayerName.value,
+      hostColor: myPlayerColor.value,
+      mapName: mapName.value,
+      gameMode: getMapMode(mapStore.project),
+      playersCount: players.value.length,
+      maxPlayers: maxPlayers.value,
+      createdAt: Date.now(),
+      lastHeartbeat: Date.now(),
+      gameState: roomGameState.value,
+    }))
+
+    connectionStatus.value = isReachable ? 'connected' : 'error'
+    if (!isReachable) {
+      notify.warning(t('play.serverUnreachableDesc'), t('play.serverUnreachable'))
+    }
+  }
+
   /**
    * 1. HOST: Creates a new Multiplayer Room
    */
@@ -176,11 +250,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomName.value = customRoomName || `${myPlayerName.value}'s Game`
     mapName.value = mapProject.name || 'Isometric TD Map'
     isHost.value = true
-    connectionStatus.value = 'connecting'
     chatMessages.value = []
 
     // Store map project in mapStore
     mapStore.project = JSON.parse(JSON.stringify(mapProject))
+    writeSession(ROOM_PROJECT_KEY, mapStore.project)
 
     // Create slots based on map routes
     slots.value = initializeSlotsFromMap(mapProject)
@@ -209,54 +283,19 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     // Add System Chat
     addSystemMessage(`Room created: ${code}. Share this PIN code with your friends!`)
 
-    // Start P2P Host Node (retries transient signaling failures internally)
-    const isReachable = await networkService.initHost(
-      code,
-      handleIncomingMessage,
-      handlePeerConnected,
-      handlePeerDisconnected
-    )
-
-    // Start advertising this room for discovery
-    networkService.startDiscoveryBeacon(() => ({
-      roomId: roomId.value,
-      roomName: roomName.value,
-      hostName: myPlayerName.value,
-      hostColor: myPlayerColor.value,
-      mapName: mapName.value,
-      gameMode: getMapMode(mapStore.project),
-      playersCount: players.value.length,
-      maxPlayers: maxPlayers.value,
-      createdAt: Date.now(),
-      lastHeartbeat: Date.now(),
-      gameState: roomGameState.value,
-    }))
-
-    connectionStatus.value = isReachable ? 'connected' : 'error'
-    if (!isReachable) {
-      notify.warning(t('play.serverUnreachableDesc'), t('play.serverUnreachable'))
-    }
+    await startHosting(code)
 
     if (globalRouter) {
-      globalRouter.push(`/lobby/${code}`)
+      globalRouter.push(lobbyPath(code, getProjectMapId(mapStore.project)))
     }
     return code
   }
 
-  /**
-   * 2. CLIENT: Joins an existing room with room code
-   */
-  async function joinGame(targetRoomId: string, router?: any): Promise<boolean> {
-    if (router) setRouter(router)
-
-    const cleanRoomId = targetRoomId.replace(/\D/g, '')
-    roomId.value = cleanRoomId
-    isHost.value = false
+  /** Connects to the room's host and asks for a seat (a returning player gets their old seat back). */
+  function connectAsClient(code: string): Promise<boolean> {
     connectionStatus.value = 'connecting'
-    chatMessages.value = []
-
-    const connected = await networkService.connectToHost(
-      cleanRoomId,
+    return networkService.connectToHost(
+      code,
       myPlayerId.value,
       handleIncomingMessage,
       () => {
@@ -273,19 +312,157 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           timestamp: Date.now(),
         })
       },
-      () => {
-        connectionStatus.value = 'disconnected'
-        if (roomId.value) {
-          notify.warning("Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
-          leaveRoom(globalRouter)
-        }
-      }
+      handleHostLost
     )
+  }
+
+  /**
+   * 2. CLIENT: Joins an existing room with room code
+   */
+  async function joinGame(targetRoomId: string, router?: any): Promise<boolean> {
+    if (router) setRouter(router)
+
+    const cleanRoomId = targetRoomId.replace(/\D/g, '')
+    roomId.value = cleanRoomId
+    isHost.value = false
+    chatMessages.value = []
+
+    const connected = await connectAsClient(cleanRoomId)
 
     if (globalRouter) {
-      globalRouter.push(`/lobby/${cleanRoomId}`)
+      globalRouter.push(lobbyPath(cleanRoomId))
     }
     return connected
+  }
+
+  /**
+   * After a page refresh: puts this tab back into the room it was in. The host reopens the room with its saved
+   * state (seats, gold, chat); a client reconnects and the host hands its seat back.
+   * Returns false when this tab has no saved session for that room.
+   */
+  async function resumeRoom(code: string, router?: any): Promise<boolean> {
+    if (router) setRouter(router)
+
+    const saved = readSession<SavedRoomSession>(ROOM_SESSION_KEY)
+    if (!saved || saved.roomId !== code) return false
+    const project = readSession<MapProject>(ROOM_PROJECT_KEY)
+    if (!project) return false
+
+    roomId.value = saved.roomId
+    isHost.value = saved.isHost
+    mySlotIndex.value = saved.mySlotIndex
+    roomName.value = saved.roomName
+    mapName.value = saved.mapName
+    maxPlayers.value = saved.maxPlayers
+    slots.value = saved.slots
+    players.value = saved.players
+    roomGameState.value = saved.roomGameState
+    chatMessages.value = saved.chatMessages
+    resumedClanId.value = saved.selectedClanId
+    mapStore.project = project
+    restoreSessionFromProject()
+
+    if (isHost.value) {
+      // Every other player has to reconnect: seats of those who don't come back are freed after the grace period
+      for (const p of players.value) {
+        if (!p.isHost) schedulePlayerRemoval(p.id)
+      }
+      await startHosting(code)
+      syncLobbyState()
+    } else {
+      await connectAsClient(code)
+    }
+    return true
+  }
+
+  // --- Session persistence (page refresh) ---
+  /** Clan this tab had picked before the refresh (re-applied when the game screen starts) */
+  const resumedClanId = ref('')
+
+  function saveRoomSession() {
+    if (!roomId.value) return
+    const session: SavedRoomSession = {
+      roomId: roomId.value,
+      isHost: isHost.value,
+      mySlotIndex: mySlotIndex.value,
+      roomName: roomName.value,
+      mapName: mapName.value,
+      maxPlayers: maxPlayers.value,
+      slots: slots.value,
+      players: players.value,
+      roomGameState: roomGameState.value,
+      chatMessages: chatMessages.value.slice(-50),
+      selectedClanId: towerStore.selectedClanId,
+    }
+    writeSession(ROOM_SESSION_KEY, session)
+  }
+
+  function clearRoomSession() {
+    removeSession(ROOM_SESSION_KEY)
+    removeSession(ROOM_PROJECT_KEY)
+    clearMatch()
+  }
+
+  let roomSaveTimer: ReturnType<typeof setTimeout> | null = null
+  watch(
+    [roomId, isHost, mySlotIndex, roomName, mapName, maxPlayers, slots, players, roomGameState, chatMessages, () => towerStore.selectedClanId],
+    () => {
+      if (roomSaveTimer) return
+      roomSaveTimer = setTimeout(() => {
+        roomSaveTimer = null
+        saveRoomSession()
+      }, 500)
+    },
+    { deep: true }
+  )
+  window.addEventListener('pagehide', saveRoomSession)
+
+  // --- Dropped connections ---
+  const playerRemovalTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+  function cancelPlayerRemoval(playerId: string) {
+    const timer = playerRemovalTimers.get(playerId)
+    if (timer) clearTimeout(timer)
+    playerRemovalTimers.delete(playerId)
+  }
+
+  function schedulePlayerRemoval(playerId: string) {
+    cancelPlayerRemoval(playerId)
+    playerRemovalTimers.set(playerId, setTimeout(() => {
+      playerRemovalTimers.delete(playerId)
+      removePlayer(playerId)
+    }, REJOIN_GRACE_MS))
+  }
+
+  /** Host: a client's connection dropped (closed tab or page refresh). Its seat waits a while for it to come back. */
+  function handlePeerDropped(playerId: string) {
+    if (players.value.some(p => p.id === playerId && !p.isHost)) {
+      schedulePlayerRemoval(playerId)
+    }
+  }
+
+  let hostReconnectTimer: ReturnType<typeof setTimeout> | null = null
+  /** Last time the host answered with the room state (proof that a reconnect worked) */
+  let lastHostReplyAt = 0
+
+  /** Client: the host dropped without closing the room (e.g. its page refreshed). Keep trying to get back in. */
+  function handleHostLost() {
+    if (!roomId.value || isHost.value || hostReconnectTimer) return
+    connectionStatus.value = 'connecting'
+    const lostAt = Date.now()
+
+    const retry = () => {
+      hostReconnectTimer = null
+      if (!roomId.value || isHost.value || lastHostReplyAt > lostAt) return
+      if (Date.now() - lostAt > HOST_RECONNECT_TIMEOUT_MS) {
+        notify.warning("Host xonani tark etdi. Xona yopildi.", "Xona yopildi")
+        leaveRoom(globalRouter)
+        return
+      }
+      hostReconnectTimer = setTimeout(retry, HOST_RECONNECT_INTERVAL_MS)
+      connectAsClient(roomId.value)
+    }
+    hostReconnectTimer = setTimeout(retry, 1000)
   }
 
   /**
@@ -330,18 +507,24 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         roomGameState.value = state.gameState
         countdownTimer.value = state.countdownTimer
 
+        lastHostReplyAt = Date.now()
+        connectionStatus.value = 'connected'
+
         // Locate my slot
         const myPl = state.players.find(p => p.id === myPlayerId.value)
         if (myPl) {
           mySlotIndex.value = myPl.slotIndex
         }
 
-        // If game was started while we received lobby update
-        if (state.gameState === 'in_game' && globalRouter) {
-          gameStore.startPlayMode()
-          characterStore.spawnAtRoute(0)
-          characterStore.startTour()
-          globalRouter.push(`/game/${roomId.value}`)
+        // Follow the room to the screen it is on (joined / reconnected while a game runs, or it ended meanwhile)
+        if (globalRouter) {
+          const isOnGameScreen = globalRouter.currentRoute.value.name === 'room-game'
+          if (state.gameState === 'in_game' && !isOnGameScreen) {
+            globalRouter.push(gamePath(getProjectMapId(mapStore.project), roomId.value))
+          } else if (state.gameState === 'lobby' && isOnGameScreen) {
+            gameStore.exitPlayMode()
+            globalRouter.push(lobbyPath(roomId.value, getProjectMapId(mapStore.project)))
+          }
         }
         break
       }
@@ -349,9 +532,32 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       case 'JOIN_REQUEST': {
         if (!isHost.value) return
         const applicant = msg.payload as { id: string; name: string; color: string }
-        
+
+        // Kicked players stay out of this room
+        if (kickedPlayerIds.has(applicant.id)) {
+          sendKick(applicant.id)
+          return
+        }
+
+        // A player coming back (page refresh / reconnect) gets their own seat, gold and stats back
+        const returning = players.value.find(p => p.id === applicant.id)
+        if (returning) {
+          cancelPlayerRemoval(returning.id)
+          addSystemMessage(`${returning.name} reconnected`)
+          networkService.broadcast({
+            type: 'MAP_DATA',
+            payload: { project: buildSyncedProjectSnapshot() },
+            senderId: myPlayerId.value,
+            timestamp: Date.now(),
+          })
+          syncLobbyState()
+          // Send the running game state right away instead of waiting for the next periodic sync
+          lastGameStateBroadcastTime = 0
+          return
+        }
+
         // Find first empty slot
-        const emptySlot = slots.value.find(s => s.player === null)
+        const emptySlot = pickJoinSlot()
         if (!emptySlot) {
           networkService.broadcast({
             type: 'JOIN_REJECTED',
@@ -399,8 +605,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'MAP_DATA': {
-        if (msg.payload.project) {
+        // A running game already has the map (this is a resend for a player who reconnected)
+        if (msg.payload.project && !gameStore.isGameMode) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.project))
+          writeSession(ROOM_PROJECT_KEY, msg.payload.project)
           mapName.value = mapStore.project.name || 'Isometric TD Map'
           restoreSessionFromProject()
         }
@@ -449,6 +657,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       case 'START_GAME': {
         if (msg.payload?.mapProject) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.mapProject))
+          writeSession(ROOM_PROJECT_KEY, msg.payload.mapProject)
           mapName.value = mapStore.project.name || 'Isometric TD Map'
         }
         restoreSessionFromProject()
@@ -462,7 +671,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         characterStore.startTour()
 
         if (globalRouter) {
-          globalRouter.push(`/game/${roomId.value}`)
+          globalRouter.push(gamePath(getProjectMapId(mapStore.project), roomId.value))
         }
         break
       }
@@ -482,7 +691,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         addSystemMessage("All players returned to the lobby!")
 
         if (globalRouter) {
-          globalRouter.push(`/lobby/${roomId.value}`)
+          globalRouter.push(lobbyPath(roomId.value, getProjectMapId(mapStore.project)))
         }
         break
       }
@@ -740,7 +949,15 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'PLAYER_LEAVE': {
-        handlePeerDisconnected(msg.senderId)
+        cancelPlayerRemoval(msg.senderId)
+        removePlayer(msg.senderId)
+        break
+      }
+
+      case 'KICK': {
+        if (isHost.value || msg.payload?.id !== myPlayerId.value || !roomId.value) break
+        notify.warning(t('lobby.kickedDesc'), t('lobby.kickedTitle'))
+        leaveRoom(globalRouter)
         break
       }
 
@@ -759,16 +976,49 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     console.log(`[Lobby] Peer connected: ${peerId}`)
   }
 
-  function handlePeerDisconnected(peerId: string) {
-    const leftPlayer = players.value.find(p => p.id === peerId)
+  /**
+   * The seat a new player gets: the first free one; in hide & seek a hiders' seat once there is a seeker
+   * (players can still move to another free seat in the lobby).
+   */
+  function pickJoinSlot(): PlayerSlot | undefined {
+    const free = slots.value.filter(s => s.player === null)
+    if (!isHideSeekRoom.value) return free[0]
+    const hasSeeker = slots.value.some(s => s.player && teamForSlot(s.slotIndex, hideSeekSeekerSlots.value) === 0)
+    return (hasSeeker ? free.find(s => teamForSlot(s.slotIndex, hideSeekSeekerSlots.value) === 1) : undefined) ?? free[0]
+  }
+
+  // --- Kicking (host) ---
+  /** Players the host sent away: their join requests are refused while this room lives */
+  const kickedPlayerIds = new Set<string>()
+
+  function sendKick(playerId: string) {
+    networkService.broadcast({
+      type: 'KICK',
+      payload: { id: playerId },
+      senderId: myPlayerId.value,
+      timestamp: Date.now(),
+    })
+  }
+
+  /** Host: sends a player out of the room and frees their seat (also a seat left stuck by a broken connection). */
+  function kickPlayer(playerId: string) {
+    if (!isHost.value || playerId === myPlayerId.value) return
+    kickedPlayerIds.add(playerId)
+    cancelPlayerRemoval(playerId)
+    sendKick(playerId)
+    removePlayer(playerId)
+  }
+
+  function removePlayer(playerId: string) {
+    const leftPlayer = players.value.find(p => p.id === playerId)
     if (leftPlayer) {
       addSystemMessage(`${leftPlayer.name} left the room.`)
-      const slot = slots.value.find(s => s.player?.id === peerId)
+      const slot = slots.value.find(s => s.player?.id === playerId)
       if (slot) {
         slot.player = null
       }
-      players.value = players.value.filter(p => p.id !== peerId)
-      teammateHovers.value.delete(peerId)
+      players.value = players.value.filter(p => p.id !== playerId)
+      teammateHovers.value.delete(playerId)
       syncLobbyState()
     }
   }
@@ -1188,11 +1438,13 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     if (router) setRouter(router)
 
     roomGameState.value = 'in_game'
+    const mapProject = buildSyncedProjectSnapshot()
+    writeSession(ROOM_PROJECT_KEY, mapProject)
     networkService.broadcast({
       type: 'START_GAME',
       payload: {
         roomId: roomId.value,
-        mapProject: buildSyncedProjectSnapshot(),
+        mapProject,
         timestamp: Date.now(),
       },
       senderId: myPlayerId.value,
@@ -1205,7 +1457,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     characterStore.startTour()
 
     if (globalRouter) {
-      globalRouter.push(`/game/${roomId.value}`)
+      globalRouter.push(gamePath(getProjectMapId(mapStore.project), roomId.value))
     }
   }
 
@@ -1236,7 +1488,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       syncLobbyState()
 
       if (globalRouter) {
-        globalRouter.push(`/lobby/${roomId.value}`)
+        globalRouter.push(lobbyPath(roomId.value, getProjectMapId(mapStore.project)))
       }
     } else {
       networkService.sendToHost({
@@ -1250,7 +1502,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       characterStore.resetTour()
       towerStore.clearAllTowers()
       if (globalRouter) {
-        globalRouter.push(`/lobby/${roomId.value}`)
+        globalRouter.push(lobbyPath(roomId.value, getProjectMapId(mapStore.project)))
       }
     }
   }
@@ -1279,6 +1531,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }
 
     networkService.disconnect()
+    clearRoomSession()
+    if (hostReconnectTimer) clearTimeout(hostReconnectTimer)
+    hostReconnectTimer = null
+    playerRemovalTimers.forEach(timer => clearTimeout(timer))
+    playerRemovalTimers.clear()
+    kickedPlayerIds.clear()
     roomId.value = ''
     slots.value = []
     players.value = []
@@ -1332,6 +1590,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     setPlayerProfile,
     hostNewGame,
     joinGame,
+    resumeRoom,
+    resumedClanId,
     selectSlot,
     selectHeroModel,
     toggleReady,
@@ -1348,5 +1608,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     returnToLobby,
     leaveRoom,
     refreshDiscovery,
+    kickPlayer,
   }
 })
