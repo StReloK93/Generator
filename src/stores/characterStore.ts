@@ -591,6 +591,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
 
   return {
     units,
+    routeWaveProgress,
     isEnabled,
     isPlaying,
     aliveEnemiesCount,

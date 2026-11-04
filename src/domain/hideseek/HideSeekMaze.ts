@@ -43,7 +43,7 @@ export interface HideSeekMaze {
   cols: number
   rows: number
   walls: MazeEdge[]
-  /** Crawl holes: hiders get through, the seeker does not; nobody sees through */
+  /** Crawl holes: only the crawler gets through; nobody sees through */
   holes: MazeEdge[]
   doors: MazeDoor[]
   /** Exit gates (shut ones block like walls) */
@@ -51,8 +51,28 @@ export interface HideSeekMaze {
   spots: HideSpot[]
   /** Candle stands (light sources) */
   torches: GridCoord[]
-  /** Seeker first, then the hiders */
-  spawns: GridCoord[]
+  /** The seekers' base: a big open yard against one side of the labyrinth, where they start; the jail is in its middle */
+  seekerBase: MazeRect
+  jail: GridCoord
+  /** The hiders' home: the same yard on the opposite side, where they bring the treasure (nobody is caught there) */
+  hiderBase: MazeRect
+  /** The seekers' half of the labyrinth (the chests are there) */
+  seekerSide: MazeRect
+  /** Where the seekers start (inside their base) and where the hiders start (spread over the far half) */
+  seekerSpawns: GridCoord[]
+  hiderSpawns: GridCoord[]
+}
+
+/** A rectangle of map cells. */
+export interface MazeRect {
+  col: number
+  row: number
+  cols: number
+  rows: number
+}
+
+export function insideRect(rect: MazeRect, p: GridCoord, margin = 0): boolean {
+  return p.col >= rect.col - margin && p.col < rect.col + rect.cols + margin && p.row >= rect.row - margin && p.row < rect.row + rect.rows + margin
 }
 
 export interface MazeOptions {
@@ -82,6 +102,15 @@ const SPOT_SPACING = 4
 const SPOT_SPAWN_CLEARANCE = 4
 const TORCH_SPACING = 7
 const TORCH_SPAWN_CLEARANCE = 5
+/** The seekers' base, in maze cells (3 x 3 = a 6 x 6 tile yard) */
+const BASE_SIZE = 3
+/** Start points per side (the seekers' base has room for 4, the hiders spread over 6) */
+const SEEKER_SPAWN_COUNT = 4
+const HIDER_SPAWN_COUNT = 6
+/** A hider never starts this close (map cells) to an exit gate, which would win the round at once */
+const HIDER_SPAWN_EXIT_CLEARANCE = 10
+/** Each hider spawn is drawn from the few candidates farthest from the spawns already taken */
+const HIDER_SPAWN_CHOICES = 3
 /** Exit gates keep this many maze cells away from the corners */
 const EXIT_CORNER_GAP = 2
 
@@ -118,6 +147,9 @@ function shuffle<T>(items: T[], random: () => number): T[] {
   return items
 }
 
+const SIDES = ['left', 'right', 'top', 'bottom'] as const
+const OPPOSITE = { left: 'right', right: 'left', top: 'bottom', bottom: 'top' } as const
+
 const edgeKey = (e: MazeEdge) => `${e.axis}${e.col},${e.row}`
 const near = (a: GridCoord, b: GridCoord, distance: number) => Math.hypot(a.col - b.col, a.row - b.row) < distance
 
@@ -133,9 +165,28 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
   }
   const across = (w: CellWall): [number, number] => (w.type === 'e' ? [w.x + 1, w.y] : [w.x, w.y + 1])
 
-  // Rooms (never on the outer ring or next to the central plaza where everyone starts)
-  const mid = Math.floor(W / 2)
-  const plaza: Rect = { x: mid - 1, y: Math.floor(H / 2) - 1, w: 2, h: 2 }
+  // The seekers' base: a big open yard on one side (one cell in from the outer wall, so it can be walked around);
+  // the hiders start on the opposite side
+  const baseSide = shuffle([...SIDES], random)[0]
+  const size = Math.min(BASE_SIZE, W - 2, H - 2)
+  const midX = Math.floor((W - size) / 2)
+  const midY = Math.floor((H - size) / 2)
+  const plaza: Rect =
+    baseSide === 'left' ? { x: 1, y: midY, w: size, h: size }
+      : baseSide === 'right' ? { x: W - 1 - size, y: midY, w: size, h: size }
+        : baseSide === 'top' ? { x: midX, y: 1, w: size, h: size }
+          : { x: midX, y: H - 1 - size, w: size, h: size }
+  /** The hiders' home: the same yard on the opposite side */
+  const home: Rect =
+    baseSide === 'left' ? { x: W - 1 - size, y: midY, w: size, h: size }
+      : baseSide === 'right' ? { x: 1, y: midY, w: size, h: size }
+        : baseSide === 'top' ? { x: midX, y: H - 1 - size, w: size, h: size }
+          : { x: midX, y: 1, w: size, h: size }
+  /** Maze cell on the hiders' (far) half */
+  const onHiderHalf = (x: number, y: number) =>
+    baseSide === 'left' ? x >= W / 2 : baseSide === 'right' ? x < W / 2 : baseSide === 'top' ? y >= H / 2 : y < H / 2
+
+  // Rooms (never on the outer ring or next to the seekers' base)
   const rooms: Rect[] = []
   const touches = (a: Rect, b: Rect) => a.x <= b.x + b.w && b.x <= a.x + a.w && a.y <= b.y + b.h && b.y <= a.y + a.h
   for (let tries = 0; rooms.length < options.roomCount && tries < options.roomCount * 60; tries++) {
@@ -143,7 +194,7 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     const h = ROOM_MIN + Math.floor(random() * (ROOM_MAX - ROOM_MIN + 1))
     if (w + 2 > W || h + 2 > H) continue
     const room = { x: 1 + Math.floor(random() * (W - w - 1)), y: 1 + Math.floor(random() * (H - h - 1)), w, h }
-    if ([...rooms, plaza].some(other => touches(room, other))) continue
+    if ([...rooms, plaza, home].some(other => touches(room, other))) continue
     rooms.push(room)
   }
   const roomAt = Array.from({ length: W }, () => Array<number>(H).fill(-1))
@@ -237,12 +288,20 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     if (a === -1 && b === -1 && !isOpen(w) && random() < BRAID_CHANCE) setOpen(w, true)
   }
 
-  // Central plaza: everyone starts together
-  for (let x = plaza.x; x < plaza.x + plaza.w; x++) {
-    for (let y = plaza.y; y < plaza.y + plaza.h; y++) {
-      if (x < plaza.x + plaza.w - 1) east[x][y] = false
-      if (y < plaza.y + plaza.h - 1) south[x][y] = false
+  // Both bases: open inside, with a gate in the middle of every side
+  for (const yard of [plaza, home]) {
+    for (let x = yard.x; x < yard.x + yard.w; x++) {
+      for (let y = yard.y; y < yard.y + yard.h; y++) {
+        if (x < yard.x + yard.w - 1) east[x][y] = false
+        if (y < yard.y + yard.h - 1) south[x][y] = false
+      }
     }
+    const gateX = yard.x + Math.floor(yard.w / 2)
+    const gateY = yard.y + Math.floor(yard.h / 2)
+    if (yard.x > 0) east[yard.x - 1][gateY] = false
+    if (yard.x + yard.w < W) east[yard.x + yard.w - 1][gateY] = false
+    if (yard.y > 0) south[gateX][yard.y - 1] = false
+    if (yard.y + yard.h < H) south[gateX][yard.y + yard.h - 1] = false
   }
 
   // Crawl holes: walls between corridor cells that are a long walk apart
@@ -301,11 +360,10 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     return { edges, center: { col: ((w.x + ax) * CELL) / 2 + 0.5, row: ((w.y + ay) * CELL) / 2 + 0.5 } }
   })
 
-  // Exit gates: the first on a random side, the next on the opposite one (the seeker cannot guard both)
-  const sideOrder = shuffle(['left', 'right', 'top', 'bottom'] as const, random).slice(0, 1)
-  const opposite = { left: 'right', right: 'left', top: 'bottom', bottom: 'top' } as const
-  sideOrder.push(opposite[sideOrder[0]])
-  for (const side of ['left', 'right', 'top', 'bottom'] as const) if (!sideOrder.includes(side)) sideOrder.push(side)
+  // Exit gates on the two flanks first (between the bases, on opposite sides: the seekers cannot guard both),
+  // then the hiders' side, the seekers' side last
+  const flanks = shuffle(baseSide === 'left' || baseSide === 'right' ? ['top', 'bottom'] as const : ['left', 'right'] as const, random)
+  const sideOrder = [...flanks, OPPOSITE[baseSide], baseSide]
   const exits: MazeExit[] = sideOrder.slice(0, Math.min(4, options.exitCount)).map(side => {
     const along = side === 'left' || side === 'right' ? H : W
     const p = EXIT_CORNER_GAP + Math.floor(random() * Math.max(1, along - 2 * EXIT_CORNER_GAP))
@@ -358,15 +416,49 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     else if (k === 'hole') holes.push({ axis, col, row })
   }
 
-  // Spawns: the plaza
-  const pc = plaza.x * CELL + CELL
-  const pr = plaza.y * CELL + CELL
-  const spawns = [
-    { col: pc - 1, row: pr - 1 },
-    { col: pc, row: pr },
-    { col: pc - 1, row: pr },
-    { col: pc, row: pr - 1 },
-  ]
+  // The seekers' base and half (map cells): the chests are on the seekers' half, outside the base
+  const toTiles = (r: Rect): MazeRect => ({ col: r.x * CELL, row: r.y * CELL, cols: r.w * CELL, rows: r.h * CELL })
+  const seekerBase = toTiles(plaza)
+  const hiderBase = toTiles(home)
+  const jail = { col: seekerBase.col + Math.floor(seekerBase.cols / 2), row: seekerBase.row + Math.floor(seekerBase.rows / 2) }
+  const half = { cols: Math.floor(W / 2) * CELL, rows: Math.floor(H / 2) * CELL }
+  const seekerSide: MazeRect =
+    baseSide === 'left' ? { col: 0, row: 0, cols: half.cols, rows: H * CELL }
+      : baseSide === 'right' ? { col: W * CELL - half.cols, row: 0, cols: half.cols, rows: H * CELL }
+        : baseSide === 'top' ? { col: 0, row: 0, cols: W * CELL, rows: half.rows }
+          : { col: 0, row: H * CELL - half.rows, cols: W * CELL, rows: half.rows }
+
+  // Spawns: the seekers spread over their base; every hider somewhere else in the corridors of the far half,
+  // apart from each other and from the exit gates
+  const inset = Math.max(1, Math.floor(seekerBase.cols / 4))
+  const seekerSpawns: GridCoord[] = [
+    { col: seekerBase.col + inset, row: seekerBase.row + inset },
+    { col: seekerBase.col + seekerBase.cols - 1 - inset, row: seekerBase.row + seekerBase.rows - 1 - inset },
+    { col: seekerBase.col + seekerBase.cols - 1 - inset, row: seekerBase.row + inset },
+    { col: seekerBase.col + inset, row: seekerBase.row + seekerBase.rows - 1 - inset },
+  ].slice(0, SEEKER_SPAWN_COUNT)
+  const corridorCells: (GridCoord & { far: boolean })[] = []
+  for (let x = 0; x < W; x++) {
+    for (let y = 0; y < H; y++) {
+      if (roomAt[x][y] !== -1 || insideRect(seekerBase, { col: x * CELL, row: y * CELL })) continue
+      corridorCells.push({ col: x * CELL, row: y * CELL, far: onHiderHalf(x, y) })
+    }
+  }
+  const farEnough = corridorCells.filter(c => c.far && !exits.some(e => near(e.at, c, HIDER_SPAWN_EXIT_CLEARANCE)))
+  const farHalf = corridorCells.filter(c => c.far)
+  const hiderCandidates = shuffle(
+    farEnough.length >= HIDER_SPAWN_COUNT ? farEnough : farHalf.length >= HIDER_SPAWN_COUNT ? farHalf : corridorCells,
+    random
+  )
+  const hiderSpawns: GridCoord[] = []
+  for (let i = 0; i < HIDER_SPAWN_COUNT && hiderCandidates.length > 0; i++) {
+    const taken = [...seekerSpawns, ...hiderSpawns]
+    const gap = (c: GridCoord) => Math.min(...taken.map(s => Math.hypot(s.col - c.col, s.row - c.row)))
+    const ranked = hiderCandidates.sort((a, b) => gap(b) - gap(a))
+    const [chosen] = ranked.splice(Math.floor(random() * Math.min(HIDER_SPAWN_CHOICES, ranked.length)), 1)
+    hiderSpawns.push({ col: chosen.col, row: chosen.row })
+  }
+  const spawns = [...seekerSpawns, ...hiderSpawns]
 
   // Map cells: which sides have a wall, and is it inside a room
   const cols = W * CELL
@@ -431,7 +523,7 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
   )
   const torches = pick(torchCandidates, options.torchCount, [], TORCH_SPACING)
 
-  return { seed, cols, rows, walls, holes, doors, exits, spots, torches, spawns }
+  return { seed, cols, rows, walls, holes, doors, exits, spots, torches, seekerBase, jail, hiderBase, seekerSide, seekerSpawns, hiderSpawns }
 }
 
 /** Sub-cells a wall piece blocks (the 2x2 collision sub-grid: an edge at col - 0.5 is sub-column 2 * col - 1). */

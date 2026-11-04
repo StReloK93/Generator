@@ -28,7 +28,7 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, che
     noise: null,
     exhausted: false,
     hiddenIn: -1,
-    gadgets: { stones: 0, flares: 0, traps: 0 },
+    gadgets: { stones: 0, flares: 0, traps: 0, candles: 0 },
     flareActive: false,
     exits: [],
     ...extra,
@@ -83,7 +83,7 @@ describe('HideSeekBot', () => {
     const chests = [{ col: 15, row: 15, looted: false }]
     const brain = createBotBrain(openGrid, [{ col: 2, row: 2 }], chests.length, 0)
     // Seeker behind the bot (not in its sight cone), 5 tiles away and running
-    const action = think(brain, 'hider', senses({ col: 7, row: 7 }, 0, { col: 2, row: 7 }, chests, { gadgets: { stones: 1, flares: 0, traps: 0 } }, true))
+    const action = think(brain, 'hider', senses({ col: 7, row: 7 }, 0, { col: 2, row: 7 }, chests, { gadgets: { stones: 1, flares: 0, traps: 0, candles: 0 } }, true))
     expect(action.sneak).toBe(true)
     expect(action.stone).not.toBeNull()
     expect(Math.hypot(action.stone!.col - 7, action.stone!.row - 7)).toBeLessThanOrEqual(settings.stoneRange)
@@ -105,7 +105,7 @@ describe('HideSeekBot', () => {
   it('seeker chases a hider it sees, looks into chests it passes and leaves a bell at full ones', () => {
     const chests = [{ col: 5.5, row: 5, looted: false }]
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], chests.length, 0)
-    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1 } }))
+    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1, candles: 0 } }))
     expect(brain.mode).toBe('chase')
     expect(brain.path.at(-1)).toEqual({ col: 10, row: 5 })
     expect(action.checkedChest).toBe(0)
@@ -116,7 +116,7 @@ describe('HideSeekBot', () => {
 
   it('seeker lights a flare and runs to where it last saw the hider after losing sight', () => {
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], 0, 0)
-    const gadgets = { stones: 0, flares: 1, traps: 0 }
+    const gadgets = { stones: 0, flares: 1, traps: 0, candles: 0 }
     think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 9, row: 5 }, [], { gadgets }))
     // Hider slipped behind the seeker
     const action = think(brain, 'seeker', senses({ col: 6, row: 5 }, 0, { col: 2, row: 5 }, [], { gadgets }))

@@ -22,13 +22,18 @@ const routes = [
     component: () => import('../views/ProjectileEditorView.vue'),
   },
   {
-    path: '/lobby/:roomId',
+    path: '/lobby/:roomId/:mapId?',
     name: 'lobby',
     component: () => import('../views/LobbyView.vue'),
   },
   {
     path: '/game/:mapId?',
     name: 'game',
+    component: () => import('../views/GameView.vue'),
+  },
+  {
+    path: '/game/:mapId/room/:roomId',
+    name: 'room-game',
     component: () => import('../views/GameView.vue'),
   },
   {

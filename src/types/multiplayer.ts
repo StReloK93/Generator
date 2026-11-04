@@ -1,6 +1,6 @@
 import { MapProject, UnitVariantType, MapGameMode } from './map'
 import type { HideSeekPhase, HideSeekRole, HideSeekEndReason } from '../domain/hideseek/HideSeekRules'
-import type { MatchEvent } from '../domain/hideseek/HideSeekMatch'
+import type { MatchEvent, HideSeekSeat } from '../domain/hideseek/HideSeekMatch'
 import type { HideSpotKind, SpriteFacing } from '../domain/hideseek/HideSeekMaze'
 
 export interface PlayerInfo {
@@ -73,6 +73,7 @@ export type NetMessageType =
   | 'JOIN_ACCEPTED'
   | 'JOIN_REJECTED'
   | 'PLAYER_LEAVE'
+  | 'KICK'
   | 'ROOM_CLOSED'
   | 'SLOT_CHANGE'
   | 'TOGGLE_READY'
@@ -246,10 +247,14 @@ export interface HideSeekMatchStatePayload {
   /** Random labyrinth of this round (0 = the map's own layout): guests build it from the seed */
   maze: number
   doors: boolean[] // open?
-  torches: boolean[] // burning?
+  torches: boolean[] // burning? (labyrinth stands, then the seeker's candles)
+  candles: { c: number; r: number }[] // candles the seeker set down
   exits: { c: number; r: number }[] // spot inside each exit gate
   exitsOpen: boolean
-  seats: { id: string; role: HideSeekRole; jailed: boolean; score: number }[]
+  seats: HideSeekSeat[] // team, role, jail, score, treasure carried / brought home and catches this round
+  drops: { c: number; r: number }[] // treasures dropped by caught hiders
+  wins: Record<HideSeekRole, number> // rounds each side won
+  matchWinner: HideSeekRole | null
 }
 
 /** Hide & seek: a player uses a gadget / opens a barrel (sent to the host, who applies it). */
@@ -260,6 +265,7 @@ export type HideSeekActionPayload =
   | { kind: 'search'; spot: number }
   | { kind: 'door'; index: number; open: boolean }
   | { kind: 'torch'; index: number }
+  | { kind: 'candle'; c: number; r: number }
 
 /** Hide & seek: something everyone should hear / see (host to all). */
 export type HideSeekEventPayload =
@@ -268,3 +274,4 @@ export type HideSeekEventPayload =
   | { kind: 'flare'; col: number; row: number; by: string }
   | { kind: 'door'; index: number; open: boolean }
   | { kind: 'torch'; index: number; lit: boolean }
+  | { kind: 'candle'; col: number; row: number }

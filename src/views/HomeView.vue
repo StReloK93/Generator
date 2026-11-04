@@ -168,6 +168,7 @@ import {
   applyMapPayloadToStores,
   type MapSummary
 } from '../services/mapManager'
+import { gamePath } from '../router/paths'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -264,7 +265,7 @@ async function selectAndStartMap(mapData: any) {
     // Attempt to lock landscape orientation on game start
     lockLandscape()
 
-    await router.push(`/game/${cleanId}`)
+    await router.push(gamePath(cleanId))
   } catch (err) {
     console.error('Error starting map:', err)
     notify.error('Failed to load map')

@@ -14,7 +14,7 @@ import {
   pickChestSpots,
   findLootableChest,
   advanceLoot,
-  hasLootedEnough,
+  lootQuota,
   NO_LOOT,
   findWalkPath,
   nearestWithin,
@@ -164,14 +164,10 @@ describe('HideSeekRules', () => {
     expect(advanceLoot(loot, { col: 3, row: 3, moving: false }, chests, 1)).toEqual(NO_LOOT)
   })
 
-  it('lets the hider win with 5 of 6 chests, so guarding one chest cannot stop them', () => {
-    const rules = normalizeHideSeekSettings({ chestCount: 6, chestsToWin: 5 })
-    const chests = Array.from({ length: 6 }, (_, i) => ({ col: i, row: 0, looted: i < 4 }))
-    expect(hasLootedEnough(chests, rules)).toBe(false)
-    chests[4].looted = true
-    expect(hasLootedEnough(chests, rules)).toBe(true)
-    // A map with fewer chests than needed: all of them are enough
-    expect(hasLootedEnough(chests.slice(0, 3), rules)).toBe(true)
+  it('asks every hider for 5 of their 6 chests, so guarding one chest cannot stop them', () => {
+    expect(lootQuota(normalizeHideSeekSettings({ chestCount: 6, chestsToWin: 5 }))).toBe(5)
+    // Never more than each hider's share on the map
+    expect(lootQuota(normalizeHideSeekSettings({ chestCount: 3, chestsToWin: 5 }))).toBe(3)
   })
 
   it('lets the seeker reach the nearest chest, looted or not', () => {

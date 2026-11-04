@@ -14,6 +14,11 @@ const server = http.createServer(app)
 
 app.use(createMultiplayerApp(server))
 app.use(APP_BASE, express.static(distDir))
+// App routes (/game/<map>, /lobby/<room>, ...) are client side: a refresh or shared link gets the app shell
+app.use(APP_BASE, (req, res, next) => {
+  if (req.method !== 'GET' || path.extname(req.path) || !req.accepts('html')) return next()
+  res.sendFile(path.join(distDir, 'index.html'))
+})
 if (APP_BASE !== '/') app.get('/', (_req, res) => res.redirect(APP_BASE))
 
 server.listen(PORT, () => {

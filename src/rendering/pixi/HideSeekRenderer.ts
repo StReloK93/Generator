@@ -67,6 +67,11 @@ const CHEST_OPEN = 'sprite-chestOpen_E'
  * the night covers the floor, walls and characters are lit (or darkened) one by one */
 const NIGHT_Z_INDEX = 90000
 const GLOW_Z_INDEX = 90100
+/** Treasure gems: dropped on the floor, or carried over a hider's head */
+const TREASURE_COLOR = 0x38bdf8
+const TREASURE_CORE_COLOR = 0xe0f2fe
+/** A carried gem floats this many tile heights over the carrier's feet */
+const CARRY_GEM_LIFT = 2.4
 /** Characters sort among walls / props like the Hero mode (100,000 + depth) */
 const AVATAR_DEPTH_BIAS = 500
 const BEACON_Z_INDEX = 940000
@@ -90,7 +95,11 @@ const FLAME_COLOR = 0xffb347
 const FLAME_CORE_COLOR = 0xfff3c4
 /** Candle light on the floor: share of its radius that fades out */
 const TORCH_FADE_SHARE = 0.75
-const TORCH_GLOW_ALPHA = 0.028
+/** Every burning candle is drawn wherever it is (a far one going dark looked as if a hider had blown it out), so each
+ * gets fewer, stronger bands than the player's own light (the blur hides the steps) */
+const TORCH_FALLOFF_STEPS = 8
+const TORCH_ERASE_BAND_ALPHA = 1 - Math.pow(0.01, 1 / TORCH_FALLOFF_STEPS)
+const TORCH_GLOW_ALPHA = 0.028 * (FALLOFF_STEPS / TORCH_FALLOFF_STEPS)
 const HUNT_COLOR = 0xef4444
 /** Open exit gates send up a green beam everyone sees */
 const EXIT_BEAM_COLOR = 0x4ade80
@@ -217,11 +226,32 @@ export class HideSeekRenderer {
     this.lightEntities(view, entities)
     this.drawXray(view, project, entities)
     this.drawEffects(view, project)
+    this.drawTreasures(view, now / 1000, project)
     const reaches = this.flicker(view.sightReaches, now / 1000)
     this.drawNight(view, reaches, project)
     this.drawGlow(view, reaches, now / 1000, project)
     this.drawFootprints(view, project)
     this.drawRoute(view.route, project)
+  }
+
+  /** Dropped treasures glinting on the floor, and a gem over everyone who carries one home. */
+  private drawTreasures(view: HideSeekRenderView, time: number, project: MapProject): void {
+    const g = this.effectsGraphics
+    const { tileWidth, tileHeight } = project
+    const gem = (x: number, y: number, size: number) => {
+      g.circle(x, y, size * 2.2).fill({ color: TREASURE_COLOR, alpha: 0.18 })
+      g.poly([x, y - size * 1.3, x + size, y, x, y + size * 1.3, x - size, y]).fill({ color: TREASURE_COLOR, alpha: 0.95 })
+      g.poly([x, y - size * 1.3, x + size * 0.45, y, x, y + size * 0.4, x - size * 0.45, y]).fill({ color: TREASURE_CORE_COLOR, alpha: 0.9 })
+    }
+    view.treasures.forEach((t, i) => {
+      const p = gridToScreen(t.col, t.row, tileWidth, tileHeight)
+      gem(p.x, p.y - tileHeight * 0.25 + Math.sin(time * 3 + i) * 3, 7)
+    })
+    for (const avatar of view.avatars) {
+      if (!avatar.carrying || !avatar.visible) continue
+      const p = gridToScreen(avatar.col, avatar.row, tileWidth, tileHeight)
+      gem(p.x, p.y - tileHeight * CARRY_GEM_LIFT + Math.sin(time * 4) * 2, 6)
+    }
   }
 
   /** Click-to-move: faint dotted line along the path and a pulsing ring on the destination. */
@@ -398,9 +428,9 @@ export class HideSeekRenderer {
     for (const torch of view.torches) {
       if (!torch.glow) continue
       const radii = torch.glow.slice(1).map(() => view.torchRadius)
-      for (let i = 0; i < FALLOFF_STEPS; i++) {
-        const fraction = 1 - (TORCH_FADE_SHARE * i) / FALLOFF_STEPS
-        hole.poly(this.toScreen(this.scaledSight(torch.glow, fraction, radii), project)).fill({ color: 0xffffff, alpha: ERASE_BAND_ALPHA })
+      for (let i = 0; i < TORCH_FALLOFF_STEPS; i++) {
+        const fraction = 1 - (TORCH_FADE_SHARE * i) / TORCH_FALLOFF_STEPS
+        hole.poly(this.toScreen(this.scaledSight(torch.glow, fraction, radii), project)).fill({ color: 0xffffff, alpha: TORCH_ERASE_BAND_ALPHA })
       }
     }
   }
@@ -420,8 +450,8 @@ export class HideSeekRenderer {
       const radii = torch.glow.slice(1).map(() => view.torchRadius)
       // Each candle flickers on its own
       const candle = TORCH_GLOW_ALPHA * (1 + FLICKER_GLOW * 1.5 * Math.sin(time * (8.3 + t) + t * 2.1))
-      for (let i = 1; i <= FALLOFF_STEPS; i++) {
-        g.poly(this.toScreen(this.scaledSight(torch.glow, i / FALLOFF_STEPS, radii), project)).fill({ color: GLOW_COLOR, alpha: candle })
+      for (let i = 1; i <= TORCH_FALLOFF_STEPS; i++) {
+        g.poly(this.toScreen(this.scaledSight(torch.glow, i / TORCH_FALLOFF_STEPS, radii), project)).fill({ color: GLOW_COLOR, alpha: candle })
       }
     })
   }

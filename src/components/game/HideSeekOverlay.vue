@@ -55,6 +55,9 @@
       <span class="flex items-start gap-1.5">
         <DoorOpen class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.propHintSeeker') : $t('hideseek.propHintHider') }}
       </span>
+      <span v-if="isSeeker" class="flex items-start gap-1.5">
+        <Lamp class="size-3 shrink-0 mt-px" />{{ $t('hideseek.candleHint') }}
+      </span>
     </div>
   </div>
 
@@ -97,7 +100,7 @@
     />
   </div>
 
-  <!-- Solo: pick a role for round 1 (a bot plays the other one, round 2 swaps) -->
+  <!-- Solo: pick a role for the whole match (a bot plays the other one) -->
   <UiModal
     :is-open="hideSeekStore.isActive && hideSeekStore.needsSoloRole"
     :title="$t('hideseek.soloTitle')"
@@ -185,7 +188,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand, Lamp } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -246,6 +249,7 @@ const status = computed(() => {
   if (hideSeekStore.isJailed) return { text: t('hideseek.jailed'), icon: Lock, cls: 'border-slate-500/50 text-slate-200' }
   if (hideSeekStore.isAimingStone) return { text: t('hideseek.aimHint'), icon: CircleDot, cls: 'border-stone-400/50 text-stone-200' }
   if (hideSeekStore.isHidden) return { text: t('hideseek.hiddenHint'), icon: Package, cls: 'border-emerald-500/40 text-emerald-200' }
+  if (hideSeekStore.isCarrying) return { text: t('hideseek.carryHint'), icon: Gem, cls: 'border-sky-400/60 text-sky-200' }
   return null
 })
 const statusText = computed(() => status.value?.text ?? '')
@@ -260,26 +264,30 @@ const RESULT_KEYS = {
   left: 'hideseek.reasonLeft',
 } as const
 
-const myScoreRank = computed(() => hideSeekStore.scores.findIndex(r => r.isMe))
-const championName = computed(() => hideSeekStore.scores.find(r => r.id === hideSeekStore.champion)?.name ?? '')
+/** Rounds won: seekers : hiders */
+const roundScore = computed(() => `${hideSeekStore.roundWins.seeker} : ${hideSeekStore.roundWins.hider}`)
 
+/** The match is won by a side (the roles stay for the whole match) */
 const resultTitle = computed(() => {
   if (isRoundOver.value) return t('hideseek.roundOver', { n: hideSeekStore.round })
-  if (!hideSeekStore.champion) return t('hideseek.draw')
-  return hideSeekStore.champion === multiplayerStore.myPlayerId ? t('hideseek.championYou') : t('hideseek.championOther', { name: championName.value })
+  const side = hideSeekStore.matchWinner
+  if (!side) return t('hideseek.draw')
+  return t(side === 'seeker' ? 'hideseek.seekersWonMatch' : 'hideseek.hidersWonMatch', { score: roundScore.value })
 })
+
+const iWonMatch = computed(() => hideSeekStore.matchWinner !== null && hideSeekStore.matchWinner === hideSeekStore.myRole)
 
 const resultSubtitle = computed(() => (hideSeekStore.endReason ? t(RESULT_KEYS[hideSeekStore.endReason]) : ''))
 
 const resultIcon = computed(() => {
   if (isRoundOver.value) return Flag
-  if (!hideSeekStore.champion) return Scale
-  return myScoreRank.value === 0 ? Trophy : Skull
+  if (!hideSeekStore.matchWinner) return Scale
+  return iWonMatch.value ? Trophy : Skull
 })
 
 const resultColor = computed(() => {
-  if (isRoundOver.value || !hideSeekStore.champion) return 'cyan' as const
-  return myScoreRank.value === 0 ? ('amber' as const) : ('rose' as const)
+  if (isRoundOver.value || !hideSeekStore.matchWinner) return 'cyan' as const
+  return iWonMatch.value ? ('amber' as const) : ('rose' as const)
 })
 
 /** Who won the round that just ended, from my side's point of view */
@@ -302,12 +310,13 @@ function run(action: () => void) {
   }
 }
 
-/** Seeker: flare, bell trap, open; hider: stone, hide in a barrel. count null = unlimited */
+/** Seeker: flare, bell trap, candle, open; hider: stone, hide in a barrel. count null = unlimited */
 const gadgetButtons = computed(() =>
   isSeeker.value
     ? [
         { key: 'F', label: 'hideseek.flare', icon: Flame, count: hideSeekStore.gadgets.flares, active: hideSeekStore.isFlareLit, run: run(hideSeekStore.lightFlare) },
         { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, run: run(hideSeekStore.dropTrap) },
+        { key: 'C', label: 'hideseek.candle', icon: Lamp, count: hideSeekStore.gadgets.candles, active: false, run: run(hideSeekStore.setCandle) },
         { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, run: run(hideSeekStore.useNearest) },
       ]
     : [

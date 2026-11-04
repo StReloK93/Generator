@@ -37,8 +37,13 @@ describe('HideSeekGadgets', () => {
   })
 
   it('hands out stones to hiders and flares / traps to the seeker', () => {
-    expect(gadgetsFor('hider', settings)).toEqual({ stones: 3, flares: 0, traps: 0 })
-    expect(gadgetsFor('seeker', settings)).toEqual({ stones: 0, flares: 2, traps: 2 })
+    expect(gadgetsFor('hider', settings)).toEqual({ stones: 3, flares: 0, traps: 0, candles: 0 })
+    expect(gadgetsFor('seeker', settings)).toEqual({ stones: 0, flares: 2, traps: 2, candles: 4 })
+  })
+
+  it('gives the trickster one more of each own gadget', () => {
+    expect(gadgetsFor('hider', settings, 1)).toEqual({ stones: 4, flares: 0, traps: 0, candles: 0 })
+    expect(gadgetsFor('seeker', settings, 1)).toEqual({ stones: 0, flares: 3, traps: 3, candles: 5 })
   })
 
   it('stops a stone at walls and at the throwing range', () => {

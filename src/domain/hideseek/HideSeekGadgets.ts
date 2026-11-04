@@ -48,12 +48,16 @@ export interface GadgetCounts {
   stones: number
   flares: number
   traps: number
+  /** Candles the seeker sets down */
+  candles: number
 }
 
-export function gadgetsFor(role: HideSeekRole, settings: HideSeekSettings): GadgetCounts {
+/** A round's gadgets; the trickster gets `extra` more of each of their own. */
+export function gadgetsFor(role: HideSeekRole, settings: HideSeekSettings, extra = 0): GadgetCounts {
+  const more = (n: number) => (n > 0 ? n + extra : 0)
   return role === 'seeker'
-    ? { stones: 0, flares: settings.flareCount, traps: settings.trapCount }
-    : { stones: settings.stoneCount, flares: 0, traps: 0 }
+    ? { stones: 0, flares: more(settings.flareCount), traps: more(settings.trapCount), candles: more(settings.seekerCandleCount) }
+    : { stones: more(settings.stoneCount), flares: 0, traps: 0, candles: 0 }
 }
 
 /** Where a stone thrown at `target` lands: at most stoneRange away, short of the first wall in the way. */
