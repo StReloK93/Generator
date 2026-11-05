@@ -16,7 +16,6 @@ import {
   traitOf,
   spottedWithin,
   TORCH_SIGHT_FACTOR,
-  inSmoke,
   scoutedBy,
   fireWallEnds,
 } from '../domain/hideseek'
@@ -59,6 +58,8 @@ export interface HideSeekViewContext {
   visionFacing: number
   vision: GridCoord[] | null
   route: GridCoord[]
+  /** Aiming a blink: its reach around me (0 = not aiming) */
+  aimRadius: number
   ripples: HideSeekRippleView[]
   /** Cells this player has seen this round (1 = seen) */
   explored: Uint8Array
@@ -91,10 +92,11 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     const far = { ...near, visionRange: near.visionRange * TORCH_SIGHT_FACTOR }
     return canSee(grid, me, ctx.visionFacing, p, near, around * within) || (torchLight(p) > 0 && canSee(grid, me, ctx.visionFacing, p, far))
   }
-  /** An opponent shows: in sight, within my watch (through walls) or near my team's scout bird */
+  /** An opponent shows: while I sense the map, in sight, within my watch (through walls) or near my team's scout bird */
   const spotted = (p: GridCoord, within = 1) =>
     !!me &&
-    (inSight(p, within) ||
+    ((mySeat?.effects.sense ?? 0) > 0 ||
+      inSight(p, within) ||
       ((mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange) ||
       (!!mySeat && scoutedBy(match.marks, mySeat.team, p, settings)))
   /** 0 = dark .. 1 = fully lit by the player's lantern / sight or by a candle */
@@ -156,16 +158,17 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     sightReaches: !over && me && ctx.vision ? ctx.vision.slice(1).map(p => sightReach(me, ctx.visionFacing, p, settings, around)) : [],
     lightFadeWidth: LIGHT_FADE_WIDTH,
     lightAt,
-    // Smoke and fire are seen by all; a team's own scout birds and snares only by that team
+    aim: !over && me && ctx.aimRadius > 0 ? { col: me.col, row: me.row, radius: ctx.aimRadius } : null,
+    // Fire is seen by all; a team's own scout birds and snares only by that team
     marks: over
       ? []
       : match.marks
-          .filter(m => m.kind === 'smoke' || m.kind === 'fireWall' || ((m.kind === 'scout' || m.kind === 'snare') && m.team === mySeat?.team))
+          .filter(m => m.kind === 'fireWall' || ((m.kind === 'scout' || m.kind === 'snare') && m.team === mySeat?.team))
           .map(m => ({
             kind: m.kind,
             col: m.col,
             row: m.row,
-            radius: m.kind === 'smoke' ? settings.smokeRadius : m.kind === 'scout' ? settings.scoutRadius : 0,
+            radius: m.kind === 'scout' ? settings.scoutRadius : 0,
             ends: m.kind === 'fireWall' ? fireWallEnds(m, settings) : null,
           })),
     avatars: [
@@ -174,8 +177,9 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       const jailed = !!seat?.jailed
       // Both teams know where their own players are
       const teammate = !!me && p.role === me.role
-      // Vanished, underground or inside smoke: the other side does not see them
-      const unseen = !!seat && (seat.effects.vanish > 0 || seat.effects.burrow > 0 || inSmoke(match.marks, p, settings))
+      // Vanished or underground: the other side does not see them; sensing the map: everyone sees them
+      const sensing = !!seat && seat.effects.sense > 0
+      const unseen = !!seat && (seat.effects.vanish > 0 || seat.effects.burrow > 0) && !sensing
       return {
         id: p.id,
         col: p.col,
@@ -191,7 +195,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         hidden: p === me && (p.hidden !== -1 || unseen),
         dazed: !over && (seat?.dazed ?? 0) > 0,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
-        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || (!unseen && spotted(p, spottedWithin(settings, traitOf(p.model)))))),
+        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || sensing || (!unseen && spotted(p, spottedWithin(settings, traitOf(p.model)))))),
       }
       }),
       // Decoys: a still copy of the hero; their own team sees it faint
@@ -214,7 +218,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
             jailed: false,
             hidden: own,
             dazed: false,
-            visible: own || (!inSmoke(match.marks, m, settings) && spotted(m)),
+            visible: own || spotted(m),
           }
         }),
     ],

@@ -24,7 +24,7 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
   return {
     self,
     facing,
-    opponents: opponent ? [{ id: 'other', ...opponent, moving, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 1 }] : [],
+    opponents: opponent ? [{ id: 'other', ...opponent, moving, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 1, revealed: false }] : [],
     teammates: [],
     altars,
     spots: [],

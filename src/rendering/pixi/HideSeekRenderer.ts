@@ -117,8 +117,8 @@ interface PropView extends GridCoord {
   wobble?: number
 }
 const BELL_COLOR = 0xfbbf24
-/** Ability marks: smoke, a scout bird, a fire wall, a snare */
-const SMOKE_COLOR = 0x9ca3af
+/** Ability marks: a scout bird, a fire wall, a snare; the reach of an aimed blink */
+const AIM_COLOR = 0xc084fc
 const SCOUT_COLOR = 0x7dd3fc
 const FIRE_COLOR = 0xf97316
 const SNARE_COLOR = 0xd6a35c
@@ -694,15 +694,7 @@ export class HideSeekRenderer {
 
     for (const mark of view.marks) {
       const p = at(mark)
-      if (mark.kind === 'smoke') {
-        // A few drifting puffs
-        for (let i = 0; i < 6; i++) {
-          const a = time * 0.4 + i * 1.05
-          const r = mark.radius * 0.55
-          const c = at({ col: mark.col + Math.cos(a) * r * 0.5, row: mark.row + Math.sin(a) * r * 0.5 })
-          g.ellipse(c.x, c.y - 10, tileWidth * r * 0.55, tileHeight * r * 0.55).fill({ color: SMOKE_COLOR, alpha: 0.32 })
-        }
-      } else if (mark.kind === 'scout') {
+      if (mark.kind === 'scout') {
         const r = mark.radius
         g.ellipse(p.x, p.y, (tileWidth * r) / 2 * 1.4, (tileHeight * r) / 2 * 1.4).stroke({ width: 2, color: SCOUT_COLOR, alpha: 0.6 })
         const fly = Math.sin(time * 6) * 4
@@ -717,6 +709,12 @@ export class HideSeekRenderer {
         g.ellipse(p.x, p.y, tileWidth * 0.14, tileHeight * 0.14).stroke({ width: 2, color: SNARE_COLOR, alpha: 0.9 })
         g.circle(p.x, p.y, 2).fill({ color: SNARE_COLOR, alpha: 0.9 })
       }
+    }
+
+    if (view.aim) {
+      const p = at(view.aim)
+      const pulse = 0.6 + 0.25 * Math.sin(time * 5)
+      g.ellipse(p.x, p.y, (tileWidth * view.aim.radius) / 2 * 1.4, (tileHeight * view.aim.radius) / 2 * 1.4).stroke({ width: 2, color: AIM_COLOR, alpha: pulse })
     }
 
     for (const ripple of view.ripples) {

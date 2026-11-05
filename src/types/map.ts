@@ -164,6 +164,8 @@ export interface HideSeekSettings {
   altarsNeededShare: number
   /** Altars stand at least this many tiles away from both bases (they have to be searched for) */
   altarBaseDistance: number
+  /** Room game: seconds everyone has to pick a hero at the start (then a random one is picked for them) */
+  heroPickTime: number
   /** Seconds a free hider stands at the jail to set everybody in it free */
   rescueTime: number
   /** Chain: a hider who lit an altar can hold a seeker this close (tiles) for chainTime seconds; both stand still.
@@ -265,9 +267,8 @@ export interface HideSeekSettings {
   slowFactor: number
   burrowTime: number
   burrowCooldown: number
-  smokeRadius: number
-  smokeTime: number
-  smokeCooldown: number
+  senseTime: number
+  senseCooldown: number
   scoutDistance: number
   scoutRadius: number
   scoutTime: number

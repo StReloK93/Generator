@@ -116,6 +116,8 @@ export interface BotOpponent extends GridCoord {
   /** Share of the sight range they are spotted within (a shadow: less) and how loud their steps are */
   spotted: number
   quiet: number
+  /** Sensing everyone right now: the whole map sees them too */
+  revealed: boolean
 }
 
 /** A noise and how far it carries (tiles) */
@@ -303,7 +305,10 @@ function perceive(brain: BotBrain, senses: BotSenses, grid: CollisionGrid, setti
     const d = dist(self, o)
     const sight = { ...settings, visionRange: settings.visionRange * o.spotted }
     const watched =
-      (senses.effects.watch > 0 && d <= settings.watchRange) || senses.reveals.some(r => dist(r, o) <= settings.scoutRadius)
+      senses.effects.sense > 0 ||
+      o.revealed ||
+      (senses.effects.watch > 0 && d <= settings.watchRange) ||
+      senses.reveals.some(r => dist(r, o) <= settings.scoutRadius)
     if (watched || (looking && canSee(grid, self, senses.facing, o, sight, around * o.spotted))) {
       if (!seen || d < dist(self, seen)) seen = o
     } else if (o.moving && !o.sneaking && o.quiet > 0 && (footstepLoudness(d, settings) * o.quiet >= HEARING_THRESHOLD || (senses.effects.track > 0 && d <= settings.watchRange))) {
@@ -378,13 +383,13 @@ function pickAbility(brain: BotBrain, role: HideSeekRole, senses: BotSenses, set
     if (seen && d < ABILITY_CLOSE) {
       // Running away (facing away from the seeker): leap, or leave something behind; cornered: shield / hide / slow them
       const fleeing = moving && brain.mode === 'flee'
-      const escape = fleeing ? first('dash', 'blink', 'hook', 'fireWall', 'snare', 'decoy', 'smoke') : -1
+      const escape = fleeing ? first('dash', 'blink', 'hook', 'fireWall', 'snare', 'decoy') : -1
       if (escape >= 0) return escape
-      const save = first('shield', 'vanish', 'roar', 'burrow', 'smoke')
+      const save = first('shield', 'vanish', 'roar', 'burrow')
       if (save >= 0) return save
     }
     if ((seen || heard) && senses.exhausted) return first('secondWind')
-    if (heard && !seen) return first('wind', 'watch', 'scout')
+    if (heard && !seen) return first('wind', 'watch', 'scout', 'sense')
     if (brain.mode === 'collect' && !moving) return first('watch', 'scout')
     return brain.mode === 'explore' ? first('track', 'scout') : -1
   }
@@ -407,11 +412,11 @@ function pickAbility(brain: BotBrain, role: HideSeekRole, senses: BotSenses, set
     if (d < settings.chainRange + 1) return first('shield')
     return -1
   }
-  if (brain.mode === 'search') return first('watch', 'track', 'scout')
+  if (brain.mode === 'search') return first('watch', 'track', 'scout', 'sense')
   if (brain.mode === 'investigate') return first('wind', 'vanish', 'watch', 'scout', 'decoy')
-  // Keeping an altar: lay traps around it and wait in the smoke
-  if (brain.mode === 'guard' && !moving) return first('snare', 'fireWall', 'smoke')
-  return brain.mode === 'explore' ? first('track', 'scout') : -1
+  // Keeping an altar: lay traps around it
+  if (brain.mode === 'guard' && !moving) return first('snare', 'fireWall')
+  return brain.mode === 'explore' ? first('track', 'scout', 'sense') : -1
 }
 
 function thinkHider(

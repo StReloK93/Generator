@@ -26,7 +26,7 @@
         <UiBadge v-if="isMe" variant="brand" size="xs">{{ $t('lobby.slotYou') }}</UiBadge>
       </div>
       <div class="text-[11px] text-slate-400 truncate">
-        {{ slotLabel }}<template v-if="multiplayerStore.isHideSeekRoom && slot.player.heroModel"> · {{ modelLabel(slot.player.heroModel) }}</template>
+        {{ slotLabel }}
       </div>
     </div>
 
@@ -72,7 +72,6 @@ import { UserPlus, Crown, Check, Clock, UserX } from 'lucide-vue-next'
 import { UiBadge, UiButton, UiIconButton } from './ui'
 import { PlayerSlot } from '../types/multiplayer'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
-import { HERO_MODELS } from '../stores/heroStore'
 import { useI18n } from '../stores/i18nStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { roleForSlot, normalizeHideSeekSettings } from '../domain/hideseek'
@@ -111,7 +110,4 @@ const slotLabel = computed(() => {
   return roleForSlot(props.slot.slotIndex, seekerSlots) === 'seeker' ? t('hideseek.roleSeeker') : t('hideseek.roleHider')
 })
 
-function modelLabel(modelId: string): string {
-  return HERO_MODELS.find(m => m.id === modelId)?.label || modelId
-}
 </script>

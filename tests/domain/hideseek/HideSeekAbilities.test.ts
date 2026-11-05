@@ -32,7 +32,7 @@ describe('HideSeekAbilities', () => {
     expect(abilitiesOf('demon')).toEqual(['vanish', 'blink'])
     expect(abilitiesOf('male')).toEqual(['watch', 'track'])
     expect(abilitiesOf('orc')).toEqual(['hook', 'roar'])
-    expect(abilitiesOf('zombi')).toEqual(['burrow', 'smoke'])
+    expect(abilitiesOf('zombi')).toEqual(['burrow', 'sense'])
     expect(abilitiesOf('bird')).toEqual(['scout', 'fireWall'])
     expect(abilitiesOf('barry')).toEqual(['decoy', 'snare'])
     expect(abilitiesOf('nobody')).toEqual([])
@@ -42,7 +42,7 @@ describe('HideSeekAbilities', () => {
     expect(dashTarget(open, { col: 5, row: 5 }, 0, settings.dashDistance).col).toBeCloseTo(9)
     const dash = dashTarget(walled, { col: 8, row: 5 }, 0, settings.dashDistance)
     expect(dash.col).toBeLessThan(10)
-    const blink = blinkTarget(walled, { col: 8, row: 5 }, 0, settings)
+    const blink = blinkTarget(walled, { col: 8, row: 5 }, 0, settings.blinkDistance)
     expect(blink.col).toBeGreaterThan(10)
   })
 

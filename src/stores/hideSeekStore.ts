@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useMapStore } from './mapStore'
 import { useMultiplayerStore } from './multiplayerStore'
 import { HERO_MODELS } from './heroStore'
@@ -73,7 +73,6 @@ import {
   useAbility,
   dashTarget,
   motionFactor,
-  inSmoke,
   isMarkAbility,
   blinkTarget,
   AbilityId,
@@ -205,6 +204,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const dazedLeft = ref(0)
   /** In a chain or dazed: cannot move */
   const isFrozenMe = ref(false)
+  /** Ability slot being aimed (a blink: click a spot, or press again for straight ahead); -1 = none */
+  const aimingSlot = ref(-1)
+  /** An opponent is sensing the whole map right now (they see me, and I see them) */
+  const isSensed = ref(false)
   /** My hero's abilities (Q, F): whole seconds of cooldown left, and whether a timed one is running */
   const myAbilities = ref<{ id: AbilityId; cooldown: number; active: boolean }[]>([])
   /** Rounds each side won, and the side that won the match */
@@ -234,7 +237,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Hiders the seeker caught this round (each makes the seeker faster and slower to tire) */
   const seekerCatches = ref(0)
 
-  const canMove = computed(() => !needsSoloRole.value && !isJailed.value && !isFrozenMe.value && canAct(myRole.value, phase.value))
+  /** Room game: players still picking their hero (the match waits for them), and whether I am one of them */
+  const heroesMissing = computed(() => (isActive.value && multiplayerStore.roomId ? multiplayerStore.players.filter(p => !p.heroModel).length : 0))
+  const needsHero = computed(() => heroesMissing.value > 0 && !multiplayerStore.myPlayer?.heroModel)
+  /** Seconds left to pick (then the host picks a random hero for whoever has not) */
+  const pickSecondsLeft = ref(0)
+  let pickTimer = 0
+
+  const canMove = computed(
+    () => !needsSoloRole.value && heroesMissing.value === 0 && !isJailed.value && !isFrozenMe.value && canAct(myRole.value, phase.value)
+  )
   const didIWin = computed(() => winner.value !== null && winner.value === myRole.value)
 
   // Per-frame runtime (non-reactive)
@@ -383,10 +395,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     rebuildGrids()
   }
 
-  /** Out of the other side's sight: vanished, underground or inside smoke. */
+  /** Out of the other side's sight: vanished or underground (not while sensing: then the whole map sees them). */
   function unseen(p: HideSeekBody): boolean {
     const effects = seatOf(match, p.id)?.effects
-    return !!effects && (effects.vanish > 0 || effects.burrow > 0 || inSmoke(match.marks, p, settings))
+    return !!effects && (effects.vanish > 0 || effects.burrow > 0) && effects.sense <= 0
   }
 
   function bodies(): MatchBody[] {
@@ -637,6 +649,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     chainHeld.value = chain?.seeker === myId() ? up(chain.timeLeft) : 0
     dazedLeft.value = up(seat?.dazed ?? 0)
     isFrozenMe.value = isFrozen(match, myId())
+    isSensed.value = !!seat && match.seats.some(s => s.team !== seat.team && s.effects.sense > 0)
     myAbilities.value = abilitiesOf(myPlayer()?.model).map((id, slot) => ({
       id,
       cooldown: up(seat?.cooldowns[slot] ?? 0),
@@ -694,6 +707,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     dazedLeft.value = 0
     isFrozenMe.value = false
     myAbilities.value = []
+    aimingSlot.value = -1
+    isSensed.value = false
     roundWins.value = { seeker: 0, hider: 0 }
     matchWinner.value = null
     heardLevel.value = 0
@@ -728,6 +743,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     else if (code === 'KeyR') useChain()
     else if (code === 'KeyQ') castAbility(0)
     else if (code === 'KeyF') castAbility(1)
+    else if (code === 'Escape' && aimingSlot.value >= 0) aimingSlot.value = -1
     else return false
     return true
   }
@@ -810,6 +826,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const me = myPlayer()
     if (!me || !canMove.value) return
     const target = { col, row }
+    if (aimingSlot.value >= 0) return castAbility(aimingSlot.value, target)
     const picked = usables(me.role)
       .filter(u => distTo(u.at, target) <= CLICK_PICK)
       .sort((a, b) => distTo(a.at, target) - distTo(b.at, target))[0]
@@ -884,14 +901,21 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   /** Q / F: my hero's ability. A leap moves me right away; the referee keeps the cooldown and the timed effects. */
-  function castAbility(slot: number): void {
+  function castAbility(slot: number, target: GridCoord | null = null): void {
     const me = myPlayer()
     const seat = seatOf(match, myId())
     const ability = abilitiesOf(me?.model)[slot]
     if (!me || !seat || !ability || !canMove.value || me.hidden !== -1 || seat.cooldowns[slot] > 0) return
+    // A blink is aimed: the first press shows its reach, a click picks the spot, a second press goes straight ahead
+    if (ability === 'blink' && !target && aimingSlot.value !== slot) {
+      aimingSlot.value = slot
+      return
+    }
+    aimingSlot.value = -1
     clickPath = []
     pending = null
-    stamina = actAbility(me, ability, stamina)
+    if (target) me.facing = Math.atan2(target.row - me.row, target.col - me.col)
+    stamina = actAbility(me, ability, stamina, target)
     // A guest shows its cooldown at once (the host's event / state confirms it)
     if (!isReferee()) startAbility(seat.cooldowns, seat.effects, slot, ability, settings)
     performAction({ kind: 'ability', slot })
@@ -904,13 +928,14 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     return ability === 'dash' || ability === 'blink' || (ability === 'hook' && body.role === 'hider')
   }
 
-  /** What an ability does to its user's own body: a leap moves it, second wind fills the breath. */
-  function actAbility(body: HideSeekBody, ability: AbilityId, breath: Stamina): Stamina {
+  /** What an ability does to its user's own body: a leap moves it (a blink up to `target` when aimed), second wind
+   * fills the breath. */
+  function actAbility(body: HideSeekBody, ability: AbilityId, breath: Stamina, target: GridCoord | null = null): Stamina {
     if (isLeap(body, ability)) {
       const walls = pathGrid(body)
       const to =
         ability === 'blink'
-          ? blinkTarget(walls, body, body.facing, settings)
+          ? blinkTarget(walls, body, body.facing, Math.min(settings.blinkDistance, target ? distTo(body, target) : Infinity))
           : dashTarget(walls, body, body.facing, ability === 'hook' ? settings.hookRange : settings.dashDistance)
       Object.assign(body, { col: to.col, row: to.row, targetCol: to.col, targetRow: to.row })
     }
@@ -1343,17 +1368,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
             row: p.row,
             moving: p.moving,
             sneaking: p.sneaking,
-            // Vanished, underground or in smoke: not there for the bot's eyes; in the wind: not for its ears
+            // Vanished or underground: not there for the bot's eyes; in the wind: not for its ears; sensing: seen by all
             hidden: p.hidden !== -1 || unseen(p),
             jailed: !!seatOf(match, p.id)?.jailed,
             spotted: spottedWithin(settings, traitOf(p.model)),
             quiet: (seatOf(match, p.id)?.effects.wind ?? 0) > 0 ? 0 : stepLoudness(settings, traitOf(p.model)),
+            revealed: (seatOf(match, p.id)?.effects.sense ?? 0) > 0,
           }))
           // The other side's decoys look like players to a bot
           .concat(
             match.marks
-              .filter(m => m.kind === 'decoy' && m.team !== seat.team && !inSmoke(match.marks, m, settings))
-              .map(m => ({ id: `decoy-${m.by}`, col: m.col, row: m.row, moving: false, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 0 }))
+              .filter(m => m.kind === 'decoy' && m.team !== seat.team)
+              .map(m => ({ id: `decoy-${m.by}`, col: m.col, row: m.row, moving: false, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 0, revealed: false }))
           ),
         teammates: others.filter(p => p.role === body.role).map(p => ({ id: p.id, col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed })),
         altars: match.altars,
@@ -1557,10 +1583,35 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
   }
 
+  /** Room game: the clock stands until every player picked a hero; after heroPickTime the host picks for the rest. */
+  function updateHeroPick(deltaSec: number): void {
+    if (heroesMissing.value === 0) {
+      pickTimer = 0
+      return
+    }
+    pickTimer += deltaSec
+    const left = Math.max(0, Math.ceil(settings.heroPickTime - pickTimer))
+    if (left !== pickSecondsLeft.value) pickSecondsLeft.value = left
+    if (left === 0 && multiplayerStore.isHost) multiplayerStore.assignMissingHeroes()
+  }
+
+  /** Room game: the heroes picked in the game become the players' characters (gadgets follow the trickster's trait). */
+  function applyHeroModels(): void {
+    for (const lobbyPlayer of multiplayerStore.players) {
+      const p = players.get(lobbyPlayer.id)
+      if (!p || !lobbyPlayer.heroModel || p.model === lobbyPlayer.heroModel) continue
+      p.model = lobbyPlayer.heroModel
+      if (p.id === myId()) Object.assign(gadgets, gadgetsOf(p))
+    }
+    applyHud()
+  }
+  watch(() => multiplayerStore.players.map(p => `${p.id}:${p.heroModel ?? ''}`).join(), applyHeroModels)
+
   function tick(deltaSec: number, tileWidth: number, tileHeight: number): void {
     if (!isActive.value || !grid) return
 
-    if (!needsSoloRole.value) {
+    updateHeroPick(deltaSec)
+    if (!needsSoloRole.value && heroesMissing.value === 0) {
       if (isReferee()) refereeTick(deltaSec)
       else if (match.clock.phase !== 'ended') match.clock.timeLeft = Math.max(0, match.clock.timeLeft - deltaSec)
     }
@@ -1582,6 +1633,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     updateEffects(me, vision, deltaSec)
 
     viewContext = {
+      aimRadius: aimingSlot.value >= 0 ? settings.blinkDistance : 0,
       match,
       bodies: [...players.values()],
       me,
@@ -1632,6 +1684,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     myAltars,
     chainCooldown,
     myAbilities,
+    heroesMissing,
+    needsHero,
+    pickSecondsLeft,
+    aimingSlot,
+    isSensed,
     chainHolding,
     chainHeld,
     dazedLeft,

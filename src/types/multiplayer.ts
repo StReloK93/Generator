@@ -254,7 +254,7 @@ export interface HideSeekMatchStatePayload {
   candles: { c: number; r: number }[] // candles the seeker set down
   exits: { c: number; r: number }[] // spot inside each exit gate
   exitsOpen: boolean
-  marks: AbilityMark[] // smoke clouds, scout birds, fire walls, decoys, snares
+  marks: AbilityMark[] // scout birds, fire walls, decoys, snares
   seats: HideSeekSeat[] // team, role, jail, score, altars lit, chain cooldown, daze and catches this round
   wins: Record<HideSeekRole, number> // rounds each side won
   matchWinner: HideSeekRole | null

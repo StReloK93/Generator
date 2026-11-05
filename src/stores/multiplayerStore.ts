@@ -14,6 +14,7 @@ import {
 } from '../types/multiplayer'
 import { networkService } from '../services/networkService'
 import { networkSyncBuffer } from '../services/networkSync'
+import { HERO_MODELS } from './heroStore'
 import { useMapStore } from './mapStore'
 import { useCharacterStore } from './characterStore'
 import { useRouteStore } from './routeStore'
@@ -131,13 +132,11 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   /** Hide & seek: the first lobby slots seek, the rest hide (the map's settings) */
   const hideSeekSeekerSlots = computed(() => normalizeHideSeekSettings(mapStore.project.hideSeekSettings).seekerSlots)
 
-  /** Hide & seek needs a player on each side and every character picked before it can start. */
-  const hideSeekLobbyIssue = computed<'needTeams' | 'needModels' | null>(() => {
+  /** Hide & seek needs a player on each side before it can start (heroes are picked in the game). */
+  const hideSeekLobbyIssue = computed<'needTeams' | null>(() => {
     if (!isHideSeekRoom.value) return null
     const teams = new Set(players.value.map(p => teamForSlot(p.slotIndex, hideSeekSeekerSlots.value)))
-    if (teams.size < 2) return 'needTeams'
-    if (players.value.some(p => !p.heroModel)) return 'needModels'
-    return null
+    return teams.size < 2 ? 'needTeams' : null
   })
 
   const isAllReady = computed(() => {
@@ -655,6 +654,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'START_GAME': {
+        clearHeroModels()
         if (msg.payload?.mapProject) {
           mapStore.project = JSON.parse(JSON.stringify(msg.payload.mapProject))
           writeSession(ROOM_PROJECT_KEY, msg.payload.mapProject)
@@ -1054,7 +1054,22 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     }
   }
 
-  /** Picks the lobby character (hide & seek). The host owns the lobby state and syncs it to everyone. */
+  /** Hide & seek: everyone picks a hero anew in each game. */
+  function clearHeroModels() {
+    if (!isHideSeekRoom.value) return
+    for (const p of players.value) p.heroModel = undefined
+  }
+
+  /** Host: whoever has not picked a hero in time gets a random one. */
+  function assignMissingHeroes() {
+    if (!isHost.value) return
+    const missing = players.value.filter(p => !p.heroModel)
+    if (missing.length === 0) return
+    for (const p of missing) p.heroModel = HERO_MODELS[Math.floor(Math.random() * HERO_MODELS.length)].id
+    syncLobbyState()
+  }
+
+  /** Picks my hero (hide & seek, at the start of a game). The host owns the room state and syncs it to everyone. */
   function selectHeroModel(model: string) {
     if (!myPlayer.value) return
     myPlayer.value.heroModel = model
@@ -1438,6 +1453,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     if (router) setRouter(router)
 
     roomGameState.value = 'in_game'
+    // Every client clears the picks itself (guests on START_GAME): heroes are picked in the game
+    clearHeroModels()
     const mapProject = buildSyncedProjectSnapshot()
     writeSession(ROOM_PROJECT_KEY, mapProject)
     networkService.broadcast({
@@ -1594,6 +1611,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     resumedClanId,
     selectSlot,
     selectHeroModel,
+    assignMissingHeroes,
     toggleReady,
     sendReadyCheck,
     broadcastTeammateHover,

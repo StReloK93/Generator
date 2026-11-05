@@ -54,7 +54,6 @@
             :slot="slot"
           />
         </div>
-        <LobbyCharacterPicker v-if="multiplayerStore.isHideSeekRoom" />
       </UiCard>
 
       <!-- Chat -->
@@ -81,10 +80,9 @@
           size="lg"
           :leading-icon="multiplayerStore.myPlayer?.isReady ? Check : Clock"
           :custom-class="['min-w-44 short:py-2', multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady ? 'ring-4 ring-amber-400 animate-bounce' : '']"
-          :disabled="mustPickCharacter"
           @click="multiplayerStore.toggleReady()"
         >
-          {{ mustPickCharacter ? $t('hideseek.pickCharacter') : multiplayerStore.myPlayer?.isReady ? $t('common.ready') : $t('lobby.readyUp') }}
+          {{ multiplayerStore.myPlayer?.isReady ? $t('common.ready') : $t('lobby.readyUp') }}
         </UiButton>
 
         <template v-else>
@@ -96,7 +94,7 @@
             disabled
             custom-class="min-w-44 short:py-2"
           >
-            {{ multiplayerStore.hideSeekLobbyIssue === 'needTeams' ? $t('hideseek.needTeams') : $t('hideseek.needModels') }}
+            {{ $t('hideseek.needTeams') }}
           </UiButton>
           <UiButton
             v-else-if="!multiplayerStore.isAllReady"
@@ -156,7 +154,6 @@ import { getProjectMapId } from '../services/mapManager'
 import { gamePath, lobbyPath } from '../router/paths'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
-import LobbyCharacterPicker from '../components/LobbyCharacterPicker.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -176,7 +173,6 @@ const mobileTabs = computed<TabItem[]>(() => [
 ])
 
 /** Hide & seek: a player gets ready only after picking a character. */
-const mustPickCharacter = computed(() => multiplayerStore.isHideSeekRoom && !multiplayerStore.myPlayer?.heroModel)
 
 const filledSlotsCount = computed(() => {
   return multiplayerStore.slots.filter(s => s.player !== null).length

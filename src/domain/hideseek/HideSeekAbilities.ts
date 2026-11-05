@@ -7,26 +7,28 @@ import { CollisionGrid, isBlockedAt } from './HideSeekRules'
  *
  * - dash: a quick leap forward (stops at walls)          - wind: for a while no footprints and silent steps
  * - secondWind: breath full again at once                - shield: for a while nobody can catch / chain them
- * - vanish: for a while the other side cannot see them   - blink: a step through the shadows, even through a wall
+ * - vanish: for a while the other side cannot see them
+ * - blink: a step through the shadows to a chosen spot (or straight ahead), even through a wall
  * - watch: for a moment sees every opponent nearby, through walls
  * - track: for a while sees every footprint, even in the dark
  * - hook: a seeker pulls the nearest hider in sight to them; a hider throws it ahead and swings there (a long leap)
  * - roar: opponents nearby are slowed for a while        - burrow: underground for a while (unseen, uncatchable, still)
- * - smoke: a cloud where nobody inside is seen           - scout: a bird shows opponents around a spot ahead to the team
+ * - sense: for a moment sees every opponent on the map, and they all see them too (and know it)
+ * - scout: a bird shows opponents around a spot ahead to the team
  * - fireWall: a line of fire that slows opponents crossing it
  * - decoy: a copy of the hero stands where they were (the other side sees it, it vanishes when touched)
  * - snare: a hidden trap at their feet: the first opponent stepping on it is rooted for a moment
  */
 export type AbilityId =
   | 'dash' | 'wind' | 'secondWind' | 'shield' | 'vanish' | 'blink' | 'watch' | 'track'
-  | 'hook' | 'roar' | 'burrow' | 'smoke' | 'scout' | 'fireWall' | 'decoy' | 'snare'
+  | 'hook' | 'roar' | 'burrow' | 'sense' | 'scout' | 'fireWall' | 'decoy' | 'snare'
 
 /** Timed effects on a player: their own (wind .. burrow) and the ones others put on them (slowed, rooted) */
-export type EffectKind = 'wind' | 'shield' | 'vanish' | 'watch' | 'track' | 'burrow' | 'slowed' | 'rooted'
+export type EffectKind = 'wind' | 'shield' | 'vanish' | 'watch' | 'track' | 'burrow' | 'sense' | 'slowed' | 'rooted'
 export type AbilityEffects = Record<EffectKind, number>
 
 /** Something an ability leaves on the map for a while */
-export type MarkKind = 'smoke' | 'scout' | 'fireWall' | 'decoy' | 'snare'
+export type MarkKind = 'scout' | 'fireWall' | 'decoy' | 'snare'
 export interface AbilityMark extends GridCoord {
   kind: MarkKind
   /** Who left it and their team (0 = seekers) */
@@ -45,12 +47,12 @@ const HERO_ABILITIES: Record<string, AbilityId[]> = {
   orc: ['hook', 'roar'],
   demon: ['vanish', 'blink'],
   male: ['watch', 'track'],
-  zombi: ['burrow', 'smoke'],
+  zombi: ['burrow', 'sense'],
   bird: ['scout', 'fireWall'],
   barry: ['decoy', 'snare'],
 }
 
-const MARK_ABILITIES: Record<MarkKind, true> = { smoke: true, scout: true, fireWall: true, decoy: true, snare: true }
+const MARK_ABILITIES: Record<MarkKind, true> = { scout: true, fireWall: true, decoy: true, snare: true }
 
 /** A hero's abilities in button order (none for an unknown hero). */
 export function abilitiesOf(model: string | null | undefined): AbilityId[] {
@@ -58,7 +60,7 @@ export function abilitiesOf(model: string | null | undefined): AbilityId[] {
 }
 
 export function noEffects(): AbilityEffects {
-  return { wind: 0, shield: 0, vanish: 0, watch: 0, track: 0, burrow: 0, slowed: 0, rooted: 0 }
+  return { wind: 0, shield: 0, vanish: 0, watch: 0, track: 0, burrow: 0, sense: 0, slowed: 0, rooted: 0 }
 }
 
 export function abilityCooldown(ability: AbilityId, settings: HideSeekSettings): number {
@@ -83,6 +85,7 @@ function ownEffect(ability: AbilityId, settings: HideSeekSettings): { effect: Ef
     case 'watch':
     case 'track':
     case 'burrow':
+    case 'sense':
       return { effect: ability, seconds: settings[`${ability}Time`] }
     default:
       return null
@@ -129,8 +132,9 @@ export function dashTarget(grid: CollisionGrid, from: GridCoord, facing: number,
   return landing
 }
 
-/** Blink: the furthest free floor along the facing within blinkDistance, walls in between do not matter. */
-export function blinkTarget(grid: CollisionGrid, from: GridCoord, facing: number, settings: HideSeekSettings): GridCoord {
+/** Blink: the furthest free floor along the facing within `distance` (at most blinkDistance), walls in between do not
+ * matter. */
+export function blinkTarget(grid: CollisionGrid, from: GridCoord, facing: number, distance: number): GridCoord {
   const dx = Math.cos(facing)
   const dy = Math.sin(facing)
   const cols = grid.subCols / 2
@@ -138,7 +142,7 @@ export function blinkTarget(grid: CollisionGrid, from: GridCoord, facing: number
   const free = (c: number, r: number) =>
     c > 0 && r > 0 && c < cols - 1 && r < rows - 1 &&
     [[0, 0], [WALL_MARGIN, 0], [-WALL_MARGIN, 0], [0, WALL_MARGIN], [0, -WALL_MARGIN]].every(([ox, oy]) => !isBlockedAt(grid, c + ox, r + oy))
-  for (let d = settings.blinkDistance; d > STEP; d -= STEP) {
+  for (let d = distance; d > STEP; d -= STEP) {
     const p = { col: from.col + dx * d, row: from.row + dy * d }
     if (free(p.col, p.row)) return p
   }
@@ -172,11 +176,6 @@ export function distanceToSegment(p: GridCoord, a: GridCoord, b: GridCoord): num
   const length = dx * dx + dy * dy
   const t = length > 0 ? Math.max(0, Math.min(1, ((p.col - a.col) * dx + (p.row - a.row) * dy) / length)) : 0
   return Math.hypot(p.col - (a.col + dx * t), p.row - (a.row + dy * t))
-}
-
-/** Standing in someone's smoke: nobody sees you there. */
-export function inSmoke(marks: AbilityMark[], p: GridCoord, settings: HideSeekSettings): boolean {
-  return marks.some(m => m.kind === 'smoke' && Math.hypot(m.col - p.col, m.row - p.row) <= settings.smokeRadius)
 }
 
 /** Near a scout bird of `team`: that team sees you. */

@@ -118,7 +118,7 @@ export interface HideSeekMatch {
   exits: GridCoord[]
   exitsOpen: boolean
   trapsPlaced: number
-  /** What abilities left on the map: smoke clouds, scout birds, fire walls, decoys, snares */
+  /** What abilities left on the map: scout birds, fire walls, decoys, snares */
   marks: AbilityMark[]
   seats: HideSeekSeat[]
   /** Best total score after the last round (null = draw or not over yet) */

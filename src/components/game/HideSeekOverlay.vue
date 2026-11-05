@@ -104,6 +104,31 @@
     />
   </div>
 
+  <!-- Room game: everyone picks their hero here; the match starts once all have -->
+  <UiModal
+    :is-open="hideSeekStore.isActive && hideSeekStore.heroesMissing > 0"
+    :title="$t('hideseek.pickHero')"
+    :subtitle="$t('hideseek.pickHeroSubtitle', { s: hideSeekStore.pickSecondsLeft })"
+    :icon="UserRound"
+    icon-color="amber"
+    size="sm"
+    :show-close="false"
+    :close-on-backdrop="false"
+    :close-on-escape="false"
+  >
+    <div class="flex flex-col gap-2">
+      <template v-if="hideSeekStore.needsHero">
+        <HideSeekHeroPicker v-model="roomHero" />
+        <UiButton variant="game-green" size="lg" block @click="multiplayerStore.selectHeroModel(roomHero)">
+          {{ $t('hideseek.pickHeroConfirm') }}
+        </UiButton>
+      </template>
+      <p v-else class="text-center text-sm text-slate-300 py-4">
+        {{ $t('hideseek.waitingHeroes', { n: hideSeekStore.heroesMissing }) }}
+      </p>
+    </div>
+  </UiModal>
+
   <!-- Solo: pick a role for the whole match (a bot plays the other one) -->
   <UiModal
     :is-open="hideSeekStore.isActive && hideSeekStore.needsSoloRole"
@@ -120,10 +145,7 @@
       <!-- Team size: the player plus bot teammates against as many bots -->
       <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
       <!-- Hero: each has a trait and two abilities (Q / F) -->
-      <UiTabs v-model="soloHero" :items="SOLO_HEROES" variant="pills" size="xs" custom-class="flex-wrap" />
-      <div v-if="soloHeroAbilities.length" class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-sky-200/80">
-        <span v-for="(ability, slot) in soloHeroAbilities" :key="ability"><b>{{ ABILITY_KEYS[slot] }}</b> {{ $t(`hideseek.ability.${ability}`) }}</span>
-      </div>
+      <HideSeekHeroPicker v-model="soloHero" />
       <UiCard
         v-for="option in SOLO_ROLES"
         :key="option.role"
@@ -197,16 +219,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, type Component } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Zap, Wind, HeartPulse, Shield, Ghost, Waypoints, Radar, ScanSearch, Anchor, Megaphone, Shovel, Cloud, Bird, Flame, Copy, CircleDot } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Waypoints, Eye, UserRound } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
 import { useGameExit } from '../../composables/useGameExit'
-import { abilitiesOf, type AbilityId, type HideSeekRole } from '../../domain/hideseek'
+import type { HideSeekRole } from '../../domain/hideseek'
 import { DEFAULT_HERO_MODEL, useHideSeekStore } from '../../stores/hideSeekStore'
-import { HERO_MODELS } from '../../stores/heroStore'
+import HideSeekHeroPicker from './HideSeekHeroPicker.vue'
+import { ABILITY_ICONS, ABILITY_KEYS } from './hideSeekTraitInfo'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
 import { hideSeekAudio } from '../../services/hideSeekAudio'
@@ -239,13 +262,14 @@ const SOLO_ROLES = [
 /** Solo with bots: 1 against 1 up to 5 against 5 */
 const TEAM_SIZES: TabItem[] = [1, 3, 5].map(n => ({ id: n, label: `${n} × ${n}` }))
 const soloTeamSize = ref<string | number>(5)
-const SOLO_HEROES: TabItem[] = HERO_MODELS.map(h => ({ id: h.id, label: h.label }))
-const soloHero = ref<string | number>(DEFAULT_HERO_MODEL)
-const soloHeroAbilities = computed(() => abilitiesOf(String(soloHero.value)))
+const soloHero = ref(DEFAULT_HERO_MODEL)
+
+/** Room game: the hero I am about to pick (the match waits until everyone picked) */
+const roomHero = ref(DEFAULT_HERO_MODEL)
 
 function startSolo(role: HideSeekRole) {
   hideSeekAudio.unlock()
-  hideSeekStore.startSoloRound(role, Number(soloTeamSize.value), String(soloHero.value))
+  hideSeekStore.startSoloRound(role, Number(soloTeamSize.value), soloHero.value)
 }
 
 const isSeeker = computed(() => hideSeekStore.myRole === 'seeker')
@@ -266,6 +290,8 @@ const bannerText = computed(() => {
 const status = computed(() => {
   if (!isPlaying.value) return null
   if (hideSeekStore.isJailed) return { text: t('hideseek.jailed'), icon: Lock, cls: 'border-slate-500/50 text-slate-200' }
+  if (hideSeekStore.aimingSlot >= 0) return { text: t('hideseek.aimBlink'), icon: Waypoints, cls: 'border-purple-400/60 text-purple-200' }
+  if (hideSeekStore.isSensed) return { text: t('hideseek.sensed'), icon: Eye, cls: 'border-rose-400/60 text-rose-200' }
   if (hideSeekStore.isHidden) return { text: t('hideseek.hiddenHint'), icon: Package, cls: 'border-emerald-500/40 text-emerald-200' }
   if (hideSeekStore.chainHolding > 0) return { text: t('hideseek.chainHolding', { s: hideSeekStore.chainHolding }), icon: Link, cls: 'border-violet-400/60 text-violet-200' }
   if (hideSeekStore.chainHeld > 0) return { text: t('hideseek.chainHeld', { s: hideSeekStore.chainHeld }), icon: Link, cls: 'border-violet-400/60 text-violet-200' }
@@ -330,25 +356,6 @@ function run(action: () => void) {
   }
 }
 
-const ABILITY_ICONS: Record<AbilityId, Component> = {
-  dash: Zap,
-  wind: Wind,
-  secondWind: HeartPulse,
-  shield: Shield,
-  vanish: Ghost,
-  blink: Waypoints,
-  watch: Radar,
-  track: ScanSearch,
-  hook: Anchor,
-  roar: Megaphone,
-  burrow: Shovel,
-  smoke: Cloud,
-  scout: Bird,
-  fireWall: Flame,
-  decoy: Copy,
-  snare: CircleDot,
-}
-const ABILITY_KEYS = ['Q', 'F']
 
 /** My hero's abilities (both roles): the badge counts the cooldown down, green while a timed one runs */
 const abilityButtons = computed(() =>
