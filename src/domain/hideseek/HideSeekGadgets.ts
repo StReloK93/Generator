@@ -41,11 +41,10 @@ export function moveSpeed(role: HideSeekRole, sneaking: boolean, stamina: Stamin
 }
 
 // ==========================================
-// Gadgets: per-round flares, bell traps and candles (seekers)
+// Gadgets: per-round bell traps and candles (seekers)
 // ==========================================
 
 export interface GadgetCounts {
-  flares: number
   traps: number
   /** Candles the seeker sets down */
   candles: number
@@ -55,18 +54,13 @@ export interface GadgetCounts {
 export function gadgetsFor(role: HideSeekRole, settings: HideSeekSettings, extra = 0): GadgetCounts {
   const more = (n: number) => (n > 0 ? n + extra : 0)
   return role === 'seeker'
-    ? { flares: more(settings.flareCount), traps: more(settings.trapCount), candles: more(settings.seekerCandleCount) }
-    : { flares: 0, traps: 0, candles: 0 }
+    ? { traps: more(settings.trapCount), candles: more(settings.seekerCandleCount) }
+    : { traps: 0, candles: 0 }
 }
 
 /** A bell / door: loud nearby, fading out at noiseRange (and heard through walls, unlike sight). */
 export function noiseLoudness(distance: number, settings: HideSeekSettings): number {
   return distance >= settings.noiseRange ? 0 : 1 - distance / settings.noiseRange
-}
-
-/** How far a player sees all around them: the lantern's glow, or a burning flare. */
-export function sightAround(settings: HideSeekSettings, flareLit: boolean): number {
-  return flareLit ? Math.max(settings.flareRadius, settings.lanternRadius) : settings.lanternRadius
 }
 
 export interface TrapState {

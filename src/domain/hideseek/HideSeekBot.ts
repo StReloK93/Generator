@@ -9,7 +9,7 @@ import {
   footstepLoudness,
   reachableSubCells,
 } from './HideSeekRules'
-import { GadgetCounts, HIDE_SPOT_REACH, sightAround } from './HideSeekGadgets'
+import { GadgetCounts, HIDE_SPOT_REACH } from './HideSeekGadgets'
 
 /**
  * A bot player, for either side and for team games. It plays fair: it only knows what its own sight cone shows and
@@ -33,7 +33,7 @@ const FLEE_SEC = 2.5
 /** Hider: tiptoes when a seeker is heard within this distance */
 const SNEAK_DISTANCE = 7
 /** Hider: keeps away from altars near the spot it last saw a seeker, for this long */
-const DANGER_RADIUS = 4
+const DANGER_RADIUS = 7
 const DANGER_SEC = 20
 /** Hider: dives into a barrel this close when cornered or out of breath, and stays until it has been calm this long */
 const HIDE_DASH_DISTANCE = 3.5
@@ -53,8 +53,8 @@ const LIT_ALERT_SEC = 20
 const SUSPECT_RADIUS = 5
 const SUSPECT_SEC = 12
 const SPOT_RECHECK_SEC = 15
-/** Seeker: seconds between two flares */
-const FLARE_COOLDOWN_SEC = 20
+/** Seeker keeping an altar: walks around it this close */
+const ALTAR_GUARD_RADIUS = 5
 /** Seeker guarding the jail: walks around it this close */
 const JAIL_GUARD_RADIUS = 5
 const FLEE_CANDIDATES = 30
@@ -86,7 +86,6 @@ export interface BotBrain {
   hideTarget: number
   /** Seeker: barrel it is walking to, to open it (-1 = none) */
   searchTarget: number
-  flareAt: number
   /** Altars this bot has seen: their progress when last seen (-1 = never seen), and when it grew last */
   altarSeen: number[]
   altarGrewAt: number[]
@@ -143,8 +142,6 @@ export interface BotSenses {
   /** Barrel the bot sits in (-1 = none) */
   hiddenIn: number
   gadgets: GadgetCounts
-  /** Own flare burning: sees all around for a moment */
-  flareActive: boolean
   /** Open exit gates (the spot inside each); empty while they are shut */
   exits: GridCoord[]
   /** The jail in the seekers' base (null = jailed where caught), and the middle of the hiders' safe home (null = none) */
@@ -160,7 +157,6 @@ export interface BotAction {
   sneak: boolean
   /** Hider: barrel to sit in (-1 = out in the open) */
   hideIn: number
-  flare: boolean
   trap: boolean
   /** Seeker: barrel opened this frame (-1 = none) */
   search: number
@@ -171,7 +167,7 @@ export interface BotAction {
 const dist = (a: GridCoord, b: GridCoord) => Math.hypot(a.col - b.col, a.row - b.row)
 
 function idle(): BotAction {
-  return { sneak: false, hideIn: -1, flare: false, trap: false, search: -1, chain: false }
+  return { sneak: false, hideIn: -1, trap: false, search: -1, chain: false }
 }
 
 export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCount: number, spotCount: number): BotBrain {
@@ -198,7 +194,6 @@ export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCo
     jailDangerAt: -Infinity,
     hideTarget: -1,
     searchTarget: -1,
-    flareAt: -Infinity,
     altarSeen: Array(altarCount).fill(-1),
     altarGrewAt: Array(altarCount).fill(-Infinity),
     checkedAt: Array(altarCount).fill(-Infinity),
@@ -224,10 +219,13 @@ function memoryIndex(brain: BotBrain, p: GridCoord): number {
   return Math.floor(p.row / MEMORY_CELL) * brain.memoryCols + Math.floor(p.col / MEMORY_CELL)
 }
 
-/** Explore: a cell in a part of the maze the bot has not been to for long, not too far away. */
-function exploreTarget(brain: BotBrain, self: GridCoord, random: () => number): GridCoord {
+/** Explore: a cell in a part of the maze the bot has not been to for long, not too far away (inside its own strip of
+ * columns when it has one). */
+function exploreTarget(brain: BotBrain, self: GridCoord, random: () => number, sector?: { from: number; to: number }): GridCoord {
   const candidates = Array.from({ length: EXPLORE_CANDIDATES }, () => randomCell(brain, random))
-  const score = (c: GridCoord) => Math.min(120, brain.time - brain.visitedAt[memoryIndex(brain, c)]) - dist(c, self) * 0.8
+  const outside = (c: GridCoord) => (sector ? Math.max(0, sector.from - c.col, c.col - sector.to) : 0)
+  const score = (c: GridCoord) =>
+    Math.min(120, brain.time - brain.visitedAt[memoryIndex(brain, c)]) - dist(c, self) * (sector ? 0.3 : 0.8) - outside(c) * 4
   return candidates.sort((a, b) => score(b) - score(a))[0] ?? self
 }
 
@@ -285,7 +283,7 @@ interface Perceived {
 /** What the bot notices this frame: opponents in sight or heard running, altars in sight, noises within reach. */
 function perceive(brain: BotBrain, senses: BotSenses, grid: CollisionGrid, settings: HideSeekSettings): Perceived {
   const { self } = senses
-  const around = sightAround(settings, senses.flareActive)
+  const around = settings.lanternRadius
   const looking = senses.hiddenIn === -1
   let seen: BotOpponent | null = null
   let heard: BotOpponent | null = null
@@ -504,11 +502,7 @@ function thinkSeeker(
     return action
   }
   if (brain.mode === 'chase' && brain.lastSeen) {
-    // Lost sight: light a flare and run to where the hider was last seen
-    if (senses.gadgets.flares > 0 && brain.time - brain.flareAt > FLARE_COOLDOWN_SEC) {
-      brain.flareAt = brain.time
-      action.flare = true
-    }
+    // Lost sight: run to where the hider was last seen
     setGoal(brain, grid, self, brain.lastSeen, 'search')
     return action
   }
@@ -575,12 +569,41 @@ function thinkSeeker(
     return action
   }
 
-  // Patrol the unlit altars it knows and has not checked lately, otherwise search the maze
-  const due = altars
-    .map((altar, i) => ({ altar, i }))
-    .filter(({ altar, i }) => !altar.lit && brain.altarSeen[i] >= 0 && brain.time - brain.checkedAt[i] > RECHECK_SEC)
-    .sort((a, b) => dist(a.altar, self) - dist(b.altar, self))[0]
-  if (due && random() < 0.6) setGoal(brain, grid, self, due.altar, 'patrol')
-  else setGoal(brain, grid, self, exploreTarget(brain, self, random), 'explore')
+  // A walk already planned (patrol / search / guard round) is followed to its end, not re-rolled every plan
+  if ((brain.mode === 'explore' || brain.mode === 'patrol' || brain.mode === 'guard') && brain.path.length > 0) return action
+
+  // Each seeker keeps one of the known unlit altars (its place in the team picks which) and walks around it
+  const unlit = altars.map((altar, i) => ({ altar, i })).filter(({ altar, i }) => !altar.lit && brain.altarSeen[i] >= 0)
+  const post = senses.rank < Math.ceil((senses.teammates.length + 1) / 2) ? unlit[senses.rank] : undefined
+  if (post) {
+    const around = brain.cells.filter(c => dist(c, post.altar) < ALTAR_GUARD_RADIUS)
+    const goal = dist(post.altar, self) > ALTAR_GUARD_RADIUS ? post.altar : around[Math.floor(random() * around.length)] ?? post.altar
+    setGoal(brain, grid, self, goal, 'guard')
+    return action
+  }
+
+  // No altar of its own yet: search its own strip of the maze (the team splits it up), passing known altars on the way
+  const due = unlit.filter(({ i }) => brain.time - brain.checkedAt[i] > RECHECK_SEC).sort((a, b) => dist(a.altar, self) - dist(b.altar, self))[0]
+  if (due && random() < 0.3) setGoal(brain, grid, self, due.altar, 'patrol')
+  else setGoal(brain, grid, self, exploreTarget(brain, self, random, sectorOf(grid, senses)), 'explore')
   return action
+}
+
+/** The strip of columns a bot searches: the maze split evenly by the players on its side. */
+function sectorOf(grid: CollisionGrid, senses: BotSenses): { from: number; to: number } {
+  const width = grid.subCols / 2 / (senses.teammates.length + 1)
+  return { from: senses.rank * width, to: (senses.rank + 1) * width }
+}
+
+/**
+ * Team talk: bots on one side tell each other where the altars they found are (players in a team call these out
+ * too). Opponents are not shared: each bot still has to see them itself.
+ */
+export function shareAltarSightings(team: BotBrain[]): void {
+  if (team.length < 2) return
+  const count = team[0].altarSeen.length
+  for (let i = 0; i < count; i++) {
+    const seen = Math.max(...team.map(b => b.altarSeen[i]))
+    for (const b of team) b.altarSeen[i] = seen
+  }
 }

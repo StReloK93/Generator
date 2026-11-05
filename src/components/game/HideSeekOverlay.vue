@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -317,11 +317,10 @@ function run(action: () => void) {
   }
 }
 
-/** Seeker: flare, bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
+/** Seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
 const gadgetButtons = computed(() =>
   isSeeker.value
     ? [
-        { key: 'F', label: 'hideseek.flare', icon: Flame, count: hideSeekStore.gadgets.flares, active: hideSeekStore.isFlareLit, blocked: false, run: run(hideSeekStore.lightFlare) },
         { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, blocked: false, run: run(hideSeekStore.dropTrap) },
         { key: 'C', label: 'hideseek.candle', icon: Lamp, count: hideSeekStore.gadgets.candles, active: false, blocked: false, run: run(hideSeekStore.setCandle) },
         { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, blocked: false, run: run(hideSeekStore.useNearest) },

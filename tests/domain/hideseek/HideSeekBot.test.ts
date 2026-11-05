@@ -3,6 +3,7 @@ import {
   buildCollisionGrid,
   createBotBrain,
   thinkBot,
+  shareAltarSightings,
   stepAlongPath,
   normalizeHideSeekSettings,
   AltarState,
@@ -31,8 +32,7 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
     exhausted: false,
     breath: 1,
     hiddenIn: -1,
-    gadgets: { flares: 0, traps: 0, candles: 0 },
-    flareActive: false,
+    gadgets: { traps: 0, candles: 0 },
     exits: [],
     jail: null,
     home: null,
@@ -110,21 +110,21 @@ describe('HideSeekBot', () => {
   it('seeker chases a hider it sees and leaves a bell at an unlit altar it passes', () => {
     const chests = [{ col: 5.5, row: 5, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], chests.length, 0)
-    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { flares: 0, traps: 1, candles: 0 } }))
+    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { traps: 1, candles: 0 } }))
     expect(brain.mode).toBe('chase')
     expect(brain.path.at(-1)).toEqual({ col: 10, row: 5 })
     expect(action.trap).toBe(true)
     // The same altar gets no second bell
-    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { flares: 0, traps: 1, candles: 0 } })).trap).toBe(false)
+    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { traps: 1, candles: 0 } })).trap).toBe(false)
   })
 
-  it('seeker lights a flare and runs to where it last saw the hider after losing sight', () => {
+  it('seeker runs to where it last saw the hider after losing sight', () => {
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], 0, 0)
-    const gadgets = { flares: 1, traps: 0, candles: 0 }
+    const gadgets = { traps: 0, candles: 0 }
     think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 9, row: 5 }, [], { gadgets }))
     // Hider slipped behind the seeker
     const action = think(brain, 'seeker', senses({ col: 6, row: 5 }, 0, { col: 2, row: 5 }, [], { gadgets }))
-    expect(action.flare).toBe(true)
+    expect(action.search).toBe(-1)
     expect(brain.mode).toBe('search')
     expect(brain.path.at(-1)).toEqual({ col: 9, row: 5 })
   })
@@ -161,5 +161,23 @@ describe('HideSeekBot', () => {
       for (const c of chests) if (Math.hypot(c.col - self.col, c.row - self.row) <= ALTAR_REACH) c.lit = true
     }
     expect(chests.every(c => c.lit)).toBe(true)
+  })
+  it('seekers share the altars they found and each keeps one of them', () => {
+    const altars = [{ col: 3, row: 3, progress: 0, lit: false }, { col: 16, row: 16, progress: 0, lit: false }]
+    const first = createBotBrain(openGrid, [{ col: 10, row: 10 }], altars.length, 0)
+    const second = createBotBrain(openGrid, [{ col: 10, row: 10 }], altars.length, 0)
+    // Four seekers: half of them (ranks 0 and 1) keep an altar, the others search
+    const team = ['a', 'b', 'c'].map(id => ({ id, col: 10, row: 10, jailed: false }))
+    // Only the first seeker stands next to the altars and sees them
+    think(first, 'seeker', senses({ col: 3, row: 4 }, 0, null, altars, { teammates: team }))
+    think(first, 'seeker', senses({ col: 16, row: 15 }, 0, null, altars, { teammates: team }))
+    expect(second.altarSeen).toEqual([-1, -1])
+    shareAltarSightings([first, second])
+    expect(second.altarSeen).toEqual([0, 0])
+    // The second seeker (rank 1) goes to keep the second altar
+    think(second, 'seeker', senses({ col: 10, row: 10 }, 0, null, altars, { teammates: team, rank: 1 }))
+    expect(second.mode).toBe('guard')
+    const goal = second.path.at(-1)!
+    expect(Math.hypot(goal.col - 16, goal.row - 16)).toBeLessThan(5)
   })
 })

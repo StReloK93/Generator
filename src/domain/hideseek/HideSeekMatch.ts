@@ -276,8 +276,8 @@ export function startRound(
     : undefined
   const count = Math.max(MIN_ALTARS, hiderCount + settings.altarExtra)
   match.altars = pickObjectiveSpots(grid, starts, count, random, props, zone, ALTAR_SPACING).map(p => ({ ...p, progress: 0, lit: false }))
-  // All but a quarter of them (1 against 1: 2 of 3, 5 against 5: 5 of 7)
-  match.altarsNeeded = Math.max(1, match.altars.length - Math.ceil(match.altars.length / 4))
+  // A share of them (0.55: 2 of 3 one against one, 3 of 5, 4 of 7 five against five)
+  match.altarsNeeded = Math.max(1, Math.ceil(match.altars.length * settings.altarsNeededShare - 1e-9))
   match.chains = []
   match.rescueProgress = 0
   match.spots = maze

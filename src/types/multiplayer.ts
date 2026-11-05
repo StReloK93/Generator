@@ -260,7 +260,6 @@ export interface HideSeekMatchStatePayload {
 
 /** Hide & seek: a player uses a gadget / opens a barrel (sent to the host, who applies it). */
 export type HideSeekActionPayload =
-  | { kind: 'flare'; c: number; r: number }
   | { kind: 'trap'; c: number; r: number }
   | { kind: 'search'; spot: number }
   | { kind: 'door'; index: number; open: boolean }
@@ -271,7 +270,6 @@ export type HideSeekActionPayload =
 /** Hide & seek: something everyone should hear / see (host to all). */
 export type HideSeekEventPayload =
   | MatchEvent
-  | { kind: 'flare'; col: number; row: number; by: string }
   | { kind: 'door'; index: number; open: boolean }
   | { kind: 'torch'; index: number; lit: boolean }
   | { kind: 'candle'; col: number; row: number }

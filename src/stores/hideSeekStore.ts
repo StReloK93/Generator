@@ -29,7 +29,6 @@ import {
   findWalkPath,
   screenInputToGrid,
   castVision,
-  sightAround,
   footstepLoudness,
   footstepInterval,
   altarLoudness,
@@ -67,6 +66,7 @@ import {
   heartbeatInterval,
   markExplored,
   createBotBrain,
+  shareAltarSightings,
   thinkBot,
   HideSeekMaze,
   generateMaze,
@@ -131,7 +131,7 @@ const DOOR_AUTO_OPEN = 1.1
 /** The hunt hint (arrow to the nearest hider) fades out over this long */
 const HUNT_HINT_SEC = 1.6
 const EMPTY_GRID: CollisionGrid = { subCols: 0, subRows: 0, blocked: new Uint8Array(0) }
-/** Use / open / hide (E or Space), flare (F), bell trap (T) */
+/** Use / open / hide (E or Space), bell trap (T), candle (C), chain (R) */
 const ACTION_KEYS = new Set(['KeyE', 'Space'])
 const MOVE_KEYS: Record<string, [number, number]> = {
   KeyW: [0, -1], ArrowUp: [0, -1],
@@ -163,7 +163,6 @@ interface BotState {
   brain: BotBrain
   stamina: Stamina
   gadgets: GadgetCounts
-  flare: number
   rank: number
 }
 
@@ -206,10 +205,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const dangerLevel = ref(0)
   const staminaLevel = ref(1)
   const isExhausted = ref(false)
-  const gadgets = reactive<GadgetCounts>({ flares: 0, traps: 0, candles: 0 })
+  const gadgets = reactive<GadgetCounts>({ traps: 0, candles: 0 })
   const isJailed = ref(false)
   const isHidden = ref(false)
-  const isFlareLit = ref(false)
   const scores = ref<HideSeekScoreRow[]>([])
   /** Solo game (no room): waiting for the player to pick a role; a bot plays the other one */
   const needsSoloRole = ref(false)
@@ -255,7 +253,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   let clickPath: GridCoord[] = []
   let pending: PendingUse | null = null
   let stamina: Stamina = freshStamina(settings)
-  let flareTimer = 0
   /** Altar progress at the last hum (an altar whose progress grew since then is heard) */
   let altarHumAt: number[] = []
   let altarHumTimer = 0
@@ -518,7 +515,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         const id = `bot-${n}`
         const model = HERO_MODELS[Math.floor(Math.random() * HERO_MODELS.length)].id
         addPlayer(id, `Bot ${n}`, getSlotColor(n), model, side.role)
-        bots.set(id, { brain: createBotBrain(EMPTY_GRID, [], 0, 0), stamina: freshStamina(settings), gadgets: gadgetsFor(side.role, settings), flare: 0, rank: side.role === role ? k + 1 : k })
+        bots.set(id, { brain: createBotBrain(EMPTY_GRID, [], 0, 0), stamina: freshStamina(settings), gadgets: gadgetsFor(side.role, settings), rank: side.role === role ? k + 1 : k })
         entries.push({ id, team: side.role === 'seeker' ? 0 : 1 })
       }
     }
@@ -551,7 +548,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     myRole.value = me?.role ?? 'hider'
     stamina = freshStamina(me ? rulesOf(me) : settings)
     Object.assign(gadgets, me ? gadgetsOf(me) : gadgetsFor(myRole.value, settings))
-    flareTimer = 0
     altarHumAt = []
     explored.fill(0)
     footprints = []
@@ -629,7 +625,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       brain: createBotBrain(pathGrid(body), allSpawns(spawns), match.altars.length, match.spots.length),
       stamina: freshStamina(rulesOf(body)),
       gadgets: gadgetsOf(body),
-      flare: 0,
       rank,
     }
   }
@@ -702,7 +697,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
     if (!pressed) return false
     if (ACTION_KEYS.has(code)) useNearest()
-    else if (code === 'KeyF') lightFlare()
     else if (code === 'KeyT') dropTrap()
     else if (code === 'KeyC') setCandle()
     else if (code === 'KeyR') useChain()
@@ -836,16 +830,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   // ==========================================
   // Gadgets
   // ==========================================
-  function lightFlare(): void {
-    const me = myPlayer()
-    if (!me || !canMove.value || myRole.value !== 'seeker' || gadgets.flares <= 0) return
-    gadgets.flares--
-    flareTimer = settings.flareDuration
-    isFlareLit.value = true
-    hideSeekAudio.playFlare(0.7, 0)
-    performAction({ kind: 'flare', c: me.col, r: me.row })
-  }
-
   function dropTrap(): void {
     const me = myPlayer()
     if (!me || !canMove.value || myRole.value !== 'seeker' || gadgets.traps <= 0) return
@@ -879,8 +863,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   /** Referee: applies a player's (or the bot's) action. */
   function applyAction(action: HideSeekActionPayload, by: string): void {
-    if (action.kind === 'flare') emitEvent({ kind: action.kind, col: action.c, row: action.r, by })
-    else if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
+    if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
     else if (action.kind === 'chain') startChain(match, by, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'candle') {
       if (players.get(by)?.role === 'seeker' && placeCandle(match, { col: action.c, row: action.r }, seekersGadgets('candles'), maze)) {
@@ -901,7 +884,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function emitEvent(event: HideSeekEventPayload): void {
     handleEvent(event)
     if (!isSolo()) send('HS_EVENT', event)
-    if (event.kind !== 'flare') stateDirty = true
+    stateDirty = true
   }
 
   /**
@@ -975,9 +958,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         hideSeekAudio.playBell(...noiseAt(event))
         ripples.push({ col: event.col, row: event.row, age: 0 })
         botNoises.push({ col: event.col, row: event.row, range: settings.noiseRange })
-        break
-      case 'flare':
-        if (event.by !== myId()) hideSeekAudio.playFlare(...noiseAt(event))
         break
       case 'round':
         if (isReferee()) onRoundStarted()
@@ -1234,12 +1214,14 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       const body = players.get(id)
       if (body) updateBot(body, bot, deltaSec)
     }
+    for (const role of ['seeker', 'hider'] as const) {
+      shareAltarSightings([...bots].filter(([id]) => players.get(id)?.role === role).map(([, bot]) => bot.brain))
+    }
     botNoises = []
   }
 
   function updateBot(body: HideSeekBody, bot: BotState, deltaSec: number): void {
     if (!grid) return
-    bot.flare = Math.max(0, bot.flare - deltaSec)
     const seat = seatOf(match, body.id)
     if (!seat || seat.jailed || isFrozen(match, body.id) || !canAct(body.role, match.clock.phase)) {
       body.moving = false
@@ -1274,7 +1256,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         breath: bot.stamina.value / rules.staminaSeconds,
         hiddenIn: body.hidden,
         gadgets: bot.gadgets,
-        flareActive: bot.flare > 0,
         exits: match.exitsOpen ? match.exits : [],
         jail: maze?.jail ?? null,
         home: maze ? { col: maze.hiderBase.col + maze.hiderBase.cols / 2 - 0.5, row: maze.hiderBase.row + maze.hiderBase.rows / 2 - 0.5 } : null,
@@ -1290,11 +1271,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       body.hidden = action.hideIn
       const spot = match.spots[action.hideIn]
       if (spot) Object.assign(body, { col: spot.col, row: spot.row, targetCol: spot.col, targetRow: spot.row })
-    }
-    if (action.flare && bot.gadgets.flares > 0) {
-      bot.gadgets.flares--
-      bot.flare = settings.flareDuration
-      applyAction({ kind: 'flare', c: body.col, r: body.row }, body.id)
     }
     if (action.trap && bot.gadgets.traps > 0) {
       bot.gadgets.traps--
@@ -1422,8 +1398,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function updateEffects(me: HideSeekBody | undefined, vision: GridCoord[] | null, deltaSec: number): void {
-    flareTimer = Math.max(0, flareTimer - deltaSec)
-    if (isFlareLit.value !== flareTimer > 0) isFlareLit.value = flareTimer > 0
 
     for (const ripple of ripples) ripple.age += deltaSec / RIPPLE_SEC
     ripples = ripples.filter(r => r.age < 1)
@@ -1474,11 +1448,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     updateHunt(me, deltaSec)
     const over = isRoundOver(match)
-    const flare = flareTimer > 0
     // Own eyes (a keen eye sees further); the seeker sees further still during the hunt
     const own = me ? rulesOf(me) : settings
     const sight = isHunting.value && me?.role === 'seeker' ? huntSettings(own) : own
-    const vision = over || !me ? null : castVision(grid, me, visionFacing, sight, sightAround(sight, flare))
+    const vision = over || !me ? null : castVision(grid, me, visionFacing, sight, sight.lanternRadius)
     updateEffects(me, vision, deltaSec)
 
     viewContext = {
@@ -1495,7 +1468,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       tileHeight,
       visionFacing,
       vision,
-      flare,
       route: clickPath,
       ripples,
       explored,
@@ -1547,7 +1519,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     gadgets,
     isJailed,
     isHidden,
-    isFlareLit,
     scores,
     canMove,
     didIWin,
@@ -1568,7 +1539,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     setSneakHeld,
     clickCell,
     useNearest,
-    lightFlare,
     dropTrap,
     releaseInput,
     applyPlayerState,

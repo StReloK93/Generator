@@ -401,7 +401,7 @@ function angleDiff(a: number, b: number): number {
 
 /**
  * What a player sees: the cone in front of them (no eyes in the back), plus a small circle all around
- * (`aroundRadius`: the lantern's glow, or a burning flare), stopped by walls.
+ * (`aroundRadius`: the lantern's glow), stopped by walls.
  * One grid-space polygon starting at the player: cone and circle share that point, so each direction keeps its longer ray.
  */
 export function castVision(grid: CollisionGrid, origin: GridCoord, facing: number, settings: HideSeekSettings, aroundRadius = 0): GridCoord[] {

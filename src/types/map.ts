@@ -160,6 +160,8 @@ export interface HideSeekSettings {
   altarKickTime: number
   /** An altar lights in this many stages: a seeker only puts it out down to the last stage reached */
   altarStages: number
+  /** Share of the altars the hiders have to light (rounded up) */
+  altarsNeededShare: number
   /** Seconds a free hider stands at the jail to set everybody in it free */
   rescueTime: number
   /** Chain: a hider who lit an altar can hold a seeker this close (tiles) for chainTime seconds; both stand still.
@@ -183,10 +185,6 @@ export interface HideSeekSettings {
   hideSpotCount: number
   /** How far a bell / door is heard */
   noiseRange: number
-  /** Flares the seeker can light per round: everything around them is lit for a moment */
-  flareCount: number
-  flareDuration: number
-  flareRadius: number
   /** Bell traps the seeker can place per round */
   trapCount: number
   /** Points: per altar lit, per hider caught / freed, for winning a round, per second a hider stays free */

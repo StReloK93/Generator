@@ -35,13 +35,13 @@ describe('HideSeekGadgets', () => {
     expect(moveSpeed('seeker', true, fresh, settings)).toBe(2)
   })
 
-  it('hands out flares / traps / candles to the seeker only', () => {
-    expect(gadgetsFor('hider', settings)).toEqual({ flares: 0, traps: 0, candles: 0 })
-    expect(gadgetsFor('seeker', settings)).toEqual({ flares: 2, traps: 2, candles: 4 })
+  it('hands out bell traps / candles to the seeker only', () => {
+    expect(gadgetsFor('hider', settings)).toEqual({ traps: 0, candles: 0 })
+    expect(gadgetsFor('seeker', settings)).toEqual({ traps: 2, candles: 4 })
   })
 
   it('gives the trickster one more of each own gadget', () => {
-    expect(gadgetsFor('seeker', settings, 1)).toEqual({ flares: 3, traps: 3, candles: 5 })
+    expect(gadgetsFor('seeker', settings, 1)).toEqual({ traps: 3, candles: 5 })
   })
 
   it('makes noises and the heartbeat louder up close', () => {
@@ -59,12 +59,12 @@ describe('HideSeekGadgets', () => {
     expect(explored[5 * 20 + 1]).toBe(0) // behind
   })
 
-  it('a lantern / flare adds a full circle around the player to the forward cone', () => {
+  it('a lantern adds a full circle around the player to the forward cone', () => {
     const grid = buildCollisionGrid({ cols: 30, rows: 30, collisionSubcells: [] })
     const lit = castVision(grid, { col: 15, row: 15 }, 0, settings, 5)
     const reach = (p: { col: number; row: number }) => Math.hypot(p.col - 15, p.row - 15)
     const rays = lit.slice(1)
     expect(Math.max(...rays.map(reach))).toBeCloseTo(settings.visionRange) // the cone still reaches far
-    expect(Math.min(...rays.map(reach))).toBeCloseTo(5) // and behind is lit up to the flare radius
+    expect(Math.min(...rays.map(reach))).toBeCloseTo(5) // and behind is lit up to the lantern radius
   })
 })

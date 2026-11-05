@@ -17,6 +17,7 @@ export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   altarLightTime: 10,
   altarKickTime: 4,
   altarStages: 4,
+  altarsNeededShare: 0.55,
   rescueTime: 3,
   chainRange: 5,
   chainTime: 15,
@@ -29,9 +30,6 @@ export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   seekerSpeedBonus: 1.12,
   hideSpotCount: 6,
   noiseRange: 12,
-  flareCount: 2,
-  flareDuration: 3,
-  flareRadius: 7,
   trapCount: 2,
   scoreAltar: 20,
   scoreCatch: 30,
@@ -71,7 +69,7 @@ function positive(value: unknown, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback
 }
 
-/** Counts and points may be 0 (e.g. a map without flares) */
+/** Counts and points may be 0 (e.g. a map without bell traps) */
 function nonNegative(value: unknown, fallback: number): number {
   const n = Number(value)
   return Number.isFinite(n) && n >= 0 ? n : fallback
@@ -101,6 +99,7 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
     altarLightTime: positive(s.altarLightTime, d.altarLightTime),
     altarKickTime: positive(s.altarKickTime, d.altarKickTime),
     altarStages: Math.max(1, Math.round(positive(s.altarStages, d.altarStages))),
+    altarsNeededShare: Math.min(1, positive(s.altarsNeededShare, d.altarsNeededShare)),
     rescueTime: nonNegative(s.rescueTime, d.rescueTime),
     chainRange: positive(s.chainRange, d.chainRange),
     chainTime: positive(s.chainTime, d.chainTime),
@@ -113,9 +112,6 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
     seekerSpeedBonus: positive(s.seekerSpeedBonus, d.seekerSpeedBonus),
     hideSpotCount: count(s.hideSpotCount, d.hideSpotCount),
     noiseRange: positive(s.noiseRange, d.noiseRange),
-    flareCount: count(s.flareCount, d.flareCount),
-    flareDuration: positive(s.flareDuration, d.flareDuration),
-    flareRadius: positive(s.flareRadius, d.flareRadius),
     trapCount: count(s.trapCount, d.trapCount),
     scoreAltar: nonNegative(s.scoreAltar, d.scoreAltar),
     scoreCatch: nonNegative(s.scoreCatch, d.scoreCatch),

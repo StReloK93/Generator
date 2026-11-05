@@ -151,8 +151,6 @@ export interface HideSeekRenderView {
   /** The hunt (last seconds of a round): the seeker's hint towards the nearest hider, 0..1 strength (null = none) */
   huntHint: { from: GridCoord; angle: number; strength: number } | null
   ripples: HideSeekRippleView[]
-  /** A flare burns: the sight polygon is lit brighter (it already includes the circle around the seeker) */
-  flareLit: boolean
   /** Own click-to-move route: current position first, destination last (empty when not walking one) */
   route: GridCoord[]
   /** Local player's sight cone, starting at the player (grid space); null = no fog (match over). */

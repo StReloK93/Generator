@@ -8,7 +8,6 @@ import {
   hasLineOfSight,
   sightReach,
   directionForFacing,
-  sightAround,
   seatOf,
   HideSeekMaze,
   edgePlacement,
@@ -56,8 +55,6 @@ export interface HideSeekViewContext {
   tileHeight: number
   visionFacing: number
   vision: GridCoord[] | null
-  /** Own flare burning (vision already includes the lit circle) */
-  flare: boolean
   route: GridCoord[]
   ripples: HideSeekRippleView[]
   /** Cells this player has seen this round (1 = seen) */
@@ -78,7 +75,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
   const { match, me, settings, grid } = ctx
   const over = isRoundOver(match)
   const blind = !over && me?.role === 'seeker' && match.clock.phase === 'hiding'
-  const around = sightAround(settings, ctx.flare)
+  const around = settings.lanternRadius
   const candles = torchSpots(match, ctx.maze)
   const litTorches = candles.filter((_, i) => match.torches[i])
   const torchLight = (p: GridCoord) => (litTorches.length > 0 ? torchLightAt(grid, p, litTorches, settings) : 0)
@@ -142,7 +139,6 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       .filter(t => over || me?.role === 'seeker' || t.ringing > 0 || inSight(t))
       .map(t => ({ col: t.col, row: t.row, ringing: t.ringing > 0 })),
     ripples: ctx.ripples,
-    flareLit: !over && ctx.flare,
     route: me && ctx.route.length > 0 ? [{ col: me.col, row: me.row }, ...ctx.route] : [],
     vision: over ? null : ctx.vision,
     sightReaches: !over && me && ctx.vision ? ctx.vision.slice(1).map(p => sightReach(me, ctx.visionFacing, p, settings, around)) : [],

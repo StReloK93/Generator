@@ -35,8 +35,6 @@ const GLOW_SOFTNESS = 24
 /** Warm lantern glow added inside the cone: strongest at the lantern, fading out along the beam */
 const GLOW_COLOR = 0xffc976
 const GLOW_BAND_ALPHA = 0.022
-/** A burning flare makes the glow this much stronger */
-const FLARE_GLOW_FACTOR = 2.5
 /** Lantern flicker: tiny, irregular breathing of the glow and the light's reach */
 const FLICKER_GLOW = 0.12
 const FLICKER_REACH = 0.025
@@ -306,7 +304,7 @@ export class HideSeekRenderer {
     return flat
   }
 
-  /** The sight polygon with every ray cut at `fraction` of its own reach (cone or flare circle). Fixed reaches keep it steady. */
+  /** The sight polygon with every ray cut at `fraction` of its own reach (cone or lantern circle). Fixed reaches keep it steady. */
   private scaledSight(sight: GridCoord[], fraction: number, reaches: number[]): GridCoord[] {
     const [origin, ...rays] = sight
     return [
@@ -454,7 +452,7 @@ export class HideSeekRenderer {
     g.clear()
     if (!view.vision || view.blind) return
     const flicker = 1 + FLICKER_GLOW * (0.6 * Math.sin(time * 9.1) + 0.4 * Math.sin(time * 23.7))
-    const alpha = GLOW_BAND_ALPHA * flicker * (view.flareLit ? FLARE_GLOW_FACTOR : 1)
+    const alpha = GLOW_BAND_ALPHA * flicker
     for (let i = 1; i <= FALLOFF_STEPS; i++) {
       g.poly(this.toScreen(this.scaledSight(view.vision, i / FALLOFF_STEPS, reaches), project)).fill({ color: GLOW_COLOR, alpha })
     }

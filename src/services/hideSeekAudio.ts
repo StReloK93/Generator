@@ -1,5 +1,5 @@
 /**
- * Synthesized hide & seek sounds (Web Audio, no audio files): footsteps, chest chime, heartbeat, bell, flare, jail,
+ * Synthesized hide & seek sounds (Web Audio, no audio files): footsteps, chest chime, heartbeat, bell, jail,
  * doors, candles, the hunting horn,
  * and short tunes that mark the round's start, the start of the hunt and the round's end.
  * Browsers only start audio after a user gesture, so input handlers call unlock().
@@ -165,25 +165,6 @@ class HideSeekAudio {
       this.tone(o.out, o.ctx, 'triangle', 1568, 1560, t, 0.5, volume * 0.35)
       this.tone(o.out, o.ctx, 'sine', 2349, 2340, t, 0.35, volume * 0.15)
     }
-  }
-
-  /** A flare hissing alight. */
-  public playFlare(volume: number, pan: number): void {
-    const o = this.output(volume, pan)
-    if (!o || !this.noise) return
-    const t = o.ctx.currentTime
-    const hiss = o.ctx.createBufferSource()
-    hiss.buffer = this.noise
-    hiss.playbackRate.value = 0.35
-    const filter = o.ctx.createBiquadFilter()
-    filter.type = 'highpass'
-    filter.frequency.value = 1500
-    const gain = o.ctx.createGain()
-    gain.gain.setValueAtTime(volume * 0.8, t)
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
-    hiss.connect(filter).connect(gain).connect(o.out)
-    hiss.start(t)
-    hiss.stop(t + 0.45)
   }
 
   /** A heavy door creaking open (rising) or shut (falling, with a thud). */
