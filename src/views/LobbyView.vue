@@ -44,7 +44,22 @@
     </header>
 
     <!-- Players -->
-    <main class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
+    <!-- Hide & seek: the two teams side by side, seekers left, hiders right, a soft line between them -->
+    <main
+      v-if="multiplayerStore.isHideSeekRoom"
+      class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5"
+    >
+      <section v-for="team in teams" :key="team.id" :class="['flex flex-col gap-1.5 short:gap-1 min-w-0', team.id === 'hiders' ? 'col-start-3 row-start-1' : '']">
+        <h2 :class="['flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider', team.textClass]">
+          <component :is="team.icon" class="size-3.5" />
+          {{ $t(team.label) }}
+          <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ team.slots.filter(s => s.player).length }}/{{ team.slots.length }}</span>
+        </h2>
+        <LobbyPlayerSlot v-for="slot in team.slots" :key="slot.slotIndex" :slot="slot" />
+      </section>
+      <div class="col-start-2 row-start-1 w-px my-1 bg-linear-to-b from-transparent via-slate-500/60 to-transparent" />
+    </main>
+    <main v-else class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
       <LobbyPlayerSlot
         v-for="slot in multiplayerStore.slots"
         :key="slot.slotIndex"
@@ -123,7 +138,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { X, Users, Check, Play, BellRing, Map, Clock, MessageSquare } from 'lucide-vue-next'
+import { X, Users, Check, Play, BellRing, Map, Clock, MessageSquare, Search, EyeOff } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiModal } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
@@ -145,6 +160,24 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
+
+/** Hide & seek: the seats of each team (the first seekerSlots seats seek) */
+const teams = computed(() => [
+  {
+    id: 'seekers',
+    label: 'hideseek.teamSeekers',
+    icon: Search,
+    textClass: 'text-rose-300',
+    slots: multiplayerStore.slots.filter(s => s.slotIndex < multiplayerStore.hideSeekSeekerSlots),
+  },
+  {
+    id: 'hiders',
+    label: 'hideseek.teamHiders',
+    icon: EyeOff,
+    textClass: 'text-emerald-300',
+    slots: multiplayerStore.slots.filter(s => s.slotIndex >= multiplayerStore.hideSeekSeekerSlots),
+  },
+])
 
 /** Chat panel open, and the messages seen when it was last open (the rest count as unread) */
 const isChatOpen = ref(false)

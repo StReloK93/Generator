@@ -3,12 +3,12 @@
   <div
     v-if="slot.player"
     :class="[
-      'flex items-center gap-2 rounded-xl border px-2 py-1.5 min-h-11',
+      'flex items-center gap-2 rounded-xl border px-2 py-1.5 short:py-1 min-h-11 short:min-h-9',
       isMe ? 'border-brand-400/60 bg-brand-500/10' : 'border-slate-800 bg-slate-950/40'
     ]"
   >
     <div
-      class="relative size-8 rounded-lg flex items-center justify-center text-slate-950 font-black text-[11px] shrink-0"
+      class="relative size-8 short:size-7 rounded-lg flex items-center justify-center text-slate-950 font-black text-[11px] shrink-0"
       :style="{ backgroundColor: slot.player.color }"
     >
       {{ slot.player.name.slice(0, 2).toUpperCase() }}
@@ -25,7 +25,7 @@
         <span class="font-extrabold text-sm text-slate-50 truncate">{{ slot.player.name }}</span>
         <UiBadge v-if="isMe" variant="brand" size="xs">{{ $t('lobby.slotYou') }}</UiBadge>
       </div>
-      <div class="text-[11px] text-slate-400 truncate">
+      <div v-if="!multiplayerStore.isHideSeekRoom" class="text-[11px] text-slate-400 truncate">
         {{ slotLabel }}
       </div>
     </div>
@@ -54,12 +54,12 @@
     variant="outline"
     block
     :leading-icon="UserPlus"
-    custom-class="justify-start! border-dashed min-h-11 py-1.5! text-slate-400"
+    custom-class="justify-start! border-dashed min-h-11 short:min-h-9 py-1.5! short:py-1! text-slate-400"
     @click="multiplayerStore.selectSlot(slot.slotIndex)"
   >
     <span class="flex items-center gap-2 min-w-0">
       <span>{{ $t('lobby.slotOpen') }}</span>
-      <span class="text-[11px] font-medium text-slate-500 truncate">· {{ slotLabel }}</span>
+      <span v-if="!multiplayerStore.isHideSeekRoom" class="text-[11px] font-medium text-slate-500 truncate">· {{ slotLabel }}</span>
     </span>
   </UiButton>
 </template>
@@ -72,15 +72,12 @@ import { PlayerSlot } from '../types/multiplayer'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useI18n } from '../stores/i18nStore'
 import { useNotificationStore } from '../stores/notificationStore'
-import { roleForSlot, normalizeHideSeekSettings } from '../domain/hideseek'
-import { useMapStore } from '../stores/mapStore'
 
 const props = defineProps<{
   slot: PlayerSlot
 }>()
 
 const multiplayerStore = useMultiplayerStore()
-const mapStore = useMapStore()
 const { t } = useI18n()
 
 const isMe = computed(() => props.slot.player?.id === multiplayerStore.myPlayerId)
@@ -101,11 +98,7 @@ async function confirmKick() {
   if (confirmed) multiplayerStore.kickPlayer(player.id)
 }
 
-/** Hide & seek slots are roles (taking the other slot switches role); other maps show the route name. */
-const slotLabel = computed(() => {
-  if (!multiplayerStore.isHideSeekRoom) return props.slot.routeName
-  const { seekerSlots } = normalizeHideSeekSettings(mapStore.project.hideSeekSettings)
-  return roleForSlot(props.slot.slotIndex, seekerSlots) === 'seeker' ? t('hideseek.roleSeeker') : t('hideseek.roleHider')
-})
+/** Other maps name the seat by its route (hide & seek seats sit in their team's column instead). */
+const slotLabel = computed(() => props.slot.routeName)
 
 </script>

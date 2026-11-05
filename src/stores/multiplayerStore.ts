@@ -1627,6 +1627,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     chatMessages,
     isAllReady,
     isHideSeekRoom,
+    hideSeekSeekerSlots,
     hideSeekLobbyIssue,
     unreadyCount,
     myPlayer,
