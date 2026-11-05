@@ -2,6 +2,7 @@ import { MapProject, UnitVariantType, MapGameMode } from './map'
 import type { HideSeekPhase, HideSeekRole, HideSeekEndReason } from '../domain/hideseek/HideSeekRules'
 import type { MatchEvent, HideSeekSeat, ChainState } from '../domain/hideseek/HideSeekMatch'
 import type { HideSpotKind, SpriteFacing } from '../domain/hideseek/HideSeekMaze'
+import type { AbilityMark } from '../domain/hideseek/HideSeekAbilities'
 
 export interface PlayerInfo {
   id: string
@@ -253,6 +254,7 @@ export interface HideSeekMatchStatePayload {
   candles: { c: number; r: number }[] // candles the seeker set down
   exits: { c: number; r: number }[] // spot inside each exit gate
   exitsOpen: boolean
+  marks: AbilityMark[] // smoke clouds, scout birds, fire walls, decoys, snares
   seats: HideSeekSeat[] // team, role, jail, score, altars lit, chain cooldown, daze and catches this round
   wins: Record<HideSeekRole, number> // rounds each side won
   matchWinner: HideSeekRole | null

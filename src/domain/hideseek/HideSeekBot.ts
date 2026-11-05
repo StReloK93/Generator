@@ -63,6 +63,8 @@ const FLEE_CANDIDATES = 30
 const FLEE_ROUTES_TRIED = 8
 /** Memory of where the bot has been: one entry per square of this many tiles */
 const MEMORY_CELL = 4
+/** Share of the sight range within which a bot notices a dark (not yet lit) altar */
+const ALTAR_NOTICE_SHARE = 0.6
 /** Exploring: candidate cells tried per plan */
 const EXPLORE_CANDIDATES = 30
 
@@ -156,6 +158,8 @@ export interface BotSenses {
   abilities: AbilityId[]
   cooldowns: number[]
   effects: AbilityEffects
+  /** Where its team's scout birds fly: opponents around them are seen */
+  reveals: GridCoord[]
 }
 
 export interface BotAction {
@@ -298,7 +302,8 @@ function perceive(brain: BotBrain, senses: BotSenses, grid: CollisionGrid, setti
     if (o.hidden || o.jailed) continue
     const d = dist(self, o)
     const sight = { ...settings, visionRange: settings.visionRange * o.spotted }
-    const watched = senses.effects.watch > 0 && d <= settings.watchRange
+    const watched =
+      (senses.effects.watch > 0 && d <= settings.watchRange) || senses.reveals.some(r => dist(r, o) <= settings.scoutRadius)
     if (watched || (looking && canSee(grid, self, senses.facing, o, sight, around * o.spotted))) {
       if (!seen || d < dist(self, seen)) seen = o
     } else if (o.moving && !o.sneaking && o.quiet > 0 && (footstepLoudness(d, settings) * o.quiet >= HEARING_THRESHOLD || (senses.effects.track > 0 && d <= settings.watchRange))) {
@@ -322,7 +327,9 @@ function perceive(brain: BotBrain, senses: BotSenses, grid: CollisionGrid, setti
 
   // Altars: learnt by seeing them (or by being right there); every lit one is known to all
   senses.altars.forEach((altar, i) => {
-    const inView = dist(altar, self) < 2 || (looking && canSee(grid, self, senses.facing, altar, settings, around))
+    // An unlit altar is dark: noticed only this close (a lit one burns and is seen as far as the eyes reach)
+    const reach = altar.progress > 0 ? settings : { ...settings, visionRange: settings.visionRange * ALTAR_NOTICE_SHARE }
+    const inView = dist(altar, self) < 2 || (looking && canSee(grid, self, senses.facing, altar, reach, around))
     if (altar.lit || inView) {
       if (inView && altar.progress > brain.altarSeen[i] + 0.01 && brain.altarSeen[i] >= 0) brain.altarGrewAt[i] = brain.time
       brain.altarSeen[i] = Math.max(altar.lit ? 1 : 0, inView ? altar.progress : brain.altarSeen[i])
@@ -369,16 +376,17 @@ function pickAbility(brain: BotBrain, role: HideSeekRole, senses: BotSenses, set
   const moving = brain.path.length > 0
   if (role === 'hider') {
     if (seen && d < ABILITY_CLOSE) {
-      // Running away (facing away from the seeker): leap; standing / cornered: shield or vanish
-      const leap = moving && brain.mode === 'flee' ? first('dash', 'blink') : -1
-      if (leap >= 0) return leap
-      const save = first('shield', 'vanish')
+      // Running away (facing away from the seeker): leap, or leave something behind; cornered: shield / hide / slow them
+      const fleeing = moving && brain.mode === 'flee'
+      const escape = fleeing ? first('dash', 'blink', 'hook', 'fireWall', 'snare', 'decoy', 'smoke') : -1
+      if (escape >= 0) return escape
+      const save = first('shield', 'vanish', 'roar', 'burrow', 'smoke')
       if (save >= 0) return save
     }
     if ((seen || heard) && senses.exhausted) return first('secondWind')
-    if (heard && !seen) return first('wind', 'watch')
-    if (brain.mode === 'collect' && !moving) return first('watch')
-    return brain.mode === 'explore' ? first('track') : -1
+    if (heard && !seen) return first('wind', 'watch', 'scout')
+    if (brain.mode === 'collect' && !moving) return first('watch', 'scout')
+    return brain.mode === 'explore' ? first('track', 'scout') : -1
   }
   if (seen) {
     const off = Math.atan2(seen.row - senses.self.row, seen.col - senses.self.col) - senses.facing
@@ -387,13 +395,23 @@ function pickAbility(brain: BotBrain, role: HideSeekRole, senses: BotSenses, set
       const leap = first('dash', 'blink')
       if (leap >= 0) return leap
     }
+    if (d > 1.5 && d <= settings.hookRange) {
+      const hook = first('hook')
+      if (hook >= 0) return hook
+    }
+    if (d <= settings.roarRange) {
+      const roar = first('roar')
+      if (roar >= 0) return roar
+    }
     if (senses.exhausted) return first('secondWind')
     if (d < settings.chainRange + 1) return first('shield')
     return -1
   }
-  if (brain.mode === 'search') return first('watch', 'track')
-  if (brain.mode === 'investigate') return first('wind', 'vanish', 'watch')
-  return brain.mode === 'explore' ? first('track') : -1
+  if (brain.mode === 'search') return first('watch', 'track', 'scout')
+  if (brain.mode === 'investigate') return first('wind', 'vanish', 'watch', 'scout', 'decoy')
+  // Keeping an altar: lay traps around it and wait in the smoke
+  if (brain.mode === 'guard' && !moving) return first('snare', 'fireWall', 'smoke')
+  return brain.mode === 'explore' ? first('track', 'scout') : -1
 }
 
 function thinkHider(
@@ -648,15 +666,3 @@ function sectorOf(grid: CollisionGrid, senses: BotSenses): { from: number; to: n
   return { from: senses.rank * width, to: (senses.rank + 1) * width }
 }
 
-/**
- * Team talk: bots on one side tell each other where the altars they found are (players in a team call these out
- * too). Opponents are not shared: each bot still has to see them itself.
- */
-export function shareAltarSightings(team: BotBrain[]): void {
-  if (team.length < 2) return
-  const count = team[0].altarSeen.length
-  for (let i = 0; i < count; i++) {
-    const seen = Math.max(...team.map(b => b.altarSeen[i]))
-    for (const b of team) b.altarSeen[i] = seen
-  }
-}

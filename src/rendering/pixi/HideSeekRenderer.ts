@@ -117,6 +117,11 @@ interface PropView extends GridCoord {
   wobble?: number
 }
 const BELL_COLOR = 0xfbbf24
+/** Ability marks: smoke, a scout bird, a fire wall, a snare */
+const SMOKE_COLOR = 0x9ca3af
+const SCOUT_COLOR = 0x7dd3fc
+const FIRE_COLOR = 0xf97316
+const SNARE_COLOR = 0xd6a35c
 const JAIL_TINT = 0x7c8794
 const JAIL_COLOR = 0x94a3b8
 /** Own character inside a barrel: a faint outline so the player knows where they are */
@@ -641,7 +646,7 @@ export class HideSeekRenderer {
     }
   }
 
-  /** Candle flames, the hunt arrow, bell traps and their ripples. */
+  /** Candle flames, the hunt arrow, bell traps and their ripples, and what abilities left on the map. */
   private drawEffects(view: HideSeekRenderView, project: MapProject): void {
     const g = this.effectsGraphics
     g.clear()
@@ -685,6 +690,33 @@ export class HideSeekRenderer {
       g.poly([p.x - 7 + swing, p.y - 6, p.x + 7 + swing, p.y - 6, p.x + 4 + swing, p.y - 18, p.x - 4 + swing, p.y - 18]).fill({ color: BELL_COLOR, alpha: 0.95 })
       g.circle(p.x + swing, p.y - 19, 3).fill({ color: BELL_COLOR, alpha: 0.95 })
       g.circle(p.x + swing * 1.4, p.y - 4, 2).fill({ color: 0x78350f, alpha: 1 })
+    }
+
+    for (const mark of view.marks) {
+      const p = at(mark)
+      if (mark.kind === 'smoke') {
+        // A few drifting puffs
+        for (let i = 0; i < 6; i++) {
+          const a = time * 0.4 + i * 1.05
+          const r = mark.radius * 0.55
+          const c = at({ col: mark.col + Math.cos(a) * r * 0.5, row: mark.row + Math.sin(a) * r * 0.5 })
+          g.ellipse(c.x, c.y - 10, tileWidth * r * 0.55, tileHeight * r * 0.55).fill({ color: SMOKE_COLOR, alpha: 0.32 })
+        }
+      } else if (mark.kind === 'scout') {
+        const r = mark.radius
+        g.ellipse(p.x, p.y, (tileWidth * r) / 2 * 1.4, (tileHeight * r) / 2 * 1.4).stroke({ width: 2, color: SCOUT_COLOR, alpha: 0.6 })
+        const fly = Math.sin(time * 6) * 4
+        g.poly([p.x - 10, p.y - 40 + fly, p.x, p.y - 34, p.x + 10, p.y - 40 + fly, p.x, p.y - 30]).fill({ color: SCOUT_COLOR, alpha: 0.95 })
+      } else if (mark.kind === 'fireWall' && mark.ends) {
+        const a = at(mark.ends[0])
+        const b = at(mark.ends[1])
+        const flicker = 0.75 + 0.25 * Math.sin(time * 17)
+        g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({ width: 10, color: FIRE_COLOR, alpha: 0.35 * flicker })
+        g.moveTo(a.x, a.y - 4).lineTo(b.x, b.y - 4).stroke({ width: 4, color: FLAME_CORE_COLOR, alpha: 0.9 * flicker })
+      } else if (mark.kind === 'snare') {
+        g.ellipse(p.x, p.y, tileWidth * 0.14, tileHeight * 0.14).stroke({ width: 2, color: SNARE_COLOR, alpha: 0.9 })
+        g.circle(p.x, p.y, 2).fill({ color: SNARE_COLOR, alpha: 0.9 })
+      }
     }
 
     for (const ripple of view.ripples) {

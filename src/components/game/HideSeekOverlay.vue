@@ -199,7 +199,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Zap, Wind, HeartPulse, Shield, Ghost, Waypoints, Radar, ScanSearch } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Zap, Wind, HeartPulse, Shield, Ghost, Waypoints, Radar, ScanSearch, Anchor, Megaphone, Shovel, Cloud, Bird, Flame, Copy, CircleDot } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -339,6 +339,14 @@ const ABILITY_ICONS: Record<AbilityId, Component> = {
   blink: Waypoints,
   watch: Radar,
   track: ScanSearch,
+  hook: Anchor,
+  roar: Megaphone,
+  burrow: Shovel,
+  smoke: Cloud,
+  scout: Bird,
+  fireWall: Flame,
+  decoy: Copy,
+  snare: CircleDot,
 }
 const ABILITY_KEYS = ['Q', 'F']
 

@@ -3,7 +3,6 @@ import {
   buildCollisionGrid,
   createBotBrain,
   thinkBot,
-  shareAltarSightings,
   stepAlongPath,
   normalizeHideSeekSettings,
   AltarState,
@@ -42,6 +41,7 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
     abilities: [],
     cooldowns: [0, 0],
     effects: noEffects(),
+    reveals: [],
     ...extra,
   }
 }
@@ -166,22 +166,19 @@ describe('HideSeekBot', () => {
     }
     expect(chests.every(c => c.lit)).toBe(true)
   })
-  it('seekers share the altars they found and each keeps one of them', () => {
+  it('a seeker keeps one of the altars it found and walks around it', () => {
     const altars = [{ col: 3, row: 3, progress: 0, lit: false }, { col: 16, row: 16, progress: 0, lit: false }]
-    const first = createBotBrain(openGrid, [{ col: 10, row: 10 }], altars.length, 0)
-    const second = createBotBrain(openGrid, [{ col: 10, row: 10 }], altars.length, 0)
+    const brain = createBotBrain(openGrid, [{ col: 10, row: 10 }], altars.length, 0)
     // Four seekers: half of them (ranks 0 and 1) keep an altar, the others search
     const team = ['a', 'b', 'c'].map(id => ({ id, col: 10, row: 10, jailed: false }))
-    // Only the first seeker stands next to the altars and sees them
-    think(first, 'seeker', senses({ col: 3, row: 4 }, 0, null, altars, { teammates: team }))
-    think(first, 'seeker', senses({ col: 16, row: 15 }, 0, null, altars, { teammates: team }))
-    expect(second.altarSeen).toEqual([-1, -1])
-    shareAltarSightings([first, second])
-    expect(second.altarSeen).toEqual([0, 0])
-    // The second seeker (rank 1) goes to keep the second altar
-    think(second, 'seeker', senses({ col: 10, row: 10 }, 0, null, altars, { teammates: team, rank: 1 }))
-    expect(second.mode).toBe('guard')
-    const goal = second.path.at(-1)!
+    think(brain, 'seeker', senses({ col: 3, row: 4 }, 0, null, altars, { teammates: team, rank: 1 }))
+    think(brain, 'seeker', senses({ col: 16, row: 15 }, 0, null, altars, { teammates: team, rank: 1 }))
+    expect(brain.altarSeen).toEqual([0, 0])
+    brain.path = []
+    // Rank 1 keeps the second altar it knows
+    think(brain, 'seeker', senses({ col: 10, row: 10 }, 0, null, altars, { teammates: team, rank: 1 }))
+    expect(brain.mode).toBe('guard')
+    const goal = brain.path.at(-1)!
     expect(Math.hypot(goal.col - 16, goal.row - 16)).toBeLessThan(5)
   })
 })

@@ -72,9 +72,11 @@ import {
   tickAbilities,
   useAbility,
   dashTarget,
+  motionFactor,
+  inSmoke,
+  isMarkAbility,
   blinkTarget,
   AbilityId,
-  shareAltarSightings,
   thinkBot,
   HideSeekMaze,
   generateMaze,
@@ -381,8 +383,14 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     rebuildGrids()
   }
 
+  /** Out of the other side's sight: vanished, underground or inside smoke. */
+  function unseen(p: HideSeekBody): boolean {
+    const effects = seatOf(match, p.id)?.effects
+    return !!effects && (effects.vanish > 0 || effects.burrow > 0 || inSmoke(match.marks, p, settings))
+  }
+
   function bodies(): MatchBody[] {
-    return [...players.values()].map(p => ({ id: p.id, col: p.col, row: p.row, moving: p.moving, hidden: p.hidden, trait: traitOf(p.model) }))
+    return [...players.values()].map(p => ({ id: p.id, col: p.col, row: p.row, moving: p.moving, hidden: p.hidden, trait: traitOf(p.model), model: p.model, facing: p.facing }))
   }
 
   // ==========================================
@@ -632,7 +640,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     myAbilities.value = abilitiesOf(myPlayer()?.model).map((id, slot) => ({
       id,
       cooldown: up(seat?.cooldowns[slot] ?? 0),
-      active: !!seat && abilityActive(seat.effects, id),
+      // A timed one runs, or what it left on the map is still there
+      active: !!seat && (abilityActive(seat.effects, id) || (isMarkAbility(id) && match.marks.some(m => m.by === myId() && m.kind === id))),
     }))
   }
 
@@ -890,11 +899,19 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     applyTimerHud()
   }
 
-  /** What an ability does to its user's own body: a dash / blink moves it, second wind fills the breath. */
+  /** A leap of the user's own body: dash, blink, or a hider's hook thrown ahead (a seeker's hook pulls others). */
+  function isLeap(body: HideSeekBody, ability: AbilityId): boolean {
+    return ability === 'dash' || ability === 'blink' || (ability === 'hook' && body.role === 'hider')
+  }
+
+  /** What an ability does to its user's own body: a leap moves it, second wind fills the breath. */
   function actAbility(body: HideSeekBody, ability: AbilityId, breath: Stamina): Stamina {
-    if (ability === 'dash' || ability === 'blink') {
+    if (isLeap(body, ability)) {
       const walls = pathGrid(body)
-      const to = ability === 'dash' ? dashTarget(walls, body, body.facing, settings) : blinkTarget(walls, body, body.facing, settings)
+      const to =
+        ability === 'blink'
+          ? blinkTarget(walls, body, body.facing, settings)
+          : dashTarget(walls, body, body.facing, ability === 'hook' ? settings.hookRange : settings.dashDistance)
       Object.assign(body, { col: to.col, row: to.row, targetCol: to.col, targetRow: to.row })
     }
     return ability === 'secondWind' ? { value: rulesOf(body).staminaSeconds, exhausted: false } : breath
@@ -909,7 +926,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Referee: applies a player's (or the bot's) action. */
   function applyAction(action: HideSeekActionPayload, by: string): void {
     if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
-    else if (action.kind === 'ability') useAbility(match, by, action.slot, players.get(by)?.model, settings).forEach(emitEvent)
+    else if (action.kind === 'ability') useAbility(match, by, action.slot, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'chain') startChain(match, by, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'candle') {
       if (players.get(by)?.role === 'seeker' && placeCandle(match, { col: action.c, row: action.r }, seekersGadgets('candles'), maze)) {
@@ -950,6 +967,21 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       pending = null
       if (!isSolo()) sendMyState(p)
     }
+  }
+
+  /** A hook pulled one of mine (myself, or a bot when I referee) to `at`. */
+  function moveOwnCharacter(id: string, at: GridCoord): void {
+    if (id !== myId() && !(isBot(id) && isReferee())) return
+    const p = players.get(id)
+    if (!p) return
+    Object.assign(p, { col: at.col, row: at.row, targetCol: at.col, targetRow: at.row, moving: false, hidden: -1 })
+    if (id === myId()) {
+      clickPath = []
+      pending = null
+      if (!isSolo()) sendMyState(p)
+    }
+    const bot = bots.get(id)
+    if (bot) bot.brain.path = []
   }
 
   /** Volume / pan of a sound at `pos` for the local player. */
@@ -1002,13 +1034,26 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         break
       case 'ability': {
         const seat = seatOf(match, event.by)
-        if (seat && !isReferee()) startAbility(seat.cooldowns, seat.effects, event.slot, event.ability, settings)
+        if (seat && !isReferee()) {
+          startAbility(seat.cooldowns, seat.effects, event.slot, event.ability, settings)
+          if (event.mark) match.marks.push({ ...event.mark })
+        }
         // Only the own side hears it (a vanishing / silent opponent gives nothing away)
         const user = players.get(event.by)
         if (user && user.role === myRole.value) hideSeekAudio.playAbility(...noiseAt(user))
         applyTimerHud()
         break
       }
+      case 'effect': {
+        const seat = seatOf(match, event.id)
+        if (seat && !isReferee()) seat.effects[event.effect] = Math.max(seat.effects[event.effect], event.seconds)
+        if (event.id === myId()) hideSeekAudio.playJail(0.5, false)
+        break
+      }
+      case 'pulled':
+        moveOwnCharacter(event.id, event)
+        if (event.id === myId()) hideSeekAudio.playJail(0.6, false)
+        break
       case 'bell':
         hideSeekAudio.playBell(...noiseAt(event))
         ripples.push({ col: event.col, row: event.row, age: 0 })
@@ -1094,6 +1139,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       candles: match.candles.map(c => ({ c: c.col, r: c.row })),
       exits: match.exits.map(e => ({ c: e.col, r: e.row })),
       exitsOpen: match.exitsOpen,
+      marks: match.marks.map(m => ({ ...m })),
       seats: match.seats.map(s => ({ ...s })),
       wins: { ...match.wins },
       matchWinner: match.matchWinner,
@@ -1134,6 +1180,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     match.candles = state.candles.map(c => ({ col: c.c, row: c.r }))
     match.exits = state.exits.map(e => ({ col: e.c, row: e.r }))
     match.exitsOpen = state.exitsOpen
+    match.marks = state.marks.map(m => ({ ...m }))
     loadMaze(state.maze)
     rebuildGrids()
     if (state.round !== lastRound) onRoundStarted()
@@ -1188,7 +1235,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const steering = Math.hypot(dir.col, dir.row) > 0.05
     if (steering && me.hidden !== -1) leaveSpot()
     const rules = rulesOf(me)
-    const distance = moveSpeed(me.role, sneaking, stamina, rules) * deltaSec
+    const mySeat = seatOf(match, me.id)
+    const distance = moveSpeed(me.role, sneaking, stamina, rules) * (mySeat ? motionFactor(mySeat.effects, settings) : 1) * deltaSec
 
     if (!canMove.value || me.hidden !== -1 || !grid) {
       clickPath = []
@@ -1269,9 +1317,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       const body = players.get(id)
       if (body) updateBot(body, bot, deltaSec)
     }
-    for (const role of ['seeker', 'hider'] as const) {
-      shareAltarSightings([...bots].filter(([id]) => players.get(id)?.role === role).map(([, bot]) => bot.brain))
-    }
     botNoises = []
   }
 
@@ -1298,12 +1343,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
             row: p.row,
             moving: p.moving,
             sneaking: p.sneaking,
-            // Vanished: not there for the bot's eyes; in the wind: not for its ears
-            hidden: p.hidden !== -1 || (seatOf(match, p.id)?.effects.vanish ?? 0) > 0,
+            // Vanished, underground or in smoke: not there for the bot's eyes; in the wind: not for its ears
+            hidden: p.hidden !== -1 || unseen(p),
             jailed: !!seatOf(match, p.id)?.jailed,
             spotted: spottedWithin(settings, traitOf(p.model)),
             quiet: (seatOf(match, p.id)?.effects.wind ?? 0) > 0 ? 0 : stepLoudness(settings, traitOf(p.model)),
-          })),
+          }))
+          // The other side's decoys look like players to a bot
+          .concat(
+            match.marks
+              .filter(m => m.kind === 'decoy' && m.team !== seat.team && !inSmoke(match.marks, m, settings))
+              .map(m => ({ id: `decoy-${m.by}`, col: m.col, row: m.row, moving: false, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 0 }))
+          ),
         teammates: others.filter(p => p.role === body.role).map(p => ({ id: p.id, col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed })),
         altars: match.altars,
         spots: match.spots,
@@ -1320,6 +1371,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         abilities: abilitiesOf(body.model),
         cooldowns: seat.cooldowns,
         effects: seat.effects,
+        reveals: match.marks.filter(m => m.kind === 'scout' && m.team === seat.team),
       },
       pathGrid(body),
       body.role === 'seeker' && isHunting.value ? huntSettings(rules) : rules,
@@ -1340,7 +1392,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (ability && seat.cooldowns[action.ability] <= 0) {
       bot.stamina = actAbility(body, ability, bot.stamina)
       // After a leap it plans a new way from where it landed
-      if (ability === 'dash' || ability === 'blink') {
+      if (isLeap(body, ability)) {
         bot.brain.path = []
         bot.brain.thinkTimer = 0
       }
@@ -1361,7 +1413,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       return
     }
     if (bot.brain.path.length > 0) openDoorsAhead(body, index => applyAction({ kind: 'door', index, open: true }, body.id))
-    const step = stepAlongPath(body, bot.brain.path, moveSpeed(body.role, body.sneaking, bot.stamina, rules) * deltaSec)
+    const step = stepAlongPath(body, bot.brain.path, moveSpeed(body.role, body.sneaking, bot.stamina, rules) * motionFactor(seat.effects, settings) * deltaSec)
     bot.brain.path = step.path
     body.col = body.targetCol = step.pos.col
     body.row = body.targetRow = step.pos.row
@@ -1496,6 +1548,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Guest: chains, dazes and cooldowns run down between two host states (the host's next state corrects them). */
   function advanceGuestTimers(deltaSec: number): void {
     for (const chain of match.chains) chain.timeLeft = Math.max(0, chain.timeLeft - deltaSec)
+    for (const mark of match.marks) mark.timeLeft = Math.max(0, mark.timeLeft - deltaSec)
+    match.marks = match.marks.filter(m => m.timeLeft > 0)
     for (const seat of match.seats) {
       seat.chainCooldown = Math.max(0, seat.chainCooldown - deltaSec)
       seat.dazed = Math.max(0, seat.dazed - deltaSec)

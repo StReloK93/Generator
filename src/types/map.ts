@@ -162,6 +162,8 @@ export interface HideSeekSettings {
   altarStages: number
   /** Share of the altars the hiders have to light (rounded up) */
   altarsNeededShare: number
+  /** Altars stand at least this many tiles away from both bases (they have to be searched for) */
+  altarBaseDistance: number
   /** Seconds a free hider stands at the jail to set everybody in it free */
   rescueTime: number
   /** Chain: a hider who lit an altar can hold a seeker this close (tiles) for chainTime seconds; both stand still.
@@ -254,6 +256,31 @@ export interface HideSeekSettings {
   watchCooldown: number
   trackTime: number
   trackCooldown: number
+  /** slowFactor: share of the speed while slowed (a roar, a fire wall); snareLife: how long a snare waits for prey */
+  hookRange: number
+  hookCooldown: number
+  roarRange: number
+  roarTime: number
+  roarCooldown: number
+  slowFactor: number
+  burrowTime: number
+  burrowCooldown: number
+  smokeRadius: number
+  smokeTime: number
+  smokeCooldown: number
+  scoutDistance: number
+  scoutRadius: number
+  scoutTime: number
+  scoutCooldown: number
+  fireWallLength: number
+  fireWallTime: number
+  fireWallSlowTime: number
+  fireWallCooldown: number
+  decoyTime: number
+  decoyCooldown: number
+  snareTime: number
+  snareLife: number
+  snareCooldown: number
 }
 
 export interface MapProject {

@@ -112,6 +112,15 @@ export interface HideSeekFootprintView {
 }
 
 /** A bell trap (the seeker sees their own; others only when it rings or is in sight). */
+/** Something an ability left on the map: a smoke cloud / scout bird (radius), a fire wall (ends), a snare */
+export interface HideSeekMarkView {
+  kind: 'smoke' | 'scout' | 'fireWall' | 'decoy' | 'snare'
+  col: number
+  row: number
+  radius: number
+  ends: [GridCoord, GridCoord] | null
+}
+
 export interface HideSeekTrapView {
   col: number
   row: number
@@ -150,6 +159,7 @@ export interface HideSeekRenderView {
   footprints: HideSeekFootprintView[]
   /** Tracking: footprints are drawn even where it is dark */
   trackAll: boolean
+  marks: HideSeekMarkView[]
   /** The hunt (last seconds of a round): the seeker's hint towards the nearest hider, 0..1 strength (null = none) */
   huntHint: { from: GridCoord; angle: number; strength: number } | null
   ripples: HideSeekRippleView[]

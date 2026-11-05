@@ -16,6 +16,9 @@ import {
   traitOf,
   spottedWithin,
   TORCH_SIGHT_FACTOR,
+  inSmoke,
+  scoutedBy,
+  fireWallEnds,
 } from '../domain/hideseek'
 
 /** A character as the hide & seek session tracks it. */
@@ -88,6 +91,12 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     const far = { ...near, visionRange: near.visionRange * TORCH_SIGHT_FACTOR }
     return canSee(grid, me, ctx.visionFacing, p, near, around * within) || (torchLight(p) > 0 && canSee(grid, me, ctx.visionFacing, p, far))
   }
+  /** An opponent shows: in sight, within my watch (through walls) or near my team's scout bird */
+  const spotted = (p: GridCoord, within = 1) =>
+    !!me &&
+    (inSight(p, within) ||
+      ((mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange) ||
+      (!!mySeat && scoutedBy(match.marks, mySeat.team, p, settings)))
   /** 0 = dark .. 1 = fully lit by the player's lantern / sight or by a candle */
   const lightAt = (p: GridCoord): number => {
     if (over) return 1
@@ -147,32 +156,68 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     sightReaches: !over && me && ctx.vision ? ctx.vision.slice(1).map(p => sightReach(me, ctx.visionFacing, p, settings, around)) : [],
     lightFadeWidth: LIGHT_FADE_WIDTH,
     lightAt,
-    avatars: ctx.bodies.map(p => {
+    // Smoke and fire are seen by all; a team's own scout birds and snares only by that team
+    marks: over
+      ? []
+      : match.marks
+          .filter(m => m.kind === 'smoke' || m.kind === 'fireWall' || ((m.kind === 'scout' || m.kind === 'snare') && m.team === mySeat?.team))
+          .map(m => ({
+            kind: m.kind,
+            col: m.col,
+            row: m.row,
+            radius: m.kind === 'smoke' ? settings.smokeRadius : m.kind === 'scout' ? settings.scoutRadius : 0,
+            ends: m.kind === 'fireWall' ? fireWallEnds(m, settings) : null,
+          })),
+    avatars: [
+      ...ctx.bodies.map(p => {
       const seat = seatOf(match, p.id)
       const jailed = !!seat?.jailed
       // Both teams know where their own players are
       const teammate = !!me && p.role === me.role
-      const vanished = (seat?.effects.vanish ?? 0) > 0
-      // Watching: every opponent nearby shows, through walls (not a vanished one)
-      const watched = !!me && (mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange
+      // Vanished, underground or inside smoke: the other side does not see them
+      const unseen = !!seat && (seat.effects.vanish > 0 || seat.effects.burrow > 0 || inSmoke(match.marks, p, settings))
       return {
         id: p.id,
         col: p.col,
         row: p.row,
         direction: directionForFacing(p.facing, ctx.tileWidth, ctx.tileHeight),
-        action: p.moving ? 'Run' : 'Idle',
+        action: p.moving ? ('Run' as const) : ('Idle' as const),
         frame: p.frame,
         sneaking: p.moving && p.sneaking,
         model: p.model,
         color: p.color,
         isMe: p === me,
         jailed,
-        hidden: p === me && (p.hidden !== -1 || vanished),
+        hidden: p === me && (p.hidden !== -1 || unseen),
         dazed: !over && (seat?.dazed ?? 0) > 0,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
-        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || (!vanished && (watched || inSight(p, spottedWithin(settings, traitOf(p.model))))))),
+        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || (!unseen && spotted(p, spottedWithin(settings, traitOf(p.model)))))),
       }
-    }),
+      }),
+      // Decoys: a still copy of the hero; their own team sees it faint
+      ...match.marks
+        .filter(m => m.kind === 'decoy' && !over)
+        .map(m => {
+          const own = m.team === mySeat?.team
+          const owner = ctx.bodies.find(p => p.id === m.by)
+          return {
+            id: `decoy-${m.by}`,
+            col: m.col,
+            row: m.row,
+            direction: directionForFacing(m.facing, ctx.tileWidth, ctx.tileHeight),
+            action: 'Idle' as const,
+            frame: 0,
+            sneaking: false,
+            model: m.model,
+            color: owner?.color ?? '#94a3b8',
+            isMe: false,
+            jailed: false,
+            hidden: own,
+            dazed: false,
+            visible: own || (!inSmoke(match.marks, m, settings) && spotted(m)),
+          }
+        }),
+    ],
   }
 }
 
