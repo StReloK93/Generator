@@ -352,6 +352,7 @@ import { useToolStore } from '../../stores/toolStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useMapStore } from '../../stores/mapStore'
+import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { getMapMode } from '../../domain/map'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18nStore } from '../../stores/i18nStore'
@@ -367,6 +368,7 @@ const toolStore = useToolStore()
 const multiplayerStore = useMultiplayerStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
+const hideSeekStore = useHideSeekStore()
 
 /** Tower defense maps get waves, lives and towers; PvP (hero) maps only players and the hero. */
 const isTdMode = computed(() => getMapMode(mapStore.project) === 'td')
@@ -560,9 +562,11 @@ function handleStartWaveNow() {
   characterStore.startTour()
 }
 
+/** Play again: a hide & seek game goes back to its picker (team size, hero, role); tower defence starts over. */
 function handleRestartGame() {
   isMenuOpen.value = false
-  gameStore.restartGame()
+  if (hideSeekStore.isActive) hideSeekStore.chooseSoloRole()
+  else gameStore.restartGame()
 }
 
 function handleExitFromMenu() {
