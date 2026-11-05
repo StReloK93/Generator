@@ -236,6 +236,24 @@ export interface HideSeekSettings {
   traitLightBonus: number
   /** Trickster: this many extra of each own gadget per round */
   traitExtraGadgets: number
+  /** Hero abilities (Q / F, in both roles): how far a dash / blink goes (tiles), how long a timed one lasts and
+   * the cooldowns (seconds); watch shows opponents within watchRange through walls */
+  dashDistance: number
+  dashCooldown: number
+  windTime: number
+  windCooldown: number
+  secondWindCooldown: number
+  shieldTime: number
+  shieldCooldown: number
+  vanishTime: number
+  vanishCooldown: number
+  blinkDistance: number
+  blinkCooldown: number
+  watchRange: number
+  watchTime: number
+  watchCooldown: number
+  trackTime: number
+  trackCooldown: number
 }
 
 export interface MapProject {

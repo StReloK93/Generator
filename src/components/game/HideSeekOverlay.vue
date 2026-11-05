@@ -58,6 +58,10 @@
       <span v-if="isSeeker" class="flex items-start gap-1.5">
         <Lamp class="size-3 shrink-0 mt-px" />{{ $t('hideseek.candleHint') }}
       </span>
+      <span v-for="ability in abilityButtons" :key="ability.key" class="flex items-start gap-1.5 text-sky-200/80">
+        <component :is="ability.icon" class="size-3 shrink-0 mt-px" />
+        <span><b>{{ ability.key }} · {{ $t(ability.label) }}</b>: {{ $t(ability.label.replace('ability.', 'abilityHint.')) }}</span>
+      </span>
     </div>
   </div>
 
@@ -115,6 +119,11 @@
     <div class="flex flex-col gap-2">
       <!-- Team size: the player plus bot teammates against as many bots -->
       <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
+      <!-- Hero: each has a trait and two abilities (Q / F) -->
+      <UiTabs v-model="soloHero" :items="SOLO_HEROES" variant="pills" size="xs" custom-class="flex-wrap" />
+      <div v-if="soloHeroAbilities.length" class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-sky-200/80">
+        <span v-for="(ability, slot) in soloHeroAbilities" :key="ability"><b>{{ ABILITY_KEYS[slot] }}</b> {{ $t(`hideseek.ability.${ability}`) }}</span>
+      </div>
       <UiCard
         v-for="option in SOLO_ROLES"
         :key="option.role"
@@ -188,15 +197,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Zap, Wind, HeartPulse, Shield, Ghost, Waypoints, Radar, ScanSearch } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
 import { useGameExit } from '../../composables/useGameExit'
-import type { HideSeekRole } from '../../domain/hideseek'
-import { useHideSeekStore } from '../../stores/hideSeekStore'
+import { abilitiesOf, type AbilityId, type HideSeekRole } from '../../domain/hideseek'
+import { DEFAULT_HERO_MODEL, useHideSeekStore } from '../../stores/hideSeekStore'
+import { HERO_MODELS } from '../../stores/heroStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
 import { hideSeekAudio } from '../../services/hideSeekAudio'
@@ -229,10 +239,13 @@ const SOLO_ROLES = [
 /** Solo with bots: 1 against 1 up to 5 against 5 */
 const TEAM_SIZES: TabItem[] = [1, 3, 5].map(n => ({ id: n, label: `${n} × ${n}` }))
 const soloTeamSize = ref<string | number>(5)
+const SOLO_HEROES: TabItem[] = HERO_MODELS.map(h => ({ id: h.id, label: h.label }))
+const soloHero = ref<string | number>(DEFAULT_HERO_MODEL)
+const soloHeroAbilities = computed(() => abilitiesOf(String(soloHero.value)))
 
 function startSolo(role: HideSeekRole) {
   hideSeekAudio.unlock()
-  hideSeekStore.startSoloRound(role, Number(soloTeamSize.value))
+  hideSeekStore.startSoloRound(role, Number(soloTeamSize.value), String(soloHero.value))
 }
 
 const isSeeker = computed(() => hideSeekStore.myRole === 'seeker')
@@ -317,8 +330,34 @@ function run(action: () => void) {
   }
 }
 
-/** Seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
-const gadgetButtons = computed(() =>
+const ABILITY_ICONS: Record<AbilityId, Component> = {
+  dash: Zap,
+  wind: Wind,
+  secondWind: HeartPulse,
+  shield: Shield,
+  vanish: Ghost,
+  blink: Waypoints,
+  watch: Radar,
+  track: ScanSearch,
+}
+const ABILITY_KEYS = ['Q', 'F']
+
+/** My hero's abilities (both roles): the badge counts the cooldown down, green while a timed one runs */
+const abilityButtons = computed(() =>
+  hideSeekStore.myAbilities.map((ability, slot) => ({
+    key: ABILITY_KEYS[slot],
+    label: `hideseek.ability.${ability.id}`,
+    icon: ABILITY_ICONS[ability.id],
+    count: ability.cooldown > 0 ? ability.cooldown : null,
+    active: ability.active,
+    blocked: ability.cooldown > 0,
+    run: run(() => hideSeekStore.castAbility(slot)),
+  }))
+)
+
+/** Abilities first; seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
+const gadgetButtons = computed(() => [...abilityButtons.value, ...roleButtons.value])
+const roleButtons = computed(() =>
   isSeeker.value
     ? [
         { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, blocked: false, run: run(hideSeekStore.dropTrap) },

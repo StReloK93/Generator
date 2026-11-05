@@ -148,6 +148,8 @@ export interface HideSeekRenderView {
   torchRadius: number
   /** Footprints of the other players (only those in light are drawn) */
   footprints: HideSeekFootprintView[]
+  /** Tracking: footprints are drawn even where it is dark */
+  trackAll: boolean
   /** The hunt (last seconds of a round): the seeker's hint towards the nearest hider, 0..1 strength (null = none) */
   huntHint: { from: GridCoord; angle: number; strength: number } | null
   ripples: HideSeekRippleView[]

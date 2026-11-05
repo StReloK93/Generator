@@ -613,13 +613,13 @@ export class HideSeekRenderer {
     }
   }
 
-  /** Footprints of running players: little dark soles on the floor, only where there is light to see them. */
+  /** Footprints of running players: little dark soles on the floor, only where there is light to see them (or all while tracking). */
   private drawFootprints(view: HideSeekRenderView, project: MapProject): void {
     const g = this.printGraphics
     g.clear()
     const { tileWidth, tileHeight } = project
     for (const print of view.footprints) {
-      const level = view.lightAt(print)
+      const level = view.trackAll ? 1 : view.lightAt(print)
       if (level <= 0) continue
       // Screen direction of the step, and the side the foot is on
       const ahead = gridToScreen(Math.cos(print.facing), Math.sin(print.facing), tileWidth, tileHeight)

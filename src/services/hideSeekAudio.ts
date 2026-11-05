@@ -167,6 +167,15 @@ class HideSeekAudio {
     }
   }
 
+  /** An ability: a short rising whoosh. */
+  public playAbility(volume: number, pan: number): void {
+    const o = this.output(volume, pan)
+    if (!o) return
+    const t = o.ctx.currentTime
+    this.tone(o.out, o.ctx, 'sine', 320, 980, t, 0.22, volume * 0.35)
+    this.tone(o.out, o.ctx, 'triangle', 640, 1960, t + 0.04, 0.16, volume * 0.15)
+  }
+
   /** A heavy door creaking open (rising) or shut (falling, with a thud). */
   public playDoor(volume: number, pan: number, open: boolean): void {
     const o = this.output(volume, pan)

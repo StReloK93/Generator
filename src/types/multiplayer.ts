@@ -266,6 +266,7 @@ export type HideSeekActionPayload =
   | { kind: 'torch'; index: number }
   | { kind: 'candle'; c: number; r: number }
   | { kind: 'chain' }
+  | { kind: 'ability'; slot: number }
 
 /** Hide & seek: something everyone should hear / see (host to all). */
 export type HideSeekEventPayload =

@@ -12,6 +12,7 @@ import {
   HideSeekRole,
   CollisionGrid,
   ALTAR_REACH,
+  noEffects,
 } from '@/domain/hideseek'
 import { GridCoord } from '@/types/map'
 import labyrinth from '@/maps/Labyrinth.json'
@@ -38,6 +39,9 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
     home: null,
     canChain: false,
     rank: 0,
+    abilities: [],
+    cooldowns: [0, 0],
+    effects: noEffects(),
     ...extra,
   }
 }

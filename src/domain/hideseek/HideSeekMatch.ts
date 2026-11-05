@@ -1,3 +1,4 @@
+import { AbilityEffects, AbilityId, abilitiesOf, noEffects, startAbility, tickAbilities } from './HideSeekAbilities'
 import { GridCoord, HideSeekSettings } from '../../types/map'
 import {
   ALTAR_REACH,
@@ -62,6 +63,9 @@ export interface HideSeekSeat {
   dazed: number
   /** Hiders this seeker caught this round: each one makes them faster and slower to tire */
   catches: number
+  /** Seconds until each of the hero's abilities (Q, F) is ready again, and the timed ones still running */
+  cooldowns: number[]
+  effects: AbilityEffects
 }
 
 /** A hider holding a seeker: both stand still until it runs out, the seeker is freed or the hider caught. */
@@ -141,6 +145,7 @@ export type MatchEvent =
   | { kind: 'caught'; id: string }
   | { kind: 'freed'; id: string; by: string }
   | { kind: 'bell'; col: number; row: number }
+  | { kind: 'ability'; by: string; slot: number; ability: AbilityId }
   | { kind: 'round' }
   /** The break after a round is over: the session sets up the next round (a new labyrinth first) */
   | { kind: 'roundDue' }
@@ -205,6 +210,8 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
       chainCooldown: 0,
       dazed: 0,
       catches: 0,
+      cooldowns: [0, 0],
+      effects: noEffects(),
     })),
     champion: null,
   }
@@ -267,6 +274,8 @@ export function startRound(
     seat.chainCooldown = 0
     seat.dazed = 0
     seat.catches = 0
+    seat.cooldowns = [0, 0]
+    seat.effects = noEffects()
   }
   const hiderCount = Math.max(1, match.seats.filter(s => s.role === 'hider').length)
   const starts = allSpawns(spawns)
@@ -384,6 +393,7 @@ export function tickMatch(
   for (const seat of match.seats) {
     seat.chainCooldown = Math.max(0, seat.chainCooldown - deltaSec)
     seat.dazed = Math.max(0, seat.dazed - deltaSec)
+    tickAbilities(seat.cooldowns, seat.effects, deltaSec)
   }
 
   // Chains: one that runs out leaves the seeker dazed; a chain whose player left breaks
@@ -487,7 +497,7 @@ export function tickMatch(
     const body = byId.get(seat.id)!
     if (seat.jailed) continue
     seat.score += settings.scorePerSecond * deltaSec
-    if (!graceOver || body.hidden !== -1 || (arena.home && insideRect(arena.home, body))) continue
+    if (!graceOver || body.hidden !== -1 || seat.effects.shield > 0 || (arena.home && insideRect(arena.home, body))) continue
     const catcher = activeSeekers.find(s => {
       const seekerBody = byId.get(s.id)!
       return isCaught(grid, seekerBody, body, { ...settings, catchDistance: catchReach(settings, seekerBody.trait) })
@@ -524,12 +534,25 @@ export function startChain(match: HideSeekMatch, hiderId: string, bodies: MatchB
   if (hider.jailed || hider.lit === 0 || hider.chainCooldown > 0 || body.hidden !== -1 || isFrozen(match, hiderId)) return []
   const distance = (b: MatchBody) => Math.hypot(b.col - body.col, b.row - body.row)
   const target = bodies
-    .filter(b => seatOf(match, b.id)?.role === 'seeker' && !isFrozen(match, b.id) && distance(b) <= settings.chainRange && hasLineOfSight(grid, body, b))
+    .filter(b => seatOf(match, b.id)?.role === 'seeker' && !(seatOf(match, b.id)!.effects.shield > 0) && !isFrozen(match, b.id) && distance(b) <= settings.chainRange && hasLineOfSight(grid, body, b))
     .sort((a, b) => distance(a) - distance(b))[0]
   if (!target) return []
   match.chains.push({ hider: hiderId, seeker: target.id, timeLeft: settings.chainTime })
   hider.chainCooldown = settings.chainTime + settings.chainCooldown
   return [{ kind: 'chain', hider: hiderId, seeker: target.id }]
+}
+
+/**
+ * Player `by` (hero `model`) uses ability `slot`: only while free (not jailed, chained or dazed) and once it has
+ * cooled down. Moving abilities (dash, blink) and second wind act on the player's own body; this keeps the time.
+ */
+export function useAbility(match: HideSeekMatch, by: string, slot: number, model: string | null | undefined, settings: HideSeekSettings): MatchEvent[] {
+  const seat = seatOf(match, by)
+  const ability = abilitiesOf(model)[slot]
+  if (!seat || !ability || seat.jailed || isFrozen(match, by) || seat.cooldowns[slot] > 0) return []
+  if (match.clock.phase !== 'hiding' && match.clock.phase !== 'seeking') return []
+  startAbility(seat.cooldowns, seat.effects, slot, ability, settings)
+  return [{ kind: 'ability', by, slot, ability }]
 }
 
 /** Seeker `by` opens a hiding spot: whoever sits inside goes to jail. */

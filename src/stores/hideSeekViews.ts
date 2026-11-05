@@ -76,6 +76,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
   const over = isRoundOver(match)
   const blind = !over && me?.role === 'seeker' && match.clock.phase === 'hiding'
   const around = settings.lanternRadius
+  const mySeat = me ? seatOf(match, me.id) : undefined
   const candles = torchSpots(match, ctx.maze)
   const litTorches = candles.filter((_, i) => match.torches[i])
   const torchLight = (p: GridCoord) => (litTorches.length > 0 ? torchLightAt(grid, p, litTorches, settings) : 0)
@@ -133,6 +134,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     torches: candles.map((t, i) => ({ col: t.col, row: t.row, lit: !!match.torches[i], glow: match.torches[i] && !blind ? (ctx.torchGlows[i] ?? null) : null })),
     torchRadius: settings.torchRadius,
     footprints: over ? [] : ctx.footprints,
+    // Tracking: every footprint shows, even in the dark
+    trackAll: !over && (mySeat?.effects.track ?? 0) > 0,
     huntHint: over ? null : ctx.huntHint,
     // The seeker knows their bells; anyone hears / sees one ring; hiders spot an armed one only in sight
     traps: match.traps
@@ -149,6 +152,9 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       const jailed = !!seat?.jailed
       // Both teams know where their own players are
       const teammate = !!me && p.role === me.role
+      const vanished = (seat?.effects.vanish ?? 0) > 0
+      // Watching: every opponent nearby shows, through walls (not a vanished one)
+      const watched = !!me && (mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange
       return {
         id: p.id,
         col: p.col,
@@ -161,10 +167,10 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         color: p.color,
         isMe: p === me,
         jailed,
-        hidden: p === me && p.hidden !== -1,
+        hidden: p === me && (p.hidden !== -1 || vanished),
         dazed: !over && (seat?.dazed ?? 0) > 0,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
-        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || inSight(p, spottedWithin(settings, traitOf(p.model))))),
+        visible: p === me || over || jailed || (p.hidden === -1 && (teammate || (!vanished && (watched || inSight(p, spottedWithin(settings, traitOf(p.model))))))),
       }
     }),
   }

@@ -10,6 +10,7 @@ import {
   reachableSubCells,
 } from './HideSeekRules'
 import { GadgetCounts, HIDE_SPOT_REACH } from './HideSeekGadgets'
+import { AbilityEffects, AbilityId } from './HideSeekAbilities'
 
 /**
  * A bot player, for either side and for team games. It plays fair: it only knows what its own sight cone shows and
@@ -151,6 +152,10 @@ export interface BotSenses {
   canChain: boolean
   /** The bot's place among the bots of its side (the first seeker guards the jail) */
   rank: number
+  /** Its hero's abilities (Q, F), seconds until each is ready, and its own timed ones running (watch, track, ...) */
+  abilities: AbilityId[]
+  cooldowns: number[]
+  effects: AbilityEffects
 }
 
 export interface BotAction {
@@ -162,12 +167,14 @@ export interface BotAction {
   search: number
   /** Hider: chain the nearest seeker */
   chain: boolean
+  /** Ability slot used this frame (-1 = none) */
+  ability: number
 }
 
 const dist = (a: GridCoord, b: GridCoord) => Math.hypot(a.col - b.col, a.row - b.row)
 
 function idle(): BotAction {
-  return { sneak: false, hideIn: -1, trap: false, search: -1, chain: false }
+  return { sneak: false, hideIn: -1, trap: false, search: -1, chain: false, ability: -1 }
 }
 
 export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCount: number, spotCount: number): BotBrain {
@@ -291,9 +298,10 @@ function perceive(brain: BotBrain, senses: BotSenses, grid: CollisionGrid, setti
     if (o.hidden || o.jailed) continue
     const d = dist(self, o)
     const sight = { ...settings, visionRange: settings.visionRange * o.spotted }
-    if (looking && canSee(grid, self, senses.facing, o, sight, around * o.spotted)) {
+    const watched = senses.effects.watch > 0 && d <= settings.watchRange
+    if (watched || (looking && canSee(grid, self, senses.facing, o, sight, around * o.spotted))) {
       if (!seen || d < dist(self, seen)) seen = o
-    } else if (o.moving && !o.sneaking && footstepLoudness(d, settings) * o.quiet >= HEARING_THRESHOLD) {
+    } else if (o.moving && !o.sneaking && o.quiet > 0 && (footstepLoudness(d, settings) * o.quiet >= HEARING_THRESHOLD || (senses.effects.track > 0 && d <= settings.watchRange))) {
       if (!heard || d < dist(self, heard)) heard = o
     }
   }
@@ -338,9 +346,54 @@ export function thinkBot(
   brain.thinkTimer -= deltaSec
   brain.fleeTimer -= deltaSec
   const perceived = perceive(brain, senses, grid, settings)
-  return role === 'hider'
+  const action = role === 'hider'
     ? thinkHider(brain, senses, grid, settings, random, perceived)
     : thinkSeeker(brain, senses, grid, settings, random, perceived)
+  if (senses.hiddenIn === -1 && action.hideIn === -1) action.ability = pickAbility(brain, role, senses, settings, perceived)
+  return action
+}
+
+/** Bot: an opponent this close (tiles) is worth a leap / shield */
+const ABILITY_CLOSE = 4
+/** Bot: a leap is used when the target is roughly ahead (radians off the facing) */
+const AHEAD_ANGLE = 0.6
+
+/** Which ability (slot) to use now, if any: escape tools when chased, closing-in tools when chasing, scouting otherwise. */
+function pickAbility(brain: BotBrain, role: HideSeekRole, senses: BotSenses, settings: HideSeekSettings, { seen, heard }: Perceived): number {
+  const ready = (id: AbilityId) => {
+    const slot = senses.abilities.indexOf(id)
+    return slot >= 0 && senses.cooldowns[slot] <= 0 ? slot : -1
+  }
+  const first = (...ids: AbilityId[]) => ids.map(ready).find(slot => slot >= 0) ?? -1
+  const d = seen ? dist(senses.self, seen) : Infinity
+  const moving = brain.path.length > 0
+  if (role === 'hider') {
+    if (seen && d < ABILITY_CLOSE) {
+      // Running away (facing away from the seeker): leap; standing / cornered: shield or vanish
+      const leap = moving && brain.mode === 'flee' ? first('dash', 'blink') : -1
+      if (leap >= 0) return leap
+      const save = first('shield', 'vanish')
+      if (save >= 0) return save
+    }
+    if ((seen || heard) && senses.exhausted) return first('secondWind')
+    if (heard && !seen) return first('wind', 'watch')
+    if (brain.mode === 'collect' && !moving) return first('watch')
+    return brain.mode === 'explore' ? first('track') : -1
+  }
+  if (seen) {
+    const off = Math.atan2(seen.row - senses.self.row, seen.col - senses.self.col) - senses.facing
+    const ahead = Math.abs(Math.atan2(Math.sin(off), Math.cos(off))) < AHEAD_ANGLE
+    if (ahead && d > 1.5 && d <= settings.dashDistance + 1) {
+      const leap = first('dash', 'blink')
+      if (leap >= 0) return leap
+    }
+    if (senses.exhausted) return first('secondWind')
+    if (d < settings.chainRange + 1) return first('shield')
+    return -1
+  }
+  if (brain.mode === 'search') return first('watch', 'track')
+  if (brain.mode === 'investigate') return first('wind', 'vanish', 'watch')
+  return brain.mode === 'explore' ? first('track') : -1
 }
 
 function thinkHider(
