@@ -181,10 +181,7 @@ export interface HideSeekSettings {
   seekerSpeedBonus: number
   /** Barrels / crates a hider can hide inside */
   hideSpotCount: number
-  /** Stones each hider can throw per round to make a decoy noise */
-  stoneCount: number
-  stoneRange: number
-  /** How far a stone / bell is heard */
+  /** How far a bell / door is heard */
   noiseRange: number
   /** Flares the seeker can light per round: everything around them is lit for a moment */
   flareCount: number

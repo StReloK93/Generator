@@ -62,7 +62,6 @@ import {
   advanceStamina,
   moveSpeed,
   gadgetsFor,
-  stoneLanding,
   noiseLoudness,
   heartbeatDanger,
   heartbeatInterval,
@@ -100,7 +99,7 @@ import type {
   HideSeekEventPayload,
 } from '../types/multiplayer'
 import { getSlotColor } from '../types/multiplayer'
-import type { HideSeekFootprintView, HideSeekMinimapView, HideSeekRenderView, HideSeekRippleView, HideSeekStoneView } from '../rendering/types'
+import type { HideSeekFootprintView, HideSeekMinimapView, HideSeekRenderView, HideSeekRippleView } from '../rendering/types'
 
 export const DEFAULT_HERO_MODEL = 'male'
 
@@ -124,7 +123,6 @@ const VISION_TURN_SPEED = 9
 const STOP_DISTANCE = 0.9
 /** An altar being lit hums across the labyrinth this often */
 const ALTAR_HUM_SEC = 2
-const STONE_FLIGHT_SEC = 0.5
 const RIPPLE_SEC = 1.2
 /** A click this close to a barrel / door / candle uses it */
 const CLICK_PICK = 0.8
@@ -133,7 +131,7 @@ const DOOR_AUTO_OPEN = 1.1
 /** The hunt hint (arrow to the nearest hider) fades out over this long */
 const HUNT_HINT_SEC = 1.6
 const EMPTY_GRID: CollisionGrid = { subCols: 0, subRows: 0, blocked: new Uint8Array(0) }
-/** Use / open / hide (E or Space), stone (Q), flare (F), bell trap (T) */
+/** Use / open / hide (E or Space), flare (F), bell trap (T) */
 const ACTION_KEYS = new Set(['KeyE', 'Space'])
 const MOVE_KEYS: Record<string, [number, number]> = {
   KeyW: [0, -1], ArrowUp: [0, -1],
@@ -208,8 +206,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const dangerLevel = ref(0)
   const staminaLevel = ref(1)
   const isExhausted = ref(false)
-  const gadgets = reactive<GadgetCounts>({ stones: 0, flares: 0, traps: 0, candles: 0 })
-  const isAimingStone = ref(false)
+  const gadgets = reactive<GadgetCounts>({ flares: 0, traps: 0, candles: 0 })
   const isJailed = ref(false)
   const isHidden = ref(false)
   const isFlareLit = ref(false)
@@ -257,7 +254,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   let sneakHeld = false
   let clickPath: GridCoord[] = []
   let pending: PendingUse | null = null
-  let pointerCell: GridCoord | null = null
   let stamina: Stamina = freshStamina(settings)
   let flareTimer = 0
   /** Altar progress at the last hum (an altar whose progress grew since then is heard) */
@@ -268,7 +264,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   let explored = new Uint8Array(0)
   /** round:phase the last tune was played for */
   let lastTuneKey = ''
-  let stones: HideSeekStoneView[] = []
   let ripples: HideSeekRippleView[] = []
   let heartbeatTimer = 0
   let heardDecay = 0
@@ -564,9 +559,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     huntHint = null
     huntTimer = 0
     isHunting.value = false
-    stones = []
     ripples = []
-    isAimingStone.value = false
     isHidden.value = false
     releaseInput()
     visionFacing = me?.facing ?? 0
@@ -686,7 +679,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     dangerLevel.value = 0
     isJailed.value = false
     isHidden.value = false
-    isAimingStone.value = false
     scores.value = []
     isHunting.value = false
     viewContext = null
@@ -710,12 +702,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
     if (!pressed) return false
     if (ACTION_KEYS.has(code)) useNearest()
-    else if (code === 'KeyQ') toggleStoneAim()
     else if (code === 'KeyF') lightFlare()
     else if (code === 'KeyT') dropTrap()
     else if (code === 'KeyC') setCandle()
     else if (code === 'KeyR') useChain()
-    else if (code === 'Escape' && isAimingStone.value) isAimingStone.value = false
     else return false
     return true
   }
@@ -728,11 +718,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Shift or the touch sneak button: slow and silent while held */
   function setSneakHeld(held: boolean): void {
     sneakHeld = held
-  }
-
-  /** Hovered map cell (stone aiming preview). */
-  function setPointerCell(cell: GridCoord | null): void {
-    pointerCell = cell
   }
 
   const distTo = (a: GridCoord, b: GridCoord) => Math.hypot(a.col - b.col, a.row - b.row)
@@ -798,13 +783,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (!isSolo()) sendMyState(me)
   }
 
-  /** Click / tap: aim a stone, open / search / hide (walking up first), or walk there. */
+  /** Click / tap: open / search / hide (walking up first), or walk there. */
   function clickCell(col: number, row: number): void {
     const me = myPlayer()
     if (!me || !canMove.value) return
     const target = { col, row }
-    if (isAimingStone.value) return throwStone(target)
-
     const picked = usables(me.role)
       .filter(u => distTo(u.at, target) <= CLICK_PICK)
       .sort((a, b) => distTo(a.at, target) - distTo(b.at, target))[0]
@@ -853,21 +836,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   // ==========================================
   // Gadgets
   // ==========================================
-  function toggleStoneAim(): void {
-    if (!canMove.value || myRole.value !== 'hider' || gadgets.stones <= 0) return
-    isAimingStone.value = !isAimingStone.value
-  }
-
-  function throwStone(target: GridCoord): void {
-    const me = myPlayer()
-    isAimingStone.value = false
-    if (!me || !grid || gadgets.stones <= 0) return
-    gadgets.stones--
-    const landing = stoneLanding(grid, me, target, settings)
-    stones.push({ from: { col: me.col, row: me.row }, to: landing, t: 0 })
-    performAction({ kind: 'stone', c: landing.col, r: landing.row })
-  }
-
   function lightFlare(): void {
     const me = myPlayer()
     if (!me || !canMove.value || myRole.value !== 'seeker' || gadgets.flares <= 0) return
@@ -911,7 +879,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   /** Referee: applies a player's (or the bot's) action. */
   function applyAction(action: HideSeekActionPayload, by: string): void {
-    if (action.kind === 'stone' || action.kind === 'flare') emitEvent({ kind: action.kind, col: action.c, row: action.r, by })
+    if (action.kind === 'flare') emitEvent({ kind: action.kind, col: action.c, row: action.r, by })
     else if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
     else if (action.kind === 'chain') startChain(match, by, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'candle') {
@@ -933,7 +901,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function emitEvent(event: HideSeekEventPayload): void {
     handleEvent(event)
     if (!isSolo()) send('HS_EVENT', event)
-    if (event.kind !== 'stone' && event.kind !== 'flare') stateDirty = true
+    if (event.kind !== 'flare') stateDirty = true
   }
 
   /**
@@ -1005,11 +973,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         break
       case 'bell':
         hideSeekAudio.playBell(...noiseAt(event))
-        ripples.push({ col: event.col, row: event.row, age: 0, kind: 'bell' })
-        botNoises.push({ col: event.col, row: event.row, range: settings.noiseRange })
-        break
-      case 'stone':
-        if (event.by !== myId()) hideSeekAudio.playStone(...noiseAt(event))
+        ripples.push({ col: event.col, row: event.row, age: 0 })
         botNoises.push({ col: event.col, row: event.row, range: settings.noiseRange })
         break
       case 'flare':
@@ -1327,11 +1291,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       const spot = match.spots[action.hideIn]
       if (spot) Object.assign(body, { col: spot.col, row: spot.row, targetCol: spot.col, targetRow: spot.row })
     }
-    if (action.stone && bot.gadgets.stones > 0) {
-      bot.gadgets.stones--
-      const landing = stoneLanding(grid, body, action.stone, settings)
-      applyAction({ kind: 'stone', c: landing.col, r: landing.row }, body.id)
-    }
     if (action.flare && bot.gadgets.flares > 0) {
       bot.gadgets.flares--
       bot.flare = settings.flareDuration
@@ -1466,14 +1425,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     flareTimer = Math.max(0, flareTimer - deltaSec)
     if (isFlareLit.value !== flareTimer > 0) isFlareLit.value = flareTimer > 0
 
-    for (const stone of stones) {
-      stone.t += deltaSec / STONE_FLIGHT_SEC
-      if (stone.t >= 1) {
-        ripples.push({ col: stone.to.col, row: stone.to.row, age: 0, kind: 'stone' })
-        hideSeekAudio.playStone(...noiseAt(stone.to))
-      }
-    }
-    stones = stones.filter(s => s.t < 1)
     for (const ripple of ripples) ripple.age += deltaSec / RIPPLE_SEC
     ripples = ripples.filter(r => r.age < 1)
 
@@ -1546,12 +1497,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       vision,
       flare,
       route: clickPath,
-      stones,
       ripples,
       explored,
       cols: mapStore.project.cols,
       rows: mapStore.project.rows,
-      aim: isAimingStone.value && me && pointerCell ? { from: { col: me.col, row: me.row }, to: stoneLanding(grid, me, pointerCell, settings) } : null,
     }
     renderView = buildRenderView(viewContext)
   }
@@ -1596,7 +1545,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     staminaLevel,
     isExhausted,
     gadgets,
-    isAimingStone,
     isJailed,
     isHidden,
     isFlareLit,
@@ -1618,10 +1566,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     setKey,
     setJoystick,
     setSneakHeld,
-    setPointerCell,
     clickCell,
     useNearest,
-    toggleStoneAim,
     lightFlare,
     dropTrap,
     releaseInput,

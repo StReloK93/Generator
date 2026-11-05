@@ -31,7 +31,7 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
     exhausted: false,
     breath: 1,
     hiddenIn: -1,
-    gadgets: { stones: 0, flares: 0, traps: 0, candles: 0 },
+    gadgets: { flares: 0, traps: 0, candles: 0 },
     flareActive: false,
     exits: [],
     jail: null,
@@ -86,14 +86,12 @@ describe('HideSeekBot', () => {
     }
   })
 
-  it('hider tiptoes and throws a decoy stone when it hears the seeker nearby', () => {
+  it('hider tiptoes when it hears the seeker nearby', () => {
     const chests = [{ col: 15, row: 15, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 2, row: 2 }], chests.length, 0)
     // Seeker behind the bot (not in its sight cone), 5 tiles away and running
-    const action = think(brain, 'hider', senses({ col: 7, row: 7 }, 0, { col: 2, row: 7 }, chests, { gadgets: { stones: 1, flares: 0, traps: 0, candles: 0 } }, true))
+    const action = think(brain, 'hider', senses({ col: 7, row: 7 }, 0, { col: 2, row: 7 }, chests, {}, true))
     expect(action.sneak).toBe(true)
-    expect(action.stone).not.toBeNull()
-    expect(Math.hypot(action.stone!.col - 7, action.stone!.row - 7)).toBeLessThanOrEqual(settings.stoneRange)
   })
 
   it('hider out of breath dives into a nearby barrel and stays while the seeker is close', () => {
@@ -112,17 +110,17 @@ describe('HideSeekBot', () => {
   it('seeker chases a hider it sees and leaves a bell at an unlit altar it passes', () => {
     const chests = [{ col: 5.5, row: 5, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], chests.length, 0)
-    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1, candles: 0 } }))
+    const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { flares: 0, traps: 1, candles: 0 } }))
     expect(brain.mode).toBe('chase')
     expect(brain.path.at(-1)).toEqual({ col: 10, row: 5 })
     expect(action.trap).toBe(true)
     // The same altar gets no second bell
-    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1, candles: 0 } })).trap).toBe(false)
+    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { flares: 0, traps: 1, candles: 0 } })).trap).toBe(false)
   })
 
   it('seeker lights a flare and runs to where it last saw the hider after losing sight', () => {
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], 0, 0)
-    const gadgets = { stones: 0, flares: 1, traps: 0, candles: 0 }
+    const gadgets = { flares: 1, traps: 0, candles: 0 }
     think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 9, row: 5 }, [], { gadgets }))
     // Hider slipped behind the seeker
     const action = think(brain, 'seeker', senses({ col: 6, row: 5 }, 0, { col: 2, row: 5 }, [], { gadgets }))

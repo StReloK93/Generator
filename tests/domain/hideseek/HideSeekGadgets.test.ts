@@ -6,7 +6,6 @@ import {
   advanceStamina,
   moveSpeed,
   gadgetsFor,
-  stoneLanding,
   noiseLoudness,
   heartbeatDanger,
   markExplored,
@@ -36,23 +35,13 @@ describe('HideSeekGadgets', () => {
     expect(moveSpeed('seeker', true, fresh, settings)).toBe(2)
   })
 
-  it('hands out stones to hiders and flares / traps to the seeker', () => {
-    expect(gadgetsFor('hider', settings)).toEqual({ stones: 3, flares: 0, traps: 0, candles: 0 })
-    expect(gadgetsFor('seeker', settings)).toEqual({ stones: 0, flares: 2, traps: 2, candles: 4 })
+  it('hands out flares / traps / candles to the seeker only', () => {
+    expect(gadgetsFor('hider', settings)).toEqual({ flares: 0, traps: 0, candles: 0 })
+    expect(gadgetsFor('seeker', settings)).toEqual({ flares: 2, traps: 2, candles: 4 })
   })
 
   it('gives the trickster one more of each own gadget', () => {
-    expect(gadgetsFor('hider', settings, 1)).toEqual({ stones: 4, flares: 0, traps: 0, candles: 0 })
-    expect(gadgetsFor('seeker', settings, 1)).toEqual({ stones: 0, flares: 3, traps: 3, candles: 5 })
-  })
-
-  it('stops a stone at walls and at the throwing range', () => {
-    const collisionSubcells = Array.from({ length: 20 }, (_, sr) => `9,${sr}`) // wall on col = 4.5
-    const grid = buildCollisionGrid({ cols: 20, rows: 10, collisionSubcells })
-    const landing = stoneLanding(grid, { col: 1, row: 2 }, { col: 15, row: 2 }, settings)
-    expect(landing.col).toBeLessThan(4.5)
-    const open = buildCollisionGrid({ cols: 30, rows: 10, collisionSubcells: [] })
-    expect(stoneLanding(open, { col: 1, row: 2 }, { col: 25, row: 2 }, settings).col).toBeLessThanOrEqual(1 + settings.stoneRange)
+    expect(gadgetsFor('seeker', settings, 1)).toEqual({ flares: 3, traps: 3, candles: 5 })
   })
 
   it('makes noises and the heartbeat louder up close', () => {

@@ -1,5 +1,5 @@
 import type { GridCoord, HideSeekSettings } from '../types/map'
-import type { HideSeekFootprintView, HideSeekMinimapView, HideSeekRenderView, HideSeekRippleView, HideSeekStoneView } from '../rendering/types'
+import type { HideSeekFootprintView, HideSeekMinimapView, HideSeekRenderView, HideSeekRippleView } from '../rendering/types'
 import {
   CollisionGrid,
   HideSeekMatch,
@@ -59,9 +59,7 @@ export interface HideSeekViewContext {
   /** Own flare burning (vision already includes the lit circle) */
   flare: boolean
   route: GridCoord[]
-  stones: HideSeekStoneView[]
   ripples: HideSeekRippleView[]
-  aim: { from: GridCoord; to: GridCoord } | null
   /** Cells this player has seen this round (1 = seen) */
   explored: Uint8Array
   cols: number
@@ -143,9 +141,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     traps: match.traps
       .filter(t => over || me?.role === 'seeker' || t.ringing > 0 || inSight(t))
       .map(t => ({ col: t.col, row: t.row, ringing: t.ringing > 0 })),
-    stones: ctx.stones,
     ripples: ctx.ripples,
-    aim: ctx.aim,
     flareLit: !over && ctx.flare,
     route: me && ctx.route.length > 0 ? [{ col: me.col, row: me.row }, ...ctx.route] : [],
     vision: over ? null : ctx.vision,

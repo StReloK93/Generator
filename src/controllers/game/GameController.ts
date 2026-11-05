@@ -115,7 +115,7 @@ export class GameController {
 
   /** Hide & seek: keyboard movement, own-character camera, match tick and fog of war rendering. */
   private setupHideSeekLoop(): void {
-    const { engine, mapStore, multiplayerStore, toolStore, followCamera } = this.deps
+    const { engine, mapStore, multiplayerStore, followCamera } = this.deps
     const hideSeekStore = useHideSeekStore()
     hideSeekStore.startMatch()
 
@@ -148,7 +148,6 @@ export class GameController {
     // The camera eases after the own character instead of being glued to it (no jitter while walking)
     let camera: GridCoord | null = null
     engine.onTick = (rawDeltaSec: number) => {
-      hideSeekStore.setPointerCell(toolStore.hoveredCell)
       simulate(rawDeltaSec)
       const view = hideSeekStore.getRenderView()
       if (view) engine.renderHideSeek(view, mapStore.project)

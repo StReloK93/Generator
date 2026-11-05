@@ -38,8 +38,6 @@ const DANGER_SEC = 20
 /** Hider: dives into a barrel this close when cornered or out of breath, and stays until it has been calm this long */
 const HIDE_DASH_DISTANCE = 3.5
 const HIDE_CALM_SEC = 6
-/** Hider: seconds between two decoy stones */
-const STONE_COOLDOWN_SEC = 15
 /** Hider: does not go for the jail while a seeker was seen this close to it within this many seconds */
 const JAIL_DANGER_RADIUS = 7
 const JAIL_DANGER_SEC = 8
@@ -88,7 +86,6 @@ export interface BotBrain {
   hideTarget: number
   /** Seeker: barrel it is walking to, to open it (-1 = none) */
   searchTarget: number
-  stoneAt: number
   flareAt: number
   /** Altars this bot has seen: their progress when last seen (-1 = never seen), and when it grew last */
   altarSeen: number[]
@@ -138,7 +135,7 @@ export interface BotSenses {
   /** Every altar: the bot only uses the ones it has seen, and the lit ones (everyone hears an altar flare up) */
   altars: AltarState[]
   spots: GridCoord[]
-  /** Noises this frame (stones, bells, altars being lit), each heard within its own range */
+  /** Noises this frame (bells, doors, altars being lit), each heard within its own range */
   noises: BotNoise[]
   exhausted: boolean
   /** Share of the running breath left (0..1) */
@@ -163,8 +160,6 @@ export interface BotAction {
   sneak: boolean
   /** Hider: barrel to sit in (-1 = out in the open) */
   hideIn: number
-  /** Hider: decoy stone thrown at this spot */
-  stone: GridCoord | null
   flare: boolean
   trap: boolean
   /** Seeker: barrel opened this frame (-1 = none) */
@@ -176,7 +171,7 @@ export interface BotAction {
 const dist = (a: GridCoord, b: GridCoord) => Math.hypot(a.col - b.col, a.row - b.row)
 
 function idle(): BotAction {
-  return { sneak: false, hideIn: -1, stone: null, flare: false, trap: false, search: -1, chain: false }
+  return { sneak: false, hideIn: -1, flare: false, trap: false, search: -1, chain: false }
 }
 
 export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCount: number, spotCount: number): BotBrain {
@@ -203,7 +198,6 @@ export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCo
     jailDangerAt: -Infinity,
     hideTarget: -1,
     searchTarget: -1,
-    stoneAt: -Infinity,
     flareAt: -Infinity,
     altarSeen: Array(altarCount).fill(-1),
     altarGrewAt: Array(altarCount).fill(-Infinity),
@@ -351,12 +345,6 @@ export function thinkBot(
     : thinkSeeker(brain, senses, grid, settings, random, perceived)
 }
 
-/** A cell for a decoy stone: as far from the bot as a throw goes, so the seeker runs the wrong way. */
-function decoySpot(brain: BotBrain, self: GridCoord, settings: HideSeekSettings, random: () => number): GridCoord {
-  const inReach = Array.from({ length: 24 }, () => randomCell(brain, random)).filter(c => dist(c, self) <= settings.stoneRange)
-  return inReach.sort((a, b) => dist(b, self) - dist(a, self))[0] ?? self
-}
-
 function thinkHider(
   brain: BotBrain,
   senses: BotSenses,
@@ -393,12 +381,6 @@ function thinkHider(
       action.chain = true
       return action
     }
-  }
-
-  // Decoy stone while a seeker is close but has not spotted the bot
-  if (seekerNear && !seen && senses.gadgets.stones > 0 && brain.time - brain.stoneAt > STONE_COOLDOWN_SEC) {
-    brain.stoneAt = brain.time
-    action.stone = decoySpot(brain, self, settings, random)
   }
 
   // Cornered or out of breath: dive into a nearby barrel the seeker is not standing at
@@ -542,7 +524,7 @@ function thinkSeeker(
   if (brain.thinkTimer > 0 && brain.path.length > 0) return action
   brain.thinkTimer = THINK_SEC
 
-  // A noise just now (stone, bell, an altar humming): go and look
+  // A noise just now (bell, door, an altar humming): go and look
   if (suspicious && brain.clue && brain.time - brain.clueAt < 1 && brain.mode !== 'investigate') {
     setGoal(brain, grid, self, brain.clue, 'investigate')
     return action

@@ -1,5 +1,5 @@
 /**
- * Synthesized hide & seek sounds (Web Audio, no audio files): footsteps, chest chime, heartbeat, stone, bell, flare, jail,
+ * Synthesized hide & seek sounds (Web Audio, no audio files): footsteps, chest chime, heartbeat, bell, flare, jail,
  * doors, candles, the hunting horn,
  * and short tunes that mark the round's start, the start of the hunt and the round's end.
  * Browsers only start audio after a user gesture, so input handlers call unlock().
@@ -154,27 +154,6 @@ class HideSeekAudio {
     const t = o.ctx.currentTime
     this.tone(o.out, o.ctx, 'sine', 70, 40, t, 0.14, volume * 0.9)
     this.tone(o.out, o.ctx, 'sine', 62, 36, t + 0.17, 0.12, volume * 0.6)
-  }
-
-  /** A stone clattering on the floor (decoy noise). */
-  public playStone(volume: number, pan: number): void {
-    const o = this.output(volume, pan)
-    if (!o || !this.noise) return
-    ;[0, 0.11, 0.19].forEach((delay, i) => {
-      const t = o.ctx.currentTime + delay
-      const click = o.ctx.createBufferSource()
-      click.buffer = this.noise
-      click.playbackRate.value = 2.2 + Math.random()
-      const filter = o.ctx.createBiquadFilter()
-      filter.type = 'bandpass'
-      filter.frequency.value = 2200 + Math.random() * 800
-      const gain = o.ctx.createGain()
-      gain.gain.setValueAtTime(volume * (0.9 - i * 0.25), t)
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06)
-      click.connect(filter).connect(gain).connect(o.out)
-      click.start(t)
-      click.stop(t + 0.08)
-    })
   }
 
   /** A bell trap ringing. */

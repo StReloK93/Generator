@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
+import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -249,11 +249,10 @@ const bannerText = computed(() => {
   return isSeeker.value ? t('hideseek.phaseSeekingSeeker') : t('hideseek.phaseSeekingHider')
 })
 
-/** One line under the banner: caught, inside a barrel, or aiming a stone. */
+/** One line under the banner: caught, inside a barrel, holding a chain. */
 const status = computed(() => {
   if (!isPlaying.value) return null
   if (hideSeekStore.isJailed) return { text: t('hideseek.jailed'), icon: Lock, cls: 'border-slate-500/50 text-slate-200' }
-  if (hideSeekStore.isAimingStone) return { text: t('hideseek.aimHint'), icon: CircleDot, cls: 'border-stone-400/50 text-stone-200' }
   if (hideSeekStore.isHidden) return { text: t('hideseek.hiddenHint'), icon: Package, cls: 'border-emerald-500/40 text-emerald-200' }
   if (hideSeekStore.chainHolding > 0) return { text: t('hideseek.chainHolding', { s: hideSeekStore.chainHolding }), icon: Link, cls: 'border-violet-400/60 text-violet-200' }
   if (hideSeekStore.chainHeld > 0) return { text: t('hideseek.chainHeld', { s: hideSeekStore.chainHeld }), icon: Link, cls: 'border-violet-400/60 text-violet-200' }
@@ -318,7 +317,7 @@ function run(action: () => void) {
   }
 }
 
-/** Seeker: flare, bell trap, candle, open; hider: stone, hide in a barrel, chain. count null = unlimited */
+/** Seeker: flare, bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
 const gadgetButtons = computed(() =>
   isSeeker.value
     ? [
@@ -328,7 +327,6 @@ const gadgetButtons = computed(() =>
         { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, blocked: false, run: run(hideSeekStore.useNearest) },
       ]
     : [
-        { key: 'Q', label: 'hideseek.stone', icon: CircleDot, count: hideSeekStore.gadgets.stones, active: hideSeekStore.isAimingStone, blocked: false, run: run(hideSeekStore.toggleStoneAim) },
         { key: 'E', label: 'hideseek.hide', icon: Package, count: null, active: hideSeekStore.isHidden, blocked: false, run: run(hideSeekStore.useNearest) },
         // Chain: unlocked by lighting an altar; the badge counts the cooldown down
         {

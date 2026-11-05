@@ -118,7 +118,6 @@ interface PropView extends GridCoord {
   /** Breathing: the barrel the player sits in */
   wobble?: number
 }
-const STONE_COLOR = 0xd6d3d1
 const BELL_COLOR = 0xfbbf24
 const JAIL_TINT = 0x7c8794
 const JAIL_COLOR = 0x94a3b8
@@ -644,7 +643,7 @@ export class HideSeekRenderer {
     }
   }
 
-  /** Bell traps, flying stones, noise ripples and the stone aiming line. */
+  /** Candle flames, the hunt arrow, bell traps and their ripples. */
   private drawEffects(view: HideSeekRenderView, project: MapProject): void {
     const g = this.effectsGraphics
     g.clear()
@@ -690,30 +689,12 @@ export class HideSeekRenderer {
       g.circle(p.x + swing * 1.4, p.y - 4, 2).fill({ color: 0x78350f, alpha: 1 })
     }
 
-    for (const stone of view.stones) {
-      const a = at(stone.from)
-      const b = at(stone.to)
-      // Arc: up and down over the throw
-      const lift = Math.sin(stone.t * Math.PI) * tileHeight * 1.4
-      g.circle(a.x + (b.x - a.x) * stone.t, a.y + (b.y - a.y) * stone.t - lift - 20, 4).fill({ color: STONE_COLOR, alpha: 1 })
-    }
-
     for (const ripple of view.ripples) {
       const p = at(ripple)
-      const rx = tileWidth * (0.15 + ripple.age * (ripple.kind === 'bell' ? 1.6 : 0.9))
-      const color = ripple.kind === 'bell' ? BELL_COLOR : STONE_COLOR
-      g.ellipse(p.x, p.y, rx, (rx * tileHeight) / tileWidth).stroke({ width: 3, color, alpha: 0.8 * (1 - ripple.age) })
+      const rx = tileWidth * (0.15 + ripple.age * 1.6)
+      g.ellipse(p.x, p.y, rx, (rx * tileHeight) / tileWidth).stroke({ width: 3, color: BELL_COLOR, alpha: 0.8 * (1 - ripple.age) })
     }
 
-    if (view.aim) {
-      const a = at(view.aim.from)
-      const b = at(view.aim.to)
-      for (let t = 0.1; t < 1; t += 0.1) {
-        const lift = Math.sin(t * Math.PI) * tileHeight * 1.4
-        g.circle(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t - lift - 20 * (1 - t), 2.5).fill({ color: STONE_COLOR, alpha: 0.7 })
-      }
-      g.ellipse(b.x, b.y, tileWidth * 0.2, tileHeight * 0.2).stroke({ width: 2, color: STONE_COLOR, alpha: 0.9 })
-    }
   }
 
   private syncAvatars(view: HideSeekRenderView, project: MapProject, layersContainer: Container, deltaSec: number): void {

@@ -1,5 +1,5 @@
 import { GridCoord, HideSeekSettings } from '../../types/map'
-import { CollisionGrid, HideSeekRole, hasLineOfSight, isBlockedAt } from './HideSeekRules'
+import { CollisionGrid, HideSeekRole, hasLineOfSight } from './HideSeekRules'
 
 // ==========================================
 // Stamina: running tires you out, walking quietly / standing / hiding gets the breath back
@@ -41,11 +41,10 @@ export function moveSpeed(role: HideSeekRole, sneaking: boolean, stamina: Stamin
 }
 
 // ==========================================
-// Gadgets: per-round stones (hiders), flares and bell traps (seeker)
+// Gadgets: per-round flares, bell traps and candles (seekers)
 // ==========================================
 
 export interface GadgetCounts {
-  stones: number
   flares: number
   traps: number
   /** Candles the seeker sets down */
@@ -56,26 +55,11 @@ export interface GadgetCounts {
 export function gadgetsFor(role: HideSeekRole, settings: HideSeekSettings, extra = 0): GadgetCounts {
   const more = (n: number) => (n > 0 ? n + extra : 0)
   return role === 'seeker'
-    ? { stones: 0, flares: more(settings.flareCount), traps: more(settings.trapCount), candles: more(settings.seekerCandleCount) }
-    : { stones: more(settings.stoneCount), flares: 0, traps: 0, candles: 0 }
+    ? { flares: more(settings.flareCount), traps: more(settings.trapCount), candles: more(settings.seekerCandleCount) }
+    : { flares: 0, traps: 0, candles: 0 }
 }
 
-/** Where a stone thrown at `target` lands: at most stoneRange away, short of the first wall in the way. */
-export function stoneLanding(grid: CollisionGrid, from: GridCoord, target: GridCoord, settings: HideSeekSettings): GridCoord {
-  const dx = target.col - from.col
-  const dy = target.row - from.row
-  const length = Math.min(Math.hypot(dx, dy), settings.stoneRange)
-  if (length < 0.01) return { ...from }
-  let landing = { ...from }
-  for (let d = 0.25; d <= length; d += 0.25) {
-    const p = { col: from.col + (dx / Math.hypot(dx, dy)) * d, row: from.row + (dy / Math.hypot(dx, dy)) * d }
-    if (isBlockedAt(grid, p.col, p.row)) break
-    landing = p
-  }
-  return landing
-}
-
-/** A stone / bell: loud nearby, fading out at noiseRange (and heard through walls, unlike sight). */
+/** A bell / door: loud nearby, fading out at noiseRange (and heard through walls, unlike sight). */
 export function noiseLoudness(distance: number, settings: HideSeekSettings): number {
   return distance >= settings.noiseRange ? 0 : 1 - distance / settings.noiseRange
 }

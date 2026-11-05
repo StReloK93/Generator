@@ -118,19 +118,11 @@ export interface HideSeekTrapView {
   ringing: boolean
 }
 
-/** A thrown stone in flight: t = 0..1 of its arc. */
-export interface HideSeekStoneView {
-  from: GridCoord
-  to: GridCoord
-  t: number
-}
-
-/** An expanding ring where a noise happened: age = 0..1. */
+/** An expanding ring where a bell rang: age = 0..1. */
 export interface HideSeekRippleView {
   col: number
   row: number
   age: number
-  kind: 'stone' | 'bell'
 }
 
 /** A rectangle of map cells (the seekers' base). */
@@ -158,10 +150,7 @@ export interface HideSeekRenderView {
   footprints: HideSeekFootprintView[]
   /** The hunt (last seconds of a round): the seeker's hint towards the nearest hider, 0..1 strength (null = none) */
   huntHint: { from: GridCoord; angle: number; strength: number } | null
-  stones: HideSeekStoneView[]
   ripples: HideSeekRippleView[]
-  /** Stone aiming: dotted throw line to where it would land */
-  aim: { from: GridCoord; to: GridCoord } | null
   /** A flare burns: the sight polygon is lit brighter (it already includes the circle around the seeker) */
   flareLit: boolean
   /** Own click-to-move route: current position first, destination last (empty when not walking one) */
