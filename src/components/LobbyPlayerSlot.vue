@@ -3,12 +3,12 @@
   <div
     v-if="slot.player"
     :class="[
-      'flex items-center gap-2.5 rounded-xl border px-2.5 py-2 min-h-13',
+      'flex items-center gap-2 rounded-xl border px-2 py-1.5 min-h-11',
       isMe ? 'border-brand-400/60 bg-brand-500/10' : 'border-slate-800 bg-slate-950/40'
     ]"
   >
     <div
-      class="relative size-9 rounded-xl flex items-center justify-center text-slate-950 font-black text-xs shrink-0"
+      class="relative size-8 rounded-lg flex items-center justify-center text-slate-950 font-black text-[11px] shrink-0"
       :style="{ backgroundColor: slot.player.color }"
     >
       {{ slot.player.name.slice(0, 2).toUpperCase() }}
@@ -54,7 +54,7 @@
     variant="outline"
     block
     :leading-icon="UserPlus"
-    custom-class="justify-start! border-dashed min-h-13 text-slate-400"
+    custom-class="justify-start! border-dashed min-h-11 py-1.5! text-slate-400"
     @click="multiplayerStore.selectSlot(slot.slotIndex)"
   >
     <span class="flex items-center gap-2 min-w-0">

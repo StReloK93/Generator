@@ -1,7 +1,7 @@
 <template>
   <div class="h-dvh min-h-dvh max-h-dvh w-full citadel-backdrop text-slate-100 flex flex-col overflow-hidden select-none font-sans pt-safe">
-    <!-- Header: room + map, leave -->
-    <header class="w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 shrink-0">
+    <!-- Header: room, map and player count; chat and leave as small icons -->
+    <header class="relative w-full max-w-5xl mx-auto px-3 sm:px-6 py-1.5 flex items-center gap-2 shrink-0">
       <div class="min-w-0">
         <h1 class="text-sm sm:text-base font-extrabold text-slate-50 truncate">
           {{ multiplayerStore.roomName || $t('lobby.title') }}
@@ -11,24 +11,40 @@
           <span class="truncate">{{ multiplayerStore.mapName || mapStore.project.name }}</span>
           <span v-if="multiplayerStore.isHideSeekRoom" class="shrink-0">· {{ $t('game.modeHideSeek') }}</span>
           <span v-else class="shrink-0">· {{ waveStore.waveConfigs.length }} {{ $t('home.info.waves') }}</span>
+          <span class="shrink-0 flex items-center gap-0.5 font-bold text-slate-300">
+            · <Users class="size-3" /> {{ filledSlotsCount }}/{{ multiplayerStore.slots.length }}
+          </span>
         </p>
       </div>
 
-      <div class="ml-auto flex items-center gap-2 shrink-0">
-        <UiLanguageSwitcher />
-        <UiIconButton :icon="X" size="md" :title="$t('lobby.leave')" @click="handleLeave" />
+      <div class="ml-auto flex items-center gap-1.5 shrink-0">
+        <span v-if="multiplayerStore.connectionStatus === 'error'" class="text-[11px] text-rose-300 truncate max-w-40">{{ $t('play.serverUnreachable') }}</span>
+        <span v-else-if="multiplayerStore.connectionStatus !== 'connected'" class="size-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <!-- Chat: the panel opens below the icon -->
+        <div class="relative">
+          <UiIconButton
+            :icon="MessageSquare"
+            size="sm"
+            :variant="isChatOpen ? 'amber' : 'ghost'"
+            :title="$t('lobby.chatTitle')"
+            @click="toggleChat"
+          />
+          <span
+            v-if="unreadCount > 0 && !isChatOpen"
+            class="pointer-events-none absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black leading-4 text-center tabular-nums"
+          >{{ unreadCount }}</span>
+          <div v-if="isChatOpen" class="absolute top-full right-0 mt-1.5 w-80 max-w-[calc(100vw-1.5rem)] h-72 short:h-60 z-40 shadow-2xl">
+            <LobbyChat />
+          </div>
+        </div>
+        <UiIconButton :icon="X" size="sm" variant="ghost" :title="$t('lobby.leave')" @click="handleLeave" />
       </div>
     </header>
 
-    <main class="flex-1 min-h-0 w-full max-w-5xl mx-auto px-3 sm:px-6 pb-2 flex flex-col">
+    <main class="flex-1 min-h-0 w-full max-w-5xl mx-auto px-3 sm:px-6 pb-1.5 flex flex-col">
       <!-- Players -->
       <UiCard padding="none" custom-class="flex flex-col flex-1 min-h-0">
-        <div class="px-3 pt-3 pb-2 flex items-center gap-2 shrink-0">
-          <Users class="size-4 text-brand-300" />
-          <h2 class="text-sm font-extrabold text-slate-50">{{ $t('lobby.playersList') }}</h2>
-          <span class="ml-auto text-xs font-bold text-slate-400">{{ filledSlotsCount }}/{{ multiplayerStore.slots.length }}</span>
-        </div>
-        <div class="flex-1 min-h-0 overflow-y-auto px-2.5 pb-2.5 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
+        <div class="flex-1 min-h-0 overflow-y-auto p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
           <LobbyPlayerSlot
             v-for="slot in multiplayerStore.slots"
             :key="slot.slotIndex"
@@ -39,35 +55,7 @@
     </main>
 
     <!-- Action bar -->
-    <footer class="relative w-full max-w-5xl mx-auto px-3 sm:px-6 pt-1 pb-safe flex items-center gap-3 shrink-0">
-      <!-- Chat: a small button; the panel opens above it -->
-      <div class="relative shrink-0">
-        <UiButton
-          :variant="isChatOpen ? 'primary' : 'secondary'"
-          size="md"
-          :leading-icon="MessageSquare"
-          :title="$t('lobby.chatTitle')"
-          @click="toggleChat"
-        >
-          <span class="hidden sm:inline">{{ $t('lobby.chatTitle') }}</span>
-          <span
-            v-if="unreadCount > 0 && !isChatOpen"
-            class="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black leading-5 text-center tabular-nums"
-          >{{ unreadCount }}</span>
-        </UiButton>
-        <div v-if="isChatOpen" class="absolute bottom-full left-0 mb-2 w-80 max-w-[calc(100vw-1.5rem)] h-72 z-40 shadow-2xl">
-          <LobbyChat />
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2 text-xs min-w-0">
-        <template v-if="multiplayerStore.connectionStatus === 'error'">
-          <span class="size-2 rounded-full shrink-0 bg-rose-400"></span>
-          <span class="truncate text-rose-300">{{ $t('play.serverUnreachable') }}</span>
-        </template>
-        <span v-else-if="multiplayerStore.connectionStatus !== 'connected'" class="size-2 rounded-full shrink-0 bg-amber-400 animate-pulse"></span>
-      </div>
-
+    <footer class="w-full max-w-5xl mx-auto px-3 sm:px-6 pb-1.5 pb-safe flex items-center shrink-0">
       <div class="ml-auto shrink-0">
         <UiButton
           v-if="!multiplayerStore.isHost"
@@ -137,7 +125,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X, Users, Check, Play, BellRing, Map, Clock, MessageSquare } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiCard, UiModal, UiLanguageSwitcher } from '../components/ui'
+import { UiButton, UiIconButton, UiCard, UiModal } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
 import { useWaveStore } from '../stores/waveStore'
