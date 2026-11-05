@@ -7,7 +7,7 @@ import {
   catchReach,
   spottedWithin,
   stepLoudness,
-  treasureSenseRadius,
+  lightingSpeed,
   extraGadgets,
   crawlsThroughHoles,
 } from '@/domain/hideseek'
@@ -39,21 +39,19 @@ describe('HideSeekTraits', () => {
     const two = playerRules(settings, null, 'seeker', 2)
     expect(two.runSpeed).toBeCloseTo(none.runSpeed * (1 + 2 * settings.catchSpeedBonus))
     expect(two.staminaSeconds).toBeCloseTo(none.staminaSeconds * (1 + 2 * settings.catchStaminaBonus))
-    // Carrying a treasure slows a hider down
-    expect(playerRules(settings, null, 'hider', 0, true).runSpeed).toBeCloseTo(4 * settings.carrySpeedFactor)
     // Only the seeker gets the momentum
     expect(playerRules(settings, null, 'hider', 2).runSpeed).toBe(4)
   })
 
-  it('lets the rescuer free and catch from further, the shadow hide better, the sense feel chests, the trickster carry more', () => {
+  it('lets the rescuer free and catch from further, the shadow hide better, the firekeeper light faster, the trickster carry more', () => {
     expect(rescueReach(settings, 'rescuer')).toBeCloseTo(settings.traitRescueReach)
     expect(rescueReach(settings, 'swift')).toBe(1)
     expect(catchReach(settings, 'rescuer')).toBeCloseTo(settings.traitCatchReach)
     expect(spottedWithin(settings, 'stealth')).toBeLessThan(1)
     expect(stepLoudness(settings, 'stealth')).toBeLessThan(1)
     expect(spottedWithin(settings, 'swift')).toBe(1)
-    expect(treasureSenseRadius(settings, 'treasureSense')).toBe(settings.traitSenseRadius)
-    expect(treasureSenseRadius(settings, 'swift')).toBe(0)
+    expect(lightingSpeed(settings, 'firekeeper')).toBeCloseTo(1 + settings.traitLightBonus)
+    expect(lightingSpeed(settings, 'swift')).toBe(1)
     expect(extraGadgets(settings, 'trickster')).toBe(settings.traitExtraGadgets)
     expect(extraGadgets(settings, null)).toBe(0)
   })

@@ -56,8 +56,6 @@ export interface HideSeekMaze {
   jail: GridCoord
   /** The hiders' home: the same yard on the opposite side, where they bring the treasure (nobody is caught there) */
   hiderBase: MazeRect
-  /** The seekers' half of the labyrinth (the chests are there) */
-  seekerSide: MazeRect
   /** Where the seekers start (inside their base) and where the hiders start (spread over the far half) */
   seekerSpawns: GridCoord[]
   hiderSpawns: GridCoord[]
@@ -416,17 +414,11 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     else if (k === 'hole') holes.push({ axis, col, row })
   }
 
-  // The seekers' base and half (map cells): the chests are on the seekers' half, outside the base
+  // Both bases (map cells); the jail is in the middle of the seekers' base
   const toTiles = (r: Rect): MazeRect => ({ col: r.x * CELL, row: r.y * CELL, cols: r.w * CELL, rows: r.h * CELL })
   const seekerBase = toTiles(plaza)
   const hiderBase = toTiles(home)
   const jail = { col: seekerBase.col + Math.floor(seekerBase.cols / 2), row: seekerBase.row + Math.floor(seekerBase.rows / 2) }
-  const half = { cols: Math.floor(W / 2) * CELL, rows: Math.floor(H / 2) * CELL }
-  const seekerSide: MazeRect =
-    baseSide === 'left' ? { col: 0, row: 0, cols: half.cols, rows: H * CELL }
-      : baseSide === 'right' ? { col: W * CELL - half.cols, row: 0, cols: half.cols, rows: H * CELL }
-        : baseSide === 'top' ? { col: 0, row: 0, cols: W * CELL, rows: half.rows }
-          : { col: 0, row: H * CELL - half.rows, cols: W * CELL, rows: half.rows }
 
   // Spawns: the seekers spread over their base; every hider somewhere else in the corridors of the far half,
   // apart from each other and from the exit gates
@@ -523,7 +515,7 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
   )
   const torches = pick(torchCandidates, options.torchCount, [], TORCH_SPACING)
 
-  return { seed, cols, rows, walls, holes, doors, exits, spots, torches, seekerBase, jail, hiderBase, seekerSide, seekerSpawns, hiderSpawns }
+  return { seed, cols, rows, walls, holes, doors, exits, spots, torches, seekerBase, jail, hiderBase, seekerSpawns, hiderSpawns }
 }
 
 /** Sub-cells a wall piece blocks (the 2x2 collision sub-grid: an edge at col - 0.5 is sub-column 2 * col - 1). */

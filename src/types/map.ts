@@ -138,6 +138,7 @@ export type MapGameMode = 'td' | 'hero' | 'hideseek'
 /** Hide & seek PvP rules stored per map (distances in tiles, times in seconds, angle in degrees). */
 export interface HideSeekSettings {
   roundTime: number
+  /** Seconds the seekers wait with closed eyes at the start of a round (0 = they set off right away) */
   hideTime: number
   runSpeed: number
   sneakSpeed: number
@@ -151,15 +152,19 @@ export interface HideSeekSettings {
   seekerSlots: number
   /** Rounds in a match (the side that wins most of them wins the match) */
   roundCount: number
-  /** Treasure chests per hider on the seekers' side of the labyrinth */
-  chestCount: number
-  /** Seconds the hider stands at a chest to take its treasure */
-  lootTime: number
-  /** Treasures EVERY hider must bring home themself (fewer than chestCount, so guarding one chest cannot stop them);
-   * the exits open / the hiders win only once all of them have their share */
-  chestsToWin: number
-  /** A hider carrying a treasure runs this much slower (0.85 = 15% slower) */
-  carrySpeedFactor: number
+  /** Altars spread over the labyrinth: one per hider plus this many; the hiders need all but one of them lit */
+  altarExtra: number
+  /** Seconds one hider stands at an altar to light it (two together take half as long) */
+  altarLightTime: number
+  /** Seconds a seeker standing at a half-lit altar (nobody lighting it) needs to put it out completely */
+  altarKickTime: number
+  /** Chain: a hider who lit an altar can hold a seeker this close (tiles) for chainTime seconds; both stand still.
+   * When it runs out the seeker is dazed for chainDaze seconds; another seeker touching the held one frees them.
+   * The hider can chain again after chainCooldown seconds */
+  chainRange: number
+  chainTime: number
+  chainCooldown: number
+  chainDaze: number
   /** Seconds of running before a player is out of breath */
   staminaSeconds: number
   /** Running seconds regained per second while walking quietly or standing */
@@ -183,8 +188,8 @@ export interface HideSeekSettings {
   flareRadius: number
   /** Bell traps the seeker can place per round */
   trapCount: number
-  /** Points: per chest looted, per hider caught / freed, for winning a round, per second a hider stays free */
-  scoreChest: number
+  /** Points: per altar lit, per hider caught / freed, for winning a round, per second a hider stays free */
+  scoreAltar: number
   scoreCatch: number
   scoreRescue: number
   scoreWin: number
@@ -202,8 +207,8 @@ export interface HideSeekSettings {
   torchCount: number
   /** How far a candle stand lights the floor; anything in its light is seen from afar */
   torchRadius: number
-  /** Exit gates on the labyrinth's edge: they open once the hiders took enough treasure, and a hider who gets out wins
-   * (0 = enough treasure wins right away) */
+  /** Exit gates on the labyrinth's edge: they open once the hiders lit enough altars, and a hider who gets out wins
+   * (0 = enough altars win right away) */
   exitCount: number
   /** Running leaves footprints on the floor for this long (sneaking leaves none) */
   footprintSeconds: number
@@ -228,8 +233,8 @@ export interface HideSeekSettings {
   /** Shadow: others spot them only this close (share of their sight range); their steps are this loud */
   traitStealthSight: number
   traitStealthNoise: number
-  /** Treasure sense: chests within this many tiles show through walls and darkness */
-  traitSenseRadius: number
+  /** Firekeeper: lights altars this much faster (0.5 = 50%) */
+  traitLightBonus: number
   /** Trickster: this many extra of each own gadget per round */
   traitExtraGadgets: number
 }

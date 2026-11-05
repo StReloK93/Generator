@@ -22,19 +22,13 @@
         </span>
       </div>
 
-      <!-- Treasure: a hider their own share brought home (a blue gem while carrying one), a seeker how many hiders are done -->
+      <!-- Altars: lit / needed (the same for both sides) -->
       <div
-        class="flex items-center gap-1 h-8 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md"
-        :class="hideSeekStore.isCarrying ? 'border-sky-400/70 animate-pulse' : 'border-amber-500/30'"
-        :title="isSeeker ? $t('hideseek.hidersReady') : $t('hideseek.chestsHint', { n: hideSeekStore.chestQuota })"
+        class="flex items-center gap-1 h-8 rounded-full border border-amber-500/30 px-2.5 bg-slate-950/80 backdrop-blur-md"
+        :title="$t('hideseek.altarsHint', { n: hideSeekStore.altarsNeeded })"
       >
-        <Gem class="size-3.5" :class="hideSeekStore.isCarrying ? 'text-sky-300' : 'text-amber-300'" />
-        <span class="text-xs font-black tabular-nums text-amber-300">
-          {{ isSeeker ? `${hideSeekStore.hidersReady}/${hideSeekStore.hidersTotal}` : `${hideSeekStore.myChests}/${hideSeekStore.chestQuota}` }}
-        </span>
-        <span v-if="!isSeeker" class="text-[10px] font-bold tabular-nums text-amber-200/60" :title="$t('hideseek.teamReady', { done: hideSeekStore.hidersReady, total: hideSeekStore.hidersTotal })">
-          <Users class="inline size-3 -mt-0.5" /> {{ hideSeekStore.hidersReady }}/{{ hideSeekStore.hidersTotal }}
-        </span>
+        <Flame class="size-3.5 text-amber-300" />
+        <span class="text-xs font-black tabular-nums text-amber-300">{{ hideSeekStore.altarsLit }}/{{ hideSeekStore.altarsNeeded }}</span>
       </div>
 
       <!-- Own character trait, and a seeker's momentum from this round's catches -->
@@ -87,7 +81,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Search, EyeOff, Ear, Gem, Wind, Users, Zap } from 'lucide-vue-next'
+import { Search, EyeOff, Ear, Flame, Wind, Zap } from 'lucide-vue-next'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { useMapStore } from '../../stores/mapStore'
 import { normalizeHideSeekSettings } from '../../domain/hideseek'

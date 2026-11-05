@@ -1,38 +1,42 @@
 import { GridCoord, HideSeekSettings } from '../../types/map'
 import {
-  ChestState,
+  ALTAR_REACH,
+  AltarState,
   CollisionGrid,
   HideSeekEndReason,
   HideSeekPhase,
   HideSeekRole,
-  LootProgress,
-  NO_LOOT,
-  advanceLoot,
   hasLineOfSight,
   isCaught,
-  lootQuota,
-  pickChestSpots,
   pickHideSpots,
+  pickObjectiveSpots,
 } from './HideSeekRules'
 import { TRAP_RADIUS, TRAP_RING_SEC, TrapState } from './HideSeekGadgets'
 import { HideSeekMaze, HideSpot, MazeRect, insideRect } from './HideSeekMaze'
-import { HideSeekTrait, catchReach, rescueReach } from './HideSeekTraits'
+import { HideSeekTrait, catchReach, lightingSpeed, rescueReach } from './HideSeekTraits'
 
 /**
  * The host's referee for a whole hide & seek match (pure: no Vue / Pixi / network).
- * Two sides with fixed roles for the whole match (the first lobby slots seek). A hider takes a treasure out of a chest
- * on the seekers' side and carries it home; caught, they drop it (anyone of their side can pick it up) and go to the
- * jail in the seekers' base, until a free teammate reaches the jail and sets everybody there free. Nobody is caught at
- * the hiders' home. The hiders win a round once every one of them brought their share home (or, with exit gates, then
- * got out); the seekers by jailing everyone or holding out. The side that wins most rounds wins the match.
+ * Two sides with fixed roles for the whole match (the first lobby slots seek). Altars are spread over the labyrinth;
+ * hiders standing at one light it (together faster), a seeker standing at a half-lit one puts it out. A hider who lit
+ * an altar can chain a nearby seeker: both stand still until the chain runs out (the seeker is then dazed for a moment)
+ * or another seeker frees them - one hider holds a seeker while a teammate lights the next altar. Caught hiders go to
+ * the jail in the seekers' base until a free teammate reaches it; nobody is caught at the hiders' home.
+ * The hiders win a round with all but one altar lit (or, with exit gates, by then getting out); the seekers by jailing
+ * everyone or holding out. The side that wins most rounds wins the match.
  */
 
 /** Pause between two rounds (results on screen) */
 export const ROUND_BREAK_SEC = 6
 /** A hider this close to the spot inside an open exit gate is out */
 export const EXIT_REACH = 0.8
-/** A hider this close to a dropped treasure picks it up */
-export const PICKUP_REACH = 0.8
+/** Altars keep this far apart (one seeker cannot watch two) and from both bases */
+const ALTAR_SPACING = 9
+const ALTAR_BASE_MARGIN = 2
+/** Nobody is caught in the first seconds of seeking (everyone's position has reached the referee) */
+const START_GRACE_SEC = 3
+/** Never fewer altars than this (1 against 1: 3 altars, 2 of them needed) */
+const MIN_ALTARS = 3
 
 export type HideSeekTeam = 0 | 1
 
@@ -50,12 +54,21 @@ export interface HideSeekSeat {
   role: HideSeekRole
   jailed: boolean
   score: number
-  /** Treasures this hider brought home this round (each needs their own share) */
-  delivered: number
-  /** This hider carries a treasure (out of a chest, or picked up from the floor) */
-  carrying: boolean
+  /** Altars this hider helped light this round (one lit altar lets them chain seekers) */
+  lit: number
+  /** Seconds until this hider can chain a seeker again */
+  chainCooldown: number
+  /** Seconds this seeker is still dazed after a chain ran out (cannot move or catch) */
+  dazed: number
   /** Hiders this seeker caught this round: each one makes them faster and slower to tire */
   catches: number
+}
+
+/** A hider holding a seeker: both stand still until it runs out, the seeker is freed or the hider caught. */
+export interface ChainState {
+  hider: string
+  seeker: string
+  timeLeft: number
 }
 
 export interface HideSeekMatch {
@@ -67,9 +80,10 @@ export interface HideSeekMatch {
   /** Side that won the match (null = draw or not over yet) */
   matchWinner: HideSeekRole | null
   clock: HideSeekMatchClock
-  chests: ChestState[]
-  /** Treasures dropped by caught hiders, waiting on the floor to be picked up */
-  drops: GridCoord[]
+  altars: AltarState[]
+  /** Lit altars the hiders need this round */
+  altarsNeeded: number
+  chains: ChainState[]
   /** Barrels / cabinets a hider can hide in */
   spots: HideSpot[]
   traps: TrapState[]
@@ -80,12 +94,11 @@ export interface HideSeekMatch {
   torches: boolean[]
   /** Candles the seekers set down this round (after the labyrinth's own stands in `torches`) */
   candles: GridCoord[]
-  /** Exit gates (the spot just inside each); they open once every hider brought their share home */
+  /** Exit gates (the spot just inside each); they open once enough altars are lit */
   exits: GridCoord[]
   exitsOpen: boolean
   trapsPlaced: number
   seats: HideSeekSeat[]
-  loot: Record<string, LootProgress>
   /** Best total score after the last round (null = draw or not over yet) */
   champion: string | null
 }
@@ -96,7 +109,7 @@ export interface MatchBody extends GridCoord {
   moving: boolean
   /** Hiding spot the player sits in (-1 = none) */
   hidden: number
-  /** Character trait (a rescuer frees from further away and, seeking, catches from further away) */
+  /** Character trait (a rescuer frees from further away and, seeking, catches from further away; a firekeeper lights faster) */
   trait?: HideSeekTrait | null
 }
 
@@ -106,7 +119,7 @@ export interface SpawnSets {
   hiders: GridCoord[]
 }
 
-/** The places the rules care about: the jail (null = jailed where caught) and the hiders' home (null = no carrying). */
+/** The places the rules care about: the jail (null = jailed where caught) and the hiders' home (null = no safe zone). */
 export interface MatchArena {
   jail: GridCoord | null
   home: MazeRect | null
@@ -119,10 +132,10 @@ export function arenaOf(maze: HideSeekMaze | null): MatchArena {
 }
 
 export type MatchEvent =
-  | { kind: 'loot'; chest: number; by: string }
-  | { kind: 'delivered'; by: string }
-  | { kind: 'pickup'; by: string }
-  | { kind: 'drop'; col: number; row: number }
+  | { kind: 'altarLit'; altar: number; by: string }
+  | { kind: 'chain'; hider: string; seeker: string }
+  /** dazed: the chain ran out (the seeker stands dazed); otherwise the seeker was freed or the hider caught */
+  | { kind: 'chainEnd'; hider: string; seeker: string; dazed: boolean }
   | { kind: 'caught'; id: string }
   | { kind: 'freed'; id: string; by: string }
   | { kind: 'bell'; col: number; row: number }
@@ -167,8 +180,9 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
     wins: { seeker: 0, hider: 0 },
     matchWinner: null,
     clock: { phase: 'hiding', timeLeft: 0, winner: null, reason: null },
-    chests: [],
-    drops: [],
+    altars: [],
+    altarsNeeded: 0,
+    chains: [],
     spots: [],
     traps: [],
     mazeSeed: 0,
@@ -184,11 +198,11 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
       role: team === 0 ? 'seeker' : 'hider',
       jailed: false,
       score: 0,
-      delivered: 0,
-      carrying: false,
+      lit: 0,
+      chainCooldown: 0,
+      dazed: 0,
       catches: 0,
     })),
-    loot: {},
     champion: null,
   }
 }
@@ -208,11 +222,19 @@ export function spawnForSeat(match: HideSeekMatch, id: string, spawns: SpawnSets
   return points[index % points.length]
 }
 
-/** Hiders who already brought their share home this round, out of all hiders. */
-export function lootProgress(match: HideSeekMatch, settings: HideSeekSettings): { done: number; total: number } {
-  const hiders = match.seats.filter(s => s.role === 'hider')
-  const quota = lootQuota(settings)
-  return { done: hiders.filter(s => s.delivered >= quota).length, total: hiders.length }
+/** The chain a player is in (holding or held), if any. */
+export function chainOf(match: HideSeekMatch, id: string): ChainState | undefined {
+  return match.chains.find(c => c.hider === id || c.seeker === id)
+}
+
+/** Cannot move: in a chain (either end) or dazed after one. */
+export function isFrozen(match: HideSeekMatch, id: string): boolean {
+  return !!chainOf(match, id) || (seatOf(match, id)?.dazed ?? 0) > 0
+}
+
+/** Lit altars, how many the hiders need, and how many there are. */
+export function altarProgress(match: HideSeekMatch): { lit: number; needed: number; total: number } {
+  return { lit: match.altars.filter(a => a.lit).length, needed: match.altarsNeeded, total: match.altars.length }
 }
 
 /** Where a jailed player stands: around the jail, one beside the other (`slot` = their place in the line). */
@@ -222,8 +244,8 @@ export function jailSpot(jail: GridCoord, slot: number): GridCoord {
 }
 
 /**
- * Sets up round `round`: fresh chests (each hider's share, on the seekers' side of a random labyrinth) and hiding
- * spots, nobody in jail, nothing carried. With a random labyrinth its own hiding spots are used, its doors start shut
+ * Sets up round `round`: fresh altars (one per hider plus a few, spread over the labyrinth away from both bases) and
+ * hiding spots, nobody in jail or chained. With a random labyrinth its own hiding spots are used, its doors start shut
  * and its candles burn.
  */
 export function startRound(
@@ -238,19 +260,24 @@ export function startRound(
   match.round = round
   for (const seat of match.seats) {
     seat.jailed = false
-    seat.delivered = 0
-    seat.carrying = false
+    seat.lit = 0
+    seat.chainCooldown = 0
+    seat.dazed = 0
     seat.catches = 0
   }
   const hiderCount = Math.max(1, match.seats.filter(s => s.role === 'hider').length)
   const starts = allSpawns(spawns)
   const props = maze ? [...maze.spots, ...maze.torches, ...maze.doors.map(d => d.center), ...maze.exits.map(e => e.at)] : []
-  const zone = maze ? (p: GridCoord) => insideRect(maze.seekerSide, p) && !insideRect(maze.seekerBase, p, 1) : undefined
-  match.chests = pickChestSpots(grid, starts, settings.chestCount * hiderCount, random, props, zone).map(p => ({ ...p, looted: false }))
-  match.drops = []
+  const zone = maze
+    ? (p: GridCoord) => !insideRect(maze.seekerBase, p, ALTAR_BASE_MARGIN) && !insideRect(maze.hiderBase, p, ALTAR_BASE_MARGIN)
+    : undefined
+  const count = Math.max(MIN_ALTARS, hiderCount + settings.altarExtra)
+  match.altars = pickObjectiveSpots(grid, starts, count, random, props, zone, ALTAR_SPACING).map(p => ({ ...p, progress: 0, lit: false }))
+  match.altarsNeeded = Math.max(1, match.altars.length - 1)
+  match.chains = []
   match.spots = maze
     ? maze.spots.map(spot => ({ ...spot }))
-    : pickHideSpots(grid, starts, match.chests, settings.hideSpotCount, random).map(p => ({ ...p, kind: 'barrel' as const, facing: 'E' as const }))
+    : pickHideSpots(grid, starts, match.altars, settings.hideSpotCount, random).map(p => ({ ...p, kind: 'barrel' as const, facing: 'E' as const }))
   match.mazeSeed = maze?.seed ?? 0
   match.doors = maze ? maze.doors.map(() => false) : []
   match.torches = maze ? maze.torches.map(() => true) : []
@@ -259,8 +286,10 @@ export function startRound(
   match.exitsOpen = false
   match.traps = []
   match.trapsPlaced = 0
-  match.loot = {}
-  match.clock = { phase: 'hiding', timeLeft: settings.hideTime, winner: null, reason: null }
+  // The sides start far apart: without a hiding time (0) the seekers set off right away
+  match.clock = settings.hideTime > 0
+    ? { phase: 'hiding', timeLeft: settings.hideTime, winner: null, reason: null }
+    : { phase: 'seeking', timeLeft: settings.roundTime, winner: null, reason: null }
 }
 
 /** Anyone opens / shuts a door. */
@@ -285,7 +314,7 @@ function endRound(match: HideSeekMatch, winner: HideSeekRole, reason: HideSeekEn
   const majority = Math.floor(match.rounds / 2) + 1
   const last = match.round + 1 >= match.rounds || match.wins[winner] >= majority
   match.clock = { phase: last ? 'ended' : 'roundOver', timeLeft: last ? 0 : ROUND_BREAK_SEC, winner, reason }
-  match.loot = {}
+  match.chains = []
   if (!last) return { kind: 'roundOver' }
   const { seeker, hider } = match.wins
   match.matchWinner = seeker > hider ? 'seeker' : hider > seeker ? 'hider' : null
@@ -294,15 +323,17 @@ function endRound(match: HideSeekMatch, winner: HideSeekRole, reason: HideSeekEn
   return { kind: 'ended' }
 }
 
-/** A hider is caught: a carried treasure falls where they stood, and they go to jail. */
-function jail(match: HideSeekMatch, hider: HideSeekSeat, at: GridCoord, seeker: HideSeekSeat | undefined, settings: HideSeekSettings, events: MatchEvent[]): void {
+/** Ends a chain early (the seeker was freed or the hider caught): no daze. */
+function breakChain(match: HideSeekMatch, chain: ChainState, events: MatchEvent[]): void {
+  match.chains = match.chains.filter(c => c !== chain)
+  events.push({ kind: 'chainEnd', hider: chain.hider, seeker: chain.seeker, dazed: false })
+}
+
+/** A hider is caught: a chain they hold breaks, and they go to jail. */
+function jail(match: HideSeekMatch, hider: HideSeekSeat, seeker: HideSeekSeat | undefined, settings: HideSeekSettings, events: MatchEvent[]): void {
   hider.jailed = true
-  delete match.loot[hider.id]
-  if (hider.carrying) {
-    hider.carrying = false
-    match.drops.push({ col: at.col, row: at.row })
-    events.push({ kind: 'drop', col: at.col, row: at.row })
-  }
+  const chain = match.chains.find(c => c.hider === hider.id)
+  if (chain) breakChain(match, chain, events)
   if (seeker) {
     seeker.score += settings.scoreCatch
     seeker.catches++
@@ -312,12 +343,6 @@ function jail(match: HideSeekMatch, hider: HideSeekSeat, at: GridCoord, seeker: 
 
 function allHidersJailed(match: HideSeekMatch, present: Set<string>): boolean {
   return match.seats.filter(s => s.role === 'hider' && present.has(s.id)).every(s => s.jailed)
-}
-
-/** Every hider still in the match has brought their own share home (jailed ones too: they have to be freed first). */
-function everyHiderHasShare(match: HideSeekMatch, present: Set<string>, settings: HideSeekSettings): boolean {
-  const quota = lootQuota(settings)
-  return match.seats.filter(s => s.role === 'hider' && present.has(s.id)).every(s => s.delivered >= quota)
 }
 
 /** One referee frame. `bodies` are the players still in the match. */
@@ -351,50 +376,56 @@ export function tickMatch(
     return [endRound(match, 'seeker', 'time', settings)]
   }
 
-  // Treasure: a free hider (not inside a barrel) brings a carried one home, picks a dropped one up,
-  // or takes one out of a chest by standing at it
-  const quota = lootQuota(settings)
-  const atHome = (p: GridCoord) => !!arena.home && insideRect(arena.home, p)
-  for (const seat of hiders) {
-    const body = byId.get(seat.id)!
-    if (seat.jailed || body.hidden !== -1) {
-      delete match.loot[seat.id]
+  for (const seat of match.seats) {
+    seat.chainCooldown = Math.max(0, seat.chainCooldown - deltaSec)
+    seat.dazed = Math.max(0, seat.dazed - deltaSec)
+  }
+
+  // Chains: one that runs out leaves the seeker dazed; a chain whose player left breaks
+  for (const chain of [...match.chains]) {
+    if (!present.has(chain.hider) || !present.has(chain.seeker)) {
+      breakChain(match, chain, events)
       continue
     }
-    let brought = false
-    if (seat.carrying) {
-      if (!atHome(body)) continue
-      seat.carrying = false
-      brought = true
-    } else {
-      if (seat.delivered >= quota) continue
-      const drop = match.drops.findIndex(d => Math.hypot(d.col - body.col, d.row - body.row) <= PICKUP_REACH)
-      if (drop !== -1) {
-        match.drops.splice(drop, 1)
-        seat.carrying = true
-        events.push({ kind: 'pickup', by: seat.id })
-        continue
+    chain.timeLeft -= deltaSec
+    if (chain.timeLeft > 0) continue
+    match.chains = match.chains.filter(c => c !== chain)
+    const seeker = seatOf(match, chain.seeker)
+    if (seeker) seeker.dazed = settings.chainDaze
+    events.push({ kind: 'chainEnd', hider: chain.hider, seeker: chain.seeker, dazed: true })
+  }
+  /** Can act this frame: not chained, not dazed */
+  const active = (seat: HideSeekSeat) => !isFrozen(match, seat.id)
+  const activeSeekers = seekers.filter(active)
+  const freeHiders = hiders.filter(h => !h.jailed && active(h) && byId.get(h.id)!.hidden === -1)
+  const near = (id: string, p: GridCoord, reach: number) => {
+    const b = byId.get(id)!
+    return Math.hypot(b.col - p.col, b.row - p.row) <= reach
+  }
+
+  // Altars: hiders standing at one light it (together faster); a seeker standing at a half-lit one puts it out
+  match.altars.forEach((altar, index) => {
+    if (altar.lit) return
+    const lighters = freeHiders.filter(h => near(h.id, altar, ALTAR_REACH))
+    if (lighters.length > 0) {
+      const rate = lighters.reduce((sum, h) => sum + lightingSpeed(settings, byId.get(h.id)!.trait), 0)
+      altar.progress = Math.min(1, altar.progress + (rate * deltaSec) / settings.altarLightTime)
+      if (altar.progress < 1) return
+      altar.lit = true
+      for (const h of lighters) {
+        h.lit++
+        h.score += settings.scoreAltar
       }
-      const progress = advanceLoot(match.loot[seat.id] ?? NO_LOOT, body, match.chests, deltaSec)
-      match.loot[seat.id] = progress
-      if (progress.index === -1 || progress.time < settings.lootTime) continue
-      match.chests[progress.index].looted = true
-      match.loot[seat.id] = NO_LOOT
-      events.push({ kind: 'loot', chest: progress.index, by: seat.id })
-      // With a home the treasure has to be carried there; without one it counts right away
-      if (arena.home) {
-        seat.carrying = true
-        continue
-      }
-      brought = true
+      events.push({ kind: 'altarLit', altar: index, by: lighters[0].id })
+      return
     }
-    if (!brought) continue
-    seat.delivered++
-    seat.score += settings.scoreChest
-    events.push({ kind: 'delivered', by: seat.id })
-    if (!everyHiderHasShare(match, present, settings)) continue
-    // Everyone has their share: with exit gates the hiders still have to get out, otherwise they win right away
-    if (match.exits.length === 0) return [...events, endRound(match, 'hider', 'chests', settings)]
+    if (altar.progress > 0 && activeSeekers.some(s => near(s.id, altar, ALTAR_REACH))) {
+      altar.progress = Math.max(0, altar.progress - deltaSec / settings.altarKickTime)
+    }
+  })
+  if (match.altars.length > 0 && altarProgress(match).lit >= match.altarsNeeded) {
+    // Enough altars: with exit gates the hiders still have to get out, otherwise they win right away
+    if (match.exits.length === 0) return [...events, endRound(match, 'hider', 'altars', settings)]
     if (!match.exitsOpen) {
       match.exitsOpen = true
       events.push({ kind: 'exitsOpen' })
@@ -402,24 +433,21 @@ export function tickMatch(
   }
 
   // A free hider reaching an open gate wins the round for the hiders
-  if (match.exitsOpen) {
-    const escaped = hiders.some(seat => {
-      const b = byId.get(seat.id)!
-      return !seat.jailed && b.hidden === -1 && match.exits.some(e => Math.hypot(b.col - e.col, b.row - e.row) <= EXIT_REACH)
-    })
-    if (escaped) return [...events, endRound(match, 'hider', 'escaped', settings)]
+  if (match.exitsOpen && freeHiders.some(h => match.exits.some(e => near(h.id, e, EXIT_REACH)))) {
+    return [...events, endRound(match, 'hider', 'escaped', settings)]
   }
 
   if (match.clock.phase !== 'seeking') return events
 
+  // A free seeker touching a chained teammate sets them free (no daze)
+  for (const chain of [...match.chains]) {
+    if (activeSeekers.some(s => near(s.id, byId.get(chain.seeker)!, settings.catchDistance))) breakChain(match, chain, events)
+  }
+
   // Rescue: with a jail, a free hider reaching it sets everybody there free; without one, a touch frees the touched
-  const freeHiders = hiders.filter(h => !h.jailed && byId.get(h.id)!.hidden === -1)
   if (arena.jail) {
     const jailAt = arena.jail
-    const rescuer = freeHiders.find(h => {
-      const b = byId.get(h.id)!
-      return Math.hypot(b.col - jailAt.col, b.row - jailAt.row) <= rescueReach(settings, b.trait) + PICKUP_REACH
-    })
+    const rescuer = freeHiders.find(h => near(h.id, jailAt, rescueReach(settings, byId.get(h.id)!.trait) + EXIT_REACH))
     if (rescuer) {
       for (const seat of hiders.filter(h => h.jailed)) {
         seat.jailed = false
@@ -432,7 +460,7 @@ export function tickMatch(
       const body = byId.get(seat.id)!
       const rescuer = freeHiders.find(h => {
         const other = byId.get(h.id)!
-        return Math.hypot(other.col - body.col, other.row - body.row) <= rescueReach(settings, other.trait) && hasLineOfSight(grid, other, body)
+        return near(h.id, body, rescueReach(settings, other.trait)) && hasLineOfSight(grid, other, body)
       })
       if (!rescuer) continue
       seat.jailed = false
@@ -441,17 +469,19 @@ export function tickMatch(
     }
   }
 
-  // Catching: inside a barrel nobody can touch you (a seeker has to open it), at home nobody catches you
+  // Catching: inside a barrel nobody can touch you (a seeker has to open it), at home nobody catches you;
+  // a hider holding a chain stands still and is easy prey for the other seeker
+  const graceOver = settings.roundTime - match.clock.timeLeft >= START_GRACE_SEC
   for (const seat of hiders) {
     const body = byId.get(seat.id)!
     if (seat.jailed) continue
     seat.score += settings.scorePerSecond * deltaSec
-    if (body.hidden !== -1 || atHome(body)) continue
-    const catcher = seekers.find(s => {
+    if (!graceOver || body.hidden !== -1 || (arena.home && insideRect(arena.home, body))) continue
+    const catcher = activeSeekers.find(s => {
       const seekerBody = byId.get(s.id)!
       return isCaught(grid, seekerBody, body, { ...settings, catchDistance: catchReach(settings, seekerBody.trait) })
     })
-    if (catcher) jail(match, seat, body, catcher, settings, events)
+    if (catcher) jail(match, seat, catcher, settings, events)
   }
 
   // Bell traps ring when a free hider walks by, then stop
@@ -460,10 +490,7 @@ export function tickMatch(
       trap.ringing -= deltaSec
       return trap.ringing > 0
     }
-    const walker = hiders.find(h => {
-      const b = byId.get(h.id)!
-      return !h.jailed && b.hidden === -1 && Math.hypot(b.col - trap.col, b.row - trap.row) <= TRAP_RADIUS
-    })
+    const walker = hiders.find(h => !h.jailed && byId.get(h.id)!.hidden === -1 && near(h.id, trap, TRAP_RADIUS))
     if (walker) {
       trap.ringing = TRAP_RING_SEC
       events.push({ kind: 'bell', col: trap.col, row: trap.row })
@@ -475,15 +502,34 @@ export function tickMatch(
   return events
 }
 
+/**
+ * Hider `hiderId` chains the nearest seeker in reach: they must have lit an altar, be free and off cooldown, and see
+ * the seeker. Both stand still for the chain time.
+ */
+export function startChain(match: HideSeekMatch, hiderId: string, bodies: MatchBody[], grid: CollisionGrid, settings: HideSeekSettings): MatchEvent[] {
+  const hider = seatOf(match, hiderId)
+  const body = bodies.find(b => b.id === hiderId)
+  if (match.clock.phase !== 'seeking' || !hider || !body || hider.role !== 'hider') return []
+  if (hider.jailed || hider.lit === 0 || hider.chainCooldown > 0 || body.hidden !== -1 || isFrozen(match, hiderId)) return []
+  const distance = (b: MatchBody) => Math.hypot(b.col - body.col, b.row - body.row)
+  const target = bodies
+    .filter(b => seatOf(match, b.id)?.role === 'seeker' && !isFrozen(match, b.id) && distance(b) <= settings.chainRange && hasLineOfSight(grid, body, b))
+    .sort((a, b) => distance(a) - distance(b))[0]
+  if (!target) return []
+  match.chains.push({ hider: hiderId, seeker: target.id, timeLeft: settings.chainTime })
+  hider.chainCooldown = settings.chainTime + settings.chainCooldown
+  return [{ kind: 'chain', hider: hiderId, seeker: target.id }]
+}
+
 /** Seeker `by` opens a hiding spot: whoever sits inside goes to jail. */
 export function searchSpot(match: HideSeekMatch, spotIndex: number, bodies: MatchBody[], settings: HideSeekSettings, by: string): MatchEvent[] {
   const seeker = seatOf(match, by)
-  if (match.clock.phase !== 'seeking' || seeker?.role !== 'seeker') return []
+  if (match.clock.phase !== 'seeking' || seeker?.role !== 'seeker' || isFrozen(match, by)) return []
   const present = new Set(bodies.map(b => b.id))
   const events: MatchEvent[] = []
   for (const body of bodies) {
     const seat = seatOf(match, body.id)
-    if (seat?.role === 'hider' && !seat.jailed && body.hidden === spotIndex) jail(match, seat, body, seeker, settings, events)
+    if (seat?.role === 'hider' && !seat.jailed && body.hidden === spotIndex) jail(match, seat, seeker, settings, events)
   }
   if (events.length > 0 && allHidersJailed(match, present)) events.push(endRound(match, 'seeker', 'caught', settings))
   return events

@@ -5,6 +5,7 @@ import {
   createMatch,
   startRound,
   tickMatch,
+  startChain,
   searchSpot,
   placeTrap,
   placeCandle,
@@ -14,7 +15,8 @@ import {
   teamForSlot,
   splitSpawns,
   seatOf,
-  lootProgress,
+  isFrozen,
+  altarProgress,
   jailSpot,
   ROUND_BREAK_SEC,
   MatchArena,
@@ -25,14 +27,28 @@ import {
 } from '@/domain/hideseek'
 import { GridCoord } from '@/types/map'
 
-// 3 chests per hider, each hider needs 2 of them
-const settings = normalizeHideSeekSettings({ hideTime: 5, roundTime: 60, chestCount: 3, chestsToWin: 2, lootTime: 2, hideSpotCount: 0 })
+const settings = normalizeHideSeekSettings({
+  hideTime: 5,
+  roundTime: 60,
+  hideSpotCount: 0,
+  altarExtra: 2,
+  altarLightTime: 4,
+  altarKickTime: 2,
+  chainRange: 5,
+  chainTime: 6,
+  chainCooldown: 10,
+  chainDaze: 2,
+})
 const grid = buildCollisionGrid({ cols: 30, rows: 30, collisionSubcells: [] })
 const spawns: SpawnSets = { seekers: [{ col: 15, row: 15 }, { col: 15, row: 13 }], hiders: [{ col: 16, row: 16 }, { col: 14, row: 16 }] }
 const random = () => 0.42
 /** The seekers' jail at (3, 3), the hiders' home in the corner 24..29 */
 const arena: MatchArena = { jail: { col: 3, row: 3 }, home: { col: 24, row: 24, cols: 6, rows: 6 } }
 const HOME = { col: 26, row: 26 }
+/** Spots far from the jail, the home and each other (out of everyone's way) */
+const AWAY = [{ col: 1, row: 28 }, { col: 6, row: 28 }, { col: 11, row: 28 }, { col: 16, row: 28 }]
+/** Nobody is caught in the first seconds of seeking */
+const GRACE = 3
 
 function body(id: string, at: GridCoord, extra: Partial<MatchBody> = {}): MatchBody {
   return { id, col: at.col, row: at.row, moving: false, hidden: -1, ...extra }
@@ -43,19 +59,21 @@ function teams(seekers: string[], hiders: string[]): { id: string; team: HideSee
   return [...seekers.map(id => ({ id, team: 0 as const })), ...hiders.map(id => ({ id, team: 1 as const }))]
 }
 
-/** A match already in its seeking phase: `s*` seek, `h*` hide. */
+/** A match already seeking, past the start grace: `s*` seek, `h*` hide. */
 function seekingMatch(ids: string[], rounds = 1): HideSeekMatch {
   const match = createMatch(teams(ids.filter(id => id.startsWith('s')), ids.filter(id => id.startsWith('h'))), rounds)
   startRound(match, 0, grid, spawns, settings, random)
-  tickMatch(match, ids.map(id => body(id, spawnForSeat(match, id, spawns))), grid, settings, settings.hideTime + 0.01, arena)
+  const bodies = ids.map((id, i) => body(id, AWAY[i % AWAY.length]))
+  tickMatch(match, bodies, grid, settings, settings.hideTime + 0.01, arena)
+  tickMatch(match, bodies, grid, settings, GRACE, arena)
   return match
 }
 
-const tick = (match: HideSeekMatch, bodies: MatchBody[], dt = 0.1, where: MatchArena = arena) => tickMatch(match, bodies, grid, settings, dt, where)
+const tick = (match: HideSeekMatch, bodies: MatchBody[], dt = 0.1) => tickMatch(match, bodies, grid, settings, dt, arena)
 
-/** A hider takes the treasure out of chest `chest` (standing there for the loot time). */
-function loot(match: HideSeekMatch, hider: string, chest: number, others: MatchBody[], where: MatchArena = arena) {
-  return tick(match, [...others, body(hider, match.chests[chest])], settings.lootTime + 0.01, where)
+/** Moves the players far from the altars apart from the given ones (out of each other's reach). */
+function away(ids: string[]): MatchBody[] {
+  return ids.map((id, i) => body(id, AWAY[i % AWAY.length]))
 }
 
 describe('HideSeekMatch', () => {
@@ -74,10 +92,28 @@ describe('HideSeekMatch', () => {
     }
   })
 
-  it('puts out chests for every hider: their share each', () => {
-    const match = createMatch(teams(['a'], ['b', 'c']))
-    startRound(match, 0, grid, spawns, settings, random)
-    expect(match.chests).toHaveLength(settings.chestCount * 2)
+  it('starts seeking right away without a hiding time (the sides start far apart)', () => {
+    const match = createMatch(teams(['s'], ['h']))
+    startRound(match, 0, grid, spawns, { ...settings, hideTime: 0 }, random)
+    expect(match.clock).toMatchObject({ phase: 'seeking', timeLeft: settings.roundTime })
+  })
+
+  it('catches nobody in the first seconds of a round (positions are still arriving)', () => {
+    const match = createMatch(teams(['s'], ['h']))
+    startRound(match, 0, grid, spawns, { ...settings, hideTime: 0 }, random)
+    tickMatch(match, [body('s', { col: 10, row: 10 }), body('h', { col: 10.3, row: 10 })], grid, { ...settings, hideTime: 0 }, 1, arena)
+    expect(seatOf(match, 'h')!.jailed).toBe(false)
+    tickMatch(match, [body('s', { col: 10, row: 10 }), body('h', { col: 10.3, row: 10 })], grid, { ...settings, hideTime: 0 }, GRACE, arena)
+    expect(seatOf(match, 'h')!.jailed).toBe(true)
+  })
+
+  it('puts out one altar per hider plus a few, and asks for all but one of them', () => {
+    const duel = createMatch(teams(['s'], ['h']))
+    startRound(duel, 0, grid, spawns, settings, random)
+    expect(altarProgress(duel)).toEqual({ lit: 0, needed: 2, total: 3 })
+    const team = createMatch(teams(['s1', 's2'], ['h1', 'h2']))
+    startRound(team, 0, grid, spawns, settings, random)
+    expect(altarProgress(team)).toEqual({ lit: 0, needed: 3, total: 4 })
   })
 
   it('starts each side on its own start points', () => {
@@ -93,7 +129,7 @@ describe('HideSeekMatch', () => {
 
   it('counts round wins and ends the match once a side won most rounds', () => {
     const match = seekingMatch(['s', 'h'], 3)
-    const bodies = [body('s', { col: 2, row: 2 }), body('h', { col: 20, row: 2 })]
+    const bodies = away(['s', 'h'])
     tick(match, bodies, settings.roundTime + 0.01)
     expect(match.clock).toMatchObject({ phase: 'roundOver', winner: 'seeker', reason: 'time' })
     expect(match.wins).toEqual({ seeker: 1, hider: 0 })
@@ -108,62 +144,90 @@ describe('HideSeekMatch', () => {
     expect(match.matchWinner).toBe('seeker')
   })
 
-  it('makes a hider carry the treasure home: it counts only when they get there', () => {
-    const match = seekingMatch(['s', 'h'])
-    const away = [body('s', { col: 1, row: 20 })]
-    const events = loot(match, 'h', 0, away)
-    expect(events).toContainEqual({ kind: 'loot', chest: 0, by: 'h' })
-    expect(match.chests[0].looted).toBe(true)
-    expect(seatOf(match, 'h')!).toMatchObject({ carrying: true, delivered: 0 })
-    // Carrying, a hider does not open another chest
-    loot(match, 'h', 1, away)
-    expect(match.chests[1].looted).toBe(false)
+  it('lights an altar while a hider stands at it; two together are twice as fast, a firekeeper faster', () => {
+    const solo = seekingMatch(['s', 'h1', 'h2'])
+    const altar = solo.altars[0]
+    tick(solo, [body('s', AWAY[0]), body('h1', altar), body('h2', AWAY[1])], settings.altarLightTime / 2)
+    expect(altar.progress).toBeCloseTo(0.5)
+    const events = tick(solo, [body('s', AWAY[0]), body('h1', altar), body('h2', AWAY[1])], settings.altarLightTime / 2 + 0.01)
+    expect(events).toContainEqual({ kind: 'altarLit', altar: 0, by: 'h1' })
+    expect(altar.lit).toBe(true)
+    expect(seatOf(solo, 'h1')!.lit).toBe(1)
 
-    expect(tick(match, [...away, body('h', HOME)])).toContainEqual({ kind: 'delivered', by: 'h' })
-    expect(seatOf(match, 'h')!).toMatchObject({ carrying: false, delivered: 1 })
-    expect(seatOf(match, 'h')!.score).toBeGreaterThanOrEqual(settings.scoreChest)
+    const pair = seekingMatch(['s', 'h1', 'h2'])
+    tick(pair, [body('s', AWAY[0]), body('h1', pair.altars[0]), body('h2', pair.altars[0])], settings.altarLightTime / 2 + 0.01)
+    expect(pair.altars[0].lit).toBe(true)
+    expect([seatOf(pair, 'h1')!.lit, seatOf(pair, 'h2')!.lit]).toEqual([1, 1])
+
+    const fast = seekingMatch(['s', 'h'])
+    tick(fast, [body('s', AWAY[0]), body('h', fast.altars[0], { trait: 'firekeeper' })], settings.altarLightTime / 2)
+    expect(fast.altars[0].progress).toBeGreaterThan(0.5)
   })
 
-  it('without a home (a map without bases) a looted chest counts right away', () => {
+  it('lets a seeker put a half-lit altar out, never a lit one', () => {
     const match = seekingMatch(['s', 'h'])
-    loot(match, 'h', 0, [body('s', { col: 1, row: 20 })], { jail: null, home: null })
-    expect(seatOf(match, 'h')!).toMatchObject({ carrying: false, delivered: 1 })
+    const [half, done] = match.altars
+    tick(match, [body('s', AWAY[0]), body('h', half)], settings.altarLightTime / 2)
+    tick(match, [body('s', AWAY[0]), body('h', done)], settings.altarLightTime + 0.01)
+    expect(done.lit).toBe(true)
+    tick(match, [body('s', half), body('h', AWAY[1])], settings.altarKickTime / 2)
+    expect(half.progress).toBeLessThan(0.5)
+    tick(match, [body('s', done), body('h', AWAY[1])], settings.altarKickTime + 1)
+    expect(done.lit).toBe(true)
   })
 
-  it('needs every hider to bring their own share home: one with all of it does not win, nor takes more', () => {
-    const match = seekingMatch(['s', 'h1', 'h2'])
-    const away = (other: string) => [body('s', { col: 1, row: 20 }), body(other, { col: 20, row: 2 })]
-    for (const chest of [0, 1]) {
-      loot(match, 'h1', chest, away('h2'))
-      tick(match, [...away('h2'), body('h1', HOME)])
-    }
-    expect(seatOf(match, 'h1')!.delivered).toBe(2)
+  it('ends the round for the hiders once all but one altar are lit', () => {
+    const match = seekingMatch(['s', 'h'])
+    tick(match, [body('s', AWAY[0]), body('h', match.altars[0])], settings.altarLightTime + 0.01)
     expect(match.clock.phase).toBe('seeking')
-    expect(lootProgress(match, settings)).toEqual({ done: 1, total: 2 })
-    // h1 has their share: the next chest stays for the others
-    loot(match, 'h1', 2, away('h2'))
-    expect(match.chests[2].looted).toBe(false)
-
-    for (const chest of [3, 4]) {
-      loot(match, 'h2', chest, away('h1'))
-      tick(match, [...away('h1'), body('h2', HOME)])
-    }
-    expect(match.clock).toMatchObject({ winner: 'hider', reason: 'chests' })
+    tick(match, [body('s', AWAY[0]), body('h', match.altars[1])], settings.altarLightTime + 0.01)
+    expect(match.clock).toMatchObject({ winner: 'hider', reason: 'altars' })
   })
 
-  it('drops the treasure of a caught hider on the floor; a teammate can pick it up', () => {
-    const match = seekingMatch(['s', 'h1', 'h2'])
-    loot(match, 'h1', 0, [body('s', { col: 1, row: 20 }), body('h2', { col: 20, row: 2 })])
+  it('lets a hider who lit an altar chain a nearby seeker: both freeze, then the seeker is dazed', () => {
+    const match = seekingMatch(['s', 'h'])
     const at = { col: 10, row: 10 }
-    const events = tick(match, [body('s', { col: 10.5, row: 10 }), body('h1', at), body('h2', { col: 20, row: 2 })])
-    expect(events).toContainEqual({ kind: 'drop', col: 10, row: 10 })
-    expect(events).toContainEqual({ kind: 'caught', id: 'h1' })
-    expect(match.drops).toEqual([at])
-    expect(seatOf(match, 'h1')!.carrying).toBe(false)
+    // No altar lit yet: no chain
+    expect(startChain(match, 'h', [body('s', { col: 13, row: 10 }), body('h', at)], grid, settings)).toEqual([])
+    tick(match, [body('s', AWAY[0]), body('h', match.altars[0])], settings.altarLightTime + 0.01)
+    // Out of reach: no chain
+    expect(startChain(match, 'h', [body('s', { col: 20, row: 10 }), body('h', at)], grid, settings)).toEqual([])
+    expect(startChain(match, 'h', [body('s', { col: 13, row: 10 }), body('h', at)], grid, settings)).toEqual([{ kind: 'chain', hider: 'h', seeker: 's' }])
+    expect(isFrozen(match, 's')).toBe(true)
+    expect(isFrozen(match, 'h')).toBe(true)
+    // Held, the seeker catches nobody, even right next to the hider
+    tick(match, [body('s', { col: 10.4, row: 10 }), body('h', at)], 1)
+    expect(seatOf(match, 'h')!.jailed).toBe(false)
 
-    expect(tick(match, [body('s', { col: 1, row: 20 }), body('h1', arena.jail!), body('h2', at)])).toContainEqual({ kind: 'pickup', by: 'h2' })
-    expect(match.drops).toEqual([])
-    expect(seatOf(match, 'h2')!.carrying).toBe(true)
+    const events = tick(match, [body('s', { col: 13, row: 10 }), body('h', at)], settings.chainTime)
+    expect(events).toContainEqual({ kind: 'chainEnd', hider: 'h', seeker: 's', dazed: true })
+    expect(isFrozen(match, 'h')).toBe(false)
+    expect(seatOf(match, 's')!.dazed).toBeGreaterThan(0)
+    // Dazed: still no catch; then free again
+    tick(match, [body('s', { col: 10.4, row: 10 }), body('h', at)], 0.1)
+    expect(seatOf(match, 'h')!.jailed).toBe(false)
+    tick(match, [body('s', { col: 20, row: 20 }), body('h', at)], settings.chainDaze)
+    expect(isFrozen(match, 's')).toBe(false)
+    // Cooldown: no second chain right away
+    expect(startChain(match, 'h', [body('s', { col: 13, row: 10 }), body('h', at)], grid, settings)).toEqual([])
+  })
+
+  it('lets the other seeker free a chained teammate (no daze) or catch the frozen hider', () => {
+    const lit = () => {
+      const match = seekingMatch(['s1', 's2', 'h'])
+      tick(match, [body('s1', AWAY[0]), body('s2', AWAY[1]), body('h', match.altars[0])], settings.altarLightTime + 0.01)
+      startChain(match, 'h', [body('s1', { col: 13, row: 10 }), body('s2', AWAY[1]), body('h', { col: 10, row: 10 })], grid, settings)
+      return match
+    }
+    const freed = lit()
+    const events = tick(freed, [body('s1', { col: 13, row: 10 }), body('s2', { col: 13.4, row: 10 }), body('h', { col: 10, row: 10 })])
+    expect(events).toContainEqual({ kind: 'chainEnd', hider: 'h', seeker: 's1', dazed: false })
+    expect(seatOf(freed, 's1')!.dazed).toBe(0)
+
+    const caught = lit()
+    tick(caught, [body('s1', { col: 13, row: 10 }), body('s2', { col: 10.4, row: 10 }), body('h', { col: 10, row: 10 })])
+    expect(seatOf(caught, 'h')!.jailed).toBe(true)
+    expect(caught.chains).toEqual([])
   })
 
   it('sends the caught to jail; a free teammate reaching the jail frees everybody there', () => {
@@ -174,10 +238,10 @@ describe('HideSeekMatch', () => {
     expect(match.clock.phase).toBe('seeking')
 
     // Touching where they were caught does nothing: they are in the jail
-    tick(match, [body('s', { col: 1, row: 20 }), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 10, row: 10 })])
+    tick(match, [body('s', AWAY[0]), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 10, row: 10 })])
     expect(seatOf(match, 'h1')!.jailed).toBe(true)
 
-    const events = tick(match, [body('s', { col: 1, row: 20 }), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 3.5, row: 3.5 })])
+    const events = tick(match, [body('s', AWAY[0]), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 3.5, row: 3.5 })])
     expect(events).toContainEqual({ kind: 'freed', id: 'h1', by: 'h3' })
     expect(events).toContainEqual({ kind: 'freed', id: 'h2', by: 'h3' })
     expect(match.seats.filter(s => s.role === 'hider').every(s => !s.jailed)).toBe(true)
@@ -197,12 +261,13 @@ describe('HideSeekMatch', () => {
 
   it('lets any seeker catch, and credits the one who did', () => {
     const match = seekingMatch(['s1', 's2', 'h1', 'h2'])
-    tick(match, [body('s1', { col: 2, row: 20 }), body('s2', { col: 20, row: 20 }), body('h1', { col: 20.5, row: 20 }), body('h2', { col: 20, row: 2 })])
+    tick(match, [body('s1', AWAY[0]), body('s2', { col: 20, row: 20 }), body('h1', { col: 20.5, row: 20 }), body('h2', { col: 20, row: 2 })])
     expect(seatOf(match, 'h1')!.jailed).toBe(true)
     expect(seatOf(match, 's2')!.catches).toBe(1)
     expect(seatOf(match, 's1')!.catches).toBe(0)
     startRound(match, 1, grid, spawns, settings, random)
-    expect(match.seats.every(s => s.catches === 0 && s.delivered === 0 && !s.carrying && !s.jailed)).toBe(true)
+    expect(match.seats.every(s => s.catches === 0 && s.lit === 0 && !s.jailed)).toBe(true)
+    expect(match.altars.every(a => !a.lit && a.progress === 0)).toBe(true)
   })
 
   it('lets a rescuer free the jail from further away', () => {
@@ -213,10 +278,10 @@ describe('HideSeekMatch', () => {
     }
     const nearJail = { col: arena.jail!.col + 2.5, row: arena.jail!.row }
     const plain = jailedMatch()
-    tick(plain, [body('s', { col: 1, row: 20 }), body('h1', arena.jail!), body('h2', nearJail)])
+    tick(plain, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail)])
     expect(seatOf(plain, 'h1')!.jailed).toBe(true)
     const rescued = jailedMatch()
-    tick(rescued, [body('s', { col: 1, row: 20 }), body('h1', arena.jail!), body('h2', nearJail, { trait: 'rescuer' })])
+    tick(rescued, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail, { trait: 'rescuer' })])
     expect(seatOf(rescued, 'h1')!.jailed).toBe(false)
   })
 
@@ -246,7 +311,7 @@ describe('HideSeekMatch', () => {
     const match = createMatch(teams(['s'], ['h']))
     startRound(match, 0, grid, spawns, settings, random)
     expect(placeCandle(match, { col: 5, row: 5 }, 2, null)).toBe(false) // still hiding
-    tick(match, [body('s', spawns.seekers[0]), body('h', spawns.hiders[0])], settings.hideTime + 0.01)
+    tick(match, away(['s', 'h']), settings.hideTime + 0.01)
     expect(placeCandle(match, { col: 5, row: 5 }, 2, null)).toBe(true)
     expect(placeCandle(match, { col: 5.5, row: 5 }, 2, null)).toBe(false) // too close
     expect(placeCandle(match, { col: 9, row: 5 }, 2, null)).toBe(true)
@@ -262,26 +327,22 @@ describe('HideSeekMatch', () => {
     expect(placeTrap(match, { col: 20, row: 20 }, 2)).toBe(true)
     expect(placeTrap(match, { col: 21, row: 20 }, 2)).toBe(true)
     expect(placeTrap(match, { col: 22, row: 20 }, 2)).toBe(false)
-    const events = tick(match, [body('s', { col: 2, row: 20 }), body('h', { col: 20.3, row: 20 })])
+    const events = tick(match, [body('s', AWAY[0]), body('h', { col: 20.3, row: 20 })])
     expect(events).toContainEqual({ kind: 'bell', col: 20, row: 20 })
     expect(match.traps[0].ringing).toBeGreaterThan(0)
   })
 
-  it('with exit gates: everyone having their share opens them, and the hiders win only by getting out', () => {
+  it('with exit gates: enough altars open them, and the hiders win only by getting out', () => {
     const match = seekingMatch(['s', 'h'])
     match.exits = [{ col: 0, row: 10.5 }, { col: 29, row: 20.5 }]
-    const away = [body('s', { col: 1, row: 20 })]
-    loot(match, 'h', 0, away)
-    tick(match, [...away, body('h', HOME)])
-    loot(match, 'h', 1, away)
-    const events = tick(match, [...away, body('h', HOME)])
+    tick(match, [body('s', AWAY[0]), body('h', match.altars[0])], settings.altarLightTime + 0.01)
+    const events = tick(match, [body('s', AWAY[0]), body('h', match.altars[1])], settings.altarLightTime + 0.01)
     expect(events.map(e => e.kind)).toContain('exitsOpen')
-    expect(match.exitsOpen).toBe(true)
     expect(match.clock.phase).toBe('seeking')
     // Hiding in a barrel next to the gate is not getting out
-    tick(match, [...away, body('h', { col: 28.8, row: 20.5 }, { hidden: 0 })])
+    tick(match, [body('s', AWAY[0]), body('h', { col: 28.8, row: 20.5 }, { hidden: 0 })])
     expect(match.clock.phase).toBe('seeking')
-    tick(match, [...away, body('h', { col: 28.8, row: 20.5 })])
+    tick(match, [body('s', AWAY[0]), body('h', { col: 28.8, row: 20.5 })])
     expect(match.clock).toMatchObject({ winner: 'hider', reason: 'escaped' })
   })
 })

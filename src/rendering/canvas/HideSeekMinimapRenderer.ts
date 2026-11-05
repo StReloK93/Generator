@@ -3,7 +3,9 @@ import { HideSeekMinimapView } from '../types'
 
 const FLOOR_COLOR = 'rgba(180, 140, 90, 0.38)'
 const WALL_COLOR = 'rgba(231, 214, 186, 0.85)'
-const CHEST_COLOR = '#fbbf24'
+/** Altars: lit ones burn bright, the others are a dim ring */
+const ALTAR_LIT_COLOR = '#fbbf24'
+const ALTAR_COLOR = 'rgba(251, 191, 36, 0.6)'
 const TRAP_COLOR = '#f97316'
 const MATE_COLOR = '#38bdf8'
 const EXIT_COLOR = '#4ade80'
@@ -14,11 +16,10 @@ const BASE_FILL = 'rgba(239, 68, 68, 0.12)'
 const BASE_EDGE = 'rgba(248, 113, 113, 0.35)'
 const HOME_FILL = 'rgba(34, 197, 94, 0.12)'
 const HOME_EDGE = 'rgba(74, 222, 128, 0.35)'
-const TREASURE_COLOR = '#38bdf8'
 
 /**
  * Hide & seek minimap on a 2D canvas: the isometric maze as far as the player has explored it,
- * the chests they believe still hold treasure, their bells, teammates and themselves.
+ * the altars (lit or not), their bells, teammates and themselves.
  */
 export class HideSeekMinimapRenderer {
   constructor(private readonly canvas: HTMLCanvasElement) {}
@@ -97,8 +98,7 @@ export class HideSeekMinimapRenderer {
         ctx.fill()
       }
     }
-    for (const chest of view.chests) dot(chest, Math.max(2, s * 0.45), CHEST_COLOR)
-    for (const treasure of view.treasures) dot(treasure, Math.max(2, s * 0.5), TREASURE_COLOR)
+    for (const altar of view.altars) dot(altar, Math.max(2.5, s * 0.6), altar.lit ? ALTAR_LIT_COLOR : ALTAR_COLOR, !altar.lit)
     for (const trap of view.traps) dot(trap, Math.max(2, s * 0.4), TRAP_COLOR, true)
     for (const exit of view.exits) dot(exit, Math.max(3, s * 0.7), EXIT_COLOR)
     for (const mate of view.mates) dot(mate, Math.max(2, s * 0.45), mate.jailed ? JAILED_COLOR : MATE_COLOR)

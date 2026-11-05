@@ -1,6 +1,6 @@
 import { MapProject, UnitVariantType, MapGameMode } from './map'
 import type { HideSeekPhase, HideSeekRole, HideSeekEndReason } from '../domain/hideseek/HideSeekRules'
-import type { MatchEvent, HideSeekSeat } from '../domain/hideseek/HideSeekMatch'
+import type { MatchEvent, HideSeekSeat, ChainState } from '../domain/hideseek/HideSeekMatch'
 import type { HideSpotKind, SpriteFacing } from '../domain/hideseek/HideSeekMaze'
 
 export interface PlayerInfo {
@@ -232,7 +232,7 @@ export interface HideSeekPlayerStatePayload {
   h: number // hiding spot the player sits in (-1 = none)
 }
 
-/** Hide & seek: host-owned match (round, roles, chests, hiding spots, traps, jail and scores). */
+/** Hide & seek: host-owned match (round, roles, altars, chains, hiding spots, traps, jail and scores). */
 export interface HideSeekMatchStatePayload {
   round: number
   rounds: number
@@ -241,7 +241,9 @@ export interface HideSeekMatchStatePayload {
   winner: HideSeekRole | null
   reason: HideSeekEndReason | null
   champion: string | null
-  chests: { c: number; r: number; l: boolean }[] // col, row, looted
+  altars: { c: number; r: number; p: number; l: boolean }[] // col, row, progress 0..1, lit
+  altarsNeeded: number
+  chains: ChainState[] // a hider holding a seeker
   spots: { c: number; r: number; k: HideSpotKind; f: SpriteFacing }[] // col, row, kind, sprite facing
   traps: { c: number; r: number; ring: number }[] // ring = seconds the bell still rings
   /** Random labyrinth of this round (0 = the map's own layout): guests build it from the seed */
@@ -251,8 +253,7 @@ export interface HideSeekMatchStatePayload {
   candles: { c: number; r: number }[] // candles the seeker set down
   exits: { c: number; r: number }[] // spot inside each exit gate
   exitsOpen: boolean
-  seats: HideSeekSeat[] // team, role, jail, score, treasure carried / brought home and catches this round
-  drops: { c: number; r: number }[] // treasures dropped by caught hiders
+  seats: HideSeekSeat[] // team, role, jail, score, altars lit, chain cooldown, daze and catches this round
   wins: Record<HideSeekRole, number> // rounds each side won
   matchWinner: HideSeekRole | null
 }
@@ -266,6 +267,7 @@ export type HideSeekActionPayload =
   | { kind: 'door'; index: number; open: boolean }
   | { kind: 'torch'; index: number }
   | { kind: 'candle'; c: number; r: number }
+  | { kind: 'chain' }
 
 /** Hide & seek: something everyone should hear / see (host to all). */
 export type HideSeekEventPayload =

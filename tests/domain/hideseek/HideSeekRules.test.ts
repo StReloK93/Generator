@@ -11,14 +11,8 @@ import {
   footstepLoudness,
   canAct,
   pickHideSpots,
-  pickChestSpots,
-  findLootableChest,
-  advanceLoot,
-  lootQuota,
-  NO_LOOT,
+  pickObjectiveSpots,
   findWalkPath,
-  nearestWithin,
-  CHEST_CHECK_RADIUS,
   smoothPath,
   normalizeHideSeekSettings,
 } from '@/domain/hideseek'
@@ -127,11 +121,11 @@ describe('HideSeekRules', () => {
     expect(canAct('seeker', 'ended')).toBe(false)
   })
 
-  it('puts hiding spots in corners, away from spawns and chests', () => {
+  it('puts hiding spots in corners, away from spawns and objectives', () => {
     const project = labyrinth.project
     const grid = buildCollisionGrid(project)
     const spawns = project.routes.map(r => r.routePoints[0])
-    const chests = pickChestSpots(grid, spawns, 6, Math.random)
+    const chests = pickObjectiveSpots(grid, spawns, 6, Math.random)
     const spots = pickHideSpots(grid, spawns, chests, 6, Math.random)
     expect(spots).toHaveLength(6)
     for (const s of spots) {
@@ -141,49 +135,21 @@ describe('HideSeekRules', () => {
     }
   })
 
-  it('places spaced chests on free cells away from the spawns', () => {
+  it('places spaced objectives on free cells away from the spawns', () => {
     const grid = buildCollisionGrid({ cols: 20, rows: 20, collisionSubcells: [] })
     const spawn = { col: 10, row: 10 }
-    const chests = pickChestSpots(grid, [spawn], 5, Math.random)
-    expect(chests).toHaveLength(5)
-    for (const c of chests) expect(Math.hypot(c.col - spawn.col, c.row - spawn.row)).toBeGreaterThanOrEqual(5)
-
-    const states = chests.map(c => ({ ...c, looted: false }))
-    expect(findLootableChest(chests[2], states)).toBe(2)
-    states[2].looted = true
-    expect(findLootableChest(chests[2], states)).toBe(-1)
+    const spots = pickObjectiveSpots(grid, [spawn], 5, Math.random)
+    expect(spots).toHaveLength(5)
+    for (const c of spots) expect(Math.hypot(c.col - spawn.col, c.row - spawn.row)).toBeGreaterThanOrEqual(5)
   })
 
-  it('builds up looting time only while the hider stands still at a chest', () => {
-    const chests = [{ col: 3, row: 3, looted: false }]
-    let loot = advanceLoot(NO_LOOT, { col: 3, row: 3, moving: false }, chests, 1)
-    loot = advanceLoot(loot, { col: 3.2, row: 3, moving: false }, chests, 1.5)
-    expect(loot).toEqual({ index: 0, time: 2.5 })
-    expect(advanceLoot(loot, { col: 3, row: 3, moving: true }, chests, 1)).toEqual(NO_LOOT)
-    chests[0].looted = true
-    expect(advanceLoot(loot, { col: 3, row: 3, moving: false }, chests, 1)).toEqual(NO_LOOT)
-  })
-
-  it('asks every hider for 5 of their 6 chests, so guarding one chest cannot stop them', () => {
-    expect(lootQuota(normalizeHideSeekSettings({ chestCount: 6, chestsToWin: 5 }))).toBe(5)
-    // Never more than each hider's share on the map
-    expect(lootQuota(normalizeHideSeekSettings({ chestCount: 3, chestsToWin: 5 }))).toBe(3)
-  })
-
-  it('lets the seeker reach the nearest chest, looted or not', () => {
-    const chests = [{ col: 3, row: 3, looted: true }, { col: 5, row: 3, looted: false }]
-    expect(nearestWithin({ col: 3.8, row: 3 }, chests, CHEST_CHECK_RADIUS)).toBe(0)
-    expect(nearestWithin({ col: 4.4, row: 3 }, chests, CHEST_CHECK_RADIUS)).toBe(1)
-    expect(nearestWithin({ col: 9, row: 9 }, chests, CHEST_CHECK_RADIUS)).toBe(-1)
-  })
-
-  it('places labyrinth chests only where players can walk', () => {
+  it('places labyrinth objectives only where players can walk', () => {
     const project = labyrinth.project
     const grid = buildCollisionGrid(project)
     const spawns = project.routes.map(r => r.routePoints[0])
     for (let run = 0; run < 20; run++) {
-      for (const chest of pickChestSpots(grid, spawns, 6, Math.random)) {
-        expect(findWalkPath(grid, spawns[0], chest).at(-1)).toEqual(chest)
+      for (const spot of pickObjectiveSpots(grid, spawns, 6, Math.random)) {
+        expect(findWalkPath(grid, spawns[0], spot).at(-1)).toEqual(spot)
       }
     }
   })

@@ -17,8 +17,6 @@ import {
   MatchBody,
   MatchEvent,
   CollisionGrid,
-  LootProgress,
-  NO_LOOT,
   Stamina,
   GadgetCounts,
   BotBrain,
@@ -33,10 +31,11 @@ import {
   sightAround,
   footstepLoudness,
   footstepInterval,
-  advanceLoot,
-  chestChimeLoudness,
-  lootQuota,
-  lootProgress,
+  altarLoudness,
+  altarProgress,
+  startChain,
+  isFrozen,
+  chainOf,
   splitSpawns,
   allSpawns,
   teamForSlot,
@@ -47,7 +46,6 @@ import {
   mazeSize,
   turnTowards,
   hasLineOfSight,
-  CHEST_CHECK_RADIUS,
   HIDE_SPOT_REACH,
   createMatch,
   startRound,
@@ -88,7 +86,6 @@ import {
   playerRules,
   spottedWithin,
   stepLoudness,
-  treasureSenseRadius,
   extraGadgets,
 } from '../domain/hideseek'
 import type { GridCoord, HideSeekSettings } from '../types/map'
@@ -121,15 +118,13 @@ const BOT_COLOR = '#f59e0b'
 const RUN_FRAME_SEC = 0.28
 /** How fast the sight cone swings to a new heading (radians per second) */
 const VISION_TURN_SPEED = 9
-/** A chest lid stays up this long when the hider loots it or the bot looks inside */
-const LID_POP_SEC = 0.9
-/** The seeker stops this far in front of a chest / barrel they walked to (so it is not hidden behind them) */
+/** The seeker stops this far in front of a barrel they walked to (so it is not hidden behind them) */
 const STOP_DISTANCE = 0.9
-/** A lid the seeker walked away from falls shut */
-const LID_AUTO_CLOSE_DISTANCE = CHEST_CHECK_RADIUS + 0.8
+/** An altar being lit hums across the labyrinth this often */
+const ALTAR_HUM_SEC = 2
 const STONE_FLIGHT_SEC = 0.5
 const RIPPLE_SEC = 1.2
-/** A click this close to a chest / barrel / door / candle uses it */
+/** A click this close to a barrel / door / candle uses it */
 const CLICK_PICK = 0.8
 /** Walking a route, a shut door this close ahead is pushed open */
 const DOOR_AUTO_OPEN = 1.1
@@ -145,7 +140,7 @@ const MOVE_KEYS: Record<string, [number, number]> = {
   KeyD: [1, 0], ArrowRight: [1, 0],
 }
 
-type PendingUse = { kind: 'lid' | 'search' | 'hide' | 'door' | 'torch'; index: number }
+type PendingUse = { kind: 'search' | 'hide' | 'door' | 'torch'; index: number }
 
 /** What a page refresh needs to continue the match where it was. */
 interface SavedHideSeekMatch {
@@ -180,16 +175,20 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const winner = ref<HideSeekRole | null>(null)
   const endReason = ref<HideSeekEndReason | null>(null)
   const champion = ref<string | null>(null)
-  /** Treasures I brought home this round, out of the share every hider needs; carrying one right now */
-  const myChests = ref(0)
-  const isCarrying = ref(false)
+  /** Lit altars, how many the hiders need, and how many I helped light */
+  const altarsLit = ref(0)
+  const altarsNeeded = ref(0)
+  const myAltars = ref(0)
+  /** Chain: seconds until I can chain again; seconds left while I hold a seeker / am held; seconds still dazed */
+  const chainCooldown = ref(0)
+  const chainHolding = ref(0)
+  const chainHeld = ref(0)
+  const dazedLeft = ref(0)
+  /** In a chain or dazed: cannot move */
+  const isFrozenMe = ref(false)
   /** Rounds each side won, and the side that won the match */
   const roundWins = ref<Record<HideSeekRole, number>>({ seeker: 0, hider: 0 })
   const matchWinner = ref<HideSeekRole | null>(null)
-  const chestQuota = ref(0)
-  /** Hiders who already have their share, out of all hiders */
-  const hidersReady = ref(0)
-  const hidersTotal = ref(0)
   const myRole = ref<HideSeekRole>('hider')
   const isSneaking = ref(false)
   const heardLevel = ref(0)
@@ -207,7 +206,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const needsSoloRole = ref(false)
   /** The last seconds of the round: the seeker hunts */
   const isHunting = ref(false)
-  /** The exit gates are open: the hiders took enough treasure and now have to get out */
+  /** The exit gates are open: the hiders lit enough altars and now have to get out */
   const exitsOpen = ref(false)
   /** Bumped when this round's labyrinth replaced the map (the canvas redraws its layers) */
   const mazeRevision = ref(0)
@@ -216,7 +215,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Hiders the seeker caught this round (each makes the seeker faster and slower to tire) */
   const seekerCatches = ref(0)
 
-  const canMove = computed(() => !needsSoloRole.value && !isJailed.value && canAct(myRole.value, phase.value))
+  const canMove = computed(() => !needsSoloRole.value && !isJailed.value && !isFrozenMe.value && canAct(myRole.value, phase.value))
   const didIWin = computed(() => winner.value !== null && winner.value === myRole.value)
 
   // Per-frame runtime (non-reactive)
@@ -249,12 +248,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   let pointerCell: GridCoord | null = null
   let stamina: Stamina = freshStamina(settings)
   let flareTimer = 0
-  /** Guest hider: own looting progress for display (the host decides when the treasure is taken) */
-  let guestLoot: LootProgress = NO_LOOT
-  // This client's view of the chests: the seeker learns a chest is empty only by looking inside
-  let lidTimers: number[] = []
-  let heldLid = -1
-  const seenEmpty = new Set<number>()
+  /** Altar progress at the last hum (an altar whose progress grew since then is heard) */
+  let altarHumAt: number[] = []
+  let altarHumTimer = 0
   /** Own sight heading: follows the body facing smoothly so the cone never snaps */
   let visionFacing = 0
   let explored = new Uint8Array(0)
@@ -284,7 +280,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** A character's own rules: their trait, and for the seeker the momentum of this round's catches. */
   function rulesOf(p: HideSeekBody): HideSeekSettings {
     const seat = seatOf(match, p.id)
-    return playerRules(settings, traitOf(p.model), p.role, seat?.catches ?? 0, !!seat?.carrying)
+    return playerRules(settings, traitOf(p.model), p.role, seat?.catches ?? 0)
   }
 
   /** All seekers' traps / candles this round together (what the referee lets them place in total). */
@@ -465,7 +461,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (saved.explored.length === explored.length) explored = Uint8Array.from(saved.explored)
   }
 
-  /** Host / solo: the match goes on from the saved state (same round, clock, chests, seats and scores). */
+  /** Host / solo: the match goes on from the saved state (same round, clock, altars, seats and scores). */
   function resumeAsReferee(saved: SavedHideSeekMatch, savedMatch: HideSeekMatch): void {
     match = savedMatch
     for (const body of saved.bodies) {
@@ -480,7 +476,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     const bot = players.get(BOT_ID)
     if (bot && saved.bot) {
-      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.chests.length, match.spots.length)
+      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.altars.length, match.spots.length)
       botGadgets = saved.bot.gadgets
       botStamina = saved.bot.stamina
     }
@@ -525,8 +521,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       const seat = seatOf(match, p.id)
       if (!seat) continue
       p.role = seat.role
-      // Each client places its own character (and the solo bot)
-      if (p.id !== myId() && p.id !== BOT_ID) continue
+      // Each client places its own character (and the solo bot); the referee also puts the others at their start
+      // until their own position arrives, so nobody is caught at a stale spot the moment the round begins
+      if (p.id !== myId() && p.id !== BOT_ID && !isReferee()) continue
       const spawn = spawnForSeat(match, p.id, spawns)
       Object.assign(p, { col: spawn.col, row: spawn.row, targetCol: spawn.col, targetRow: spawn.row, moving: false, hidden: -1 })
     }
@@ -535,10 +532,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     stamina = freshStamina(me ? rulesOf(me) : settings)
     Object.assign(gadgets, me ? gadgetsOf(me) : gadgetsFor(myRole.value, settings))
     flareTimer = 0
-    guestLoot = NO_LOOT
-    lidTimers = []
-    heldLid = -1
-    seenEmpty.clear()
+    altarHumAt = []
     explored.fill(0)
     footprints = []
     lastPositions.clear()
@@ -554,7 +548,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     const bot = players.get(BOT_ID)
     if (bot && grid) {
-      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.chests.length, match.spots.length)
+      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.altars.length, match.spots.length)
       botStamina = freshStamina(rulesOf(bot))
       botGadgets = gadgetsOf(bot)
       botFlare = 0
@@ -575,14 +569,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     round.value = match.round + 1
     rounds.value = Math.max(1, match.rounds)
     const mySeat = seatOf(match, myId())
-    myChests.value = mySeat?.delivered ?? 0
-    isCarrying.value = !!mySeat?.carrying
+    const altars = altarProgress(match)
+    altarsLit.value = altars.lit
+    altarsNeeded.value = altars.needed
+    myAltars.value = mySeat?.lit ?? 0
+    applyChainHud()
     roundWins.value = { ...match.wins }
     matchWinner.value = match.matchWinner
-    chestQuota.value = lootQuota(settings)
-    const progress = lootProgress(match, settings)
-    hidersReady.value = progress.done
-    hidersTotal.value = progress.total
     exitsOpen.value = match.exitsOpen
     seekerCatches.value = mySeat?.catches ?? 0
     myTrait.value = traitOf(myPlayer()?.model)
@@ -601,6 +594,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         }
       })
       .sort((a, b) => b.score - a.score)
+  }
+
+  /** Chain timers on the HUD (whole seconds), and whether I am frozen. */
+  function applyChainHud(): void {
+    const seat = seatOf(match, myId())
+    const chain = chainOf(match, myId())
+    const up = (v: number) => Math.ceil(Math.max(0, v))
+    chainCooldown.value = up(seat?.chainCooldown ?? 0)
+    chainHolding.value = chain?.hider === myId() ? up(chain.timeLeft) : 0
+    chainHeld.value = chain?.seeker === myId() ? up(chain.timeLeft) : 0
+    dazedLeft.value = up(seat?.dazed ?? 0)
+    isFrozenMe.value = isFrozen(match, myId())
   }
 
   /** A tune marks each phase once: round start, the hunt, round end. */
@@ -634,13 +639,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     winner.value = null
     endReason.value = null
     champion.value = null
-    myChests.value = 0
-    isCarrying.value = false
+    altarsLit.value = 0
+    altarsNeeded.value = 0
+    myAltars.value = 0
+    chainCooldown.value = 0
+    chainHolding.value = 0
+    chainHeld.value = 0
+    dazedLeft.value = 0
+    isFrozenMe.value = false
     roundWins.value = { seeker: 0, hider: 0 }
     matchWinner.value = null
-    chestQuota.value = 0
-    hidersReady.value = 0
-    hidersTotal.value = 0
     heardLevel.value = 0
     dangerLevel.value = 0
     isJailed.value = false
@@ -673,6 +681,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     else if (code === 'KeyF') lightFlare()
     else if (code === 'KeyT') dropTrap()
     else if (code === 'KeyC') setCandle()
+    else if (code === 'KeyR') useChain()
     else if (code === 'Escape' && isAimingStone.value) isAimingStone.value = false
     else return false
     return true
@@ -701,10 +710,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     reach: number
   }
 
-  /** What this player can use: the seeker chests, barrels and dark candles; hiders barrels and burning candles; everyone doors. */
+  /** What this player can use: the seeker barrels and dark candles; hiders barrels and burning candles; everyone doors. */
   function usables(role: HideSeekRole): Usable[] {
     const list: Usable[] = []
-    if (role === 'seeker') match.chests.forEach((at, index) => list.push({ use: { kind: 'lid', index }, at, reach: CHEST_CHECK_RADIUS }))
     match.spots.forEach((at, index) => list.push({ use: { kind: role === 'seeker' ? 'search' : 'hide', index }, at, reach: HIDE_SPOT_REACH }))
     torchSpots(match, maze).forEach((at, index) => {
       if (match.torches[index] === (role === 'hider')) list.push({ use: { kind: 'torch', index }, at, reach: TORCH_REACH })
@@ -714,7 +722,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function usePosition(use: PendingUse): GridCoord | undefined {
-    if (use.kind === 'lid') return match.chests[use.index]
     if (use.kind === 'door') return maze?.doors[use.index]?.center
     if (use.kind === 'torch') return torchSpots(match, maze)[use.index]
     return match.spots[use.index]
@@ -725,18 +732,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const me = myPlayer()
     if (!me || !canMove.value) return
     if (me.hidden !== -1) return leaveSpot()
-    if (heldLid !== -1) return toggleLid(heldLid)
     const inReach = usables(me.role).filter(u => distTo(u.at, me) <= u.reach)
     inReach.sort((a, b) => distTo(a.at, me) - distTo(b.at, me))
     if (inReach[0]) applyUse(inReach[0].use)
-  }
-
-  /** Seeker: lift the lid of a chest to look inside (turning towards it), or shut the one held open. */
-  function toggleLid(index: number): void {
-    heldLid = heldLid === index ? -1 : index
-    const me = myPlayer()
-    if (me && heldLid !== -1) me.facing = Math.atan2(match.chests[index].row - me.row, match.chests[index].col - me.col)
-    hideSeekAudio.playFootstep(0.45, 0)
   }
 
   /** Seeker: open a barrel; whoever hides inside is caught. */
@@ -794,8 +792,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function applyUse(use: PendingUse): void {
-    if (use.kind === 'lid') toggleLid(use.index)
-    else if (use.kind === 'search') openSpot(use.index)
+    if (use.kind === 'search') openSpot(use.index)
     else if (use.kind === 'hide') enterSpot(use.index)
     else if (use.kind === 'door') performAction({ kind: 'door', index: use.index, open: !match.doors[use.index] })
     else performAction({ kind: 'torch', index: use.index })
@@ -866,6 +863,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     performAction({ kind: 'candle', c: at.col, r: at.row })
   }
 
+  /** Hider who lit an altar: chain the nearest seeker in reach (the referee checks reach and cooldown). */
+  function useChain(): void {
+    const seat = seatOf(match, myId())
+    if (!canMove.value || myRole.value !== 'hider' || !seat || seat.lit === 0 || seat.chainCooldown > 0) return
+    performAction({ kind: 'chain' })
+  }
+
   /** The referee applies an action right away; a guest sends it to the host. */
   function performAction(action: HideSeekActionPayload): void {
     if (isReferee()) applyAction(action, myId())
@@ -876,6 +880,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function applyAction(action: HideSeekActionPayload, by: string): void {
     if (action.kind === 'stone' || action.kind === 'flare') emitEvent({ kind: action.kind, col: action.c, row: action.r, by })
     else if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
+    else if (action.kind === 'chain') startChain(match, by, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'candle') {
       if (players.get(by)?.role === 'seeker' && placeCandle(match, { col: action.c, row: action.r }, seekersGadgets('candles'), maze)) {
         emitEvent({ kind: 'candle', col: action.c, row: action.r })
@@ -930,12 +935,30 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   function handleEvent(event: HideSeekEventPayload): void {
     switch (event.kind) {
-      case 'loot': {
-        const chest = match.chests[event.chest]
-        if (!chest) break
-        hideSeekAudio.playChime(...soundAt(chest, d => chestChimeLoudness(d, settings)))
-        if (event.by === myId()) lidTimers[event.chest] = LID_POP_SEC
-        botNoise = chest
+      case 'altarLit': {
+        const altar = match.altars[event.altar]
+        if (!altar) break
+        if (!isReferee()) Object.assign(altar, { lit: true, progress: 1 })
+        hideSeekAudio.playChime(...soundAt(altar, d => altarLoudness(d, settings)))
+        botNoise = altar
+        applyHud()
+        break
+      }
+      case 'chain':
+        // The referee already added it; a guest adds it now (the next state confirms it)
+        if (!isReferee()) match.chains.push({ hider: event.hider, seeker: event.seeker, timeLeft: settings.chainTime })
+        hideSeekAudio.playJail(0.6, false)
+        if (event.hider === myId() || event.seeker === myId()) releaseInput()
+        applyChainHud()
+        break
+      case 'chainEnd': {
+        if (!isReferee()) {
+          match.chains = match.chains.filter(c => !(c.hider === event.hider && c.seeker === event.seeker))
+          const seeker = seatOf(match, event.seeker)
+          if (seeker && event.dazed) seeker.dazed = settings.chainDaze
+        }
+        hideSeekAudio.playJail(0.5, true)
+        applyChainHud()
         break
       }
       case 'caught':
@@ -946,15 +969,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       case 'freed':
         hideSeekAudio.playJail(0.6, true)
         placeOwnCharacter(event.id, 'home')
-        break
-      case 'delivered':
-        if (event.by === myId()) hideSeekAudio.playChime(0.8, 0)
-        break
-      case 'pickup':
-        if (event.by === myId()) hideSeekAudio.playChime(0.5, 0)
-        break
-      case 'drop':
-        hideSeekAudio.playStone(...noiseAt(event))
         break
       case 'bell':
         hideSeekAudio.playBell(...noiseAt(event))
@@ -1037,7 +1051,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       winner: match.clock.winner,
       reason: match.clock.reason,
       champion: match.champion,
-      chests: match.chests.map(ch => ({ c: ch.col, r: ch.row, l: ch.looted })),
+      altars: match.altars.map(a => ({ c: a.col, r: a.row, p: Math.round(a.progress * 1000) / 1000, l: a.lit })),
+      altarsNeeded: match.altarsNeeded,
+      chains: match.chains.map(c => ({ ...c })),
       spots: match.spots.map(s => ({ c: s.col, r: s.row, k: s.kind, f: s.facing })),
       traps: match.traps.map(t => ({ c: t.col, r: t.row, ring: t.ringing })),
       maze: match.mazeSeed,
@@ -1047,7 +1063,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       exits: match.exits.map(e => ({ c: e.col, r: e.row })),
       exitsOpen: match.exitsOpen,
       seats: match.seats.map(s => ({ ...s })),
-      drops: match.drops.map(d => ({ c: d.col, r: d.row })),
       wins: { ...match.wins },
       matchWinner: match.matchWinner,
     }
@@ -1073,11 +1088,12 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     match.rounds = state.rounds
     match.clock = { phase: state.phase, timeLeft: state.timeLeft, winner: state.winner, reason: state.reason }
     match.champion = state.champion
-    match.chests = state.chests.map(ch => ({ col: ch.c, row: ch.r, looted: ch.l }))
+    match.altars = state.altars.map(a => ({ col: a.c, row: a.r, progress: a.p, lit: a.l }))
+    match.altarsNeeded = state.altarsNeeded
+    match.chains = state.chains.map(c => ({ ...c }))
     match.spots = state.spots.map(s => ({ col: s.c, row: s.r, kind: s.k, facing: s.f }))
     match.traps = state.traps.map(t => ({ col: t.c, row: t.r, ringing: t.ring }))
     match.seats = state.seats.map(s => ({ ...s }))
-    match.drops = state.drops.map(d => ({ col: d.c, row: d.r }))
     match.wins = { ...state.wins }
     match.matchWinner = state.matchWinner
     match.mazeSeed = state.maze
@@ -1172,7 +1188,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       })
     }
 
-    // Walked up to a chest / barrel / door / candle clicked from afar: stop in front of it and use it
+    // Walked up to a barrel / door / candle clicked from afar: stop in front of it and use it
     if (pending && grid) {
       const at = usePosition(pending)
       // A door stands in the wall line itself: no line of sight to it, it is used from its reach
@@ -1214,19 +1230,12 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     })
   }
 
-/** Where the solo bot runs to besides chests: home with a treasure, otherwise an open exit gate. */
-  function botGoals(bot: HideSeekBody): GridCoord[] {
-    const home = maze?.hiderBase
-    if (seatOf(match, bot.id)?.carrying && home) return [{ col: home.col + home.cols / 2 - 0.5, row: home.row + home.rows / 2 - 0.5 }]
-    return match.exitsOpen ? match.exits : []
-  }
-
   /** Solo opponent: thinks with its own eyes / ears, then walks its path and uses gadgets like a player. */
   function updateBot(me: HideSeekBody | undefined, deltaSec: number): void {
     const bot = players.get(BOT_ID)
     if (!bot || !botBrain || !grid) return
     botFlare = Math.max(0, botFlare - deltaSec)
-    if (seatOf(match, BOT_ID)?.jailed || !canAct(bot.role, match.clock.phase)) {
+    if (seatOf(match, BOT_ID)?.jailed || isFrozen(match, BOT_ID) || !canAct(bot.role, match.clock.phase)) {
       bot.moving = false
       return
     }
@@ -1246,14 +1255,14 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         self: bot,
         facing: bot.facing,
         opponent: sensed ? { col: me.col, row: me.row, moving: me.moving, sneaking: me.sneaking } : null,
-        chests: match.chests,
+        altars: match.altars,
         spots: match.spots,
         noise: botNoise,
         exhausted: botStamina.exhausted,
         hiddenIn: bot.hidden,
         gadgets: botGadgets,
         flareActive: botFlare > 0,
-        exits: botGoals(bot),
+        exits: match.exitsOpen ? match.exits : [],
       },
       pathGrid(bot),
       bot.role === 'seeker' && isHunting.value ? huntSettings(senseRules) : senseRules,
@@ -1261,7 +1270,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       deltaSec
     )
     botNoise = null
-    if (action.checkedChest !== -1) lidTimers[action.checkedChest] = LID_POP_SEC
     if (action.hideIn !== bot.hidden) {
       bot.hidden = action.hideIn
       const spot = match.spots[action.hideIn]
@@ -1410,17 +1418,32 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     for (const ripple of ripples) ripple.age += deltaSec / RIPPLE_SEC
     ripples = ripples.filter(r => r.age < 1)
 
-    lidTimers = lidTimers.map(t => Math.max(0, t - deltaSec))
-    if (heldLid !== -1) {
-      const chest = match.chests[heldLid]
-      if (!me || !chest || !canMove.value || distTo(chest, me) > LID_AUTO_CLOSE_DISTANCE) heldLid = -1
-      // Seen with own eyes: nothing inside, so its light goes out for the seeker too
-      else if (chest.looted) seenEmpty.add(heldLid)
+    // An altar being lit hums across the labyrinth (the seekers hear where to run)
+    altarHumTimer -= deltaSec
+    if (altarHumTimer <= 0) {
+      altarHumTimer = ALTAR_HUM_SEC
+      match.altars.forEach((altar, i) => {
+        if (!altar.lit && altar.progress > (altarHumAt[i] ?? 0)) {
+          const [volume, pan] = soundAt(altar, d => altarLoudness(d, settings))
+          hideSeekAudio.playChime(volume * 0.5, pan)
+          botNoise = altar
+        }
+        altarHumAt[i] = altar.progress
+      })
     }
 
     // Eyes closed (seeker while the hiders hide): nothing is discovered
     const blind = me?.role === 'seeker' && match.clock.phase === 'hiding'
     if (vision && !blind) markExplored(explored, mapStore.project.cols, mapStore.project.rows, vision)
+  }
+
+  /** Guest: chains, dazes and cooldowns run down between two host states (the host's next state corrects them). */
+  function advanceGuestTimers(deltaSec: number): void {
+    for (const chain of match.chains) chain.timeLeft = Math.max(0, chain.timeLeft - deltaSec)
+    for (const seat of match.seats) {
+      seat.chainCooldown = Math.max(0, seat.chainCooldown - deltaSec)
+      seat.dazed = Math.max(0, seat.dazed - deltaSec)
+    }
   }
 
   function tick(deltaSec: number, tileWidth: number, tileHeight: number): void {
@@ -1434,9 +1457,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
     const me = myPlayer()
     if (me) updateMe(me, deltaSec)
-    const mySeat = seatOf(match, myId())
-    const needsTreasure = !!mySeat && !mySeat.carrying && mySeat.delivered < lootQuota(settings)
-    if (me?.role === 'hider' && !isReferee()) guestLoot = me.hidden === -1 && !isJailed.value && needsTreasure ? advanceLoot(guestLoot, me, match.chests, deltaSec) : NO_LOOT
+    if (!isReferee()) advanceGuestTimers(deltaSec)
+    if (isFrozen(match, myId()) !== isFrozenMe.value) applyChainHud()
     if (isSolo() && !needsSoloRole.value) updateBot(me, deltaSec)
     updateOthers(me, deltaSec)
 
@@ -1464,17 +1486,12 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       visionFacing,
       vision,
       flare,
-      myLoot: isReferee() ? (match.loot[myId()] ?? NO_LOOT) : guestLoot,
-      heldLid,
-      lidTimers,
-      seenEmpty,
       route: clickPath,
       stones,
       ripples,
       explored,
       cols: mapStore.project.cols,
       rows: mapStore.project.rows,
-      senseRadius: me ? treasureSenseRadius(settings, traitOf(me.model)) : 0,
       aim: isAimingStone.value && me && pointerCell ? { from: { col: me.col, row: me.row }, to: stoneLanding(grid, me, pointerCell, settings) } : null,
     }
     renderView = buildRenderView(viewContext)
@@ -1503,13 +1520,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     winner,
     endReason,
     champion,
-    myChests,
-    isCarrying,
+    altarsLit,
+    altarsNeeded,
+    myAltars,
+    chainCooldown,
+    chainHolding,
+    chainHeld,
+    dazedLeft,
+    useChain,
     roundWins,
     matchWinner,
-    chestQuota,
-    hidersReady,
-    hidersTotal,
     myRole,
     isSneaking,
     heardLevel,

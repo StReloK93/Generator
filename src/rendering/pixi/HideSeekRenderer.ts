@@ -61,24 +61,26 @@ const MIN_AVATAR_LIGHT = 0.45
 const FACE_PROBE = 0.3
 /** Wall sprite suffix -> the cell edge it stands on (_E upper-left, _W lower-right, _N lower-left, _S upper-right) */
 const WALL_EDGES: Record<string, [number, number]> = { E: [-0.5, 0], W: [0.5, 0], N: [0, 0.5], S: [0, -0.5] }
-const CHEST_CLOSED = 'sprite-chestClosed_E'
-const CHEST_OPEN = 'sprite-chestOpen_E'
+/** An altar: a three-candle stand */
+const ALTAR = 'sprite-candleStandDouble_E'
 /** Above the ground plane (< 50,000) and below walls / props (100,000+) inside the layers container:
  * the night covers the floor, walls and characters are lit (or darkened) one by one */
 const NIGHT_Z_INDEX = 90000
 const GLOW_Z_INDEX = 90100
-/** Treasure gems: dropped on the floor, or carried over a hider's head */
-const TREASURE_COLOR = 0x38bdf8
-const TREASURE_CORE_COLOR = 0xe0f2fe
-/** A carried gem floats this many tile heights over the carrier's feet */
-const CARRY_GEM_LIFT = 2.4
+/** A chain between a hider and the seeker they hold */
+const CHAIN_COLOR = 0xa78bfa
+const CHAIN_CORE_COLOR = 0xede9fe
+/** Stars circling over a dazed seeker's head */
+const DAZE_COLOR = 0xfde68a
+/** A lit altar burns with this many flames */
+const ALTAR_FLAMES = 3
 /** Characters sort among walls / props like the Hero mode (100,000 + depth) */
 const AVATAR_DEPTH_BIAS = 500
 const BEACON_Z_INDEX = 940000
 const ROUTE_Z_INDEX = 945000
 const BEAM_COLOR = 0xfcd34d
 const BEAM_CORE_COLOR = 0xfff7d6
-/** Light beam height above a chest, in tiles */
+/** Light beam height above an altar being lit, in tiles */
 const BEAM_HEIGHT = 2.2
 const ROUTE_DOT_SPACING = 0.4
 const ROUTE_COLOR = 0xfff1c7
@@ -86,7 +88,7 @@ const EFFECTS_Z_INDEX = 946000
 /** Footprints lie on the floor under the night (only those in light are drawn) */
 const PRINTS_Z_INDEX = 85000
 const PRINT_COLOR = 0x24170c
-/** Depth inside a cell: doors like map walls (layer 1), candle stands, chests, barrels */
+/** Depth inside a cell: doors like map walls (layer 1), candle stands, altars, barrels */
 const DOOR_DEPTH = 20
 const TORCH_DEPTH = 300
 const SPOT_DEPTH = 450
@@ -151,7 +153,7 @@ function edgeLine(cell: GridCoord, edge: [number, number]): [GridCoord, GridCoor
 /**
  * Hide & seek visuals: a dim night over the whole maze with the player's sight cone erased out of it (GPU-blurred soft
  * edges), a flickering warm lantern glow, walls / props / characters lit by it, treasure
- * chests, gadgets and the click-to-move route.
+ * altars and chains, gadgets and the click-to-move route.
  */
 export class HideSeekRenderer {
   /** Night and the cone erased from it, rendered (and blurred) together so the erase only cuts the night */
@@ -165,7 +167,7 @@ export class HideSeekRenderer {
   private effectsGraphics = new Graphics()
   /** Map walls / props tinted last frame (reset when the match ends) */
   private litEntities: readonly EntitySprite[] = []
-  private chestSprites: Sprite[] = []
+  private altarSprites: Sprite[] = []
   private spotSprites: Sprite[] = []
   private doorSprites: Sprite[] = []
   private torchSprites: Sprite[] = []
@@ -205,7 +207,7 @@ export class HideSeekRenderer {
     const deltaSec = Math.min(0.1, (now - this.lastFrameAt) / 1000)
     this.lastFrameAt = now
 
-    this.syncChests(view, project, layersContainer)
+    this.syncAltars(view, project, layersContainer)
     this.syncSpots(view, project, layersContainer)
     this.syncProps(this.doorSprites, view.doors.map(d => ({
       col: d.col,
@@ -226,7 +228,7 @@ export class HideSeekRenderer {
     this.lightEntities(view, entities)
     this.drawXray(view, project, entities)
     this.drawEffects(view, project)
-    this.drawTreasures(view, now / 1000, project)
+    this.drawChains(view, now / 1000, project)
     const reaches = this.flicker(view.sightReaches, now / 1000)
     this.drawNight(view, reaches, project)
     this.drawGlow(view, reaches, now / 1000, project)
@@ -234,23 +236,35 @@ export class HideSeekRenderer {
     this.drawRoute(view.route, project)
   }
 
-  /** Dropped treasures glinting on the floor, and a gem over everyone who carries one home. */
-  private drawTreasures(view: HideSeekRenderView, time: number, project: MapProject): void {
+  /** Chains (a glowing, pulsing line from the hider to the held seeker) and stars over dazed seekers. */
+  private drawChains(view: HideSeekRenderView, time: number, project: MapProject): void {
     const g = this.effectsGraphics
     const { tileWidth, tileHeight } = project
-    const gem = (x: number, y: number, size: number) => {
-      g.circle(x, y, size * 2.2).fill({ color: TREASURE_COLOR, alpha: 0.18 })
-      g.poly([x, y - size * 1.3, x + size, y, x, y + size * 1.3, x - size, y]).fill({ color: TREASURE_COLOR, alpha: 0.95 })
-      g.poly([x, y - size * 1.3, x + size * 0.45, y, x, y + size * 0.4, x - size * 0.45, y]).fill({ color: TREASURE_CORE_COLOR, alpha: 0.9 })
+    const chest = (p: GridCoord) => {
+      const s = gridToScreen(p.col, p.row, tileWidth, tileHeight)
+      return { x: s.x, y: s.y - tileHeight * 0.9 }
     }
-    view.treasures.forEach((t, i) => {
-      const p = gridToScreen(t.col, t.row, tileWidth, tileHeight)
-      gem(p.x, p.y - tileHeight * 0.25 + Math.sin(time * 3 + i) * 3, 7)
-    })
+    for (const chain of view.chains) {
+      const a = chest(chain.from)
+      const b = chest(chain.to)
+      const pulse = 0.7 + 0.3 * Math.sin(time * 10)
+      g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({ width: 10, color: CHAIN_COLOR, alpha: 0.22 * pulse })
+      g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({ width: 3, color: CHAIN_CORE_COLOR, alpha: 0.9 })
+      // Links along the chain, and a ring that shrinks as the time runs out
+      for (let k = 1; k < 8; k++) {
+        const t = k / 8
+        g.circle(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, 3).fill({ color: CHAIN_COLOR, alpha: 0.9 })
+      }
+      const r = tileWidth * (0.2 + 0.25 * chain.left)
+      g.ellipse(b.x, b.y + tileHeight * 0.9, r, (r * tileHeight) / tileWidth).stroke({ width: 3, color: CHAIN_COLOR, alpha: 0.8 })
+    }
     for (const avatar of view.avatars) {
-      if (!avatar.carrying || !avatar.visible) continue
+      if (!avatar.dazed || !avatar.visible) continue
       const p = gridToScreen(avatar.col, avatar.row, tileWidth, tileHeight)
-      gem(p.x, p.y - tileHeight * CARRY_GEM_LIFT + Math.sin(time * 4) * 2, 6)
+      for (let k = 0; k < 3; k++) {
+        const angle = time * 4 + (k * 2 * Math.PI) / 3
+        g.star(p.x + Math.cos(angle) * 16, p.y - tileHeight * 2.1 + Math.sin(angle) * 6, 5, 5, 2).fill({ color: DAZE_COLOR, alpha: 0.95 })
+      }
     }
   }
 
@@ -456,10 +470,11 @@ export class HideSeekRenderer {
     })
   }
 
-  private syncChests(view: HideSeekRenderView, project: MapProject, layersContainer: Container): void {
+  /** Altars: a candle stand each; one being lit sends up a beam everyone sees and shows its progress, a lit one burns. */
+  private syncAltars(view: HideSeekRenderView, project: MapProject, layersContainer: Container): void {
     const { tileWidth, tileHeight } = project
-    while (this.chestSprites.length > view.chests.length) this.chestSprites.pop()?.destroy()
-    while (this.chestSprites.length < view.chests.length) this.chestSprites.push(new Sprite())
+    while (this.altarSprites.length > view.altars.length) this.altarSprites.pop()?.destroy()
+    while (this.altarSprites.length < view.altars.length) this.altarSprites.push(new Sprite())
 
     this.beaconGraphics.clear()
     const time = performance.now() / 1000
@@ -469,27 +484,42 @@ export class HideSeekRenderer {
       this.drawBeam(p.x, p.y, tileWidth, tileHeight, time + i * 1.3, EXIT_BEAM_COLOR, EXIT_BEAM_CORE_COLOR, 1.6)
     })
 
-    view.chests.forEach((chest, i) => {
-      const sprite = this.chestSprites[i]
+    const texture = assetManager.getTexture(ALTAR)
+    const asset = assetManager.getAssetItem(ALTAR)
+    view.altars.forEach((altar, i) => {
+      const sprite = this.altarSprites[i]
       if (sprite.parent !== layersContainer) layersContainer.addChild(sprite)
-      const assetId = chest.lidOpen ? CHEST_OPEN : CHEST_CLOSED
-      const texture = assetManager.getTexture(assetId)
-      const asset = assetManager.getAssetItem(assetId)
-      sprite.visible = !!texture && chest.visible
+      sprite.visible = !!texture
       if (texture && sprite.texture !== texture) sprite.texture = texture
-      const pos = gridToScreen(chest.col, chest.row, tileWidth, tileHeight)
+      const pos = gridToScreen(altar.col, altar.row, tileWidth, tileHeight)
       sprite.position.set(pos.x, pos.y)
       sprite.anchor.set(asset?.anchorX ?? 0.5, asset?.anchorY ?? 0.88)
-      sprite.scale.set(tileWidth / (asset?.width || 256))
-      sprite.zIndex = 100000 + Math.round((chest.col + chest.row) * 1000) + 400
-      light(sprite, view.lightAt(chest))
-      // Chests that may still hold treasure send up a beam of light (hiders see it through the dark)
-      if (chest.glow) this.drawBeam(pos.x, pos.y, tileWidth, tileHeight, time + i * 0.7)
-      if (!chest.visible) return
-
-      if (chest.lidOpen && chest.hasLoot) this.drawLoot(pos.x, pos.y, tileWidth, time)
-      if (chest.lootProgress > 0) this.drawLootProgress(pos.x, pos.y, tileWidth, tileHeight, chest.lootProgress)
+      sprite.scale.set((tileWidth / (asset?.width || 256)) * 1.6)
+      sprite.zIndex = 100000 + Math.round((altar.col + altar.row) * 1000) + 400
+      // Everyone knows where the altars are: never fully dark
+      light(sprite, altar.lit ? 1 : Math.max(0.55, view.lightAt(altar)))
+      if (altar.lit) {
+        this.drawAltarFlames(pos.x, pos.y, tileWidth, tileHeight, time + i)
+      } else if (altar.progress > 0) {
+        this.drawBeam(pos.x, pos.y, tileWidth, tileHeight, time + i * 0.7)
+        this.drawProgressRing(pos.x, pos.y, tileWidth, tileHeight, altar.progress)
+      }
     })
+  }
+
+  /** A lit altar: its candles burn (seen by everyone). */
+  private drawAltarFlames(x: number, y: number, tileWidth: number, tileHeight: number, time: number): void {
+    const g = this.beaconGraphics
+    const top = y - tileHeight * 1.9
+    g.ellipse(x, y, tileWidth * 0.4, tileHeight * 0.4).fill({ color: FLAME_COLOR, alpha: 0.18 })
+    for (let k = 0; k < ALTAR_FLAMES; k++) {
+      const fx = x + (k - 1) * tileWidth * 0.09
+      const fy = top + (k === 1 ? -6 : 0)
+      const flicker = 1 + 0.15 * Math.sin(time * (11 + k) + k)
+      g.circle(fx, fy, 10 * flicker).fill({ color: FLAME_COLOR, alpha: 0.22 })
+      g.ellipse(fx, fy, 3.5 * flicker, 6 * flicker).fill({ color: FLAME_COLOR, alpha: 0.9 })
+      g.ellipse(fx, fy + 1, 1.6, 2.8).fill({ color: FLAME_CORE_COLOR, alpha: 0.95 })
+    }
   }
 
   private drawBeam(x: number, y: number, tileWidth: number, tileHeight: number, time: number, color = BEAM_COLOR, core = BEAM_CORE_COLOR, size = 1): void {
@@ -523,8 +553,8 @@ export class HideSeekRenderer {
     }
   }
 
-  /** Looting: a ring around the chest fills up clockwise from the top. */
-  private drawLootProgress(x: number, y: number, tileWidth: number, tileHeight: number, progress: number): void {
+  /** Lighting an altar: a ring around it fills up clockwise from the top. */
+  private drawProgressRing(x: number, y: number, tileWidth: number, tileHeight: number, progress: number): void {
     const g = this.beaconGraphics
     const rx = tileWidth * 0.36
     const ry = (rx * tileHeight) / tileWidth
@@ -536,16 +566,6 @@ export class HideSeekRenderer {
       points.push(x + Math.cos(a) * rx, y + Math.sin(a) * ry)
     }
     g.poly(points, false).stroke({ width: 4, color: BEAM_COLOR, alpha: 0.95, cap: 'round' })
-  }
-
-  /** An open chest that still holds the treasure: a golden gem bobbing above the open lid. */
-  private drawLoot(x: number, y: number, tileWidth: number, time: number): void {
-    const g = this.beaconGraphics
-    const cy = y - tileWidth * (0.42 + Math.sin(time * 3) * 0.03)
-    const r = tileWidth * (0.09 + Math.sin(time * 6) * 0.008)
-    g.circle(x, cy, r * 2.2).fill({ color: BEAM_COLOR, alpha: 0.25 })
-    g.poly([x, cy - r, x + r * 0.7, cy, x, cy + r, x - r * 0.7, cy]).fill({ color: 0xfbbf24, alpha: 1 })
-    g.poly([x, cy - r * 0.55, x + r * 0.35, cy, x, cy + r * 0.2, x - r * 0.35, cy]).fill({ color: BEAM_CORE_COLOR, alpha: 0.9 })
   }
 
   /** Barrels / cabinets: drawn in the map layers so walls and characters sort around them. */
@@ -774,9 +794,9 @@ export class HideSeekRenderer {
     this.avatars.clear()
     for (const e of this.litEntities) if (!e.sprite.destroyed) Object.assign(e.sprite, { tint: 0xffffff, alpha: 1 })
     this.litEntities = []
-    for (const sprite of [...this.chestSprites, ...this.spotSprites, ...this.doorSprites, ...this.exitSprites, ...this.torchSprites]) sprite.destroy()
+    for (const sprite of [...this.altarSprites, ...this.spotSprites, ...this.doorSprites, ...this.exitSprites, ...this.torchSprites]) sprite.destroy()
     this.exitSprites = []
-    this.chestSprites = []
+    this.altarSprites = []
     this.spotSprites = []
     this.doorSprites = []
     this.torchSprites = []

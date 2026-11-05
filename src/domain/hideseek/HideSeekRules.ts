@@ -6,26 +6,27 @@ export type HideSeekRole = 'seeker' | 'hider'
 /** A round: hiding -> seeking -> roundOver (short break) -> next round ... -> ended after the last one */
 export type HideSeekPhase = 'hiding' | 'seeking' | 'roundOver' | 'ended'
 
-/** caught: every hider is in jail; chests: the hiders looted enough chests; time: the hiders ran out of time;
+/** caught: every hider is in jail; altars: the hiders lit enough altars; time: the hiders ran out of time;
  * left: the other side left */
-export type HideSeekEndReason = 'caught' | 'chests' | 'escaped' | 'time' | 'left'
+export type HideSeekEndReason = 'caught' | 'altars' | 'escaped' | 'time' | 'left'
 
 // ==========================================
-// Treasure chests (the hider's objective)
+// Altars (the hiders' objective)
 // ==========================================
 
-export interface ChestState {
+export interface AltarState {
   col: number
   row: number
-  /** The hider took the treasure (the lid is closed again, so from outside it looks untouched) */
-  looted: boolean
+  /** 0..1 lit: hiders standing at it light it, a seeker standing at it while nobody lights it puts it out again */
+  progress: number
+  /** Fully lit: stays lit for the round */
+  lit: boolean
 }
 
-const CHEST_LOOT_RADIUS = 0.7
-/** The seeker can lift a chest lid from a little further away (chests often stand against a wall) */
-export const CHEST_CHECK_RADIUS = 1.3
-const CHEST_SPAWN_CLEARANCE = 6
-const CHEST_SPACING = 6
+/** Standing this close to an altar lights it (a hider) or puts it out (a seeker) */
+export const ALTAR_REACH = 1.3
+/** Objectives keep this far from the start points */
+const OBJECTIVE_SPAWN_CLEARANCE = 6
 
 /** Sub-cells a player can walk to from any of the given points (flood fill). 1 = reachable. */
 export function reachableSubCells(grid: CollisionGrid, from: GridCoord[]): Uint8Array {
@@ -83,22 +84,26 @@ function spreadOut(candidates: GridCoord[], count: number, spacing: number): Gri
   return picked
 }
 
-/** Chests keep this far from furniture, doors and candle stands */
-const CHEST_PROP_CLEARANCE = 1.5
+/** Objectives keep this far from furniture, doors and candle stands */
+const OBJECTIVE_PROP_CLEARANCE = 1.5
 
-/** Random free cells inside the playable maze (and inside `zone`), away from the spawns, from `props` and from each other. */
-export function pickChestSpots(
+/**
+ * Random free cells inside the playable maze (and inside `zone`), away from the spawns, from `props` and from each
+ * other (`spacing`, relaxed when the map is crowded).
+ */
+export function pickObjectiveSpots(
   grid: CollisionGrid,
   spawns: GridCoord[],
   count: number,
   random: () => number,
   props: GridCoord[] = [],
-  zone: (p: GridCoord) => boolean = () => true
+  zone: (p: GridCoord) => boolean = () => true,
+  spacing = 6
 ): GridCoord[] {
-  const cells = freeCells(grid, spawns, spawns, CHEST_SPAWN_CLEARANCE, random).filter(
-    c => zone(c) && !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < CHEST_PROP_CLEARANCE)
+  const cells = freeCells(grid, spawns, spawns, OBJECTIVE_SPAWN_CLEARANCE, random).filter(
+    c => zone(c) && !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < OBJECTIVE_PROP_CLEARANCE)
   )
-  return spreadOut(cells, count, CHEST_SPACING)
+  return spreadOut(cells, count, spacing)
 }
 
 const HIDE_SPOT_CLEARANCE = 3
@@ -117,47 +122,8 @@ export function pickHideSpots(grid: CollisionGrid, spawns: GridCoord[], avoid: G
   return spreadOut(corners, count, HIDE_SPOT_SPACING)
 }
 
-/** Chests every hider has to loot themself (never more than each hider's share on the map). */
-export function lootQuota(settings: HideSeekSettings): number {
-  return Math.min(settings.chestsToWin, settings.chestCount)
-}
-
-/** Index of a chest the hider stands at that still holds its treasure, or -1. */
-export function findLootableChest(pos: GridCoord, chests: ChestState[]): number {
-  return chests.findIndex(c => !c.looted && Math.hypot(c.col - pos.col, c.row - pos.row) <= CHEST_LOOT_RADIUS)
-}
-
-/** The hider looting a chest: which one and for how long they have stood at it. */
-export interface LootProgress {
-  index: number
-  time: number
-}
-
-export const NO_LOOT: LootProgress = { index: -1, time: 0 }
-
-/** Standing still at a chest with treasure builds up looting time; walking away resets it. */
-export function advanceLoot(progress: LootProgress, hider: GridCoord & { moving: boolean }, chests: ChestState[], deltaSec: number): LootProgress {
-  const index = hider.moving ? -1 : findLootableChest(hider, chests)
-  if (index === -1) return NO_LOOT
-  return { index, time: index === progress.index ? progress.time + deltaSec : deltaSec }
-}
-
-/** Nearest point (chest, hiding spot) within the radius, -1 when none. */
-export function nearestWithin(pos: GridCoord, chests: GridCoord[], radius: number): number {
-  let best = -1
-  let bestDist = radius
-  chests.forEach((c, i) => {
-    const d = Math.hypot(c.col - pos.col, c.row - pos.row)
-    if (d <= bestDist) {
-      best = i
-      bestDist = d
-    }
-  })
-  return best
-}
-
-/** Opening a chest rings across the whole maze: loud nearby, never fully silent. */
-export function chestChimeLoudness(distance: number, settings: HideSeekSettings): number {
+/** An altar being lit is heard across the whole maze: loud nearby, never fully silent. */
+export function altarLoudness(distance: number, settings: HideSeekSettings): number {
   return Math.max(0.2, 1 - distance / (settings.hearingRange * 2.5))
 }
 

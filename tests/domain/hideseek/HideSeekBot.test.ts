@@ -5,7 +5,7 @@ import {
   thinkBot,
   stepAlongPath,
   normalizeHideSeekSettings,
-  ChestState,
+  AltarState,
   BotBrain,
   BotSenses,
   HideSeekRole,
@@ -18,12 +18,12 @@ const settings = normalizeHideSeekSettings({ visionRange: 8, visionAngle: 90, he
 const openGrid = buildCollisionGrid({ cols: 20, rows: 20, collisionSubcells: [] })
 const random = () => 0.5
 
-function senses(self: GridCoord, facing: number, opponent: GridCoord | null, chests: ChestState[], extra: Partial<BotSenses> = {}, moving = false): BotSenses {
+function senses(self: GridCoord, facing: number, opponent: GridCoord | null, altars: AltarState[], extra: Partial<BotSenses> = {}, moving = false): BotSenses {
   return {
     self,
     facing,
     opponent: opponent && { ...opponent, moving, sneaking: false },
-    chests,
+    altars,
     spots: [],
     noise: null,
     exhausted: false,
@@ -40,8 +40,8 @@ function think(brain: BotBrain, role: HideSeekRole, s: BotSenses, grid: Collisio
 }
 
 describe('HideSeekBot', () => {
-  it('hider heads for the nearest chest that still holds treasure', () => {
-    const chests = [{ col: 15, row: 15, looted: false }, { col: 4, row: 2, looted: true }, { col: 6, row: 3, looted: false }]
+  it('hider heads for the nearest altar not lit yet', () => {
+    const chests = [{ col: 15, row: 15, progress: 0, lit: false }, { col: 4, row: 2, progress: 1, lit: true }, { col: 6, row: 3, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 2, row: 2 }], chests.length, 0)
     think(brain, 'hider', senses({ col: 2, row: 2 }, 0, null, chests))
     expect(brain.mode).toBe('collect')
@@ -49,7 +49,7 @@ describe('HideSeekBot', () => {
   })
 
   it('hider runs away from a seeker it sees, never past them', () => {
-    const chests = [{ col: 12, row: 10, looted: false }]
+    const chests = [{ col: 12, row: 10, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 10, row: 10 }], chests.length, 0)
     const self = { col: 10, row: 10 }
     const seeker = { col: 13, row: 10 }
@@ -80,7 +80,7 @@ describe('HideSeekBot', () => {
   })
 
   it('hider tiptoes and throws a decoy stone when it hears the seeker nearby', () => {
-    const chests = [{ col: 15, row: 15, looted: false }]
+    const chests = [{ col: 15, row: 15, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 2, row: 2 }], chests.length, 0)
     // Seeker behind the bot (not in its sight cone), 5 tiles away and running
     const action = think(brain, 'hider', senses({ col: 7, row: 7 }, 0, { col: 2, row: 7 }, chests, { gadgets: { stones: 1, flares: 0, traps: 0, candles: 0 } }, true))
@@ -102,16 +102,15 @@ describe('HideSeekBot', () => {
     expect(think(brain, 'hider', senses({ col: 8, row: 10 }, Math.PI, { col: 11, row: 10 }, [], { spots, hiddenIn: 0 }, true)).hideIn).toBe(0)
   })
 
-  it('seeker chases a hider it sees, looks into chests it passes and leaves a bell at full ones', () => {
-    const chests = [{ col: 5.5, row: 5, looted: false }]
+  it('seeker chases a hider it sees and leaves a bell at an unlit altar it passes', () => {
+    const chests = [{ col: 5.5, row: 5, progress: 0, lit: false }]
     const brain = createBotBrain(openGrid, [{ col: 5, row: 5 }], chests.length, 0)
     const action = think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1, candles: 0 } }))
     expect(brain.mode).toBe('chase')
     expect(brain.path.at(-1)).toEqual({ col: 10, row: 5 })
-    expect(action.checkedChest).toBe(0)
     expect(action.trap).toBe(true)
-    // Same chest is not checked again right away
-    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests)).checkedChest).toBe(-1)
+    // The same altar gets no second bell
+    expect(think(brain, 'seeker', senses({ col: 5, row: 5 }, 0, { col: 10, row: 5 }, chests, { gadgets: { stones: 0, flares: 0, traps: 1, candles: 0 } })).trap).toBe(false)
   })
 
   it('seeker lights a flare and runs to where it last saw the hider after losing sight', () => {
@@ -139,20 +138,20 @@ describe('HideSeekBot', () => {
     expect(action.search).toBe(0)
   })
 
-  it('a hider bot loots every labyrinth chest when left alone', () => {
+  it('a hider bot reaches every labyrinth altar when left alone', () => {
     const project = labyrinth.project
     const grid = buildCollisionGrid(project)
     const spawns = project.routes.map(r => r.routePoints[0])
-    const chests: ChestState[] = [{ col: 2, row: 2 }, { col: 21, row: 3 }, { col: 4, row: 20 }].map(c => ({ ...c, looted: false }))
+    const chests: AltarState[] = [{ col: 2, row: 2 }, { col: 21, row: 3 }, { col: 4, row: 20 }].map(c => ({ ...c, progress: 0, lit: false }))
     const brain = createBotBrain(grid, spawns, chests.length, 0)
     let self: GridCoord = { ...spawns[1] }
-    for (let t = 0; t < 120 * 10 && chests.some(c => !c.looted); t++) {
+    for (let t = 0; t < 120 * 10 && chests.some(c => !c.lit); t++) {
       thinkBot(brain, 'hider', senses(self, 0, null, chests), grid, settings, Math.random, 0.1)
       const step = stepAlongPath(self, brain.path, settings.runSpeed * 0.1)
       brain.path = step.path
       self = step.pos
-      for (const c of chests) if (Math.hypot(c.col - self.col, c.row - self.row) < 0.7) c.looted = true
+      for (const c of chests) if (Math.hypot(c.col - self.col, c.row - self.row) < 0.7) c.lit = true
     }
-    expect(chests.every(c => c.looted)).toBe(true)
+    expect(chests.every(c => c.lit)).toBe(true)
   })
 })

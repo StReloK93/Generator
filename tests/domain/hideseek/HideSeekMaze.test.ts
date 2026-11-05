@@ -68,19 +68,20 @@ describe('HideSeekMaze', () => {
     const dist = (a: { col: number; row: number }, b: { col: number; row: number }) => Math.hypot(a.col - b.col, a.row - b.row)
     for (const seed of [1, 7, 11, 99, 2024]) {
       const maze = generateMaze(seed, options)
-      // A big yard, larger than a corridor crossing, on the seekers' half
+      // A big yard, larger than a corridor crossing
       expect(maze.seekerBase.cols).toBeGreaterThanOrEqual(6)
       expect(maze.seekerBase.rows).toBeGreaterThanOrEqual(6)
-      for (const corner of [maze.seekerBase, { col: maze.seekerBase.col + maze.seekerBase.cols - 1, row: maze.seekerBase.row + maze.seekerBase.rows - 1 }]) {
-        expect(insideRect(maze.seekerSide, corner)).toBe(true)
-      }
+      const baseCenter = { col: maze.seekerBase.col + maze.seekerBase.cols / 2, row: maze.seekerBase.row + maze.seekerBase.rows / 2 }
+      const homeCenter = { col: maze.hiderBase.col + maze.hiderBase.cols / 2, row: maze.hiderBase.row + maze.hiderBase.rows / 2 }
+      // The two bases on opposite sides
+      expect(dist(baseCenter, homeCenter)).toBeGreaterThan(options.cols * 0.6)
       for (const seeker of maze.seekerSpawns) expect(insideRect(maze.seekerBase, seeker)).toBe(true)
       // The jail in the seekers' base, the hiders' home (same size) on the far half
       expect(insideRect(maze.seekerBase, maze.jail)).toBe(true)
       expect(maze.hiderBase.cols).toBe(maze.seekerBase.cols)
-      expect(insideRect(maze.seekerSide, { col: maze.hiderBase.col, row: maze.hiderBase.row })).toBe(false)
       for (const hider of maze.hiderSpawns) {
-        expect(insideRect(maze.seekerSide, hider)).toBe(false)
+        // On the far half: closer to the hiders' home than to the seekers' base
+        expect(dist(hider, homeCenter)).toBeLessThanOrEqual(dist(hider, baseCenter))
         for (const exit of maze.exits) expect(dist(hider, exit.at)).toBeGreaterThanOrEqual(10)
       }
       const hiders = maze.hiderSpawns

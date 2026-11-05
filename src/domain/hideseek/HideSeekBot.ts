@@ -1,9 +1,9 @@
 import { GridCoord, HideSeekSettings } from '../../types/map'
 import {
-  ChestState,
+  AltarState,
   CollisionGrid,
   HideSeekRole,
-  CHEST_CHECK_RADIUS,
+  ALTAR_REACH,
   canSee,
   findWalkPath,
   footstepLoudness,
@@ -26,7 +26,7 @@ const PANIC_DISTANCE = 4
 const FLEE_SEC = 2.5
 /** Hider: tiptoes when the seeker is heard within this distance */
 const SNEAK_DISTANCE = 7
-/** Hider: keeps away from chests near the spot it last saw the seeker, for this long */
+/** Hider: keeps away from altars near the spot it last saw the seeker, for this long */
 const DANGER_RADIUS = 3
 const DANGER_SEC = 20
 /** Hider: dives into a barrel this close when cornered or out of breath, and stays until it has been calm this long */
@@ -36,7 +36,7 @@ const HIDE_CALM_SEC = 6
 const STONE_COOLDOWN_SEC = 15
 /** Seeker: a heard footstep is only placed roughly (tiles) */
 const HEARING_ERROR = 1.5
-/** Seeker: a chest it looked into is not checked again for this long */
+/** Seeker: an altar it walked by is not visited again for this long (unless someone lights it) */
 const RECHECK_SEC = 30
 /** Seeker: after losing the hider, barrels this close to the last clue are opened, each at most this often */
 const SUSPECT_RADIUS = 5
@@ -69,7 +69,7 @@ export interface BotBrain {
   searchTarget: number
   stoneAt: number
   flareAt: number
-  /** Seeker: time each chest / barrel was last looked into; chests it put a bell next to */
+  /** Seeker: time each altar was last visited; altars it put a bell next to */
   checkedAt: number[]
   spotCheckedAt: number[]
   trapped: Set<number>
@@ -82,9 +82,9 @@ export interface BotSenses {
   facing: number
   /** null when the opponent cannot be sensed at all (gone, or sitting in a barrel) */
   opponent: (GridCoord & { moving: boolean; sneaking: boolean }) | null
-  chests: ChestState[]
+  altars: AltarState[]
   spots: GridCoord[]
-  /** A noise heard this frame (stone, bell, chest chime) */
+  /** A noise heard this frame (stone, bell, an altar being lit) */
   noise: GridCoord | null
   exhausted: boolean
   /** Barrel the bot sits in (-1 = none) */
@@ -98,8 +98,6 @@ export interface BotSenses {
 
 export interface BotAction {
   sneak: boolean
-  /** Seeker: chest looked into this frame (-1 = none) */
-  checkedChest: number
   /** Hider: barrel to sit in (-1 = out in the open) */
   hideIn: number
   /** Hider: decoy stone thrown at this spot */
@@ -113,10 +111,10 @@ export interface BotAction {
 const dist = (a: GridCoord, b: GridCoord) => Math.hypot(a.col - b.col, a.row - b.row)
 
 function idle(): BotAction {
-  return { sneak: false, checkedChest: -1, hideIn: -1, stone: null, flare: false, trap: false, search: -1 }
+  return { sneak: false, hideIn: -1, stone: null, flare: false, trap: false, search: -1 }
 }
 
-export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], chestCount: number, spotCount: number): BotBrain {
+export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], altarCount: number, spotCount: number): BotBrain {
   const reachable = reachableSubCells(grid, spawns)
   const cells: GridCoord[] = []
   for (let col = 0; col < grid.subCols / 2; col++) {
@@ -139,7 +137,7 @@ export function createBotBrain(grid: CollisionGrid, spawns: GridCoord[], chestCo
     searchTarget: -1,
     stoneAt: -Infinity,
     flareAt: -Infinity,
-    checkedAt: Array(chestCount).fill(-Infinity),
+    checkedAt: Array(altarCount).fill(-Infinity),
     spotCheckedAt: Array(spotCount).fill(-Infinity),
     trapped: new Set(),
     cells,
@@ -243,7 +241,7 @@ function thinkHider(
   threatened: boolean,
   seekerNear: boolean
 ): BotAction {
-  const { self, opponent, chests, spots } = senses
+  const { self, opponent, altars, spots } = senses
   const action = idle()
   if (threatened || seekerNear) brain.threatAt = brain.time
 
@@ -300,9 +298,11 @@ function thinkHider(
       action.sneak = seekerNear
       return action
     }
-    const targets = chests.filter(ch => !ch.looted && !(danger && dist(ch, danger) < DANGER_RADIUS))
-    const pool = targets.length > 0 ? targets : chests.filter(ch => !ch.looted)
-    const target = pool.sort((a, b) => dist(a, self) - dist(b, self))[0]
+    // The altar it already started first, then the nearest one away from the seeker
+    const unlit = altars.filter(a => !a.lit)
+    const targets = unlit.filter(a => !(danger && dist(a, danger) < DANGER_RADIUS))
+    const pool = targets.length > 0 ? targets : unlit
+    const target = pool.sort((a, b) => b.progress - a.progress || dist(a, self) - dist(b, self))[0]
     if (target) setGoal(brain, grid, self, target, 'collect')
   }
   action.sneak = seekerNear
@@ -317,15 +317,14 @@ function thinkSeeker(
   sees: boolean,
   hears: boolean
 ): BotAction {
-  const { self, opponent, chests, spots } = senses
+  const { self, opponent, altars, spots } = senses
   const action = idle()
 
-  // Looks into every chest it passes by, and leaves a bell next to the ones still full
-  chests.forEach((ch, i) => {
-    if (dist(ch, self) > CHEST_CHECK_RADIUS || brain.time - brain.checkedAt[i] <= RECHECK_SEC) return
+  // Notes every altar it passes by, and leaves a bell next to the ones still unlit
+  altars.forEach((altar, i) => {
+    if (dist(altar, self) > ALTAR_REACH || brain.time - brain.checkedAt[i] <= RECHECK_SEC) return
     brain.checkedAt[i] = brain.time
-    action.checkedChest = i
-    if (!ch.looted && senses.gadgets.traps > 0 && !brain.trapped.has(i)) {
+    if (!altar.lit && senses.gadgets.traps > 0 && !brain.trapped.has(i)) {
       brain.trapped.add(i)
       action.trap = true
     }
@@ -386,12 +385,12 @@ function thinkSeeker(
         setGoal(brain, grid, self, senses.exits[Math.floor(random() * senses.exits.length)], 'patrol')
         return action
       }
-      // Patrol: the nearest chest not looked into lately, otherwise anywhere
-      const due = chests
-        .map((ch, i) => ({ ch, i }))
-        .filter(({ i }) => brain.time - brain.checkedAt[i] > RECHECK_SEC)
-        .sort((a, b) => dist(a.ch, self) - dist(b.ch, self))[0]
-      setGoal(brain, grid, self, due ? due.ch : randomCell(brain, random), 'patrol')
+      // Patrol: an altar someone is lighting first, then the nearest unlit one not visited lately, otherwise anywhere
+      const due = altars
+        .map((altar, i) => ({ altar, i }))
+        .filter(({ altar, i }) => !altar.lit && (altar.progress > 0 || brain.time - brain.checkedAt[i] > RECHECK_SEC))
+        .sort((a, b) => b.altar.progress - a.altar.progress || dist(a.altar, self) - dist(b.altar, self))[0]
+      setGoal(brain, grid, self, due ? due.altar : randomCell(brain, random), 'patrol')
     }
   }
   return action

@@ -1,5 +1,5 @@
 import type { Component } from 'vue'
-import { Rabbit, Dumbbell, HandHelping, Ghost, Eye, Worm, Gem, WandSparkles } from 'lucide-vue-next'
+import { Rabbit, Dumbbell, HandHelping, Ghost, Eye, Worm, Flame, WandSparkles } from 'lucide-vue-next'
 import type { HideSeekTrait } from '../../domain/hideseek'
 
 /** How a character trait is shown (lobby picker, in-game panel). */
@@ -10,6 +10,6 @@ export const TRAIT_INFO: Record<HideSeekTrait, { icon: Component; label: string;
   stealth: { icon: Ghost, label: 'hideseek.traitStealth', desc: 'hideseek.traitStealthDesc' },
   keenEye: { icon: Eye, label: 'hideseek.traitKeenEye', desc: 'hideseek.traitKeenEyeDesc' },
   crawler: { icon: Worm, label: 'hideseek.traitCrawler', desc: 'hideseek.traitCrawlerDesc' },
-  treasureSense: { icon: Gem, label: 'hideseek.traitTreasureSense', desc: 'hideseek.traitTreasureSenseDesc' },
+  firekeeper: { icon: Flame, label: 'hideseek.traitFirekeeper', desc: 'hideseek.traitFirekeeperDesc' },
   trickster: { icon: WandSparkles, label: 'hideseek.traitTrickster', desc: 'hideseek.traitTricksterDesc' },
 }

@@ -47,23 +47,25 @@ export interface HideSeekAvatarView {
   jailed: boolean
   /** Own character sitting inside a barrel (drawn faint) */
   hidden: boolean
-  /** Carries a treasure home (a gem over their head) */
-  carrying: boolean
+  /** Dazed after a chain ran out (stars over the head) */
+  dazed: boolean
 }
 
-/** One treasure chest as this player perceives it. */
-export interface HideSeekChestView {
+/** An altar: everyone knows where they are, and sees one being lit from afar. */
+export interface HideSeekAltarView {
   col: number
   row: number
-  lidOpen: boolean
-  /** Treasure inside (only visible while the lid is open) */
-  hasLoot: boolean
-  /** The hider taking the treasure: 0..1 */
-  lootProgress: number
-  /** Light beam: the chest may still hold treasure as far as this player knows (hiders see it through the dark) */
-  glow: boolean
-  /** Seen by the player (in sight now or found before); undiscovered chests are hidden in the dark */
-  visible: boolean
+  /** 0..1 lit */
+  progress: number
+  lit: boolean
+}
+
+/** A chain: the hider holding a seeker (both stand still). */
+export interface HideSeekChainView {
+  from: GridCoord
+  to: GridCoord
+  /** 0..1 of the chain time left */
+  left: number
 }
 
 /** A barrel / crate a hider can hide in. */
@@ -137,15 +139,14 @@ export interface HideSeekAreaView {
 
 export interface HideSeekRenderView {
   avatars: HideSeekAvatarView[]
-  chests: HideSeekChestView[]
+  altars: HideSeekAltarView[]
+  chains: HideSeekChainView[]
   spots: HideSeekSpotView[]
   traps: HideSeekTrapView[]
   doors: HideSeekDoorView[]
-  /** Exit gate pieces (open once the hiders took enough treasure) and, when open, the spots to run to */
+  /** Exit gate pieces (open once the hiders lit enough altars) and, when open, the spots to run to */
   exits: HideSeekDoorView[]
   exitBeacons: GridCoord[]
-  /** Treasures dropped by caught hiders (hiders always know where; seekers when they see one) */
-  treasures: GridCoord[]
   torches: HideSeekTorchView[]
   /** How far a burning candle lights the floor */
   torchRadius: number
@@ -182,16 +183,14 @@ export interface HideSeekMinimapView {
   /** Collision sub-cells (index sr * cols * 2 + sc) */
   walls: Uint8Array
   me: GridCoord | null
-  /** Chests this player believes still hold treasure */
-  chests: GridCoord[]
+  /** Every altar (everyone knows where they are) */
+  altars: (GridCoord & { lit: boolean })[]
   traps: GridCoord[]
   /** Open exit gates */
   exits: GridCoord[]
   /** Both bases (always shown: everyone knows where they are) */
   seekerBase: HideSeekAreaView | null
   hiderBase: HideSeekAreaView | null
-  /** Dropped treasures (hiders only) */
-  treasures: GridCoord[]
   /** Teammates (same role) and whether they wait in jail */
   mates: (GridCoord & { jailed: boolean })[]
 }

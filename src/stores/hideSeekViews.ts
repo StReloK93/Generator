@@ -4,7 +4,6 @@ import {
   CollisionGrid,
   HideSeekMatch,
   HideSeekRole,
-  LootProgress,
   canSee,
   hasLineOfSight,
   sightReach,
@@ -59,10 +58,6 @@ export interface HideSeekViewContext {
   vision: GridCoord[] | null
   /** Own flare burning (vision already includes the lit circle) */
   flare: boolean
-  myLoot: LootProgress
-  heldLid: number
-  lidTimers: number[]
-  seenEmpty: Set<number>
   route: GridCoord[]
   stones: HideSeekStoneView[]
   ripples: HideSeekRippleView[]
@@ -71,8 +66,6 @@ export interface HideSeekViewContext {
   explored: Uint8Array
   cols: number
   rows: number
-  /** Treasure sense: chests this close show through walls and darkness (0 = none) */
-  senseRadius: number
 }
 
 /** Everything in sight is evenly lit; only the last stretch (tiles) of each direction fades into the dark */
@@ -87,7 +80,6 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
   const { match, me, settings, grid } = ctx
   const over = isRoundOver(match)
   const blind = !over && me?.role === 'seeker' && match.clock.phase === 'hiding'
-  const iAmHider = !over && me?.role === 'hider'
   const around = sightAround(settings, ctx.flare)
   const candles = torchSpots(match, ctx.maze)
   const litTorches = candles.filter((_, i) => match.torches[i])
@@ -116,19 +108,14 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
 
   return {
     blind,
-    chests: match.chests.map((ch, i) => {
-      // Hidden in the dark until the player has seen its spot once; then it stays on their screen
-      const visible = over || inSight(ch) || isExplored(ctx, ch) || isSensed(ctx, ch)
-      return {
-        col: ch.col,
-        row: ch.row,
-        lidOpen: !over && (ctx.heldLid === i || (ctx.lidTimers[i] ?? 0) > 0 || (iAmHider && ctx.myLoot.index === i)),
-        hasLoot: !ch.looted,
-        lootProgress: iAmHider && ctx.myLoot.index === i ? Math.min(1, ctx.myLoot.time / settings.lootTime) : 0,
-        // Hiders know where the treasure is left (the beam shows through the dark); the seeker only knows the chests they found and did not see empty
-        glow: over || me?.role !== 'seeker' ? !ch.looted : visible && !ctx.seenEmpty.has(i),
-        visible,
-      }
+    // Everyone knows where the altars are and sees one being lit from afar
+    altars: match.altars.map(a => ({ col: a.col, row: a.row, progress: a.progress, lit: a.lit })),
+    chains: over ? [] : match.chains.flatMap(chain => {
+      const hider = ctx.bodies.find(p => p.id === chain.hider)
+      const seeker = ctx.bodies.find(p => p.id === chain.seeker)
+      return hider && seeker
+        ? [{ from: { col: hider.col, row: hider.row }, to: { col: seeker.col, row: seeker.row }, left: Math.max(0, chain.timeLeft / settings.chainTime) }]
+        : []
     }),
     spots: match.spots.map((s, i) => ({ col: s.col, row: s.row, kind: s.kind, facing: s.facing, occupied: me?.hidden === i })),
     doors: (ctx.maze?.doors ?? []).flatMap((door, i) =>
@@ -136,7 +123,6 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     ),
     exits: (ctx.maze?.exits ?? []).flatMap(exit => exit.edges.map(edge => ({ ...edgePlacement(edge, ctx.cols), open: match.exitsOpen }))),
     exitBeacons: match.exitsOpen && !over ? match.exits : [],
-    treasures: match.drops.filter(d => over || me?.role === 'hider' || inSight(d)),
     torches: candles.map((t, i) => ({ col: t.col, row: t.row, lit: !!match.torches[i], glow: match.torches[i] && !blind ? (ctx.torchGlows[i] ?? null) : null })),
     torchRadius: settings.torchRadius,
     footprints: over ? [] : ctx.footprints,
@@ -172,23 +158,12 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         isMe: p === me,
         jailed,
         hidden: p === me && p.hidden !== -1,
-        carrying: !!seat?.carrying,
+        dazed: !over && (seat?.dazed ?? 0) > 0,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
         visible: p === me || over || jailed || (p.hidden === -1 && (teammate || inSight(p, spottedWithin(settings, traitOf(p.model))))),
       }
     }),
   }
-}
-
-/** Treasure sense: a chest close enough is felt through walls and darkness. */
-function isSensed(ctx: HideSeekViewContext, p: GridCoord): boolean {
-  return !!ctx.me && ctx.senseRadius > 0 && Math.hypot(p.col - ctx.me.col, p.row - ctx.me.row) <= ctx.senseRadius
-}
-
-function isExplored(ctx: HideSeekViewContext, p: GridCoord): boolean {
-  const col = Math.round(p.col)
-  const row = Math.round(p.row)
-  return col >= 0 && row >= 0 && col < ctx.cols && row < ctx.rows && ctx.explored[row * ctx.cols + col] === 1
 }
 
 export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView {
@@ -199,13 +174,11 @@ export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView 
     explored,
     walls: ctx.grid.blocked,
     me: me ? { col: me.col, row: me.row } : null,
-    // Hiders know every chest still holding treasure; the seeker only the ones they came across (or sense)
-    chests: match.chests.filter((ch, i) => (me?.role === 'seeker' ? (isExplored(ctx, ch) || isSensed(ctx, ch)) && !ctx.seenEmpty.has(i) : !ch.looted)),
+    altars: match.altars.map(a => ({ col: a.col, row: a.row, lit: a.lit })),
     traps: me?.role === 'seeker' ? match.traps : [],
     exits: match.exitsOpen ? match.exits : [],
     seekerBase: ctx.maze?.seekerBase ?? null,
     hiderBase: ctx.maze?.hiderBase ?? null,
-    treasures: me?.role === 'hider' ? match.drops : [],
     mates: me ? ctx.bodies.filter(p => p !== me && p.role === me.role).map(p => ({ col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed })) : [],
   }
 }

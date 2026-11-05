@@ -3,7 +3,7 @@ import { HideSeekSettings } from '../../types/map'
 /** Single owner of the hide & seek rule defaults (used only when a map does not define a value). */
 export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   roundTime: 240,
-  hideTime: 20,
+  hideTime: 0,
   runSpeed: 4,
   sneakSpeed: 2,
   visionRange: 10,
@@ -13,10 +13,13 @@ export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   maxPlayers: 8,
   seekerSlots: 2,
   roundCount: 3,
-  chestCount: 6,
-  lootTime: 3,
-  chestsToWin: 5,
-  carrySpeedFactor: 0.85,
+  altarExtra: 2,
+  altarLightTime: 10,
+  altarKickTime: 4,
+  chainRange: 5,
+  chainTime: 15,
+  chainCooldown: 30,
+  chainDaze: 3,
   lanternRadius: 0,
   staminaSeconds: 8,
   staminaRegen: 1,
@@ -30,7 +33,7 @@ export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   flareDuration: 3,
   flareRadius: 7,
   trapCount: 2,
-  scoreChest: 20,
+  scoreAltar: 20,
   scoreCatch: 30,
   scoreRescue: 15,
   scoreWin: 50,
@@ -59,7 +62,7 @@ export const DEFAULT_HIDE_SEEK_SETTINGS: HideSeekSettings = {
   traitCatchReach: 1.3,
   traitStealthSight: 0.6,
   traitStealthNoise: 0.4,
-  traitSenseRadius: 7,
+  traitLightBonus: 0.5,
   traitExtraGadgets: 1,
 }
 
@@ -81,7 +84,8 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
   const d = DEFAULT_HIDE_SEEK_SETTINGS
   return {
     roundTime: positive(s.roundTime, d.roundTime),
-    hideTime: positive(s.hideTime, d.hideTime),
+    // 0 = no hiding time: the seekers do not wait with closed eyes
+    hideTime: nonNegative(s.hideTime, d.hideTime),
     runSpeed: positive(s.runSpeed, d.runSpeed),
     sneakSpeed: positive(s.sneakSpeed, d.sneakSpeed),
     visionRange: positive(s.visionRange, d.visionRange),
@@ -93,10 +97,13 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
     // At least one seat on each side
     seekerSlots: Math.max(1, Math.min(7, Math.round(positive(s.seekerSlots, d.seekerSlots)))),
     roundCount: Math.max(1, Math.round(positive(s.roundCount, d.roundCount))),
-    chestCount: Math.round(positive(s.chestCount, d.chestCount)),
-    lootTime: positive(s.lootTime, d.lootTime),
-    chestsToWin: Math.round(positive(s.chestsToWin, d.chestsToWin)),
-    carrySpeedFactor: Math.min(1, positive(s.carrySpeedFactor, d.carrySpeedFactor)),
+    altarExtra: count(s.altarExtra, d.altarExtra),
+    altarLightTime: positive(s.altarLightTime, d.altarLightTime),
+    altarKickTime: positive(s.altarKickTime, d.altarKickTime),
+    chainRange: positive(s.chainRange, d.chainRange),
+    chainTime: positive(s.chainTime, d.chainTime),
+    chainCooldown: nonNegative(s.chainCooldown, d.chainCooldown),
+    chainDaze: nonNegative(s.chainDaze, d.chainDaze),
     lanternRadius: nonNegative(s.lanternRadius, d.lanternRadius),
     staminaSeconds: positive(s.staminaSeconds, d.staminaSeconds),
     staminaRegen: positive(s.staminaRegen, d.staminaRegen),
@@ -110,7 +117,7 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
     flareDuration: positive(s.flareDuration, d.flareDuration),
     flareRadius: positive(s.flareRadius, d.flareRadius),
     trapCount: count(s.trapCount, d.trapCount),
-    scoreChest: nonNegative(s.scoreChest, d.scoreChest),
+    scoreAltar: nonNegative(s.scoreAltar, d.scoreAltar),
     scoreCatch: nonNegative(s.scoreCatch, d.scoreCatch),
     scoreRescue: nonNegative(s.scoreRescue, d.scoreRescue),
     scoreWin: nonNegative(s.scoreWin, d.scoreWin),
@@ -141,7 +148,7 @@ export function normalizeHideSeekSettings(raw?: Partial<Record<keyof HideSeekSet
     // Shares: a shadow is never easier to spot / hear than anyone else
     traitStealthSight: Math.min(1, positive(s.traitStealthSight, d.traitStealthSight)),
     traitStealthNoise: Math.min(1, nonNegative(s.traitStealthNoise, d.traitStealthNoise)),
-    traitSenseRadius: nonNegative(s.traitSenseRadius, d.traitSenseRadius),
+    traitLightBonus: nonNegative(s.traitLightBonus, d.traitLightBonus),
     traitExtraGadgets: count(s.traitExtraGadgets, d.traitExtraGadgets),
   }
 }

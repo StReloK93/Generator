@@ -12,7 +12,7 @@ export type HideSeekTrait =
   | 'stealth'
   | 'keenEye'
   | 'crawler'
-  | 'treasureSense'
+  | 'firekeeper'
   | 'trickster'
 
 const MODEL_TRAITS: Record<string, HideSeekTrait> = {
@@ -22,7 +22,7 @@ const MODEL_TRAITS: Record<string, HideSeekTrait> = {
   demon: 'stealth',
   male: 'keenEye',
   zombi: 'crawler',
-  bird: 'treasureSense',
+  bird: 'firekeeper',
   barry: 'trickster',
 }
 
@@ -31,10 +31,10 @@ export function traitOf(model: string | null | undefined): HideSeekTrait | null 
 }
 
 /**
- * A player's own rules: the base rules with their trait (faster, longer breath, further sight), for the seeker the
- * momentum of every hider caught this round (faster and slower to tire), for a hider carrying treasure a slower run.
+ * A player's own rules: the base rules with their trait (faster, longer breath, further sight) and, for the seeker,
+ * the momentum of every hider caught this round (faster and slower to tire).
  */
-export function playerRules(settings: HideSeekSettings, trait: HideSeekTrait | null, role: HideSeekRole, catches = 0, carrying = false): HideSeekSettings {
+export function playerRules(settings: HideSeekSettings, trait: HideSeekTrait | null, role: HideSeekRole, catches = 0): HideSeekSettings {
   const rules = { ...settings }
   if (trait === 'swift') {
     rules.runSpeed *= 1 + settings.traitSpeedBonus
@@ -48,11 +48,6 @@ export function playerRules(settings: HideSeekSettings, trait: HideSeekTrait | n
   if (role === 'seeker' && catches > 0) {
     rules.runSpeed *= 1 + settings.catchSpeedBonus * catches
     rules.staminaSeconds *= 1 + settings.catchStaminaBonus * catches
-  }
-  if (carrying) {
-    rules.runSpeed *= settings.carrySpeedFactor
-    rules.tiredSpeed *= settings.carrySpeedFactor
-    rules.sneakSpeed *= settings.carrySpeedFactor
   }
   return rules
 }
@@ -82,9 +77,9 @@ export function stepLoudness(settings: HideSeekSettings, trait: HideSeekTrait | 
   return trait === 'stealth' ? settings.traitStealthNoise : 1
 }
 
-/** Chests within this distance show through walls and darkness (0 = no treasure sense). */
-export function treasureSenseRadius(settings: HideSeekSettings, trait: HideSeekTrait | null | undefined): number {
-  return trait === 'treasureSense' ? settings.traitSenseRadius : 0
+/** How fast this character lights an altar (1 = normal; the firekeeper is faster). */
+export function lightingSpeed(settings: HideSeekSettings, trait: HideSeekTrait | null | undefined): number {
+  return trait === 'firekeeper' ? 1 + settings.traitLightBonus : 1
 }
 
 /** Extra of each own gadget per round (the trickster). */
