@@ -46,6 +46,8 @@ const REJOIN_GRACE_MS = 30_000
 /** How long a client keeps trying to reach a host that dropped (e.g. the host refreshed) */
 const HOST_RECONNECT_TIMEOUT_MS = 45_000
 const HOST_RECONNECT_INTERVAL_MS = 3_000
+/** How long a joining player waits for the host's first answer before giving up (a relayed link can take a few seconds) */
+const JOIN_TIMEOUT_MS = 15_000
 
 interface SavedRoomSession {
   roomId: string
@@ -333,11 +335,19 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     isHost.value = false
     chatMessages.value = []
 
+    const joinStartedAt = Date.now()
     const connected = await connectAsClient(cleanRoomId, password)
 
     if (globalRouter) {
       globalRouter.push(lobbyPath(cleanRoomId))
     }
+
+    // The host never answered (no link between the two networks): say so instead of leaving an empty lobby
+    setTimeout(() => {
+      if (roomId.value !== cleanRoomId || isHost.value || lastHostReplyAt > joinStartedAt) return
+      notify.error(t('play.joinFailedDesc'), t('play.joinFailed'))
+      leaveRoom(globalRouter)
+    }, JOIN_TIMEOUT_MS)
     return connected
   }
 

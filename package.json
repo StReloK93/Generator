@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "express": "^4.21.2",
     "lucide-vue-next": "^0.469.0",
+    "node-turn": "^0.0.6",
     "peer": "^1.0.2",
     "peerjs": "^1.5.5",
     "pinia": "^2.3.0",

@@ -9,14 +9,13 @@ import { networkSyncBuffer } from './networkSync'
 const SERVER_URL = new URL(import.meta.env.VITE_SERVER_URL || globalThis.location?.origin || 'http://localhost')
 const API_URL = `${SERVER_URL.origin}/api`
 const isSecure = SERVER_URL.protocol === 'https:'
+const STUN_SERVERS: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+]
 const CLOUD_PEER_OPTIONS: PeerOptions = {
   debug: 1,
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:global.stun.twilio.com:3478' }
-    ]
-  },
+  config: { iceServers: STUN_SERVERS },
 }
 const OWN_SERVER_PEER_OPTIONS: PeerOptions = {
   ...CLOUD_PEER_OPTIONS,
@@ -27,13 +26,17 @@ const OWN_SERVER_PEER_OPTIONS: PeerOptions = {
 }
 
 /**
- * Own server's signaling when it answers, otherwise the public PeerJS cloud: static hosting
- * (GitHub Pages) has no backend, but joining by room code still works through the cloud.
+ * Own server's signaling (plus its TURN relay, for players whose networks block a direct link) when it answers,
+ * otherwise the public PeerJS cloud.
  */
 let peerOptionsPromise: Promise<PeerOptions> | null = null
 function resolvePeerOptions(): Promise<PeerOptions> {
-  peerOptionsPromise ??= fetch(`${API_URL}/rooms`)
-    .then(res => (res.ok ? OWN_SERVER_PEER_OPTIONS : CLOUD_PEER_OPTIONS))
+  peerOptionsPromise ??= fetch(`${API_URL}/ice-servers`)
+    .then(async (res): Promise<PeerOptions> => {
+      if (!res.ok) return CLOUD_PEER_OPTIONS
+      const relays = (await res.json()) as RTCIceServer[]
+      return { ...OWN_SERVER_PEER_OPTIONS, config: { iceServers: [...STUN_SERVERS, ...relays] } }
+    })
     .catch(() => CLOUD_PEER_OPTIONS)
   return peerOptionsPromise
 }

@@ -1,6 +1,7 @@
 import express from 'express'
 import { ExpressPeerServer } from 'peer'
 import { WebSocketServer } from 'ws'
+import { turnIceServers } from './turn.js'
 
 /** A room disappears from the public list when its host stops heartbeating for this long. */
 const ROOM_TTL_MS = 10_000
@@ -9,6 +10,7 @@ const ROOM_TTL_MS = 10_000
  * Multiplayer backend shared by `npm run dev` (mounted into Vite) and `npm start` (production):
  *  - /peer        PeerJS signaling server (WebRTC handshake between host and players)
  *  - /api/rooms   public room registry: hosts heartbeat their room, everyone lists it
+ *  - /api/ice-servers  TURN relay for players whose networks block a direct link (server/turn.js)
  */
 export function createMultiplayerApp(httpServer) {
   const app = express()
@@ -55,6 +57,11 @@ export function createMultiplayerApp(httpServer) {
       lastHeartbeat: Date.now(),
     })
     res.json({ ok: true })
+  })
+
+  // TURN relay the clients use when a direct link between players is blocked
+  app.get('/api/ice-servers', (_req, res) => {
+    res.json(turnIceServers())
   })
 
   app.delete('/api/rooms/:roomId', (req, res) => {
