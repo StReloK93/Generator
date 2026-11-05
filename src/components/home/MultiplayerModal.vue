@@ -2,84 +2,85 @@
   <UiModal
     :is-open="isOpen"
     size="4xl"
+    hide-header
     custom-class="h-120"
-    body-class="p-0! space-y-0! overflow-hidden! flex"
+    body-class="p-0! space-y-0! overflow-hidden! flex flex-col"
     @close="emit('update:isOpen', false)"
   >
-    <template #header>
-      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 pr-2">
-        <div class="size-8 sm:size-9 rounded-xl flex items-center justify-center shrink-0 border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-          <Users class="size-4" />
-        </div>
-        <h2 class="text-sm sm:text-base font-extrabold text-slate-50 tracking-wide truncate">{{ $t('home.multiplayer') }}</h2>
-        <UiInput
-          v-model="playerName"
-          :placeholder="$t('home.playerName')"
-          :leading-icon="User"
-          :maxlength="16"
-          size="sm"
-          custom-class="ml-auto w-36 sm:w-48"
-          @change="multiplayerStore.setPlayerProfile(playerName)"
-        />
-      </div>
-    </template>
-
-    <!-- MAPS: the whole column (double click hosts right away) -->
-    <section class="w-1/2 shrink-0 flex flex-col min-h-0 border-r border-slate-800 bg-slate-950/30">
-      <h3 class="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-300 flex items-center gap-1.5 shrink-0">
-        <Map class="size-3.5" /> {{ $t('play.maps') }} ({{ builtinMaps.length }})
-      </h3>
-      <MapListPicker
-        v-model="selectedMapId"
-        :maps="builtinMaps"
-        show-players
-        class="flex-1"
-        @pick="handleCreateRoom"
+    <!-- Same look as the room: one card, a compact header, two columns with a soft line between them -->
+    <header class="px-2.5 pt-2 pb-1 flex items-center gap-2 shrink-0">
+      <h2 class="text-sm sm:text-base font-extrabold text-slate-50 truncate flex items-center gap-1.5">
+        <Users class="size-4 text-emerald-400 shrink-0" /> {{ $t('home.multiplayer') }}
+      </h2>
+      <UiInput
+        v-model="playerName"
+        :placeholder="$t('home.playerName')"
+        :leading-icon="User"
+        :maxlength="16"
+        size="sm"
+        custom-class="ml-auto w-36 sm:w-44"
+        @change="multiplayerStore.setPlayerProfile(playerName)"
       />
-    </section>
+      <UiIconButton :icon="X" size="sm" variant="ghost" :title="$t('common.close')" @click="emit('update:isOpen', false)" />
+    </header>
 
-    <!-- HOST (optional password) and the open rooms -->
-    <section class="flex-1 min-w-0 flex flex-col min-h-0">
-      <div class="p-2 sm:p-2.5 border-b border-slate-800 flex items-center gap-2 shrink-0">
-        <UiInput
-          v-model="hostPassword"
-          type="password"
-          :placeholder="$t('play.passwordOptional')"
-          :leading-icon="Lock"
-          :maxlength="20"
-          size="sm"
-          custom-class="flex-1 min-w-0"
-          @keyup.enter="selectedMap && handleCreateRoom(selectedMap)"
+    <main class="flex-1 min-h-0 px-1.5 sm:px-2.5 pb-1.5 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5">
+      <!-- MAPS (double click hosts right away) -->
+      <section class="flex flex-col min-h-0 min-w-0">
+        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-brand-300">
+          <Map class="size-3.5" /> {{ $t('play.maps') }}
+          <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ builtinMaps.length }}</span>
+        </h3>
+        <MapListPicker
+          v-model="selectedMapId"
+          :maps="builtinMaps"
+          show-players
+          class="flex-1 -mx-2"
+          @pick="handleCreateRoom"
         />
-        <UiButton
-          variant="game-amber"
-          size="md"
-          :loading="isCreatingRoom"
-          :disabled="!selectedMap || isCreatingRoom"
-          :leading-icon="Gamepad2"
-          custom-class="uppercase tracking-wider shrink-0"
-          @click="selectedMap && handleCreateRoom(selectedMap)"
-        >
-          {{ isCreatingRoom ? $t('play.hosting') : $t('play.hostGame') }}
-        </UiButton>
-      </div>
+      </section>
 
-      <div class="px-3 pt-2 flex items-center justify-between shrink-0">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-          <Radio class="size-3 text-emerald-400 animate-pulse" />
-          {{ $t('play.publicRooms') }} ({{ multiplayerStore.availableRooms.length }})
-        </span>
-        <UiIconButton
-          :icon="RefreshCw"
-          size="sm"
-          variant="ghost"
-          :title="$t('common.refresh')"
-          :custom-class="isRefreshing ? '[&_svg]:animate-spin' : ''"
-          @click="refreshRooms"
-        />
-      </div>
+      <div class="w-px my-1 bg-linear-to-b from-transparent via-slate-500/60 to-transparent" />
 
-      <div class="flex-1 min-h-0 overflow-y-auto px-2 pb-2 flex flex-col gap-1.5">
+      <!-- HOST (optional password) and the open rooms -->
+      <section class="flex flex-col min-h-0 min-w-0">
+        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
+          <Radio class="size-3.5 animate-pulse" /> {{ $t('play.publicRooms') }}
+          <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ multiplayerStore.availableRooms.length }}</span>
+          <UiIconButton
+            :icon="RefreshCw"
+            size="xs"
+            variant="ghost"
+            :title="$t('common.refresh')"
+            :custom-class="isRefreshing ? '[&_svg]:animate-spin' : ''"
+            @click="refreshRooms"
+          />
+        </h3>
+        <div class="py-1.5 flex items-center gap-1.5 shrink-0">
+          <UiInput
+            v-model="hostPassword"
+            type="password"
+            :placeholder="$t('play.passwordOptional')"
+            :leading-icon="Lock"
+            :maxlength="20"
+            size="sm"
+            custom-class="flex-1 min-w-0"
+            @keyup.enter="selectedMap && handleCreateRoom(selectedMap)"
+          />
+          <UiButton
+            variant="game-amber"
+            size="sm"
+            :loading="isCreatingRoom"
+            :disabled="!selectedMap || isCreatingRoom"
+            :leading-icon="Gamepad2"
+            custom-class="uppercase tracking-wider shrink-0"
+            @click="selectedMap && handleCreateRoom(selectedMap)"
+          >
+            {{ isCreatingRoom ? $t('play.hosting') : $t('play.hostGame') }}
+          </UiButton>
+        </div>
+
+      <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5">
         <div
           v-for="room in multiplayerStore.availableRooms"
           :key="room.roomId"
@@ -133,7 +134,8 @@
           </template>
         </div>
       </div>
-    </section>
+      </section>
+    </main>
 
     <!-- A room with a password: ask for it before joining -->
     <UiModal
@@ -165,7 +167,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Gamepad2, User, Users, Lock, Radio, RefreshCw, Map, WifiOff } from 'lucide-vue-next'
+import { Gamepad2, User, Users, Lock, Radio, RefreshCw, Map, WifiOff, X } from 'lucide-vue-next'
 import { UiModal, UiButton, UiIconButton, UiInput, UiBadge } from '../ui'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
