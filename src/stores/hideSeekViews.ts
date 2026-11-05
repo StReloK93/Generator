@@ -108,8 +108,20 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
 
   return {
     blind,
-    // Everyone knows where the altars are and sees one being lit from afar
-    altars: match.altars.map(a => ({ col: a.col, row: a.row, progress: a.progress, lit: a.lit })),
+    // Altars have to be found: a player knows the ones they have seen, hiders also the ones their team is lighting,
+    // and everyone the lit ones (each flares up across the labyrinth)
+    altars: match.altars.map(a => {
+      const teamLighting = me?.role === 'hider' && a.progress > 0
+      const seenNow = inSight(a)
+      return {
+        col: a.col,
+        row: a.row,
+        progress: a.progress,
+        lit: a.lit,
+        visible: over || a.lit || seenNow || isExplored(ctx, a) || teamLighting,
+        progressShown: !a.lit && a.progress > 0 && (over || seenNow || teamLighting),
+      }
+    }),
     chains: over ? [] : match.chains.flatMap(chain => {
       const hider = ctx.bodies.find(p => p.id === chain.hider)
       const seeker = ctx.bodies.find(p => p.id === chain.seeker)
@@ -166,6 +178,12 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
   }
 }
 
+function isExplored(ctx: HideSeekViewContext, p: GridCoord): boolean {
+  const col = Math.round(p.col)
+  const row = Math.round(p.row)
+  return col >= 0 && row >= 0 && col < ctx.cols && row < ctx.rows && ctx.explored[row * ctx.cols + col] === 1
+}
+
 export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView {
   const { match, me, cols, rows, explored } = ctx
   return {
@@ -174,7 +192,10 @@ export function buildMinimapView(ctx: HideSeekViewContext): HideSeekMinimapView 
     explored,
     walls: ctx.grid.blocked,
     me: me ? { col: me.col, row: me.row } : null,
-    altars: match.altars.map(a => ({ col: a.col, row: a.row, lit: a.lit })),
+    // The altars this player has found (and the lit ones, and for hiders those their team is lighting)
+    altars: match.altars
+      .filter(a => a.lit || isExplored(ctx, a) || (me?.role === 'hider' && a.progress > 0))
+      .map(a => ({ col: a.col, row: a.row, lit: a.lit })),
     traps: me?.role === 'seeker' ? match.traps : [],
     exits: match.exitsOpen ? match.exits : [],
     seekerBase: ctx.maze?.seekerBase ?? null,

@@ -51,13 +51,17 @@ export interface HideSeekAvatarView {
   dazed: boolean
 }
 
-/** An altar: everyone knows where they are, and sees one being lit from afar. */
+/** An altar as this player knows it: found by seeing it (a lit one is known to all). */
 export interface HideSeekAltarView {
   col: number
   row: number
   /** 0..1 lit */
   progress: number
   lit: boolean
+  /** Found by this player (in sight now or seen before), or lit */
+  visible: boolean
+  /** Its progress (beam and ring) shows: in sight, or a hider whose teammates are lighting it */
+  progressShown: boolean
 }
 
 /** A chain: the hider holding a seeker (both stand still). */
@@ -183,7 +187,7 @@ export interface HideSeekMinimapView {
   /** Collision sub-cells (index sr * cols * 2 + sc) */
   walls: Uint8Array
   me: GridCoord | null
-  /** Every altar (everyone knows where they are) */
+  /** The altars this player has found (lit ones are known to all) */
   altars: (GridCoord & { lit: boolean })[]
   traps: GridCoord[]
   /** Open exit gates */

@@ -10,6 +10,7 @@ import {
   BotSenses,
   HideSeekRole,
   CollisionGrid,
+  ALTAR_REACH,
 } from '@/domain/hideseek'
 import { GridCoord } from '@/types/map'
 import labyrinth from '@/maps/Labyrinth.json'
@@ -22,15 +23,21 @@ function senses(self: GridCoord, facing: number, opponent: GridCoord | null, alt
   return {
     self,
     facing,
-    opponent: opponent && { ...opponent, moving, sneaking: false },
+    opponents: opponent ? [{ id: 'other', ...opponent, moving, sneaking: false, hidden: false, jailed: false, spotted: 1, quiet: 1 }] : [],
+    teammates: [],
     altars,
     spots: [],
-    noise: null,
+    noises: [],
     exhausted: false,
+    breath: 1,
     hiddenIn: -1,
     gadgets: { stones: 0, flares: 0, traps: 0, candles: 0 },
     flareActive: false,
     exits: [],
+    jail: null,
+    home: null,
+    canChain: false,
+    rank: 0,
     ...extra,
   }
 }
@@ -127,7 +134,7 @@ describe('HideSeekBot', () => {
   it('seeker investigates a noise and opens the barrels around it', () => {
     const brain = createBotBrain(openGrid, [{ col: 2, row: 2 }], 0, 1)
     const spots = [{ col: 12, row: 12 }]
-    think(brain, 'seeker', senses({ col: 2, row: 2 }, 0, null, [], { spots, noise: { col: 11, row: 12 } }))
+    think(brain, 'seeker', senses({ col: 2, row: 2 }, 0, null, [], { spots, noises: [{ col: 11, row: 12, range: 20 }] }))
     expect(brain.mode).toBe('investigate')
     expect(brain.path.at(-1)).toEqual({ col: 11, row: 12 })
     // Reached the noise, nobody in sight: open the barrel next to it
@@ -138,19 +145,22 @@ describe('HideSeekBot', () => {
     expect(action.search).toBe(0)
   })
 
-  it('a hider bot reaches every labyrinth altar when left alone', () => {
+  it('a hider bot finds and reaches every labyrinth altar when left alone', () => {
     const project = labyrinth.project
     const grid = buildCollisionGrid(project)
     const spawns = project.routes.map(r => r.routePoints[0])
     const chests: AltarState[] = [{ col: 2, row: 2 }, { col: 21, row: 3 }, { col: 4, row: 20 }].map(c => ({ ...c, progress: 0, lit: false }))
     const brain = createBotBrain(grid, spawns, chests.length, 0)
     let self: GridCoord = { ...spawns[1] }
-    for (let t = 0; t < 120 * 10 && chests.some(c => !c.lit); t++) {
-      thinkBot(brain, 'hider', senses(self, 0, null, chests), grid, settings, Math.random, 0.1)
+    let facing = 0
+    // It has to find them first: it only knows the altars it has seen
+    for (let t = 0; t < 300 * 10 && chests.some(c => !c.lit); t++) {
+      thinkBot(brain, 'hider', senses(self, facing, null, chests), grid, settings, Math.random, 0.1)
       const step = stepAlongPath(self, brain.path, settings.runSpeed * 0.1)
       brain.path = step.path
       self = step.pos
-      for (const c of chests) if (Math.hypot(c.col - self.col, c.row - self.row) < 0.7) c.lit = true
+      if (step.facing !== null) facing = step.facing
+      for (const c of chests) if (Math.hypot(c.col - self.col, c.row - self.row) <= ALTAR_REACH) c.lit = true
     }
     expect(chests.every(c => c.lit)).toBe(true)
   })

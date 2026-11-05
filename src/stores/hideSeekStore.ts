@@ -20,6 +20,7 @@ import {
   Stamina,
   GadgetCounts,
   BotBrain,
+  BotNoise,
   normalizeHideSeekSettings,
   buildCollisionGrid,
   canAct,
@@ -32,6 +33,7 @@ import {
   footstepLoudness,
   footstepInterval,
   altarLoudness,
+  altarHumLoudness,
   altarProgress,
   startChain,
   isFrozen,
@@ -41,6 +43,7 @@ import {
   teamForSlot,
   SpawnSets,
   crawlsThroughHoles,
+  HideSeekTeam,
   arenaOf,
   jailSpot,
   mazeSize,
@@ -96,6 +99,7 @@ import type {
   HideSeekActionPayload,
   HideSeekEventPayload,
 } from '../types/multiplayer'
+import { getSlotColor } from '../types/multiplayer'
 import type { HideSeekFootprintView, HideSeekMinimapView, HideSeekRenderView, HideSeekRippleView, HideSeekStoneView } from '../rendering/types'
 
 export const DEFAULT_HERO_MODEL = 'male'
@@ -112,8 +116,6 @@ export interface HideSeekScoreRow {
 
 const SEND_INTERVAL_SEC = 1 / 15
 const STATE_BROADCAST_SEC = 1
-const BOT_ID = 'hide-seek-bot'
-const BOT_COLOR = '#f59e0b'
 /** Run animation pace, same as the Hero mode: legs keep up with the ground speed */
 const RUN_FRAME_SEC = 0.28
 /** How fast the sight cone swings to a new heading (radians per second) */
@@ -154,7 +156,17 @@ interface SavedHideSeekMatch {
   gadgets: GadgetCounts
   stamina: Stamina
   explored: number[]
-  bot: { gadgets: GadgetCounts; stamina: Stamina } | null
+  /** Solo: each bot's gadgets and breath (their minds start fresh) */
+  bots: Record<string, { gadgets: GadgetCounts; stamina: Stamina; rank: number }>
+}
+
+/** A bot player in a solo game: its own mind, breath and gadgets. rank = its place among the bots of its side */
+interface BotState {
+  brain: BotBrain
+  stamina: Stamina
+  gadgets: GadgetCounts
+  flare: number
+  rank: number
 }
 
 /**
@@ -263,11 +275,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   let sendTimer = 0
   let stateTimer = 0
   // Solo bot
-  let botBrain: BotBrain | null = null
-  let botStamina: Stamina = freshStamina(settings)
-  let botGadgets: GadgetCounts = { stones: 0, flares: 0, traps: 0, candles: 0 }
-  let botFlare = 0
-  let botNoise: GridCoord | null = null
+  const bots = new Map<string, BotState>()
+  /** Noises of this frame the bots may hear (each hears the ones within its reach) */
+  let botNoises: BotNoise[] = []
+  const isBot = (id: string) => bots.has(id)
   let viewContext: HideSeekViewContext | null = null
   let renderView: HideSeekRenderView | null = null
 
@@ -384,7 +395,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     footprints = []
     explored = new Uint8Array(mapStore.project.cols * mapStore.project.rows)
     players.clear()
-    botBrain = null
+    bots.clear()
     lastRound = -1
     // Only a solo game waits for a role pick (a solo game earlier in this tab must not leave it set for a room)
     needsSoloRole.value = false
@@ -441,7 +452,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       gadgets: { ...gadgets },
       stamina,
       explored: Array.from(explored),
-      bot: players.has(BOT_ID) ? { gadgets: botGadgets, stamina: botStamina } : null,
+      bots: Object.fromEntries([...bots].map(([id, b]) => [id, { gadgets: b.gadgets, stamina: b.stamina, rank: b.rank }])),
     }
     writeSession(HIDE_SEEK_MATCH_KEY, snapshot)
   }
@@ -465,7 +476,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   function resumeAsReferee(saved: SavedHideSeekMatch, savedMatch: HideSeekMatch): void {
     match = savedMatch
     for (const body of saved.bodies) {
-      // Solo brings its bot back; in a room only players still in it come back
+      // Solo brings its bots back; in a room only players still in it come back
       if (isSolo() || players.has(body.id)) players.set(body.id, { ...body, moving: false })
     }
     restoreOwnState(saved)
@@ -474,11 +485,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     // Everyone else is already where they were: this tune has played
     lastTuneKey = `${match.round}:${match.clock.phase}`
 
-    const bot = players.get(BOT_ID)
-    if (bot && saved.bot) {
-      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.altars.length, match.spots.length)
-      botGadgets = saved.bot.gadgets
-      botStamina = saved.bot.stamina
+    for (const [id, savedBot] of Object.entries(saved.bots ?? {})) {
+      const bot = players.get(id)
+      if (!bot) continue
+      bots.set(id, { ...newBot(bot, savedBot.rank), gadgets: savedBot.gadgets, stamina: savedBot.stamina })
     }
   }
 
@@ -491,18 +501,33 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (me) sendMyState(me)
   }
 
-  /** Solo: the player takes `role` in round 1, the bot the other one; round 2 swaps. */
-  function startSoloRound(role: HideSeekRole): void {
+  /**
+   * Solo: the player takes `role` with `teamSize - 1` bot teammates, against `teamSize` bots on the other side
+   * (seekers are team 0 for the whole match).
+   */
+  function startSoloRound(role: HideSeekRole, teamSize: number): void {
     const me = myPlayer()
     if (!me || !grid) return
-    players.delete(BOT_ID)
-    const botModels = HERO_MODELS.filter(m => m.id !== me.model)
-    addPlayer(BOT_ID, 'Bot', BOT_COLOR, botModels[Math.floor(Math.random() * botModels.length)].id, role === 'seeker' ? 'hider' : 'seeker')
-    // Team 0 seeks for the whole match
-    match = createMatch([
-      { id: me.id, team: role === 'seeker' ? 0 : 1 },
-      { id: BOT_ID, team: role === 'seeker' ? 1 : 0 },
-    ], settings.roundCount)
+    for (const id of bots.keys()) players.delete(id)
+    bots.clear()
+    const other: HideSeekRole = role === 'seeker' ? 'hider' : 'seeker'
+    const roster: { role: HideSeekRole; count: number }[] = [
+      { role, count: teamSize - 1 },
+      { role: other, count: teamSize },
+    ]
+    const entries: { id: string; team: HideSeekTeam }[] = [{ id: me.id, team: role === 'seeker' ? 0 : 1 }]
+    let n = 0
+    for (const side of roster) {
+      for (let k = 0; k < side.count; k++) {
+        n++
+        const id = `bot-${n}`
+        const model = HERO_MODELS[Math.floor(Math.random() * HERO_MODELS.length)].id
+        addPlayer(id, `Bot ${n}`, getSlotColor(n), model, side.role)
+        bots.set(id, { brain: createBotBrain(EMPTY_GRID, [], 0, 0), stamina: freshStamina(settings), gadgets: gadgetsFor(side.role, settings), flare: 0, rank: side.role === role ? k + 1 : k })
+        entries.push({ id, team: side.role === 'seeker' ? 0 : 1 })
+      }
+    }
+    match = createMatch(entries, settings.roundCount)
     setupRound(0)
     needsSoloRole.value = false
     onRoundStarted()
@@ -523,7 +548,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       p.role = seat.role
       // Each client places its own character (and the solo bot); the referee also puts the others at their start
       // until their own position arrives, so nobody is caught at a stale spot the moment the round begins
-      if (p.id !== myId() && p.id !== BOT_ID && !isReferee()) continue
+      if (p.id !== myId() && !isBot(p.id) && !isReferee()) continue
       const spawn = spawnForSeat(match, p.id, spawns)
       Object.assign(p, { col: spawn.col, row: spawn.row, targetCol: spawn.col, targetRow: spawn.row, moving: false, hidden: -1 })
     }
@@ -546,14 +571,12 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     releaseInput()
     visionFacing = me?.facing ?? 0
 
-    const bot = players.get(BOT_ID)
-    if (bot && grid) {
-      botBrain = createBotBrain(pathGrid(bot), allSpawns(spawns), match.altars.length, match.spots.length)
-      botStamina = freshStamina(rulesOf(bot))
-      botGadgets = gadgetsOf(bot)
-      botFlare = 0
-      botNoise = null
+    // Bots start the round with a fresh mind (a new labyrinth), full breath and their gadgets
+    for (const [id, bot] of bots) {
+      const body = players.get(id)
+      if (body) bots.set(id, newBot(body, bot.rank))
     }
+    botNoises = []
     if (me && !isSolo()) sendMyState(me)
     applyHud()
   }
@@ -608,6 +631,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     isFrozenMe.value = isFrozen(match, myId())
   }
 
+  function newBot(body: HideSeekBody, rank: number): BotState {
+    return {
+      brain: createBotBrain(pathGrid(body), allSpawns(spawns), match.altars.length, match.spots.length),
+      stamina: freshStamina(rulesOf(body)),
+      gadgets: gadgetsOf(body),
+      flare: 0,
+      rank,
+    }
+  }
+
   /** A tune marks each phase once: round start, the hunt, round end. */
   function playPhaseTune(): void {
     const key = `${match.round}:${match.clock.phase}`
@@ -635,7 +668,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     players.clear()
     releaseInput()
     match = createMatch([])
-    botBrain = null
+    bots.clear()
     winner.value = null
     endReason.value = null
     champion.value = null
@@ -908,7 +941,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
    * Without a jail (a map's own layout) the caught stay where they are.
    */
   function placeOwnCharacter(id: string, to: 'jail' | 'home'): void {
-    if (id !== myId() && !(id === BOT_ID && isReferee())) return
+    if (id !== myId() && !(isBot(id) && isReferee())) return
     const p = players.get(id)
     const jailAt = maze?.jail
     if (!p || (to === 'jail' && !jailAt)) return
@@ -940,7 +973,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         if (!altar) break
         if (!isReferee()) Object.assign(altar, { lit: true, progress: 1 })
         hideSeekAudio.playChime(...soundAt(altar, d => altarLoudness(d, settings)))
-        botNoise = altar
+        botNoises.push({ col: altar.col, row: altar.row, range: Infinity })
         applyHud()
         break
       }
@@ -973,11 +1006,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       case 'bell':
         hideSeekAudio.playBell(...noiseAt(event))
         ripples.push({ col: event.col, row: event.row, age: 0, kind: 'bell' })
-        botNoise = { col: event.col, row: event.row }
+        botNoises.push({ col: event.col, row: event.row, range: settings.noiseRange })
         break
       case 'stone':
         if (event.by !== myId()) hideSeekAudio.playStone(...noiseAt(event))
-        if (event.by !== BOT_ID) botNoise = { col: event.col, row: event.row }
+        botNoises.push({ col: event.col, row: event.row, range: settings.noiseRange })
         break
       case 'flare':
         if (event.by !== myId()) hideSeekAudio.playFlare(...noiseAt(event))
@@ -996,7 +1029,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         const door = maze?.doors[event.index]
         if (door) {
           hideSeekAudio.playDoor(...noiseAt(door.center), event.open)
-          botNoise = door.center
+          botNoises.push({ ...door.center, range: settings.noiseRange })
         }
         break
       }
@@ -1230,81 +1263,107 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     })
   }
 
-  /** Solo opponent: thinks with its own eyes / ears, then walks its path and uses gadgets like a player. */
-  function updateBot(me: HideSeekBody | undefined, deltaSec: number): void {
-    const bot = players.get(BOT_ID)
-    if (!bot || !botBrain || !grid) return
-    botFlare = Math.max(0, botFlare - deltaSec)
-    if (seatOf(match, BOT_ID)?.jailed || isFrozen(match, BOT_ID) || !canAct(bot.role, match.clock.phase)) {
-      bot.moving = false
+  /** Solo bots: each thinks with its own eyes / ears, then walks its path and uses gadgets like a player. */
+  function updateBots(deltaSec: number): void {
+    if (!grid) return
+    for (const [id, bot] of bots) {
+      const body = players.get(id)
+      if (body) updateBot(body, bot, deltaSec)
+    }
+    botNoises = []
+  }
+
+  function updateBot(body: HideSeekBody, bot: BotState, deltaSec: number): void {
+    if (!grid) return
+    bot.flare = Math.max(0, bot.flare - deltaSec)
+    const seat = seatOf(match, body.id)
+    if (!seat || seat.jailed || isFrozen(match, body.id) || !canAct(body.role, match.clock.phase)) {
+      body.moving = false
       return
     }
-    // A player inside a barrel or in jail cannot be sensed
-    const sensed = me && me.hidden === -1 && !seatOf(match, me.id)?.jailed
-    const botRules = rulesOf(bot)
-    const meTrait = traitOf(me?.model)
-    const senseRules = {
-      ...botRules,
-      visionRange: botRules.visionRange * spottedWithin(settings, meTrait),
-      hearingRange: botRules.hearingRange * Math.max(0.1, stepLoudness(settings, meTrait)),
-    }
+    const rules = rulesOf(body)
+    const others = [...players.values()].filter(p => p !== body)
     const action = thinkBot(
-      botBrain,
-      bot.role,
+      bot.brain,
+      body.role,
       {
-        self: bot,
-        facing: bot.facing,
-        opponent: sensed ? { col: me.col, row: me.row, moving: me.moving, sneaking: me.sneaking } : null,
+        self: body,
+        facing: body.facing,
+        opponents: others
+          .filter(p => p.role !== body.role)
+          .map(p => ({
+            id: p.id,
+            col: p.col,
+            row: p.row,
+            moving: p.moving,
+            sneaking: p.sneaking,
+            hidden: p.hidden !== -1,
+            jailed: !!seatOf(match, p.id)?.jailed,
+            spotted: spottedWithin(settings, traitOf(p.model)),
+            quiet: stepLoudness(settings, traitOf(p.model)),
+          })),
+        teammates: others.filter(p => p.role === body.role).map(p => ({ id: p.id, col: p.col, row: p.row, jailed: !!seatOf(match, p.id)?.jailed })),
         altars: match.altars,
         spots: match.spots,
-        noise: botNoise,
-        exhausted: botStamina.exhausted,
-        hiddenIn: bot.hidden,
-        gadgets: botGadgets,
-        flareActive: botFlare > 0,
+        noises: botNoises,
+        exhausted: bot.stamina.exhausted,
+        breath: bot.stamina.value / rules.staminaSeconds,
+        hiddenIn: body.hidden,
+        gadgets: bot.gadgets,
+        flareActive: bot.flare > 0,
         exits: match.exitsOpen ? match.exits : [],
+        jail: maze?.jail ?? null,
+        home: maze ? { col: maze.hiderBase.col + maze.hiderBase.cols / 2 - 0.5, row: maze.hiderBase.row + maze.hiderBase.rows / 2 - 0.5 } : null,
+        canChain: body.role === 'hider' && seat.lit > 0 && seat.chainCooldown <= 0,
+        rank: bot.rank,
       },
-      pathGrid(bot),
-      bot.role === 'seeker' && isHunting.value ? huntSettings(senseRules) : senseRules,
+      pathGrid(body),
+      body.role === 'seeker' && isHunting.value ? huntSettings(rules) : rules,
       Math.random,
       deltaSec
     )
-    botNoise = null
-    if (action.hideIn !== bot.hidden) {
-      bot.hidden = action.hideIn
+    if (action.hideIn !== body.hidden) {
+      body.hidden = action.hideIn
       const spot = match.spots[action.hideIn]
-      if (spot) Object.assign(bot, { col: spot.col, row: spot.row, targetCol: spot.col, targetRow: spot.row })
+      if (spot) Object.assign(body, { col: spot.col, row: spot.row, targetCol: spot.col, targetRow: spot.row })
     }
-    if (action.stone && botGadgets.stones > 0) {
-      botGadgets.stones--
-      const landing = stoneLanding(grid, bot, action.stone, settings)
-      applyAction({ kind: 'stone', c: landing.col, r: landing.row }, BOT_ID)
+    if (action.stone && bot.gadgets.stones > 0) {
+      bot.gadgets.stones--
+      const landing = stoneLanding(grid, body, action.stone, settings)
+      applyAction({ kind: 'stone', c: landing.col, r: landing.row }, body.id)
     }
-    if (action.flare && botGadgets.flares > 0) {
-      botGadgets.flares--
-      botFlare = settings.flareDuration
-      applyAction({ kind: 'flare', c: bot.col, r: bot.row }, BOT_ID)
+    if (action.flare && bot.gadgets.flares > 0) {
+      bot.gadgets.flares--
+      bot.flare = settings.flareDuration
+      applyAction({ kind: 'flare', c: body.col, r: body.row }, body.id)
     }
-    if (action.trap && botGadgets.traps > 0) {
-      botGadgets.traps--
-      applyAction({ kind: 'trap', c: Math.round(bot.col * 2) / 2, r: Math.round(bot.row * 2) / 2 }, BOT_ID)
+    if (action.trap && bot.gadgets.traps > 0) {
+      bot.gadgets.traps--
+      applyAction({ kind: 'trap', c: Math.round(body.col * 2) / 2, r: Math.round(body.row * 2) / 2 }, body.id)
     }
-    if (action.search !== -1) applyAction({ kind: 'search', spot: action.search }, BOT_ID)
+    if (action.search !== -1) applyAction({ kind: 'search', spot: action.search }, body.id)
+    if (action.chain) {
+      applyAction({ kind: 'chain' }, body.id)
+      if (isFrozen(match, body.id)) {
+        body.moving = false
+        return
+      }
+    }
 
-    bot.sneaking = action.sneak
-    if (bot.hidden !== -1) {
-      bot.moving = false
-      botStamina = advanceStamina(botStamina, 'hidden', deltaSec, botRules)
+    body.sneaking = action.sneak
+    if (body.hidden !== -1) {
+      body.moving = false
+      bot.stamina = advanceStamina(bot.stamina, 'hidden', deltaSec, rules)
       return
     }
-    if (botBrain.path.length > 0) openDoorsAhead(bot, index => applyAction({ kind: 'door', index, open: true }, BOT_ID))
-    const step = stepAlongPath(bot, botBrain.path, moveSpeed(bot.role, bot.sneaking, botStamina, botRules) * deltaSec)
-    botBrain.path = step.path
-    bot.col = bot.targetCol = step.pos.col
-    bot.row = bot.targetRow = step.pos.row
-    if (step.facing !== null) bot.facing = step.facing
-    bot.moving = step.facing !== null
-    botStamina = advanceStamina(botStamina, !bot.moving ? 'still' : bot.sneaking ? 'sneak' : 'run', deltaSec, botRules)
+    if (bot.brain.path.length > 0) openDoorsAhead(body, index => applyAction({ kind: 'door', index, open: true }, body.id))
+    const step = stepAlongPath(body, bot.brain.path, moveSpeed(body.role, body.sneaking, bot.stamina, rules) * deltaSec)
+    bot.brain.path = step.path
+    body.col = body.targetCol = step.pos.col
+    body.row = body.targetRow = step.pos.row
+    if (step.facing !== null) body.facing = step.facing
+    body.moving = step.facing !== null
+    bot.stamina = advanceStamina(bot.stamina, !body.moving ? 'still' : body.sneaking ? 'sneak' : 'run', deltaSec, rules)
   }
 
   function animate(p: HideSeekBody, deltaSec: number): void {
@@ -1325,7 +1384,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     let nearestSeeker = Infinity
     for (const p of players.values()) {
       if (p !== me) {
-        if (p.id !== BOT_ID) {
+        if (!isBot(p.id)) {
           const ease = Math.min(1, deltaSec * 12)
           p.col += (p.targetCol - p.col) * ease
           p.row += (p.targetRow - p.row) * ease
@@ -1418,15 +1477,15 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     for (const ripple of ripples) ripple.age += deltaSec / RIPPLE_SEC
     ripples = ripples.filter(r => r.age < 1)
 
-    // An altar being lit hums across the labyrinth (the seekers hear where to run)
+    // An altar being lit hums: only heard nearby (a seeker has to come close to notice it)
     altarHumTimer -= deltaSec
     if (altarHumTimer <= 0) {
       altarHumTimer = ALTAR_HUM_SEC
       match.altars.forEach((altar, i) => {
         if (!altar.lit && altar.progress > (altarHumAt[i] ?? 0)) {
-          const [volume, pan] = soundAt(altar, d => altarLoudness(d, settings))
-          hideSeekAudio.playChime(volume * 0.5, pan)
-          botNoise = altar
+          const [volume, pan] = soundAt(altar, d => altarHumLoudness(d, settings))
+          if (volume > 0) hideSeekAudio.playChime(volume * 0.5, pan)
+          botNoises.push({ col: altar.col, row: altar.row, range: settings.hearingRange })
         }
         altarHumAt[i] = altar.progress
       })
@@ -1459,7 +1518,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (me) updateMe(me, deltaSec)
     if (!isReferee()) advanceGuestTimers(deltaSec)
     if (isFrozen(match, myId()) !== isFrozenMe.value) applyChainHud()
-    if (isSolo() && !needsSoloRole.value) updateBot(me, deltaSec)
+    if (isSolo() && !needsSoloRole.value) updateBots(deltaSec)
     updateOthers(me, deltaSec)
 
     updateHunt(me, deltaSec)

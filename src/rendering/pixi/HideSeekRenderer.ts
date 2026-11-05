@@ -489,18 +489,19 @@ export class HideSeekRenderer {
     view.altars.forEach((altar, i) => {
       const sprite = this.altarSprites[i]
       if (sprite.parent !== layersContainer) layersContainer.addChild(sprite)
-      sprite.visible = !!texture
+      sprite.visible = !!texture && altar.visible
       if (texture && sprite.texture !== texture) sprite.texture = texture
       const pos = gridToScreen(altar.col, altar.row, tileWidth, tileHeight)
       sprite.position.set(pos.x, pos.y)
       sprite.anchor.set(asset?.anchorX ?? 0.5, asset?.anchorY ?? 0.88)
       sprite.scale.set((tileWidth / (asset?.width || 256)) * 1.6)
       sprite.zIndex = 100000 + Math.round((altar.col + altar.row) * 1000) + 400
-      // Everyone knows where the altars are: never fully dark
-      light(sprite, altar.lit ? 1 : Math.max(0.55, view.lightAt(altar)))
+      if (!altar.visible) return
+      // A found altar stays faintly on screen in the dark; a lit one burns
+      light(sprite, altar.lit ? 1 : Math.max(0.45, view.lightAt(altar)))
       if (altar.lit) {
         this.drawAltarFlames(pos.x, pos.y, tileWidth, tileHeight, time + i)
-      } else if (altar.progress > 0) {
+      } else if (altar.progressShown) {
         this.drawBeam(pos.x, pos.y, tileWidth, tileHeight, time + i * 0.7)
         this.drawProgressRing(pos.x, pos.y, tileWidth, tileHeight, altar.progress)
       }

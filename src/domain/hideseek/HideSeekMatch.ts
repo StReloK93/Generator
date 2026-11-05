@@ -84,6 +84,8 @@ export interface HideSeekMatch {
   /** Lit altars the hiders need this round */
   altarsNeeded: number
   chains: ChainState[]
+  /** Seconds a free hider has stood at the jail (at rescueTime everybody in it is set free) */
+  rescueProgress: number
   /** Barrels / cabinets a hider can hide in */
   spots: HideSpot[]
   traps: TrapState[]
@@ -183,6 +185,7 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
     altars: [],
     altarsNeeded: 0,
     chains: [],
+    rescueProgress: 0,
     spots: [],
     traps: [],
     mazeSeed: 0,
@@ -273,8 +276,10 @@ export function startRound(
     : undefined
   const count = Math.max(MIN_ALTARS, hiderCount + settings.altarExtra)
   match.altars = pickObjectiveSpots(grid, starts, count, random, props, zone, ALTAR_SPACING).map(p => ({ ...p, progress: 0, lit: false }))
-  match.altarsNeeded = Math.max(1, match.altars.length - 1)
+  // All but a quarter of them (1 against 1: 2 of 3, 5 against 5: 5 of 7)
+  match.altarsNeeded = Math.max(1, match.altars.length - Math.ceil(match.altars.length / 4))
   match.chains = []
+  match.rescueProgress = 0
   match.spots = maze
     ? maze.spots.map(spot => ({ ...spot }))
     : pickHideSpots(grid, starts, match.altars, settings.hideSpotCount, random).map(p => ({ ...p, kind: 'barrel' as const, facing: 'E' as const }))
@@ -419,8 +424,10 @@ export function tickMatch(
       events.push({ kind: 'altarLit', altar: index, by: lighters[0].id })
       return
     }
+    // Put out only down to the last stage reached: a hider who had to run keeps that much
     if (altar.progress > 0 && activeSeekers.some(s => near(s.id, altar, ALTAR_REACH))) {
-      altar.progress = Math.max(0, altar.progress - deltaSec / settings.altarKickTime)
+      const stage = Math.floor(altar.progress * settings.altarStages + 1e-9) / settings.altarStages
+      altar.progress = Math.max(stage, altar.progress - deltaSec / settings.altarKickTime)
     }
   })
   if (match.altars.length > 0 && altarProgress(match).lit >= match.altarsNeeded) {
@@ -444,11 +451,15 @@ export function tickMatch(
     if (activeSeekers.some(s => near(s.id, byId.get(chain.seeker)!, settings.catchDistance))) breakChain(match, chain, events)
   }
 
-  // Rescue: with a jail, a free hider reaching it sets everybody there free; without one, a touch frees the touched
+  // Rescue: with a jail, a free hider standing at it for the rescue time sets everybody there free;
+  // without one, a touch frees the touched
   if (arena.jail) {
     const jailAt = arena.jail
-    const rescuer = freeHiders.find(h => near(h.id, jailAt, rescueReach(settings, byId.get(h.id)!.trait) + EXIT_REACH))
-    if (rescuer) {
+    const anyJailed = hiders.some(h => h.jailed)
+    const rescuer = anyJailed ? freeHiders.find(h => near(h.id, jailAt, rescueReach(settings, byId.get(h.id)!.trait) + EXIT_REACH)) : undefined
+    match.rescueProgress = rescuer ? match.rescueProgress + deltaSec : 0
+    if (rescuer && match.rescueProgress >= settings.rescueTime) {
+      match.rescueProgress = 0
       for (const seat of hiders.filter(h => h.jailed)) {
         seat.jailed = false
         rescuer.score += settings.scoreRescue

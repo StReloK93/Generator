@@ -55,12 +55,12 @@ describe('HideSeekMaze', () => {
     expect(isBlockedAt(open, door.center.col, door.center.row)).toBe(false)
   })
 
-  it('places cabinets and barrels to hide in, candle stands and start points for 4 seekers and 6 hiders', () => {
+  it('places cabinets and barrels to hide in, candle stands and start points for 5 seekers and 6 hiders', () => {
     const maze = generateMaze(11, options)
     expect(maze.spots.length).toBe(options.hideSpotCount)
     expect(maze.spots.some(s => s.kind === 'cabinet')).toBe(true)
     expect(maze.torches.length).toBeGreaterThan(0)
-    expect(maze.seekerSpawns).toHaveLength(4)
+    expect(maze.seekerSpawns).toHaveLength(5)
     expect(maze.hiderSpawns).toHaveLength(6)
   })
 

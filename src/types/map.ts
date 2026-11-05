@@ -158,6 +158,10 @@ export interface HideSeekSettings {
   altarLightTime: number
   /** Seconds a seeker standing at a half-lit altar (nobody lighting it) needs to put it out completely */
   altarKickTime: number
+  /** An altar lights in this many stages: a seeker only puts it out down to the last stage reached */
+  altarStages: number
+  /** Seconds a free hider stands at the jail to set everybody in it free */
+  rescueTime: number
   /** Chain: a hider who lit an altar can hold a seeker this close (tiles) for chainTime seconds; both stand still.
    * When it runs out the seeker is dazed for chainDaze seconds; another seeker touching the held one frees them.
    * The hider can chain again after chainCooldown seconds */

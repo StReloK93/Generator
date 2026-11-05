@@ -164,14 +164,15 @@ describe('HideSeekMatch', () => {
     expect(fast.altars[0].progress).toBeGreaterThan(0.5)
   })
 
-  it('lets a seeker put a half-lit altar out, never a lit one', () => {
+  it('lets a seeker put a half-lit altar out only down to its last stage, never a lit one', () => {
     const match = seekingMatch(['s', 'h'])
     const [half, done] = match.altars
-    tick(match, [body('s', AWAY[0]), body('h', half)], settings.altarLightTime / 2)
+    tick(match, [body('s', AWAY[0]), body('h', half)], settings.altarLightTime * 0.6)
     tick(match, [body('s', AWAY[0]), body('h', done)], settings.altarLightTime + 0.01)
     expect(done.lit).toBe(true)
-    tick(match, [body('s', half), body('h', AWAY[1])], settings.altarKickTime / 2)
-    expect(half.progress).toBeLessThan(0.5)
+    tick(match, [body('s', half), body('h', AWAY[1])], settings.altarKickTime)
+    // 60% lit: put out to the 50% stage, no further
+    expect(half.progress).toBeCloseTo(0.5)
     tick(match, [body('s', done), body('h', AWAY[1])], settings.altarKickTime + 1)
     expect(done.lit).toBe(true)
   })
@@ -241,7 +242,10 @@ describe('HideSeekMatch', () => {
     tick(match, [body('s', AWAY[0]), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 10, row: 10 })])
     expect(seatOf(match, 'h1')!.jailed).toBe(true)
 
-    const events = tick(match, [body('s', AWAY[0]), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 3.5, row: 3.5 })])
+    const atJail = [body('s', AWAY[0]), body('h1', jailSpot(arena.jail!, 0)), body('h2', jailSpot(arena.jail!, 1)), body('h3', { col: 3.5, row: 3.5 })]
+    // It takes standing there for the rescue time
+    expect(tick(match, atJail, settings.rescueTime / 2)).toEqual([])
+    const events = tick(match, atJail, settings.rescueTime / 2 + 0.01)
     expect(events).toContainEqual({ kind: 'freed', id: 'h1', by: 'h3' })
     expect(events).toContainEqual({ kind: 'freed', id: 'h2', by: 'h3' })
     expect(match.seats.filter(s => s.role === 'hider').every(s => !s.jailed)).toBe(true)
@@ -278,10 +282,10 @@ describe('HideSeekMatch', () => {
     }
     const nearJail = { col: arena.jail!.col + 2.5, row: arena.jail!.row }
     const plain = jailedMatch()
-    tick(plain, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail)])
+    tick(plain, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail)], settings.rescueTime + 0.01)
     expect(seatOf(plain, 'h1')!.jailed).toBe(true)
     const rescued = jailedMatch()
-    tick(rescued, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail, { trait: 'rescuer' })])
+    tick(rescued, [body('s', AWAY[0]), body('h1', arena.jail!), body('h2', nearJail, { trait: 'rescuer' })], settings.rescueTime + 0.01)
     expect(seatOf(rescued, 'h1')!.jailed).toBe(false)
   })
 

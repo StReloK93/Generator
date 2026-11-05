@@ -113,6 +113,8 @@
     :close-on-escape="false"
   >
     <div class="flex flex-col gap-2">
+      <!-- Team size: the player plus bot teammates against as many bots -->
+      <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
       <UiCard
         v-for="option in SOLO_ROLES"
         :key="option.role"
@@ -189,7 +191,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, CircleDot, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Flame, Bell, Hand, Lamp, Link, Sparkles } from 'lucide-vue-next'
-import { UiButton, UiCard, UiModal } from '../ui'
+import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
 import { useGameExit } from '../../composables/useGameExit'
@@ -224,9 +226,13 @@ const SOLO_ROLES = [
   },
 ] as const
 
+/** Solo with bots: 1 against 1 up to 5 against 5 */
+const TEAM_SIZES: TabItem[] = [1, 3, 5].map(n => ({ id: n, label: `${n} × ${n}` }))
+const soloTeamSize = ref<string | number>(5)
+
 function startSolo(role: HideSeekRole) {
   hideSeekAudio.unlock()
-  hideSeekStore.startSoloRound(role)
+  hideSeekStore.startSoloRound(role, Number(soloTeamSize.value))
 }
 
 const isSeeker = computed(() => hideSeekStore.myRole === 'seeker')

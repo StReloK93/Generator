@@ -122,9 +122,14 @@ export function pickHideSpots(grid: CollisionGrid, spawns: GridCoord[], avoid: G
   return spreadOut(corners, count, HIDE_SPOT_SPACING)
 }
 
-/** An altar being lit is heard across the whole maze: loud nearby, never fully silent. */
+/** An altar flaring up (fully lit) is heard across the whole maze: loud nearby, never fully silent. */
 export function altarLoudness(distance: number, settings: HideSeekSettings): number {
   return Math.max(0.2, 1 - distance / (settings.hearingRange * 2.5))
+}
+
+/** An altar being lit only hums: heard within hearing range, silent beyond. */
+export function altarHumLoudness(distance: number, settings: HideSeekSettings): number {
+  return distance >= settings.hearingRange ? 0 : 1 - distance / settings.hearingRange
 }
 
 /** Players move while seeking; while hiding only the hiders do (the seeker waits with closed eyes). */

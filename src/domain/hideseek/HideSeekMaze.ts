@@ -102,8 +102,8 @@ const TORCH_SPACING = 7
 const TORCH_SPAWN_CLEARANCE = 5
 /** The seekers' base, in maze cells (3 x 3 = a 6 x 6 tile yard) */
 const BASE_SIZE = 3
-/** Start points per side (the seekers' base has room for 4, the hiders spread over 6) */
-const SEEKER_SPAWN_COUNT = 4
+/** Start points per side (5 seekers in their base, the hiders spread over 6) */
+const SEEKER_SPAWN_COUNT = 5
 const HIDER_SPAWN_COUNT = 6
 /** A hider never starts this close (map cells) to an exit gate, which would win the round at once */
 const HIDER_SPAWN_EXIT_CLEARANCE = 10
@@ -428,6 +428,7 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     { col: seekerBase.col + seekerBase.cols - 1 - inset, row: seekerBase.row + seekerBase.rows - 1 - inset },
     { col: seekerBase.col + seekerBase.cols - 1 - inset, row: seekerBase.row + inset },
     { col: seekerBase.col + inset, row: seekerBase.row + seekerBase.rows - 1 - inset },
+    { col: seekerBase.col + seekerBase.cols - 1 - inset, row: seekerBase.row + Math.floor(seekerBase.rows / 2) },
   ].slice(0, SEEKER_SPAWN_COUNT)
   const corridorCells: (GridCoord & { far: boolean })[] = []
   for (let x = 0; x < W; x++) {
