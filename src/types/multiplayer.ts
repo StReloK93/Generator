@@ -57,6 +57,8 @@ export interface ActiveRoomSummary {
   createdAt: number
   lastHeartbeat: number
   gameState: 'lobby' | 'countdown' | 'in_game' | 'ended'
+  /** Joining needs the host's password */
+  hasPassword: boolean
 }
 
 export interface TeammateHover {

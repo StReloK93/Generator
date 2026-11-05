@@ -42,12 +42,12 @@
     </div>
 
     <div class="shrink-0 px-2 py-1.5 border-t border-slate-800 flex items-center justify-between gap-2">
-      <label class="cursor-pointer group flex items-center gap-1.5 min-h-9 px-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-brand-200 transition-colors">
+      <label v-if="importable" class="cursor-pointer group flex items-center gap-1.5 min-h-9 px-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-brand-200 transition-colors">
         <input type="file" accept=".json,.isomap.json" class="hidden" @change="handleFileChange" />
         <Upload class="size-3.5 group-hover:text-brand-300" />
         <span class="truncate">{{ $t('home.importMap') }}</span>
       </label>
-      <span class="text-[10px] text-slate-500 shrink-0">{{ filteredMaps.length }}</span>
+      <span class="ml-auto text-[10px] text-slate-500 shrink-0">{{ filteredMaps.length }}</span>
     </div>
   </div>
 </template>
@@ -60,13 +60,15 @@ import { importMapFile, type MapSummary } from '../../services/mapManager'
 import { useNotificationStore } from '../../stores/notificationStore'
 
 /**
- * Searchable, name-only map list with custom map import. Scales to long map catalogs.
+ * Searchable, name-only map list (with custom map import when `importable`). Scales to long map catalogs.
  * The caller owns the map list; imported maps are handed back via `imported`.
  */
 const props = defineProps<{
   maps: MapSummary[]
   modelValue: string
   showPlayers?: boolean
+  /** Offer loading a map file (single player; room games use the built-in maps) */
+  importable?: boolean
 }>()
 
 const emit = defineEmits<{

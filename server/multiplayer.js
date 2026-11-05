@@ -50,6 +50,7 @@ export function createMultiplayerApp(httpServer) {
       playersCount: Number(room.playersCount) || 1,
       maxPlayers: Number(room.maxPlayers) || 2,
       gameState: String(room.gameState || 'lobby'),
+      hasPassword: room.hasPassword === true,
       createdAt: rooms.get(room.roomId)?.createdAt ?? Date.now(),
       lastHeartbeat: Date.now(),
     })

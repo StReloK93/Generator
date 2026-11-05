@@ -1,5 +1,5 @@
 <template>
-  <UiCard padding="none" custom-class="flex-col h-full">
+  <UiCard padding="none" custom-class="flex flex-col h-full">
     <!-- Chat Header -->
     <div class="px-3 pt-3 pb-2 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-2">

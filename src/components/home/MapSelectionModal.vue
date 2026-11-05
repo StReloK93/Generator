@@ -13,6 +13,7 @@
     <MapListPicker
       :maps="maps"
       :model-value="selectedMap?.id || ''"
+      importable
       class="w-44 sm:w-60 shrink-0 border-r border-slate-800 bg-slate-950/30"
       @update:model-value="emit('update:selectedMapId', $event)"
       @pick="emit('startMap', $event)"

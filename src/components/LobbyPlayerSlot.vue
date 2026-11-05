@@ -30,10 +30,8 @@
       </div>
     </div>
 
-    <UiBadge v-if="slot.player.isHost" variant="amber" size="sm" class="shrink-0">
-      {{ $t('lobby.slotHost') }}
-    </UiBadge>
-    <UiBadge v-else :variant="slot.player.isReady ? 'emerald' : 'slate'" size="sm" class="shrink-0 flex items-center gap-1">
+    <!-- The host has the crown on their avatar; the others show whether they are ready -->
+    <UiBadge v-if="!slot.player.isHost" :variant="slot.player.isReady ? 'emerald' : 'slate'" size="sm" class="shrink-0 flex items-center gap-1">
       <component :is="slot.player.isReady ? Check : Clock" class="size-3" />
       {{ slot.player.isReady ? $t('common.ready') : $t('common.notReady') }}
     </UiBadge>

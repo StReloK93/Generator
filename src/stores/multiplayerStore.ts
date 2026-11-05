@@ -34,7 +34,7 @@ import { getProjectMapId } from '../services/mapManager'
 import { gamePath, lobbyPath } from '../router/paths'
 
 /** Room codes are 6 digits (easy to read out and type on a phone's number pad) */
-export const ROOM_CODE_LENGTH = 6
+const ROOM_CODE_LENGTH = 6
 
 /** sessionStorage keys: this tab's player identity and room, so a page refresh rejoins the same seat */
 const PLAYER_ID_KEY = 'defensor_player_id'
@@ -60,6 +60,8 @@ interface SavedRoomSession {
   chatMessages: ChatMessage[]
   /** Clan picked for the running game, so a refresh does not ask again */
   selectedClanId: string
+  /** Host: the room's password ('' = open to everyone) */
+  roomPassword: string
 }
 
 export const useMultiplayerStore = defineStore('multiplayerStore', () => {
@@ -103,6 +105,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   // Available Rooms (Live Discovery)
   const availableRooms = ref<ActiveRoomSummary[]>([])
+  /** Host: only players who type this may join ('' = anyone may). Never leaves the host: the list only says a room has one */
+  const roomPassword = ref('')
 
   // Ready Check & Nudge Gestures
   const isNudgeModalOpen = ref<boolean>(false)
@@ -229,6 +233,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       createdAt: Date.now(),
       lastHeartbeat: Date.now(),
       gameState: roomGameState.value,
+      hasPassword: roomPassword.value !== '',
     }))
 
     connectionStatus.value = isReachable ? 'connected' : 'error'
@@ -240,8 +245,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   /**
    * 1. HOST: Creates a new Multiplayer Room
    */
-  async function hostNewGame(customRoomName: string, mapProject: MapProject, router?: any): Promise<string> {
+  async function hostNewGame(customRoomName: string, mapProject: MapProject, router?: any, password = ''): Promise<string> {
     if (router) setRouter(router)
+    roomPassword.value = password.trim()
 
     const smallest = 10 ** (ROOM_CODE_LENGTH - 1)
     const code = String(smallest + Math.floor(Math.random() * 9 * smallest))
@@ -280,7 +286,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomGameState.value = 'lobby'
 
     // Add System Chat
-    addSystemMessage(`Room created: ${code}. Share this PIN code with your friends!`)
+    addSystemMessage(`Room created: ${roomName.value}`)
 
     await startHosting(code)
 
@@ -291,7 +297,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   /** Connects to the room's host and asks for a seat (a returning player gets their old seat back). */
-  function connectAsClient(code: string): Promise<boolean> {
+  function connectAsClient(code: string, password = ''): Promise<boolean> {
     connectionStatus.value = 'connecting'
     return networkService.connectToHost(
       code,
@@ -306,6 +312,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
             id: myPlayerId.value,
             name: myPlayerName.value,
             color: myPlayerColor.value,
+            password,
           },
           senderId: myPlayerId.value,
           timestamp: Date.now(),
@@ -316,9 +323,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   /**
-   * 2. CLIENT: Joins an existing room with room code
+   * 2. CLIENT: Joins a room from the list (with its password when it has one)
    */
-  async function joinGame(targetRoomId: string, router?: any): Promise<boolean> {
+  async function joinGame(targetRoomId: string, router?: any, password = ''): Promise<boolean> {
     if (router) setRouter(router)
 
     const cleanRoomId = targetRoomId.replace(/\D/g, '')
@@ -326,7 +333,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     isHost.value = false
     chatMessages.value = []
 
-    const connected = await connectAsClient(cleanRoomId)
+    const connected = await connectAsClient(cleanRoomId, password)
 
     if (globalRouter) {
       globalRouter.push(lobbyPath(cleanRoomId))
@@ -358,6 +365,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     roomGameState.value = saved.roomGameState
     chatMessages.value = saved.chatMessages
     resumedClanId.value = saved.selectedClanId
+    roomPassword.value = saved.roomPassword
     mapStore.project = project
     restoreSessionFromProject()
 
@@ -392,6 +400,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       roomGameState: roomGameState.value,
       chatMessages: chatMessages.value.slice(-50),
       selectedClanId: towerStore.selectedClanId,
+      roomPassword: roomPassword.value,
     }
     writeSession(ROOM_SESSION_KEY, session)
   }
@@ -530,7 +539,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
       case 'JOIN_REQUEST': {
         if (!isHost.value) return
-        const applicant = msg.payload as { id: string; name: string; color: string }
+        const applicant = msg.payload as { id: string; name: string; color: string; password?: string }
 
         // Kicked players stay out of this room
         if (kickedPlayerIds.has(applicant.id)) {
@@ -555,15 +564,16 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           return
         }
 
+        // A room with a password lets in only those who typed it
+        if (roomPassword.value && applicant.password !== roomPassword.value) {
+          rejectJoin(applicant.id, 'password')
+          return
+        }
+
         // Find first empty slot
         const emptySlot = pickJoinSlot()
         if (!emptySlot) {
-          networkService.broadcast({
-            type: 'JOIN_REJECTED',
-            payload: { message: 'Xonada bo\'sh o\'rin qolmadi' },
-            senderId: myPlayerId.value,
-            timestamp: Date.now(),
-          })
+          rejectJoin(applicant.id, 'full')
           return
         }
 
@@ -954,6 +964,13 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
         break
       }
 
+      case 'JOIN_REJECTED': {
+        if (isHost.value || msg.payload?.id !== myPlayerId.value || !roomId.value) break
+        notify.error(t(msg.payload.reason === 'password' ? 'play.wrongPassword' : 'play.roomFull'), t('common.error'))
+        leaveRoom(globalRouter)
+        break
+      }
+
       case 'KICK': {
         if (isHost.value || msg.payload?.id !== myPlayerId.value || !roomId.value) break
         notify.warning(t('lobby.kickedDesc'), t('lobby.kickedTitle'))
@@ -990,6 +1007,16 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   // --- Kicking (host) ---
   /** Players the host sent away: their join requests are refused while this room lives */
   const kickedPlayerIds = new Set<string>()
+
+  /** Host: tells an applicant why they were not let in (wrong password, no free seat). */
+  function rejectJoin(playerId: string, reason: 'password' | 'full') {
+    networkService.broadcast({
+      type: 'JOIN_REJECTED',
+      payload: { id: playerId, reason },
+      senderId: myPlayerId.value,
+      timestamp: Date.now(),
+    })
+  }
 
   function sendKick(playerId: string) {
     networkService.broadcast({
@@ -1555,6 +1582,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     playerRemovalTimers.clear()
     kickedPlayerIds.clear()
     roomId.value = ''
+    roomPassword.value = ''
     slots.value = []
     players.value = []
     roomGameState.value = 'lobby'

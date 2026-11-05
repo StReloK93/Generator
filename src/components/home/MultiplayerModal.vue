@@ -24,64 +24,47 @@
       </div>
     </template>
 
-    <!-- CREATE ROOM: pick a map, host -->
+    <!-- MAPS: the whole column (double click hosts right away) -->
     <section class="w-1/2 shrink-0 flex flex-col min-h-0 border-r border-slate-800 bg-slate-950/30">
       <h3 class="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-300 flex items-center gap-1.5 shrink-0">
-        <Gamepad2 class="size-3.5" /> {{ $t('play.hostGame') }}
+        <Map class="size-3.5" /> {{ $t('play.pickMap') }}
       </h3>
       <MapListPicker
         v-model="selectedMapId"
-        :maps="availableMaps"
+        :maps="builtinMaps"
         show-players
         class="flex-1"
         @pick="handleCreateRoom"
-        @imported="customMaps.unshift($event)"
       />
-      <div class="p-2 sm:p-2.5 border-t border-slate-800 shrink-0">
+    </section>
+
+    <!-- HOST (optional password) and the open rooms -->
+    <section class="flex-1 min-w-0 flex flex-col min-h-0">
+      <div class="p-2 sm:p-2.5 border-b border-slate-800 flex items-center gap-2 shrink-0">
+        <UiInput
+          v-model="hostPassword"
+          type="password"
+          :placeholder="$t('play.passwordOptional')"
+          :leading-icon="Lock"
+          :maxlength="20"
+          size="sm"
+          custom-class="flex-1 min-w-0"
+          @keyup.enter="selectedMap && handleCreateRoom(selectedMap)"
+        />
         <UiButton
           variant="game-amber"
-          size="lg"
-          block
+          size="md"
           :loading="isCreatingRoom"
           :disabled="!selectedMap || isCreatingRoom"
           :leading-icon="Gamepad2"
-          custom-class="uppercase tracking-wider short:py-2"
+          custom-class="uppercase tracking-wider shrink-0"
           @click="selectedMap && handleCreateRoom(selectedMap)"
         >
           {{ isCreatingRoom ? $t('play.hosting') : $t('play.hostGame') }}
         </UiButton>
       </div>
-    </section>
 
-    <!-- JOIN ROOM: code or public list -->
-    <section class="flex-1 min-w-0 flex flex-col min-h-0">
-      <h3 class="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 shrink-0">
-        <Globe class="size-3.5" /> {{ $t('play.joinGame') }}
-      </h3>
-
-      <div class="p-2 flex items-center gap-2 shrink-0">
-        <UiInput
-          v-model="roomCodeInput"
-          :placeholder="$t('home.enterCode')"
-          :leading-icon="KeyRound"
-          :maxlength="ROOM_CODE_LENGTH"
-          inputmode="numeric"
-          size="sm"
-          custom-class="flex-1 [&_input]:font-bold [&_input]:tracking-widest [&_input]:placeholder:tracking-normal [&_input]:placeholder:font-normal"
-          @keyup.enter="handleJoinByCode"
-        />
-        <UiButton
-          variant="game-green"
-          size="md"
-          :disabled="roomCodeInput.length !== ROOM_CODE_LENGTH || isJoining"
-          :leading-icon="ArrowRight"
-          @click="handleJoinByCode"
-        >
-          {{ $t('play.connect') }}
-        </UiButton>
-      </div>
-
-      <div class="px-3 flex items-center justify-between shrink-0">
+      <div class="px-3 pt-2 flex items-center justify-between shrink-0">
         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
           <Radio class="size-3 text-emerald-400 animate-pulse" />
           {{ $t('play.publicRooms') }} ({{ multiplayerStore.availableRooms.length }})
@@ -110,6 +93,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 min-w-0">
+              <Lock v-if="room.hasPassword" class="size-3 shrink-0 text-amber-300" />
               <span class="font-extrabold text-xs text-slate-50 truncate">{{ room.roomName }}</span>
               <UiBadge v-if="room.gameMode === 'hero'" variant="rose" size="xs" class="shrink-0">{{ $t('game.modePvp') }}</UiBadge>
               <UiBadge v-else-if="room.gameMode === 'hideseek'" variant="purple" size="xs" class="shrink-0">{{ $t('game.modeHideSeek') }}</UiBadge>
@@ -129,7 +113,7 @@
             variant="game-green"
             size="sm"
             :disabled="isJoining || room.gameState !== 'lobby' || room.playersCount >= room.maxPlayers"
-            @click="joinRoom(room.roomId)"
+            @click="askToJoin(room)"
           >
             {{ room.playersCount >= room.maxPlayers ? $t('play.roomFull') : $t('home.joinButton') }}
           </UiButton>
@@ -144,25 +128,51 @@
             <p class="text-xs text-slate-400">{{ $t('play.noRooms') }}</p>
           </template>
           <template v-else>
-            <KeyRound class="size-5 text-slate-500" />
+            <WifiOff class="size-5 text-slate-500" />
             <p class="text-xs text-slate-400">{{ $t('play.roomListUnavailable') }}</p>
           </template>
         </div>
       </div>
     </section>
+
+    <!-- A room with a password: ask for it before joining -->
+    <UiModal
+      :is-open="!!lockedRoom"
+      :title="lockedRoom?.roomName ?? ''"
+      :subtitle="$t('play.enterPassword')"
+      :icon="Lock"
+      icon-color="amber"
+      size="sm"
+      @close="lockedRoom = null"
+    >
+      <div class="flex flex-col gap-2">
+        <UiInput
+          v-model="joinPassword"
+          type="password"
+          :placeholder="$t('play.password')"
+          :leading-icon="Lock"
+          :maxlength="20"
+          @keyup.enter="joinLockedRoom"
+        />
+        <UiButton variant="game-green" size="lg" block :disabled="!joinPassword || isJoining" @click="joinLockedRoom">
+          {{ $t('home.joinButton') }}
+        </UiButton>
+      </div>
+    </UiModal>
   </UiModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Gamepad2, Globe, User, Users, KeyRound, Radio, RefreshCw, Map } from 'lucide-vue-next'
+import { Gamepad2, User, Users, Lock, Radio, RefreshCw, Map, WifiOff } from 'lucide-vue-next'
 import { UiModal, UiButton, UiIconButton, UiInput, UiBadge } from '../ui'
-import { useMultiplayerStore, ROOM_CODE_LENGTH } from '../../stores/multiplayerStore'
+import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { applyMapPayloadToStores, getBuiltinMaps, type MapSummary } from '../../services/mapManager'
+import type { ActiveRoomSummary } from '../../types/multiplayer'
 import MapListPicker from './MapListPicker.vue'
 
 const props = defineProps<{
@@ -180,21 +190,18 @@ const notify = useNotificationStore()
 const { t } = useI18n()
 
 const playerName = ref(multiplayerStore.myPlayerName || 'Player')
-const roomCodeInput = ref('')
-// Room codes are digits only: anything else typed or pasted is dropped
-watch(roomCodeInput, code => {
-  const digits = code.replace(/\D/g, '')
-  if (digits !== code) roomCodeInput.value = digits
-})
+/** Optional: friends who know it can join, nobody else */
+const hostPassword = ref('')
 const isCreatingRoom = ref(false)
 const isJoining = ref(false)
 const isRefreshing = ref(false)
+/** The room asking for a password, and what was typed for it */
+const lockedRoom = ref<ActiveRoomSummary | null>(null)
+const joinPassword = ref('')
 
 const builtinMaps = getBuiltinMaps()
-const customMaps = ref<MapSummary[]>([])
-const availableMaps = computed(() => [...customMaps.value, ...builtinMaps])
 const selectedMapId = ref(builtinMaps[0]?.id || '')
-const selectedMap = computed(() => availableMaps.value.find(m => m.id === selectedMapId.value) || null)
+const selectedMap = computed(() => builtinMaps.find(m => m.id === selectedMapId.value) || null)
 
 // Room discovery polling runs only while the window is open
 let pollTimer: ReturnType<typeof setInterval> | null = null
@@ -230,7 +237,7 @@ async function handleCreateRoom(mapItem: MapSummary) {
     multiplayerStore.setPlayerProfile(playerName.value)
     applyMapPayloadToStores(mapItem.raw)
     const roomName = t('play.roomOf', { name: playerName.value })
-    await multiplayerStore.hostNewGame(roomName, mapStore.project, router)
+    await multiplayerStore.hostNewGame(roomName, mapStore.project, router, hostPassword.value)
     notify.success(t('play.roomCreated', { name: roomName }))
   } catch (err: any) {
     console.error('Failed to create room:', err)
@@ -240,18 +247,26 @@ async function handleCreateRoom(mapItem: MapSummary) {
   }
 }
 
-async function handleJoinByCode() {
-  const code = roomCodeInput.value
-  if (code.length !== ROOM_CODE_LENGTH || isJoining.value) return
-  await joinRoom(code)
+/** An open room is joined right away; one with a password asks for it first. */
+function askToJoin(room: ActiveRoomSummary) {
+  if (!room.hasPassword) return joinRoom(room, '')
+  joinPassword.value = ''
+  lockedRoom.value = room
 }
 
-async function joinRoom(code: string) {
+function joinLockedRoom() {
+  const room = lockedRoom.value
+  if (!room || !joinPassword.value) return
+  lockedRoom.value = null
+  joinRoom(room, joinPassword.value)
+}
+
+async function joinRoom(room: ActiveRoomSummary, password: string) {
   isJoining.value = true
   try {
     multiplayerStore.setPlayerProfile(playerName.value)
-    await multiplayerStore.joinGame(code, router)
-    notify.success(t('play.connectedToRoom', { code }))
+    await multiplayerStore.joinGame(room.roomId, router, password)
+    notify.success(t('play.connectedToRoom', { name: room.roomName }))
   } catch (err: any) {
     console.error('Failed to join:', err)
     notify.error(t('play.roomConnectionError', { error: err?.message || '' }), t('common.error'))
