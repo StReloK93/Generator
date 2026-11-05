@@ -1,7 +1,9 @@
 <template>
-  <div class="h-dvh min-h-dvh max-h-dvh w-full citadel-backdrop text-slate-100 flex flex-col overflow-hidden select-none font-sans pt-safe">
+  <div class="h-dvh min-h-dvh max-h-dvh w-full citadel-backdrop text-slate-100 flex flex-col overflow-hidden select-none font-sans p-1.5 sm:p-4 pt-safe pb-safe">
+    <!-- Everything in one card: header, seats, action -->
+    <UiCard padding="none" custom-class="flex flex-col flex-1 min-h-0 w-full max-w-5xl mx-auto">
     <!-- Header: room, map and player count; chat and leave as small icons -->
-    <header class="relative w-full max-w-5xl mx-auto px-3 sm:px-6 py-1.5 flex items-center gap-2 shrink-0">
+    <header class="relative px-2.5 pt-1.5 pb-1 flex items-center gap-2 shrink-0">
       <div class="min-w-0">
         <h1 class="text-sm sm:text-base font-extrabold text-slate-50 truncate">
           {{ multiplayerStore.roomName || $t('lobby.title') }}
@@ -33,7 +35,7 @@
             v-if="unreadCount > 0 && !isChatOpen"
             class="pointer-events-none absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black leading-4 text-center tabular-nums"
           >{{ unreadCount }}</span>
-          <div v-if="isChatOpen" class="absolute top-full right-0 mt-1.5 w-80 max-w-[calc(100vw-1.5rem)] h-72 short:h-60 z-40 shadow-2xl">
+          <div v-if="isChatOpen" class="absolute top-full right-0 mt-1.5 w-80 max-w-[calc(100vw-1.5rem)] h-72 short:h-60 z-40 shadow-2xl rounded-2xl bg-slate-950">
             <LobbyChat />
           </div>
         </div>
@@ -41,26 +43,22 @@
       </div>
     </header>
 
-    <main class="flex-1 min-h-0 w-full max-w-5xl mx-auto px-3 sm:px-6 pb-1.5 flex flex-col">
-      <!-- Players -->
-      <UiCard padding="none" custom-class="flex flex-col flex-1 min-h-0">
-        <div class="flex-1 min-h-0 overflow-y-auto p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
-          <LobbyPlayerSlot
-            v-for="slot in multiplayerStore.slots"
-            :key="slot.slotIndex"
-            :slot="slot"
-          />
-        </div>
-      </UiCard>
+    <!-- Players -->
+    <main class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
+      <LobbyPlayerSlot
+        v-for="slot in multiplayerStore.slots"
+        :key="slot.slotIndex"
+        :slot="slot"
+      />
     </main>
 
     <!-- Action bar -->
-    <footer class="w-full max-w-5xl mx-auto px-3 sm:px-6 pb-1.5 pb-safe flex items-center shrink-0">
+    <footer class="px-1.5 sm:px-2.5 pt-1 pb-1.5 flex items-center shrink-0">
       <div class="ml-auto shrink-0">
         <UiButton
           v-if="!multiplayerStore.isHost"
           :variant="multiplayerStore.myPlayer?.isReady ? 'game-green' : 'game-amber'"
-          size="lg"
+          size="md"
           :leading-icon="multiplayerStore.myPlayer?.isReady ? Check : Clock"
           :custom-class="['min-w-44 short:py-2', multiplayerStore.isReadyButtonGlowing && !multiplayerStore.myPlayer?.isReady ? 'ring-4 ring-amber-400 animate-bounce' : '']"
           @click="multiplayerStore.toggleReady()"
@@ -72,7 +70,7 @@
           <UiButton
             v-if="multiplayerStore.hideSeekLobbyIssue"
             variant="secondary"
-            size="lg"
+            size="md"
             :leading-icon="Clock"
             disabled
             custom-class="min-w-44 short:py-2"
@@ -82,7 +80,7 @@
           <UiButton
             v-else-if="!multiplayerStore.isAllReady"
             variant="game-amber"
-            size="lg"
+            size="md"
             :leading-icon="BellRing"
             custom-class="min-w-44 short:py-2"
             @click="multiplayerStore.sendReadyCheck()"
@@ -92,7 +90,7 @@
           <UiButton
             v-else
             variant="game-green"
-            size="lg"
+            size="md"
             :leading-icon="Play"
             custom-class="min-w-44 uppercase tracking-wider short:py-2"
             @click="handleStartGame"
@@ -102,6 +100,7 @@
         </template>
       </div>
     </footer>
+    </UiCard>
 
     <!-- Ready check from host -->
     <UiModal
@@ -114,7 +113,7 @@
       :show-close="false"
       :close-on-backdrop="false"
     >
-      <UiButton variant="game-green" size="lg" block :leading-icon="Check" @click="multiplayerStore.toggleReady()">
+      <UiButton variant="game-green" size="md" block :leading-icon="Check" @click="multiplayerStore.toggleReady()">
         {{ $t('lobby.imReady') }}
       </UiButton>
     </UiModal>
