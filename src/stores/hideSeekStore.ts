@@ -1394,7 +1394,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
           p.row += (p.targetRow - p.row) * ease
         }
         const silent = (seatOf(match, p.id)?.effects.wind ?? 0) > 0
-        if (me && playing && p.moving && !p.sneaking && p.hidden === -1 && !silent) {
+        // Only opponents' steps are heard: teammates' would drown out the ones that matter
+        const opponent = !!me && p.role !== me.role
+        if (me && opponent && playing && p.moving && !p.sneaking && p.hidden === -1 && !silent) {
           p.stepTimer += deltaSec
           if (p.stepTimer >= footstepInterval(rulesOf(p).runSpeed)) {
             p.stepTimer = 0
