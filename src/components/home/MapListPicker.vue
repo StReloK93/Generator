@@ -41,13 +41,12 @@
       </div>
     </div>
 
-    <div class="shrink-0 px-2 py-1.5 border-t border-slate-800 flex items-center justify-between gap-2">
-      <label v-if="importable" class="cursor-pointer group flex items-center gap-1.5 min-h-9 px-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-brand-200 transition-colors">
+    <div v-if="importable" class="shrink-0 px-2 py-1.5 border-t border-slate-800 flex items-center gap-2">
+      <label class="cursor-pointer group flex items-center gap-1.5 min-h-9 px-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-brand-200 transition-colors">
         <input type="file" accept=".json,.isomap.json" class="hidden" @change="handleFileChange" />
         <Upload class="size-3.5 group-hover:text-brand-300" />
         <span class="truncate">{{ $t('home.importMap') }}</span>
       </label>
-      <span class="ml-auto text-[10px] text-slate-500 shrink-0">{{ filteredMaps.length }}</span>
     </div>
   </div>
 </template>

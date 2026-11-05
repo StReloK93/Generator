@@ -27,7 +27,7 @@
     <!-- MAPS: the whole column (double click hosts right away) -->
     <section class="w-1/2 shrink-0 flex flex-col min-h-0 border-r border-slate-800 bg-slate-950/30">
       <h3 class="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-300 flex items-center gap-1.5 shrink-0">
-        <Map class="size-3.5" /> {{ $t('play.pickMap') }}
+        <Map class="size-3.5" /> {{ $t('play.maps') }} ({{ builtinMaps.length }})
       </h3>
       <MapListPicker
         v-model="selectedMapId"

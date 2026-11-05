@@ -2,7 +2,7 @@ import { Layer, RouteInfo, TileItem } from '../../types/map'
 import { HideSeekMaze, MazeEdge, edgeSubCells, insideRect } from './HideSeekMaze'
 
 /**
- * A labyrinth as map content: one plain sand floor and single stone wall lines (like the Hero test map), crawl
+ * A labyrinth as map content: one plain sand floor and single stone wall lines, crawl
  * holes as broken wall pieces. Doors, exit gates, furniture and candles are drawn by the hide & seek renderer (they change).
  * Walls sit on cell edges: a 'v' edge on the cell right of the line (the last column's on the cell left of it,
  * drawn in front), an 'h' edge on the cell above the line, drawn in front (the first row's on the cell below it).
