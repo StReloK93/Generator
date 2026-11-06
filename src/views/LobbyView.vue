@@ -22,6 +22,7 @@
       <div class="ml-auto flex items-center gap-1.5 shrink-0">
         <span v-if="multiplayerStore.connectionStatus === 'error'" class="text-[11px] text-rose-300 truncate max-w-40">{{ $t('play.serverUnreachable') }}</span>
         <span v-else-if="multiplayerStore.connectionStatus !== 'connected'" class="size-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <VoiceChatControl />
         <!-- Chat: the panel opens below the icon -->
         <div class="relative">
           <UiIconButton
@@ -151,6 +152,7 @@ import { getProjectMapId } from '../services/mapManager'
 import { gamePath, lobbyPath } from '../router/paths'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
+import VoiceChatControl from '../components/VoiceChatControl.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -30,7 +30,7 @@ const OWN_SERVER_PEER_OPTIONS: PeerOptions = {
  * otherwise the public PeerJS cloud.
  */
 let peerOptionsPromise: Promise<PeerOptions> | null = null
-function resolvePeerOptions(): Promise<PeerOptions> {
+export function resolvePeerOptions(): Promise<PeerOptions> {
   peerOptionsPromise ??= fetch(`${API_URL}/ice-servers`)
     .then(async (res): Promise<PeerOptions> => {
       if (!res.ok) return CLOUD_PEER_OPTIONS

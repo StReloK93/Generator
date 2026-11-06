@@ -8,7 +8,10 @@
     ]"
   >
     <div
-      class="relative size-8 short:size-7 rounded-lg flex items-center justify-center text-slate-950 font-black text-[11px] shrink-0"
+      :class="[
+        'relative size-8 short:size-7 rounded-lg flex items-center justify-center text-slate-950 font-black text-[11px] shrink-0 transition-shadow',
+        isSpeaking ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900' : ''
+      ]"
       :style="{ backgroundColor: slot.player.color }"
     >
       {{ slot.player.name.slice(0, 2).toUpperCase() }}
@@ -72,6 +75,7 @@ import { PlayerSlot } from '../types/multiplayer'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useI18n } from '../stores/i18nStore'
 import { useNotificationStore } from '../stores/notificationStore'
+import { useVoiceStore } from '../stores/voiceStore'
 
 const props = defineProps<{
   slot: PlayerSlot
@@ -79,6 +83,9 @@ const props = defineProps<{
 
 const multiplayerStore = useMultiplayerStore()
 const { t } = useI18n()
+
+const voiceStore = useVoiceStore()
+const isSpeaking = computed(() => !!props.slot.player && voiceStore.speakingIds.includes(props.slot.player.id))
 
 const isMe = computed(() => props.slot.player?.id === multiplayerStore.myPlayerId)
 const notify = useNotificationStore()

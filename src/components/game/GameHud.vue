@@ -3,8 +3,12 @@
     class="absolute top-0 right-0 z-50 pointer-events-none flex flex-col select-none"
     :class="isHideSeekMode ? 'p-2 pt-safe' : 'h-full w-60 sm:w-64 max-w-[85vw]'">
     <!-- Hide & seek: the whole screen is the game, its HUD lives in HideSeekOverlay -->
-    <UiIconButton v-if="isHideSeekMode" :icon="Menu" size="lg" :title="$t('game.menu')"
-      custom-class="pointer-events-auto bg-slate-950/80! backdrop-blur-md" @click="isMenuOpen = true" />
+    <div v-if="isHideSeekMode" class="flex items-start gap-1.5">
+      <VoiceChatControl v-if="multiplayerStore.roomId" size="lg" button-class="bg-slate-950/80! backdrop-blur-md"
+        class="pointer-events-auto" />
+      <UiIconButton :icon="Menu" size="lg" :title="$t('game.menu')"
+        custom-class="pointer-events-auto bg-slate-950/80! backdrop-blur-md" @click="isMenuOpen = true" />
+    </div>
 
     <!-- Right Panel Card Container -->
     <UiCard v-else variant="slate" padding="none"
@@ -17,7 +21,10 @@
           <span class="flex items-center gap-1.5 text-xs font-extrabold text-brand-200">
             <Swords class="size-3.5 text-brand-300" /> {{ $t('game.modePvp') }}
           </span>
-          <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
+          <span class="flex items-center gap-1">
+            <VoiceChatControl v-if="multiplayerStore.roomId" size="xs" />
+            <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
+          </span>
         </div>
         <div v-else class="flex items-center justify-between gap-1.5">
           <!-- Gold -->
@@ -51,6 +58,7 @@
             </span>
           </button>
 
+          <VoiceChatControl v-if="multiplayerStore.roomId" size="xs" />
           <!-- Tactical Menu Trigger -->
           <UiIconButton :icon="Menu" size="xs" variant="ghost" :title="$t('game.menu')" @click="isMenuOpen = true" />
         </div>
@@ -343,6 +351,7 @@ import { UiButton, UiIconButton, UiCard, UiBadge, UiTabs } from '../ui'
 import CharacterLivePreview from './CharacterLivePreview.vue'
 import WavesOverviewModal from './WavesOverviewModal.vue'
 import InGameMenuModal from './InGameMenuModal.vue'
+import VoiceChatControl from '../VoiceChatControl.vue'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useWaveStore } from '../../stores/waveStore'
