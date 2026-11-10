@@ -179,63 +179,11 @@
             :leading-icon="Sparkles"
             @click="isProjectileModalOpen = true"
           >
-            {{ $t('towers.chooseFrom80') || 'Barcha 80 xil snaryadlar' }}
+            {{ $t('pe.browseLibrary') }}
           </UiButton>
         </div>
 
-        <!-- Active Selected Projectile Display Card -->
-        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div 
-              class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
-              :style="{ 
-                backgroundColor: `${activeProjectileDef.visual.colorCss}20`, 
-                borderColor: `${activeProjectileDef.visual.colorCss}60`,
-                color: activeProjectileDef.visual.colorCss
-              }"
-            >
-              <div 
-                class="w-3.5 h-3.5 rounded-full shadow-md"
-                :style="{ backgroundColor: activeProjectileDef.visual.colorCss }"
-              />
-            </div>
-            <div class="flex flex-col min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-bold text-slate-100 truncate">
-                  {{ getLocalizedProjectileName(activeProjectileDef) }}
-                </span>
-                <span 
-                  class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
-                  :style="{
-                    color: activeProjectileDef.visual.colorCss,
-                    borderColor: `${activeProjectileDef.visual.colorCss}40`,
-                    backgroundColor: `${activeProjectileDef.visual.colorCss}15`
-                  }"
-                >
-                  {{ activeProjectileDef.identity.category }}
-                </span>
-                <span 
-                  class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border"
-                  :class="getProjectileArchetypeMeta(activeProjectileDef).badgeClass"
-                >
-                  {{ getProjectileArchetypeMeta(activeProjectileDef).nameUz.split(' ')[0] }}
-                </span>
-              </div>
-              <span class="text-[10px] text-slate-400 truncate mt-0.5">
-                {{ activeProjectileDef.identity.description }}
-              </span>
-            </div>
-          </div>
-
-          <UiButton
-            variant="secondary"
-            size="xs"
-            :leading-icon="Crosshair"
-            @click="isProjectileModalOpen = true"
-          >
-            {{ $t('common.change') || 'Tanlash' }}
-          </UiButton>
-        </div>
+        <ProjectileCard :projectile-id="form.projectileId" @change="isProjectileModalOpen = true" />
       </div>
 
       <!-- 5. Splash Damage Toggle & Radius -->
@@ -636,7 +584,7 @@
   <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :current-projectile-id="form.projectileId || 'fireball'"
+    :current-projectile-id="form.projectileId"
     @select="(val: string) => { form.projectileId = val }"
     @close="isProjectileModalOpen = false"
   />
@@ -654,27 +602,21 @@ import { useI18n } from '../stores/i18nStore'
 import { AssetItem, TowerTraitType } from '../types/map'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
 import { getClanIcon } from '../utils/towerClans'
-import { getProjectileDefinition, getProjectileArchetypeMeta } from '../utils/projectileCatalog'
+import ProjectileCard from './projectile/ProjectileCard.vue'
+import { DEFAULT_PROJECTILE_ID } from '../domain/projectile'
 import { TowerBlueprintManager, RawTowerBlueprint } from '../domain/tower/TowerBlueprintManager'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
 
 const towerStore = useTowerStore()
 const assetStore = useAssetStore()
 const notify = useNotificationStore()
-const { t, currentLocale } = useI18n()
-
-function getLocalizedProjectileName(p: any): string {
-  if (!p) return ''
-  if (currentLocale.value === 'uz' && p.identity?.nameUz) return p.identity.nameUz
-  return p.identity?.name || p.name || p.id
-}
+const { t } = useI18n()
 
 const assetSearchQuery = ref('')
 const selectedCategory = ref('all')
 
 // Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDefinition(form.value.projectileId || 'fireball'))
 
 const categories = computed(() => {
   const items = [
@@ -745,7 +687,7 @@ const form = ref({
   damage: 60,
   attackSpeed: 0.5,
   range: 4.0,
-  projectileId: 'fireball',
+  projectileId: DEFAULT_PROJECTILE_ID,
   isSplash: false,
   splashRadius: 1.5,
   splashType: 'falloff' as SplashType,

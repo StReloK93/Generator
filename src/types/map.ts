@@ -1,3 +1,5 @@
+import type { ProjectileDefinition } from './projectile'
+
 export interface TileItem {
   id: string
   x: number // base origin col
@@ -302,6 +304,8 @@ export interface MapProject {
   clans?: TowerClan[]
   placedTowers?: any[]
   towerBlueprints?: any[]
+  /** Player-made projectiles the towers of this map use (built-in ones are referenced by id only) */
+  customProjectiles?: ProjectileDefinition[]
   waveConfigs?: WaveConfig[]
   currentWaveIndex?: number
   buildableCells?: string[] // list of `${col},${row}` cells where towers can be built. If empty/undefined, all valid cells are buildable

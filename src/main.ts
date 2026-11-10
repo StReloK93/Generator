@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import { router } from './router'
 import { useI18nStore } from './stores/i18nStore'
+import { loadProjectileLibrary } from './services/projectileLibrary'
 import './style.css'
 
 async function initApp() {
@@ -15,6 +16,8 @@ async function initApp() {
       // Graceful fallback
     }
   }
+
+  loadProjectileLibrary()
 
   const app = createApp(App)
   const pinia = createPinia()

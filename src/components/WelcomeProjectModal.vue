@@ -49,43 +49,48 @@
         <!-- ========================================== -->
         <!-- TAB 1: CREATE NEW MAP                      -->
         <!-- ========================================== -->
-        <div v-show="!isImporting && activeMode === 'new'" class="flex flex-col gap-4 flex-1">
+        <!-- Step 1: the genre comes first (the editor then offers only that genre's tools and settings) -->
+        <div v-show="!isImporting && activeMode === 'new' && !selectedGameMode" class="flex flex-col gap-3 flex-1">
+          <div class="flex flex-col gap-0.5 px-1">
+            <span class="text-sm font-bold text-slate-100">{{ $t('genre.pickTitle') }}</span>
+            <span class="text-xs text-slate-400">{{ $t('genre.pickHint') }}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <UiCard v-for="mode in MAP_GAME_MODES" :key="mode" interactive padding="lg"
+              custom-class="flex flex-col gap-3 cursor-pointer" @click="pickGenre(mode)">
+              <UiBadge :variant="MAP_MODE_INFO[mode].badge" size="md" :icon="MAP_MODE_INFO[mode].icon"
+                custom-class="self-start">
+                {{ $t(MAP_MODE_INFO[mode].label) }}
+              </UiBadge>
+              <p class="text-xs text-slate-300 leading-relaxed flex-1">{{ $t(MAP_MODE_INFO[mode].desc) }}</p>
+              <span class="text-[11px] font-semibold text-brand-300 flex items-center gap-1">
+                {{ $t('genre.choose') }}
+                <ArrowRight class="w-3.5 h-3.5" />
+              </span>
+            </UiCard>
+          </div>
+        </div>
+
+        <!-- Step 2: name and size of the new map -->
+        <div v-if="selectedGameMode" v-show="!isImporting && activeMode === 'new'" class="flex flex-col gap-4 flex-1">
+          <UiCard variant="subtle" padding="sm" custom-class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <UiBadge :variant="MAP_MODE_INFO[selectedGameMode].badge" size="md"
+                :icon="MAP_MODE_INFO[selectedGameMode].icon" custom-class="shrink-0">
+                {{ $t(MAP_MODE_INFO[selectedGameMode].label) }}
+              </UiBadge>
+              <span class="text-xs text-slate-400 truncate">{{ $t(MAP_MODE_INFO[selectedGameMode].desc) }}</span>
+            </div>
+            <UiButton variant="ghost" size="xs" :leading-icon="ArrowLeft" custom-class="shrink-0"
+              @click="selectedGameMode = null">
+              {{ $t('genre.change') }}
+            </UiButton>
+          </UiCard>
+
           <!-- Project Name Input -->
           <UiInput v-model="newProjectName" :label="$t('common.name') + ' *'"
             :placeholder="$t('welcome.projectNamePlaceholder')" :leading-icon="Sparkles"
             @keyup.enter="handleCreateNew" />
-
-          <!-- Game Mode Selector: TD vs Hero -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-slate-300">O'yin Rejimi (Game Mode)</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <UiCard :selected="selectedGameMode === 'td'" interactive padding="md"
-                custom-class="flex flex-col gap-1.5 cursor-pointer border-slate-800 hover:border-amber-500/50 transition-colors"
-                @click="selectedGameMode = 'td'">
-                <div class="flex items-center gap-2 text-amber-400">
-                  <Castle class="w-5 h-5 shrink-0" />
-                  <span class="font-bold text-sm">Tower Defense</span>
-                  <UiBadge v-if="selectedGameMode === 'td'" variant="amber" size="xs" class="ml-auto">Faol</UiBadge>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-tight">
-                  To'lqinlar, klanlar, minoralar qurish va bazani himoyalash.
-                </p>
-              </UiCard>
-
-              <UiCard :selected="selectedGameMode === 'hero'" interactive padding="md"
-                custom-class="flex flex-col gap-1.5 cursor-pointer border-slate-800 hover:border-emerald-500/50 transition-colors"
-                @click="selectedGameMode = 'hero'">
-                <div class="flex items-center gap-2 text-emerald-400">
-                  <Swords class="w-5 h-5 shrink-0" />
-                  <span class="font-bold text-sm">Hero Adventure</span>
-                  <UiBadge v-if="selectedGameMode === 'hero'" variant="emerald" size="xs" class="ml-auto">Faol</UiBadge>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-tight">
-                  Qahramon (Warrior, Orc, Demon), to'siqlar, sarguzasht va janglar.
-                </p>
-              </UiCard>
-            </div>
-          </div>
 
           <!-- Presets Selection -->
           <div class="flex flex-col gap-1.5">
@@ -193,7 +198,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Sparkles, Upload, History, Trash2, Map, Package, Castle, Swords } from 'lucide-vue-next'
+import { Sparkles, Upload, History, Trash2, Map, Package, ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import {
   UiModal,
   UiTabs,
@@ -229,7 +234,9 @@ import {
 import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { normalizeHideSeekSettings } from '../domain/hideseek/HideSeekSettings'
-import { getMapMode } from '../domain/map/MapMode'
+import { getMapMode, MAP_GAME_MODES, DEFAULT_MAP_SIZE } from '../domain/map/MapMode'
+import { MAP_MODE_INFO } from './mapModeInfo'
+import type { MapGameMode } from '../types/map'
 
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
@@ -253,8 +260,9 @@ const isImporting = ref(false)
 const importProgress = ref(0)
 const importStageMessage = ref('')
 const activeMode = ref<'new' | 'import' | 'recents'>('new')
-const selectedGameMode = ref<'td' | 'hero'>('td')
-const newProjectName = ref('My Defense Map')
+/** null until the genre is picked: a new map starts with picking its genre */
+const selectedGameMode = ref<MapGameMode | null>(null)
+const newProjectName = ref('')
 const cols = ref(60)
 const rows = ref(60)
 const selectedPreset = ref("Medium")
@@ -309,7 +317,22 @@ function applyPreset(preset: Preset) {
   rows.value = preset.rows
 }
 
+function pickGenre(mode: MapGameMode) {
+  selectedGameMode.value = mode
+  const size = DEFAULT_MAP_SIZE[mode]
+  const preset = presets.find(p => p.cols === size && p.rows === size)
+  if (preset) applyPreset(preset)
+  else {
+    selectedPreset.value = 'Custom'
+    cols.value = size
+    rows.value = size
+  }
+}
+
 function handleCreateNew() {
+  const gameMode = selectedGameMode.value
+  if (!gameMode) return
+
   gameStore.exitPlayMode()
   characterStore.resetTour()
   characterStore.isPlaying = false
@@ -320,21 +343,23 @@ function handleCreateNew() {
   characterStore.resetForNewProject()
   towerStore.resetForNewProject()
 
-  const name = newProjectName.value.trim() || (selectedGameMode.value === 'hero' ? 'My Hero Adventure' : 'My Defense Map')
+  const name = newProjectName.value.trim() || t(MAP_MODE_INFO[gameMode].label)
   const newId = sanitizeMapId(`proj-${Date.now().toString(36)}`)
   mapStore.createNewProject({
     name,
-    gameMode: selectedGameMode.value,
+    gameMode,
     cols: cols.value,
     rows: rows.value,
     tileWidth: 128,
     tileHeight: 64,
   })
   mapStore.project.id = newId
+  // Hide & seek rules live in the map from the start (the editor's settings window edits them)
+  if (gameMode === 'hideseek') mapStore.project.hideSeekSettings = normalizeHideSeekSettings()
 
   // Configure Hero mode state
-  heroStore.toggleHero(selectedGameMode.value === 'hero')
-  if (selectedGameMode.value === 'hero') {
+  heroStore.toggleHero(gameMode === 'hero')
+  if (gameMode === 'hero') {
     heroStore.selectHero(true)
   }
 
@@ -572,6 +597,8 @@ defineExpose({
   open: (mode: 'new' | 'import' | 'recents' = 'new', forced = false) => {
     reloadRecents()
     activeMode.value = mode === 'recents' && recentProjects.value.length === 0 ? 'new' : mode
+    selectedGameMode.value = null
+    newProjectName.value = ''
     isForcedMode.value = forced
     isOpen.value = true
   }

@@ -12,6 +12,7 @@ import { TowerClan, GridCoord, TargetStrategy } from '../types/map'
 import { createDefaultClan } from '../utils/towerClans'
 import { TowerBlueprintManager } from '../domain/tower/TowerBlueprintManager'
 import { CombatEngine } from '../domain/combat'
+import { customProjectilesUsedBy, DEFAULT_PROJECTILE_ID, registerCustomProjectiles } from '../domain/projectile'
 
 import type { TowerBlueprint, PlacedTower, TowerLevel, BlueprintUpdate } from '../types/tower'
 import type { Projectile, DamageFloater } from '../types/combat'
@@ -394,7 +395,7 @@ export const useTowerStore = defineStore('towerStore', () => {
       damage: lvl1.damage || 20,
       attackSpeed: lvl1.attackSpeed || 1.0,
       range: lvl1.range || 3,
-      projectileId: bp.projectileId || 'fireball',
+      projectileId: bp.projectileId || DEFAULT_PROJECTILE_ID,
       isSplash: Boolean(lvl1.isSplash),
       splashRadius: lvl1.splashRadius || 1.5,
       splashType: lvl1.splashType || 'falloff',
@@ -496,7 +497,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     tower.isSplash = Boolean(nextLvlCfg.isSplash)
     tower.splashRadius = nextLvlCfg.splashRadius || 1.5
     tower.splashType = nextLvlCfg.splashType || 'falloff'
-    tower.projectileId = bp.projectileId || 'fireball'
+    tower.projectileId = bp.projectileId || DEFAULT_PROJECTILE_ID
     tower.traits = (nextLvlCfg.traits ? [...nextLvlCfg.traits] : []) as any
     tower.effects = nextLvlCfg.effects ? [...nextLvlCfg.effects] : []
 
@@ -567,10 +568,13 @@ export const useTowerStore = defineStore('towerStore', () => {
     mapStore.project.towerBlueprints = JSON.parse(JSON.stringify(blueprints.value))
     mapStore.project.clans = JSON.parse(JSON.stringify(clans.value))
     mapStore.project.placedTowers = JSON.parse(JSON.stringify(placedTowers.value))
+    mapStore.project.customProjectiles = JSON.parse(JSON.stringify(customProjectilesUsedBy(blueprints.value.map(bp => bp.projectileId))))
   }
 
   function restoreFromProject(): void {
     if (!mapStore.project) return
+    // The map's own projectiles first, so its towers find them
+    registerCustomProjectiles(mapStore.project.customProjectiles ?? [])
     const projClans = mapStore.project.clans || (mapStore.project as any).towerClans
     if (projClans && Array.isArray(projClans) && projClans.length > 0) {
       clans.value = JSON.parse(JSON.stringify(projClans))

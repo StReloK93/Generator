@@ -1,6 +1,7 @@
 import { TowerBlueprint, PlacedTower, TowerLevel, TowerAsset, TowerTraitParams } from '../../types/tower'
 import { SplashType, TargetStrategy, TowerTraitType, CombatEffect } from '../../types/combat'
 import { EffectProcessor } from '../combat/EffectProcessor'
+import { DEFAULT_PROJECTILE_ID } from '../projectile'
 
 /**
  * Raw blueprint shape as found in saved/legacy map files and editor forms:
@@ -47,7 +48,7 @@ export class TowerBlueprintManager {
   public static normalizeBlueprint(raw: RawTowerBlueprint): TowerBlueprint {
     const name = raw.name || 'Tower'
     const id = raw.id || `tower-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    const projectileId = raw.projectileId || raw.projectileType || raw.projectile?.type || 'fireball'
+    const projectileId = raw.projectileId || raw.projectileType || raw.projectile?.type || DEFAULT_PROJECTILE_ID
     const targetStrategy: TargetStrategy = raw.targetStrategy || 'first'
 
     const rawName = (raw.asset?.assetName || raw.assetName || name).trim()
@@ -218,7 +219,7 @@ export class TowerBlueprintManager {
       t.isSplash = Boolean(lvlCfg.isSplash)
       t.splashRadius = lvlCfg.splashRadius ?? 1.5
       t.splashType = lvlCfg.splashType ?? 'falloff'
-      t.projectileId = bp.projectileId || 'fireball'
+      t.projectileId = bp.projectileId || DEFAULT_PROJECTILE_ID
       t.targetStrategy = bp.targetStrategy || t.targetStrategy || 'first'
       t.traits = lvlCfg.traits ? [...lvlCfg.traits] : []
       t.effects = EffectProcessor.traitsToEffects(lvlCfg)

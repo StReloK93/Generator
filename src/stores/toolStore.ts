@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef, BoxClearModalData } from '../types/map'
+import { ref, computed, type Ref } from 'vue'
+import { ToolType, GridCoord, Point2D, PlacementMode, SelectedElementRef, BoxClearModalData, MapGameMode } from '../types/map'
 
 export const useToolStore = defineStore('toolStore', () => {
   const activeTool = ref<ToolType>('brush')
@@ -30,6 +30,7 @@ export const useToolStore = defineStore('toolStore', () => {
   const isHistoryModalOpen = ref<boolean>(false)
   const isGameConfigModalOpen = ref<boolean>(false)
   const isHeroConfigModalOpen = ref<boolean>(false)
+  const isHideSeekConfigModalOpen = ref<boolean>(false)
   const isBoxClearModalOpen = ref<boolean>(false)
   const boxClearData = ref<BoxClearModalData | null>(null)
   const gameConfigActiveTab = ref<'towers' | 'waves' | 'balance' | 'spawns'>('towers')
@@ -43,12 +44,34 @@ export const useToolStore = defineStore('toolStore', () => {
     isGameConfigModalOpen.value = false
   }
 
-  function openHeroConfig() {
-    isHeroConfigModalOpen.value = true
-  }
-
   function closeHeroConfig() {
     isHeroConfigModalOpen.value = false
+  }
+
+  function closeHideSeekConfig() {
+    isHideSeekConfigModalOpen.value = false
+  }
+
+  /** The settings window of each genre (the editor shows only the one of the map's genre) */
+  const modeSettingsFlags: Record<MapGameMode, Ref<boolean>> = {
+    td: isGameConfigModalOpen,
+    hero: isHeroConfigModalOpen,
+    hideseek: isHideSeekConfigModalOpen,
+  }
+
+  function isModeSettingsOpen(mode: MapGameMode): boolean {
+    return modeSettingsFlags[mode].value
+  }
+
+  function toggleModeSettings(mode: MapGameMode) {
+    modeSettingsFlags[mode].value = !modeSettingsFlags[mode].value
+  }
+
+  /** Closes whichever genre settings window is open; false when none was */
+  function closeModeSettings(): boolean {
+    const wasOpen = Object.values(modeSettingsFlags).some(flag => flag.value)
+    for (const flag of Object.values(modeSettingsFlags)) flag.value = false
+    return wasOpen
   }
 
   function openBoxClearModal(data: BoxClearModalData) {
@@ -250,8 +273,12 @@ export const useToolStore = defineStore('toolStore', () => {
     isHistoryModalOpen,
     isGameConfigModalOpen,
     isHeroConfigModalOpen,
-    openHeroConfig,
     closeHeroConfig,
+    isHideSeekConfigModalOpen,
+    closeHideSeekConfig,
+    isModeSettingsOpen,
+    toggleModeSettings,
+    closeModeSettings,
     isBoxClearModalOpen,
     boxClearData,
     openBoxClearModal,

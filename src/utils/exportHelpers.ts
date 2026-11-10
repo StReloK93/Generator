@@ -1,5 +1,5 @@
 import { MapProject, AssetItem } from '../types/map'
-import { registerCustomProjectiles, getAllProjectilesUnified } from './projectileCatalog'
+import { customProjectilesUsedBy } from '../domain/projectile'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { normalizeHideSeekSettings } from '../domain/hideseek/HideSeekSettings'
 import { getMapMode } from '../domain/map/MapMode'
@@ -210,7 +210,7 @@ export function buildFullProjectJsonPayload(
       waterCells: project.waterCells || [],
       collisionSubcells: project.collisionSubcells || [],
       buildMode: project.buildMode || 'all',
-      customProjectiles: getAllProjectilesUnified().filter(p => p.identity?.isCustom),
+      customProjectiles: customProjectilesUsedBy(resolvedTowerBlueprints.map((bp: { projectileId?: string }) => bp.projectileId)),
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),
     },
@@ -400,10 +400,8 @@ export async function importProjectFromJson(
 
   const gameSettings = normalizeGameSettings(project.gameSettings || data.gameSettings || data.characterData?.gameSettings)
 
-  const incomingCustomProj = data.customProjectiles || project.customProjectiles
-  if (Array.isArray(incomingCustomProj) && incomingCustomProj.length > 0) {
-    registerCustomProjectiles(incomingCustomProj)
-  }
+  // The map's own projectiles ride on the project; towerStore.restoreFromProject registers them
+  project.customProjectiles = data.customProjectiles || project.customProjectiles || []
 
   onProgress?.(100, 'import.mapReady')
   await yieldToMain()

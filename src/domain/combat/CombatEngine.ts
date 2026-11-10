@@ -1,8 +1,9 @@
 import { PlacedTower, TowerBlueprint } from '../../types/tower'
 import { Projectile, DamageFloater } from '../../types/combat'
+import type { ProjectileDefinition } from '../../types/projectile'
 import { CharacterUnit } from '../../types/unit'
 import { TargetingSystem, DamageCalculator, CombatSimulation, CombatUnitTarget } from './index'
-import { getProjectileDefinition, isInstantProjectile } from '../../utils/projectileCatalog'
+import { getProjectile, isInstantProjectile, launchSlots, projectileColor } from '../projectile'
 import { combatEvents } from '../../services/combatEvents'
 import { emitProjectileImpact, emitProjectileStrike, SPLASH_PX_PER_TILE } from '../../services/projectileImpact'
 import { gridToScreen } from '../../utils/isometric'
@@ -89,8 +90,8 @@ export class CombatEngine {
           const targetX = targetScreen.x
           const targetY = targetScreen.y - tileHeight * 0.5
 
-          const projId = tower.projectileId || 'fireball'
-          const projDef = getProjectileDefinition(projId)
+          const projDef = getProjectile(tower.projectileId)
+          const projId = projDef.id
           if (isInstantProjectile(projDef)) {
             emitProjectileStrike(muzzleX, muzzleY, targetX, targetY, projId)
 
@@ -109,7 +110,7 @@ export class CombatEngine {
               splashRadius: tower.splashRadius || 1.5,
               splashType: tower.splashType || 'falloff',
               projectileType: projId,
-              color: projDef.impact?.sparkColorHex || 0xfbbf24,
+              color: projectileColor(projDef),
               speed: 9999,
               totalDistance: 1,
               traveledDistance: 1,
@@ -130,12 +131,10 @@ export class CombatEngine {
             const effStartX = muzzleX
             const effStartY = muzzleY
             const totalDist = Math.hypot(targetX - muzzleX, targetY - muzzleY) || 1
-            const projSpeedTiles = projDef.movement.speed || 12.0
-            const projSpeedPx = projSpeedTiles * (tileWidth * 0.45)
-            const formation = projDef.formation.type || 'single'
+            const projSpeedPx = projDef.motion.speed * (tileWidth * 0.45)
 
-            this.spawnProjectilesForFormation(
-              formation,
+            this.spawnShot(
+              projDef,
               tower,
               bestTarget.id,
               effStartX,
@@ -166,10 +165,17 @@ export class CombatEngine {
         proj.targetY = tScreen.y - tileHeight * 0.5
       }
 
+      const moveStep = proj.speed * deltaSec
+      // A staggered volley's later projectiles wait at the muzzle before they set off
+      if (proj.traveledDistance < 0) {
+        proj.traveledDistance = Math.min(0, proj.traveledDistance + moveStep)
+        projectiles[remainingCount++] = proj
+        continue
+      }
+
       const dx = proj.targetX - proj.currentX
       const dy = proj.targetY - proj.currentY
       const distToTarget = Math.hypot(dx, dy)
-      const moveStep = proj.speed * deltaSec
 
       if (distToTarget <= moveStep || distToTarget < 12) {
         this.processImpact(proj, placedTowers, activeUnits, damageFloaters, tileWidth, tileHeight, onKill)
@@ -185,149 +191,44 @@ export class CombatEngine {
     projectiles.length = remainingCount
   }
 
-  /**
-   * Spawns projectiles based on projectile formation pattern.
-   */
-  private static spawnProjectilesForFormation(
-    formation: string,
+  /** Spawns every projectile of one shot (its volley comes from the projectile's launch pattern). */
+  private static spawnShot(
+    def: ProjectileDefinition,
     tower: PlacedTower,
     targetUnitId: string,
-    effStartX: number,
-    effStartY: number,
+    startX: number,
+    startY: number,
     targetX: number,
     targetY: number,
-    projSpeedPx: number,
+    speedPx: number,
     totalDist: number,
     projectiles: Projectile[]
   ): void {
-    const baseProj: Omit<Projectile, 'id' | 'damage' | 'offsetPerp' | 'phaseOffset'> = {
-      towerId: tower.id,
-      startX: effStartX,
-      startY: effStartY,
-      currentX: effStartX,
-      currentY: effStartY,
-      targetUnitId,
-      targetX,
-      targetY,
-      isSplash: tower.isSplash,
-      splashRadius: tower.splashRadius || 1.5,
-      splashType: tower.splashType || 'falloff',
-      projectileType: tower.projectileId || 'fireball',
-      color: getProjectileDefinition(tower.projectileId || 'fireball').impact?.sparkColorHex || 0xd97706,
-      speed: projSpeedPx,
-      totalDistance: totalDist,
-      traveledDistance: 0,
-    }
-
-    if (formation === 'single_helix') {
+    const slots = launchSlots(def.launch)
+    slots.forEach((slot, idx) => {
       projectiles.push({
-        ...baseProj,
-        id: `proj-${Date.now()}-0-${Math.random().toString(36).slice(2, 6)}`,
-        damage: tower.damage,
-        offsetPerp: 14,
-        phaseOffset: 0,
+        id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+        towerId: tower.id,
+        startX,
+        startY,
+        currentX: startX,
+        currentY: startY,
+        targetUnitId,
+        targetX,
+        targetY,
+        damage: tower.damage / slots.length,
+        isSplash: tower.isSplash,
+        splashRadius: tower.splashRadius || 1.5,
+        splashType: tower.splashType || 'falloff',
+        projectileType: def.id,
+        color: projectileColor(def),
+        speed: speedPx,
+        totalDistance: totalDist,
+        traveledDistance: -slot.delay * totalDist,
+        offsetPerp: slot.offsetPerp,
+        phaseOffset: slot.phaseOffset,
       })
-    } else if (formation === 'volley_3') {
-      const offsets = [-16, 0, 16]
-      offsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 3,
-          offsetPerp: off,
-          phaseOffset: 0,
-        })
-      })
-    } else if (formation === 'volley_5') {
-      const offsets = [-24, -12, 0, 12, 24]
-      offsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 5,
-          offsetPerp: off,
-          phaseOffset: 0,
-        })
-      })
-    } else if (formation === 'twin_helix') {
-      const helixOffsets = [12, -12]
-      const helixPhases = [0, Math.PI]
-      helixOffsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 2,
-          offsetPerp: off,
-          phaseOffset: helixPhases[idx],
-        })
-      })
-    } else if (formation === 'triple_helix') {
-      const helixOffsets = [14, 14, 14]
-      const helixPhases = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]
-      helixOffsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 3,
-          offsetPerp: off,
-          phaseOffset: helixPhases[idx],
-        })
-      })
-    } else if (formation === 'fan_spread') {
-      const offsets = [-28, -14, 0, 14, 28]
-      offsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 5,
-          offsetPerp: off,
-          phaseOffset: 0,
-        })
-      })
-    } else if (formation === 'ring_burst') {
-      const ringCount = 6
-      for (let r = 0; r < ringCount; r++) {
-        const ang = (Math.PI * 2 * r) / ringCount
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${r}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / ringCount,
-          offsetPerp: Math.sin(ang) * 20,
-          phaseOffset: ang,
-        })
-      }
-    } else if (formation === 'cluster_burst') {
-      const clusterOffsets = [-9, 0, 9]
-      clusterOffsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 3,
-          offsetPerp: off,
-          phaseOffset: idx * 0.4,
-        })
-      })
-    } else if (formation === 'staggered_burst') {
-      const burstOffsets = [-6, 0, 6]
-      burstOffsets.forEach((off, idx) => {
-        projectiles.push({
-          ...baseProj,
-          id: `proj-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
-          damage: tower.damage / 3,
-          offsetPerp: off * 0.5,
-          phaseOffset: 0,
-          traveledDistance: -idx * (totalDist * 0.12),
-        })
-      })
-    } else {
-      projectiles.push({
-        ...baseProj,
-        id: `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        damage: tower.damage,
-        offsetPerp: 0,
-        phaseOffset: 0,
-      })
-    }
+    })
   }
 
   /**

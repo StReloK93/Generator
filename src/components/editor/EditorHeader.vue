@@ -23,6 +23,11 @@
         <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || $t('header.newMap') }}</span>
       </div>
 
+      <!-- Map Genre (fixed when the map is created) -->
+      <UiBadge :variant="modeInfo.badge" size="sm" :icon="modeInfo.icon" :title="$t(modeInfo.desc)" custom-class="hidden md:inline-flex">
+        {{ $t(modeInfo.label) }}
+      </UiBadge>
+
       <!-- New Map Action Button -->
       <UiButton
         variant="ghost"
@@ -117,28 +122,15 @@
     <!-- Right: TD Hub Modal, Start Game, Export -->
     <div class="flex items-center gap-1.5 sm:gap-2">
 
-      <!-- Hero Settings Modal Button (Hero mode) -->
+      <!-- The map genre's settings window (each genre has only its own settings) -->
       <UiButton
-        v-if="mapStore.project.gameMode === 'hero'"
-        :variant="toolStore.isHeroConfigModalOpen ? 'game-green' : 'secondary'"
+        :variant="toolStore.isModeSettingsOpen(mapMode) ? 'game-amber' : 'secondary'"
         size="sm"
-        :leading-icon="Swords"
-        title="Hero Settings (T)"
-        @click="toolStore.isHeroConfigModalOpen = !toolStore.isHeroConfigModalOpen"
+        :leading-icon="modeInfo.icon"
+        :title="`${$t(modeInfo.settings)} (T)`"
+        @click="toolStore.toggleModeSettings(mapMode)"
       >
-        <span class="hidden sm:inline">Hero Settings</span>
-      </UiButton>
-
-      <!-- TD & Movement Settings Modal Button (TD mode) -->
-      <UiButton
-        v-else
-        :variant="toolStore.isGameConfigModalOpen ? 'game-amber' : 'secondary'"
-        size="sm"
-        :leading-icon="ShieldAlert"
-        :title="`${$t('common.tdSettings')} (T)`"
-        @click="toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen"
-      >
-        <span class="hidden sm:inline">{{ $t('common.tdSettings') }}</span>
+        <span class="hidden sm:inline">{{ $t(modeInfo.settings) }}</span>
       </UiButton>
 
       <!-- Play Game Button (Navigates cleanly to /game) -->
@@ -180,11 +172,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  Home, Grid, Hash, Undo2, Redo2, History, Download, ShieldAlert, Gamepad2, HelpCircle, Plus, Upload, Swords
+import {
+  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiLanguageSwitcher } from '../ui'
+import { UiButton, UiIconButton, UiLanguageSwitcher, UiBadge } from '../ui'
+import { getMapMode } from '../../domain/map'
+import { MAP_MODE_INFO } from '../mapModeInfo'
 import { useMapStore } from '../../stores/mapStore'
 import { useAssetStore } from '../../stores/assetStore'
 import { useToolStore } from '../../stores/toolStore'
@@ -205,6 +200,9 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const { t } = useI18nStore()
+
+const mapMode = computed(() => getMapMode(mapStore.project))
+const modeInfo = computed(() => MAP_MODE_INFO[mapMode.value])
 
 const emit = defineEmits<{
   (e: 'open-welcome', mode?: 'new' | 'import', forced?: boolean): void

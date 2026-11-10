@@ -66,8 +66,9 @@
         :title="`${$t('shortcuts.eyedropper')} (G)`"
         @click="toolStore.setTool('picker')"
       />
-      <!-- Buildable Zones (Z) -->
+      <!-- Buildable Zones (Z, tower defense only) -->
       <UiIconButton
+        v-if="editorFeatures.buildableZones"
         variant="tool"
         size="sm"
         :icon="Castle"
@@ -86,8 +87,9 @@
         @click="toolStore.setTool(toolStore.activeTool === 'water' ? (toolStore.lastDrawingTool === 'water' ? 'brush' : toolStore.lastDrawingTool) : 'water')"
       />
 
-      <!-- Collision / Obstacles Tool -->
+      <!-- Collision / Obstacles Tool (genres whose walkers bump into obstacles) -->
       <UiIconButton
+        v-if="editorFeatures.collision"
         variant="tool"
         size="sm"
         :icon="ShieldAlert"
@@ -800,6 +802,7 @@ import { usePixiCamera } from '../../composables/usePixiCamera'
 import { AssetItem } from '../../types/map'
 import { isInsideGrid } from '../../utils/isometric'
 import { assetManager } from '../../services/assetManager'
+import { getMapMode, getEditorFeatures } from '../../domain/map'
 
 const emit = defineEmits<{
   (e: 'ready'): void
@@ -814,6 +817,17 @@ const routeStore = useRouteStore()
 const gameStore = useGameStore()
 const notify = useNotificationStore()
 const { t } = useI18n()
+
+// The map's genre decides which tools the editor offers
+const mapMode = computed(() => getMapMode(mapStore.project))
+const editorFeatures = computed(() => getEditorFeatures(mapStore.project))
+
+watch(editorFeatures, (features) => {
+  if ((toolStore.activeTool === 'buildable' && !features.buildableZones) || (toolStore.activeTool === 'collision' && !features.collision)) {
+    toolStore.setTool('brush')
+  }
+  characterStore.isEnabled = features.creepPreview
+}, { immediate: true })
 
 // Eraser Sub-tool ('simple' | 'line' | 'box')
 const eraserSubTool = ref<'simple' | 'line' | 'box'>('simple')
@@ -1409,10 +1423,7 @@ function handleKeyDown(e: KeyboardEvent) {
       toolStore.isShortcutsModalOpen = false
       return
     }
-    if (toolStore.isGameConfigModalOpen) {
-      toolStore.isGameConfigModalOpen = false
-      return
-    }
+    if (toolStore.closeModeSettings()) return
     if (toolStore.isBoxClearModalOpen) {
       toolStore.isBoxClearModalOpen = false
       return
@@ -1556,7 +1567,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
   // 6. If any modal is open, prevent single-key tool switches
   if (
-    toolStore.isGameConfigModalOpen ||
+    toolStore.isModeSettingsOpen(mapMode.value) ||
     toolStore.isBoxClearModalOpen ||
     toolStore.isExportModalOpen ||
     toolStore.isShortcutsModalOpen
@@ -1573,14 +1584,10 @@ function handleKeyDown(e: KeyboardEvent) {
       return
     }
 
-    // Toggle Settings Modal: T (Hero settings in Hero mode, TD settings in TD mode)
+    // Toggle the map genre's settings window: T
     if (code === 'KeyT' || key === 't') {
       e.preventDefault()
-      if (mapStore.project.gameMode === 'hero') {
-        toolStore.isHeroConfigModalOpen = !toolStore.isHeroConfigModalOpen
-      } else {
-        toolStore.isGameConfigModalOpen = !toolStore.isGameConfigModalOpen
-      }
+      toolStore.toggleModeSettings(mapMode.value)
       return
     }
 
@@ -1603,7 +1610,7 @@ function handleKeyDown(e: KeyboardEvent) {
       e.preventDefault()
       if (routeStore.isDrawingRoute) {
         routeStore.finishDrawingRoute()
-      } else {
+      } else if (editorFeatures.value.creepPreview) {
         characterStore.isEnabled = !characterStore.isEnabled
       }
       return
@@ -1721,8 +1728,8 @@ function handleKeyDown(e: KeyboardEvent) {
       return
     }
 
-    // Buildable Zones: Z
-    if (code === 'KeyZ' || key === 'z') {
+    // Buildable Zones: Z (tower defense only)
+    if ((code === 'KeyZ' || key === 'z') && editorFeatures.value.buildableZones) {
       e.preventDefault()
       toolStore.setTool(toolStore.activeTool === 'buildable' ? (toolStore.lastDrawingTool === 'buildable' ? 'brush' : toolStore.lastDrawingTool) : 'buildable')
       return
@@ -1756,6 +1763,7 @@ function handleKeyDown(e: KeyboardEvent) {
     if (code === 'KeyU' || key === 'u' || code === 'KeyC' || key === 'c') {
       e.preventDefault()
       if (code === 'KeyC' || key === 'c') {
+        if (!editorFeatures.value.collision) return
         if (toolStore.activeTool === 'collision') {
           toolStore.setTool(toolStore.lastDrawingTool === 'collision' ? 'brush' : (toolStore.lastDrawingTool || 'brush'))
         } else {

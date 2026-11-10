@@ -132,10 +132,6 @@ export class IsoEngine {
     return this.renderer.combat.combatGraphics
   }
 
-  public get combatSparks() {
-    return this.renderer.combat.combatSparks
-  }
-
   // Initialization & Viewport
   async init(containerEl: HTMLElement, width: number, height: number): Promise<void> {
     await this.renderer.init(containerEl, width, height)

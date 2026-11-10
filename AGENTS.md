@@ -23,7 +23,8 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`waveStore.ts`**: To'lqinlar (`waveConfigs`). Normalizatsiya faqat `WaveManager.normalizeWave` orqali.
 - **`gameStore.ts`**: O'yin rejimi (`isGameMode`, `playerLives`, `gold`, `gameState`, `gameSpeed`) va xarita TD sozlamalari (`startingGold`, `formation`, `pairDistance`, ...) — yagona manba `project.gameSettings`, defaultlar va normalizatsiya faqat `domain/simulation/GameSettings.ts` da.
 - **`towerStore.ts`**:
-  - Minora blueprintlari (`blueprints`: `asset`, `projectileId`, `levels[]`). Statlar faqat `levels[]` da, rasm faqat `asset` da; normalizatsiya `TowerBlueprintManager.normalizeBlueprint`. Snaryad tezligi/rangi faqat snaryad katalogidan (`projectileCatalog`) olinadi.
+  - Minora blueprintlari (`blueprints`: `asset`, `projectileId`, `levels[]`). Statlar faqat `levels[]` da, rasm faqat `asset` da; normalizatsiya `TowerBlueprintManager.normalizeBlueprint`. Snaryadning barcha ko'rinishi va tezligi faqat snaryad reyestridan (`domain/projectile` — `getProjectile`) olinadi; xarita o'z minoralari ishlatadigan maxsus snaryadlarni `project.customProjectiles` da saqlaydi.
+- **`projectileStore.ts`**: Snaryad reyestrining reaktiv ko'zgusi (kutubxona + o'yinchi snaryadlari, import/eksport). Snaryad = qatlamlar (`body`), iz, zarrachalar, harakat, zalp va zarba; `flying` / `strike` / `beam` turlari. Barcha chizish faqat `rendering/pixi/projectile/ProjectileFx` orqali (o'yin va preview'lar uchun bir xil).
   - Xaritadagi minoralar (`placedTowers`: darajalar, kuchaytirish, sotish, jami berilgan zarar, o'ldirilgan dushmanlar).
   - Jang simulyatsiyasi (`updateCombatTick`).
 - **`toolStore.ts`**: Faol asboblar (`select`, `brush`, `eraser`, `bucket`, `line`, `rectangle`), tanlangan element, modal oynalar holati.

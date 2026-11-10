@@ -7,37 +7,17 @@ import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
 import { assetManager } from '../../services/assetManager'
-import { ProjectileRenderer } from './ProjectileRenderer'
-import { getProjectileDefinition } from '../../utils/projectileCatalog'
-
-export interface CombatSparkParticle {
-  x: number
-  y: number
-  vx: number
-  vy: number
-  color: number
-  alpha: number
-  size: number
-  life: number
-  maxLife: number
-  type: 'ice_shard' | 'snowflake' | 'fire_ember' | 'lightning_arc' | 'acid_drop' | 'arcane_star' | 'void_blood' | 'shrapnel' | 'holy_cross' | 'sand_dust' | 'spark_line' | 'default'
-  rot: number
-  vRot: number
-}
+import { getProjectile } from '../../domain/projectile'
+import { ProjectileFx } from './projectile/ProjectileFx'
 
 const SHOCKWAVE_LIFE = 0.55
-const FLASH_LIFE = 0.24
 
 export class CombatRenderer {
   public combatGraphics: Graphics
-  private combatTrails = new Map<string, { x: number; y: number; alpha: number; size: number }[]>()
-  public combatSparks: CombatSparkParticle[] = []
-  public activeStrikes: { x: number; y: number; startX?: number; startY?: number; life: number; maxLife: number; def: any }[] = []
-
-  private activeProjIds = new Set<string>()
-  /** Splash shockwave rings and short hit flashes — owned here, fed by combatEvents (host and clients alike). */
+  /** Projectile bodies, trails, particles, impacts, strikes and beams (fed by combat and combatEvents) */
+  private projectileFx: ProjectileFx
+  /** Splash shockwave rings sized to the real splash damage area — fed by combatEvents (host and clients alike). */
   private activeShockwaves: { x: number; y: number; maxRadius: number; color: number; life: number }[] = []
-  private activeFlashes: { x: number; y: number; color: number; life: number }[] = []
 
   private unsubscribeImpact?: () => void
   private unsubscribeStrike?: () => void
@@ -47,101 +27,16 @@ export class CombatRenderer {
   constructor() {
     this.combatGraphics = new Graphics()
     this.combatGraphics.zIndex = 999999
+    this.projectileFx = new ProjectileFx(this.combatGraphics)
 
-    // Listen to decoupled combat strike events (Sky Strikes, Ground Bursts, Auras)
     this.unsubscribeStrike = combatEvents.onStrike((evt) => {
-      const projDef = getProjectileDefinition(evt.projectileType)
-      this.activeStrikes.push({
-        x: evt.x,
-        y: evt.y,
-        startX: evt.startX,
-        startY: evt.startY,
-        life: evt.duration || 0.45,
-        maxLife: evt.duration || 0.45,
-        def: projDef,
-      })
+      this.projectileFx.strike(getProjectile(evt.projectileType), evt.startX ?? evt.x, evt.startY ?? evt.y, evt.x, evt.y)
     })
-
     this.unsubscribeShockwave = combatEvents.onShockwave((evt) => {
       this.activeShockwaves.push({ ...evt, life: SHOCKWAVE_LIFE })
     })
-
-    // Listen to decoupled combat impact events
     this.unsubscribeImpact = combatEvents.onImpact((evt) => {
-      const projDef = evt.projectileType ? getProjectileDefinition(evt.projectileType) : null
-      this.activeFlashes.push({
-        x: evt.x,
-        y: evt.y,
-        color: evt.color ?? projDef?.impact?.sparkColorHex ?? 0xfbbf24,
-        life: FLASH_LIFE,
-      })
-      const sparkType = projDef?.impact?.sparkType || 'default'
-      const cat = projDef?.identity?.category || (evt.isSplash ? 'fire' : 'siege')
-      const count = evt.count || projDef?.impact?.sparkCount || (evt.isSplash ? 20 : 10)
-      const baseColor = evt.color ?? projDef?.impact?.sparkColorHex ?? 0xfbbf24
-
-      for (let s = 0; s < count; s++) {
-        const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.6
-        const speed = (cat === 'electro' ? 80 : 35) + Math.random() * (cat === 'fire' || cat === 'frost' ? 95 : 75)
-        
-        let pType: CombatSparkParticle['type'] = sparkType !== 'default' ? (sparkType as any) : 'default'
-        let pColor = baseColor
-        let pSize = 1.8 + Math.random() * 2.5
-        let pLife = 0.32 + Math.random() * 0.22
-
-        if (pType === 'default') {
-          if (cat === 'frost') {
-            pType = s % 3 === 0 ? 'snowflake' : 'ice_shard'
-            pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0x67e8f9 : 0x38bdf8)
-            pSize = 2.2 + Math.random() * 2.8
-            pLife = 0.38 + Math.random() * 0.2
-          } else if (cat === 'fire') {
-            pType = 'fire_ember'
-            pColor = s % 4 === 0 ? 0xfef08a : (s % 3 === 0 ? 0xfbbf24 : (s % 2 === 0 ? 0xf97316 : 0xef4444))
-            pSize = 2.0 + Math.random() * 3.2
-          } else if (cat === 'electro') {
-            pType = 'lightning_arc'
-            pColor = s % 2 === 0 ? 0x38bdf8 : (s % 3 === 0 ? 0xffffff : 0x60a5fa)
-            pSize = 1.5 + Math.random() * 2.0
-            pLife = 0.2 + Math.random() * 0.15
-          } else if (cat === 'poison') {
-            pType = 'acid_drop'
-            pColor = s % 3 === 0 ? 0xd9f99d : (s % 2 === 0 ? 0x84cc16 : 0x22c55e)
-            pSize = 2.4 + Math.random() * 2.6
-          } else if (cat === 'arcane') {
-            pType = 'arcane_star'
-            pColor = s % 3 === 0 ? 0xffffff : (s % 2 === 0 ? 0xc084fc : 0xa855f7)
-            pSize = 2.5 + Math.random() * 3.0
-          } else if (cat === 'void') {
-            pType = 'void_blood'
-            pColor = s % 3 === 0 ? 0x881337 : (s % 2 === 0 ? 0xf43f5e : 0x7c3aed)
-            pSize = 2.2 + Math.random() * 2.5
-          } else if (cat === 'holy') {
-            pType = 'holy_cross'
-            pColor = s % 2 === 0 ? 0xffffff : 0xfde047
-            pSize = 2.8 + Math.random() * 3.0
-          } else if (cat === 'siege') {
-            pType = 'shrapnel'
-            pColor = s % 3 === 0 ? 0xf59e0b : (s % 2 === 0 ? 0x94a3b8 : 0x64748b)
-            pSize = 2.0 + Math.random() * 2.4
-          }
-        }
-
-        this.combatSparks.push({
-          x: evt.x,
-          y: evt.y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed * 0.75,
-          color: pColor,
-          alpha: 1.0,
-          size: pSize,
-          life: pLife,
-          maxLife: pLife,
-          type: pType,
-          rot: Math.random() * Math.PI * 2,
-          vRot: (Math.random() - 0.5) * 12,
-        })
-      }
+      this.projectileFx.impact(getProjectile(evt.projectileType), evt.x, evt.y)
     })
   }
 
@@ -166,7 +61,7 @@ export class CombatRenderer {
     const hasProjectiles =
       (towerStore.projectiles && towerStore.projectiles.length > 0) ||
       networkSyncBuffer.projectilesPool.some((p) => p.active)
-    const hasRings = this.activeShockwaves.length > 0 || this.activeFlashes.length > 0
+    const hasRings = this.activeShockwaves.length > 0
     const towerToHighlight = towerStore.placedTowers.find(
       (t) => t.id === towerStore.selectedPlacedTowerId
     )
@@ -178,9 +73,8 @@ export class CombatRenderer {
         ? networkSyncBuffer.renderUnitsList
         : characterStore.units || []
     const hasUnits = units.length > 0
-    const hasSparks = this.combatSparks.length > 0
 
-    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits && !hasSparks && this.activeStrikes.length === 0) {
+    if (!hasProjectiles && !hasRings && !hasRangePreview && !hasUnits && this.projectileFx.isIdle) {
       if (this.combatGraphics && !this.combatGraphics.destroyed) {
         this.combatGraphics.clear()
       }
@@ -305,127 +199,32 @@ export class CombatRenderer {
       buildGhostSprite.visible = false
     }
 
-    // 2. Instant Sky Strikes, Ground Bursts, and Auras Rendering
+
     const nowTime = performance.now()
     const dt = this.lastTime > 0 ? Math.min(0.1, (nowTime - this.lastTime) / 1000) : 0.016
     this.lastTime = nowTime
+    this.projectileFx.beginFrame(dt)
 
-    if (this.activeStrikes.length > 0) {
-      for (let i = this.activeStrikes.length - 1; i >= 0; i--) {
-        const s = this.activeStrikes[i]
-        s.life -= dt
-        if (s.life <= 0) {
-          this.activeStrikes.splice(i, 1)
-        } else {
-          ProjectileRenderer.renderHead(
-            this.combatGraphics,
-            s.def,
-            s.x,
-            s.y,
-            0,
-            s.startX ?? s.x,
-            s.startY ?? s.y,
-            nowTime
-          )
-        }
-      }
-    }
-
-    // 3. Flying Animated Projectiles
-    this.activeProjIds.clear()
-
+    // 2. Flying projectiles (host simulation or the multiplayer client's mirrored ones)
     if (hasProjectiles) {
       const isLocal = Boolean(towerStore.projectiles && towerStore.projectiles.length > 0)
-      const count = isLocal ? towerStore.projectiles.length : networkSyncBuffer.projectilesPool.length
-
-      for (let i = 0; i < count; i++) {
-        const proj = isLocal ? towerStore.projectiles[i] : networkSyncBuffer.projectilesPool[i]
-        if (!proj || (proj.active === false && !isLocal)) continue
-        this.activeProjIds.add(proj.id)
-        const type = proj.projectileType || 'fireball'
-        const projDef = getProjectileDefinition(type)
-
-        const totalDist =
-          proj.totalDistance ||
-          Math.hypot(proj.targetX - proj.startX, proj.targetY - proj.startY) ||
-          1
-        const progress = Math.min(1.0, (proj.traveledDistance || 0) / totalDist)
-
-        const hasArc = projDef.movement.isLaser ? false : (projDef.movement.hasArc !== false)
-        const arcMaxHeight =
-          type === 'arrow'
-            ? Math.min(48, totalDist * 0.18)
-            : hasArc
-            ? Math.min(45, totalDist * 0.16)
-            : 0
-
-        const arcHeight = arcMaxHeight > 0 ? Math.sin(progress * Math.PI) * arcMaxHeight : 0
-
-        const dx = proj.targetX - proj.startX
-        const dy = proj.targetY - proj.startY
-        const len = Math.hypot(dx, dy) || 1
-        const perpX = -dy / len
-        const perpY = dx / len
-        
-        let lateralX = 0
-        let lateralY = 0
-        const projOffsetPerp = (proj as any).offsetPerp ?? 0
-        const projPhaseOffset = (proj as any).phaseOffset ?? 0
-        const isHelix = projDef.formation.type === 'twin_helix'
-
-        if (projOffsetPerp !== 0) {
-          const swirl = isHelix
-            ? Math.sin(progress * Math.PI * 6 + projPhaseOffset) * projOffsetPerp
-            : projOffsetPerp
-          lateralX = perpX * swirl
-          lateralY = perpY * swirl * 0.5
-        }
-
-        const renderX = proj.currentX + lateralX
-        const renderY = proj.currentY - arcHeight + lateralY
-
-        const vx = dx
-        const vy = dy - (arcMaxHeight > 0 ? Math.cos(progress * Math.PI) * Math.PI * arcMaxHeight : 0)
-        const angle = Math.atan2(vy, vx)
-
-        this.activeProjIds.add(proj.id)
-
-        let trail = this.combatTrails.get(proj.id)
-        if (!trail) {
-          trail = []
-          this.combatTrails.set(proj.id, trail)
-        }
-        trail.push({ x: renderX, y: renderY, alpha: 1.0, size: projDef.trail.width || 4 })
-        const maxTrailLen = Math.max(3, projDef.trail.length ?? 8)
-        if (trail.length > maxTrailLen) trail.shift()
-
-        // 1. Render Trail with unified ProjectileRenderer
-        ProjectileRenderer.renderTrail(this.combatGraphics, projDef, trail, nowTime)
-
-        // Soft light halo under the head so shots read clearly over the bright terrain
-        if (!projDef.movement.isLaser) {
-          const halo = Math.max(6, projDef.visual.size || 6) * 2.2
-          this.combatGraphics.circle(renderX, renderY, halo).fill({ color: projDef.visual.glowColorHex ?? projDef.visual.colorHex, alpha: 0.22 })
-        }
-
-        // 2. Render Projectile Head with unified ProjectileRenderer
-        ProjectileRenderer.renderHead(
-          this.combatGraphics,
-          projDef,
-          renderX,
-          renderY,
-          angle,
-          proj.startX,
-          proj.startY,
-          nowTime
-        )
-      }
-    }
-
-    // Clean trails
-    for (const id of this.combatTrails.keys()) {
-      if (!this.activeProjIds.has(id)) {
-        this.combatTrails.delete(id)
+      const list = isLocal ? towerStore.projectiles : networkSyncBuffer.projectilesPool
+      for (const proj of list) {
+        if (!proj || (!isLocal && !proj.active)) continue
+        this.projectileFx.drawFlying({
+          id: proj.id,
+          def: getProjectile(proj.projectileType),
+          x: proj.currentX,
+          y: proj.currentY,
+          startX: proj.startX,
+          startY: proj.startY,
+          targetX: proj.targetX,
+          targetY: proj.targetY,
+          traveled: proj.traveledDistance || 0,
+          total: proj.totalDistance || Math.hypot(proj.targetX - proj.startX, proj.targetY - proj.startY) || 1,
+          offsetPerp: proj.offsetPerp,
+          phaseOffset: proj.phaseOffset,
+        })
       }
     }
 
@@ -441,7 +240,6 @@ export class CombatRenderer {
       const ease = 1 - Math.pow(1 - t, 3)
       const fade = 1 - t
       const rx = w.maxRadius * ease
-      // Opening burst: hot core that collapses as the ring travels out
       if (t < 0.35) {
         const burst = 1 - t / 0.35
         const br = w.maxRadius * 0.45 * (0.6 + t)
@@ -449,96 +247,14 @@ export class CombatRenderer {
         this.combatGraphics.ellipse(w.x, w.y, br * 0.5, br * 0.25).fill({ color: 0xffffff, alpha: 0.55 * burst })
       }
       this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).fill({ color: w.color, alpha: 0.14 * fade })
-      // Glow band + crisp edge
       this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).stroke({ width: 3 + 7 * fade, color: w.color, alpha: 0.28 * fade })
       this.combatGraphics.ellipse(w.x, w.y, rx, rx * 0.5).stroke({ width: 1.5 + 2 * fade, color: w.color, alpha: 0.95 * fade })
-      this.combatGraphics
-        .ellipse(w.x, w.y, rx * 0.97, rx * 0.485)
-        .stroke({ width: 1, color: 0xffffff, alpha: 0.6 * fade })
+      this.combatGraphics.ellipse(w.x, w.y, rx * 0.97, rx * 0.485).stroke({ width: 1, color: 0xffffff, alpha: 0.6 * fade })
     }
 
-    // 3b. Hit flash: quick bright bloom at the impact point
-    for (let i = this.activeFlashes.length - 1; i >= 0; i--) {
-      const f = this.activeFlashes[i]
-      f.life -= dt
-      if (f.life <= 0) {
-        this.activeFlashes.splice(i, 1)
-        continue
-      }
-      const k = f.life / FLASH_LIFE
-      const r = 8 + (1 - k) * 18
-      this.combatGraphics.circle(f.x, f.y, r * 1.6).fill({ color: f.color, alpha: 0.18 * k })
-      this.combatGraphics.circle(f.x, f.y, r).fill({ color: f.color, alpha: 0.45 * k })
-      this.combatGraphics.circle(f.x, f.y, r * 0.42).fill({ color: 0xffffff, alpha: 0.9 * k })
-    }
+    // 4. Particles, strikes, beams, impact rings and flashes
+    this.projectileFx.endFrame()
 
-    // 4. Impact Spark Particles
-    if (this.combatSparks.length > 0) {
-      for (let i = this.combatSparks.length - 1; i >= 0; i--) {
-        const sp = this.combatSparks[i]
-        sp.x += sp.vx * dt
-        sp.y += sp.vy * dt
-        sp.rot += (sp.vRot || 0) * dt
-        sp.life -= dt
-        sp.alpha = Math.max(0, sp.life / (sp.maxLife || 0.45))
-
-        if (sp.alpha > 0) {
-          if (sp.type === 'fire_ember') {
-            sp.vy -= 120 * dt // Buoyant rising fire embers
-            this.combatGraphics.circle(sp.x, sp.y, sp.size * (sp.alpha * 0.8 + 0.2)).fill({ color: sp.color, alpha: sp.alpha })
-            this.combatGraphics.circle(sp.x, sp.y, sp.size * 0.4).fill({ color: 0xffffff, alpha: sp.alpha })
-          } else if (sp.type === 'ice_shard') {
-            const cosR = Math.cos(sp.rot)
-            const sinR = Math.sin(sp.rot)
-            const s = sp.size
-            this.combatGraphics.poly([
-              { x: sp.x + cosR * s * 1.5, y: sp.y + sinR * s * 1.5 },
-              { x: sp.x - sinR * s * 0.6, y: sp.y + cosR * s * 0.6 },
-              { x: sp.x - cosR * s * 1.5, y: sp.y - sinR * s * 1.5 },
-              { x: sp.x + sinR * s * 0.6, y: sp.y - cosR * s * 0.6 },
-            ]).fill({ color: sp.color, alpha: sp.alpha }).stroke({ width: 0.8, color: 0xffffff, alpha: sp.alpha * 0.8 })
-          } else if (sp.type === 'snowflake') {
-            const s = sp.size * 1.2
-            for (let spoke = 0; spoke < 3; spoke++) {
-              const ang = sp.rot + (spoke * Math.PI) / 3
-              const dx = Math.cos(ang) * s
-              const dy = Math.sin(ang) * s
-              this.combatGraphics.moveTo(sp.x - dx, sp.y - dy).lineTo(sp.x + dx, sp.y + dy).stroke({ width: 1.2, color: sp.color, alpha: sp.alpha })
-            }
-          } else if (sp.type === 'lightning_arc') {
-            const lx = sp.x + sp.vx * dt * 3
-            const ly = sp.y + sp.vy * dt * 3
-            this.combatGraphics.moveTo(sp.x, sp.y).lineTo(lx, ly).stroke({ width: 1.8, color: sp.color, alpha: sp.alpha })
-            this.combatGraphics.circle(sp.x, sp.y, 1.2).fill({ color: 0xffffff, alpha: sp.alpha })
-          } else if (sp.type === 'acid_drop') {
-            this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha * 0.85 })
-            this.combatGraphics.circle(sp.x, sp.y, sp.size * 1.5).stroke({ width: 1.0, color: 0xa3e635, alpha: sp.alpha * 0.4 })
-          } else if (sp.type === 'arcane_star' || sp.type === 'holy_cross') {
-            const s = sp.size * 1.3
-            const cosR = Math.cos(sp.rot)
-            const sinR = Math.sin(sp.rot)
-            this.combatGraphics.moveTo(sp.x - cosR * s, sp.y - sinR * s).lineTo(sp.x + cosR * s, sp.y + sinR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
-            this.combatGraphics.moveTo(sp.x + sinR * s, sp.y - cosR * s).lineTo(sp.x - sinR * s, sp.y + cosR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
-            this.combatGraphics.circle(sp.x, sp.y, s * 0.35).fill({ color: 0xffffff, alpha: sp.alpha })
-          } else if (sp.type === 'sand_dust') {
-            sp.vy += 35 * dt
-            this.combatGraphics.circle(sp.x, sp.y, Math.max(0.8, sp.size * 0.8)).fill({ color: sp.color, alpha: sp.alpha * 0.9 })
-          } else if (sp.type === 'spark_line') {
-            const s = sp.size * 1.5
-            const cosR = Math.cos(sp.rot)
-            const sinR = Math.sin(sp.rot)
-            this.combatGraphics.moveTo(sp.x - cosR * s, sp.y - sinR * s).lineTo(sp.x + cosR * s, sp.y + sinR * s).stroke({ width: 1.5, color: sp.color, alpha: sp.alpha })
-            this.combatGraphics.circle(sp.x, sp.y, 1.0).fill({ color: 0xffffff, alpha: sp.alpha })
-          } else {
-            this.combatGraphics.circle(sp.x, sp.y, sp.size).fill({ color: sp.color, alpha: sp.alpha })
-          }
-        }
-
-        if (sp.life <= 0) {
-          this.combatSparks.splice(i, 1)
-        }
-      }
-    }
 
     // 5. Floating Unit HP Bars
     if (hasUnits) {
@@ -607,8 +323,8 @@ export class CombatRenderer {
       if (this.combatGraphics && !this.combatGraphics.destroyed) {
         this.combatGraphics.clear()
       }
-      this.combatTrails.clear()
-      this.combatSparks = []
+      this.projectileFx.clear()
+      this.activeShockwaves.length = 0
     } catch (e) {
       console.warn('[CombatRenderer] clear caught:', e)
     }
@@ -616,13 +332,9 @@ export class CombatRenderer {
 
   public destroy(): void {
     try {
-      if (this.unsubscribeImpact) {
-        this.unsubscribeImpact()
-      }
+      this.unsubscribeImpact?.()
       this.unsubscribeShockwave?.()
-      if (this.unsubscribeStrike) {
-        this.unsubscribeStrike()
-      }
+      this.unsubscribeStrike?.()
       this.clear()
       if (this.combatGraphics && !this.combatGraphics.destroyed) {
         this.combatGraphics.destroy()

@@ -64,9 +64,14 @@
     </div>
 
     <!-- Modals & Overlays -->
-    <GameConfigModal v-if="mapStore.project.gameMode !== 'hero'" />
-    <HeroConfigModal v-if="mapStore.project.gameMode === 'hero'" />
-    <TowerCreateModal />
+    <!-- Only the map genre's own settings -->
+    <template v-if="mapMode === 'td'">
+      <GameConfigModal />
+      <TowerCreateModal />
+    </template>
+    <HideSeekConfigModal v-else-if="mapMode === 'hideseek'" />
+    <HeroConfigModal v-else />
+
     <BoxClearModal />
     <KeyboardShortcutsModal />
     <HistoryModal />
@@ -78,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Layers } from 'lucide-vue-next'
 import EditorHeader from '../components/editor/EditorHeader.vue'
@@ -88,6 +93,8 @@ import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import ExportModal from '../components/ExportModal.vue'
 import GameConfigModal from '../components/GameConfigModal.vue'
 import HeroConfigModal from '../components/HeroConfigModal.vue'
+import HideSeekConfigModal from '../components/HideSeekConfigModal.vue'
+import { getMapMode } from '../domain/map'
 import TowerCreateModal from '../components/TowerCreateModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'
@@ -114,6 +121,8 @@ const routeStore = useRouteStore()
 const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
+
+const mapMode = computed(() => getMapMode(mapStore.project))
 
 const viewportRef = ref<any>(null)
 const welcomeModalRef = ref<any>(null)
@@ -209,6 +218,7 @@ watch(
     towerStore.blueprints,
     towerStore.placedTowers.length,
     towerStore.clans,
+    mapStore.project.hideSeekSettings,
   ],
   () => {
     if (saveTimeout) clearTimeout(saveTimeout)

@@ -1,10 +1,7 @@
 export interface ImpactSparkEvent {
   x: number
   y: number
-  projectileType?: string
-  isSplash?: boolean
-  color?: number
-  count?: number
+  projectileType: string
 }
 
 export interface StrikeVisualEvent {
@@ -13,7 +10,6 @@ export interface StrikeVisualEvent {
   startX?: number
   startY?: number
   projectileType: string
-  duration?: number
 }
 
 export interface FloatingTextEvent {

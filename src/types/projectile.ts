@@ -1,186 +1,208 @@
 /**
- * Composable Projectile Architecture (Single Source of Truth)
- * Unified data-driven definition for TD Projectiles across Editor, Tower Preview, TD Settings, and Game runtime.
+ * Projectile definition (v2): a projectile is built from parts, so any look can be made from them.
+ *  - flying: a body (stack of shape layers) travels to the target, leaving a trail and shedding particles
+ *  - beam:   an instant ray from the tower to the target
+ *  - strike: an instant effect at the target (from the sky, out of the ground or around the unit)
+ * Every behavior ends in an impact (flash, rings, particle burst, ground mark).
+ * Colors are CSS hex strings ('#rrggbb'); sizes are screen pixels; times are seconds.
  */
 
-export type ProjectileCategory =
+export type ProjectileBehavior = 'flying' | 'beam' | 'strike'
+
+/** Element of a projectile: its theme in the library (and the default palette of generated ones) */
+export type ProjectileElement =
   | 'fire'
   | 'frost'
   | 'electro'
   | 'poison'
   | 'arcane'
   | 'void'
-  | 'siege'
+  | 'nature'
   | 'holy'
-  | 'custom'
+  | 'physical'
+  | 'tech'
 
-export type ProjectileArchetype =
-  | 'flying'
-  | 'sky_strike'
-  | 'ground_burst'
-  | 'unit_aura'
-  | 'laser'
-
-export type ProjectileShape =
-  | 'circle'
-  | 'procedural_flame'
-  | 'rocket'
-  | 'diamond_shard'
+export type BodyShape =
+  | 'orb'
+  | 'ring'
+  | 'polygon'
   | 'star'
-  | 'line_streak'
-  | 'sand_cluster'
-  | 'instant_strike'
+  | 'diamond'
+  | 'teardrop'
+  | 'flame'
   | 'arrow'
-  | 'spear_lance'
-  | 'lightning_bolt'
+  | 'bolt'
+  | 'blade'
+  | 'crescent'
+  | 'cross'
+  | 'spikes'
+  | 'rocket'
   | 'shuriken'
-  | 'sawblade'
-  | 'skull'
-  | 'greatsword'
-  | 'hammer'
-  | 'boulder'
   | 'feather'
-  | 'energy_orb'
-  | 'energy_wave'
+  | 'skull'
   | 'sprite'
 
-export type TrailStyle = 'none' | 'solid_line' | 'glow_streak' | 'particles'
-
-export type ProjectileFormationType =
-  | 'single'
-  | 'single_helix'
-  | 'volley_3'
-  | 'volley_5'
-  | 'twin_helix'
-  | 'triple_helix'
-  | 'fan_spread'
-  | 'ring_burst'
-  | 'cluster_burst'
-  | 'staggered_burst'
-  | 'satellites'
-  | 'laser_beam'
-
-export type SparkParticleType =
-  | 'fire_ember'
-  | 'ice_shard'
-  | 'snowflake'
-  | 'lightning_arc'
-  | 'acid_drop'
-  | 'arcane_star'
-  | 'void_blood'
-  | 'shrapnel'
-  | 'holy_cross'
-  | 'sand_dust'
-  | 'spark_line'
-  | 'default'
-
-export interface ProjectileIdentity {
-  id: string
-  name: string
-  nameUz: string
-  category: ProjectileCategory
-  description: string
-  version: number
-  isCustom?: boolean
-}
-
-export type InstantStrikeType =
-  // Sky strikes (Osmondan tushuvchi usullar)
-  | 'sky_thunder'
-  | 'heavenly_pillar'
-  | 'meteor_fall'
-  | 'solar_beam'
-  | 'arrow_rain'
-  | 'holy_spear'
-  // Ground bursts (Yerdan otiluvchi usullar)
-  | 'ground_fissure'
-  | 'magma_geyser'
-  | 'frost_spikes'
-  | 'poison_roots'
-  | 'void_portal'
-  | 'quake_stomp'
-  // Unit aura & surroundings (Unit atrofidagi usullar)
-  | 'unit_singularity'
-  | 'void_vortex'
-  | 'swirling_blades'
-  | 'frost_nova'
-  | 'poison_cloud'
-  | 'electric_discharge'
-  | 'rune_seal'
-  | 'holy_halo'
-  // Legacy aliases
-  | 'sky_strike'
-  | 'ground_burst'
-  | 'unit_aura'
-
-export interface ProjectileMovement {
-  speed: number // in cells per second
-  hasArc: boolean
-  arcHeightRatio?: number
-  isLaser: boolean
-  isInstant: boolean
-  instantType?: InstantStrikeType
-  homing?: boolean
-  turnRate?: number
-}
-
-export interface ProjectileVisual {
-  shape: ProjectileShape
-  spriteTextureId?: string
+export interface BodyLayer {
+  shape: BodyShape
+  color: string
+  alpha: number
+  /** Radius (half width) in pixels */
   size: number
-  length: number
-  points: number
-  colorHex: number
-  colorCss: string
-  glowColorHex: number
-  glowColorCss: string
-  coreColorHex: number
-  coreColorCss: string
-  alpha: number
-  scale: number
-  rotationOffset?: number
+  /** Length along the flight direction relative to the size (1 = as long as wide) */
+  stretch: number
+  /** Pixels ahead (+) or behind (-) the head along the flight direction */
+  offset: number
+  /** Static rotation in degrees */
+  rotation: number
+  /** Spin in degrees per second */
+  spin: number
+  /** Size pulse amount (0 = none, 0.5 = ±50%) and its speed in pulses per second */
+  pulse: number
+  pulseSpeed: number
+  /** Polygon sides, star points, shuriken blades, spikes */
+  sides: number
+  /** Inner radius share: star depth, ring thickness, crescent cut (0..1) */
+  inner: number
+  /** Soft halo around the shape (0 = none, 1 = strong) */
+  glow: number
+  outlineColor: string
+  outlineWidth: number
+  /** Orbit radius in pixels: the layer circles the head `copies` times (0 = stays on the head) */
+  orbit: number
+  orbitSpeed: number
+  copies: number
+  /** Turns with the flight direction (off: keeps its own rotation, e.g. a spinning shuriken) */
+  faceFlight: boolean
+  /** Sprite layer: id of a game asset drawn as the body */
+  assetId: string
 }
 
-export interface ProjectileTrail {
+export type TrailStyle = 'none' | 'ribbon' | 'line' | 'dots' | 'ghost' | 'zigzag' | 'double'
+
+export interface TrailConfig {
   style: TrailStyle
-  colorHex: number
-  colorCss: string
+  color: string
+  colorEnd: string
   alpha: number
-  length: number
   width: number
+  /** Points kept behind the head (longer = longer trail) */
+  length: number
 }
 
-export interface ProjectileFormationConfig {
-  type: ProjectileFormationType
-  satelliteCount: number
-  spreadAngle?: number
+export type ParticleShape = 'dot' | 'square' | 'star' | 'spark' | 'ember' | 'shard' | 'ring' | 'cross' | 'smoke' | 'leaf' | 'bubble'
+
+export interface ParticleConfig {
+  shape: ParticleShape
+  color: string
+  colorEnd: string
+  /** Burst: particles per hit. Emitter: particles per second */
+  amount: number
+  size: number
+  sizeEnd: number
+  speed: number
+  /** Spread angle in degrees (360 = all around) */
+  spread: number
+  life: number
+  /** Pixels per second²: positive falls, negative rises */
+  gravity: number
+  /** 0..1 slowdown per second */
+  drag: number
+  alpha: number
 }
 
-export interface ProjectileImpact {
-  sparkType: SparkParticleType
-  sparkCount: number
-  sparkColorHex: number
-  sparkColorCss: string
-  shockwaveRadius: number
-  shockwaveColorHex: number
-  shockwaveColorCss: string
-  hasDoubleRing: boolean
+export interface MotionConfig {
+  /** Tiles per second */
+  speed: number
+  /** Arc height (0 = straight, 1 = high lob) */
+  arc: number
+  /** Side-to-side wobble in pixels and how many times it swings over the flight */
+  wobble: number
+  wobbleFreq: number
+  /** Ground shadow under the flying body */
+  shadow: boolean
+}
+
+export type LaunchPattern = 'line' | 'fan' | 'helix' | 'orbit' | 'stagger' | 'scatter'
+
+export interface LaunchConfig {
+  /** Projectiles per shot (the damage is split between them) */
+  count: number
+  pattern: LaunchPattern
+  /** Side distance between them in pixels */
+  spread: number
+  /** Helix / orbit turns over the flight */
+  turns: number
+}
+
+export type StrikeStyle =
+  | 'bolt'
+  | 'pillar'
+  | 'meteor'
+  | 'rain'
+  | 'spikes'
+  | 'eruption'
+  | 'fissure'
+  | 'portal'
+  | 'vortex'
+  | 'nova'
+  | 'rune'
+  | 'blades'
+
+export interface StrikeConfig {
+  style: StrikeStyle
+  color: string
+  color2: string
+  core: string
+  /** Radius in pixels */
+  size: number
+  duration: number
+  /** Rain drops, spikes, blades, rune marks */
+  count: number
+}
+
+export type BeamStyle = 'laser' | 'lightning' | 'wave' | 'pulse'
+
+export interface BeamConfig {
+  style: BeamStyle
+  color: string
+  core: string
+  width: number
+  /** Lightning zigzag / wave height in pixels */
+  jitter: number
+  duration: number
+}
+
+export interface ImpactConfig {
+  flashColor: string
+  /** Flash radius in pixels (0 = none) */
+  flashSize: number
+  ringColor: string
+  ringCount: number
+  ringRadius: number
+  ringWidth: number
+  burst: ParticleConfig
+  /** Ground mark left after the hit (radius 0 = none) */
+  decalColor: string
+  decalRadius: number
+  decalLife: number
 }
 
 export interface ProjectileDefinition {
-  identity: ProjectileIdentity
-  movement: ProjectileMovement
-  visual: ProjectileVisual
-  trail: ProjectileTrail
-  formation: ProjectileFormationConfig
-  impact: ProjectileImpact
-}
-
-/**
- * Standard Portable Clipboard Payload Schema (v1)
- */
-export interface ProjectileClipboardPayload {
-  version: 1
-  type: 'projectile'
-  data: ProjectileDefinition
+  version: 2
+  id: string
+  name: string
+  element: ProjectileElement
+  behavior: ProjectileBehavior
+  /** Made by the player (library presets are built in and read-only) */
+  isCustom: boolean
+  motion: MotionConfig
+  launch: LaunchConfig
+  /** Drawn bottom to top */
+  body: BodyLayer[]
+  trail: TrailConfig
+  /** Particles shed while flying (amount = per second, 0 = none) */
+  emitter: ParticleConfig
+  strike: StrikeConfig
+  beam: BeamConfig
+  impact: ImpactConfig
 }

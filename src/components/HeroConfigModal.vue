@@ -1,7 +1,7 @@
 <template>
   <UiModal
     :is-open="toolStore.isHeroConfigModalOpen"
-    title="Hero Settings"
+    :title="$t('genre.heroSettings')"
     subtitle="Qahramon modeli, harakat parametrlari va boshlang'ich koordinatalar"
     :icon="Swords"
     icon-color="brand"

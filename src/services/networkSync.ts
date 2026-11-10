@@ -6,7 +6,7 @@ import {
 } from '../types/multiplayer'
 import { UnitVariantType } from '../types/map'
 import { emitProjectileImpact, emitProjectileStrike } from './projectileImpact'
-import { getProjectileDefinition, isInstantProjectile } from '../utils/projectileCatalog'
+import { getProjectile, isInstantProjectile } from '../domain/projectile'
 import { getModelActionFrameCount } from '../utils/characterUtils'
 
 /**
@@ -551,7 +551,7 @@ class NetworkSyncBuffer {
 
     if (event.type === 'TOWER_FIRE') {
       const projectileType = event.projType || 'fireball'
-      if (isInstantProjectile(getProjectileDefinition(projectileType))) {
+      if (isInstantProjectile(getProjectile(projectileType))) {
         const x = event.targetX || 0
         const y = event.targetY || 0
         emitProjectileStrike(event.startX ?? x, event.startY ?? y, x, y, projectileType)

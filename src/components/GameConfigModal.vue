@@ -372,63 +372,11 @@
                 :leading-icon="Sparkles"
                 @click="isProjectileModalOpen = true"
               >
-                {{ $t('towers.chooseFrom80') || 'Barcha 80 xil snaryadlar' }}
+                {{ $t('pe.browseLibrary') }}
               </UiButton>
             </div>
 
-            <!-- Active Selected Projectile Display Card -->
-            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div 
-                  class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner"
-                  :style="{ 
-                    backgroundColor: `${activeProjectileDef.visual.colorCss}20`, 
-                    borderColor: `${activeProjectileDef.visual.colorCss}60`,
-                    color: activeProjectileDef.visual.colorCss
-                  }"
-                >
-                  <div 
-                    class="w-3.5 h-3.5 rounded-full shadow-md"
-                    :style="{ backgroundColor: activeProjectileDef.visual.colorCss }"
-                  />
-                </div>
-                <div class="flex flex-col min-w-0">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-xs font-bold text-slate-100 truncate">
-                      {{ (currentLocale === 'uz' && activeProjectileDef.identity.nameUz) ? activeProjectileDef.identity.nameUz : activeProjectileDef.identity.name }}
-                    </span>
-                    <span 
-                      class="text-[9px] font-semibold px-1.5 py-0.2 rounded border uppercase tracking-wider"
-                      :style="{
-                        color: activeProjectileDef.visual.colorCss,
-                        borderColor: `${activeProjectileDef.visual.colorCss}40`,
-                        backgroundColor: `${activeProjectileDef.visual.colorCss}15`
-                      }"
-                    >
-                      {{ activeProjectileDef.identity.category }}
-                    </span>
-                    <span 
-                      class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border"
-                      :class="getProjectileArchetypeMeta(activeProjectileDef).badgeClass"
-                    >
-                      {{ getProjectileArchetypeMeta(activeProjectileDef).nameUz.split(' ')[0] }}
-                    </span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 truncate mt-0.5">
-                    {{ activeProjectileDef.identity.description }}
-                  </span>
-                </div>
-              </div>
-
-              <UiButton
-                variant="secondary"
-                size="xs"
-                :leading-icon="Crosshair"
-                @click="isProjectileModalOpen = true"
-              >
-                {{ $t('common.change') || 'Tanlash' }}
-              </UiButton>
-            </div>
+            <ProjectileCard :projectile-id="selectedBp?.projectileId" @change="isProjectileModalOpen = true" />
           </div>
 
           <!-- Splash Damage Options & Distribution Mode -->
@@ -1875,7 +1823,7 @@
   <!-- SELECT PROJECTILE TYPE MODAL -->
   <ProjectileSelectModal
     :is-open="isProjectileModalOpen"
-    :current-projectile-id="selectedBp?.projectileId || 'fireball'"
+    :current-projectile-id="selectedBp?.projectileId"
     @select="(val) => updateSelectedBp({ projectileId: val })"
     @close="isProjectileModalOpen = false"
   />
@@ -1918,7 +1866,7 @@ import { getClanIcon, CLAN_AVAILABLE_ICONS, CLAN_AVAILABLE_COLORS } from '../uti
 import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
-import { getProjectileDefinition, getProjectileArchetypeMeta } from '../utils/projectileCatalog'
+import ProjectileCard from './projectile/ProjectileCard.vue'
 import characterManifest from '../assets/generated/characterManifest.json'
 import { getCharacterMeta } from '../utils/characterUtils'
 import { useI18n } from '../stores/i18nStore'
@@ -1930,7 +1878,7 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
-const { t, currentLocale } = useI18n()
+const { t } = useI18n()
 
 // Clan Management state
 const isClanModalOpen = ref(false)
@@ -2169,7 +2117,6 @@ const spawnModeOptions = computed(() => [
 
 // Projectile Selector State
 const isProjectileModalOpen = ref(false)
-const activeProjectileDef = computed(() => getProjectileDefinition(selectedBp.value?.projectileId || 'fireball'))
 
 // Change Sprite Modal State (Only Tower Assets!)
 const isChangeSpriteModalOpen = ref(false)

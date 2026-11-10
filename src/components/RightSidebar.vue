@@ -302,8 +302,8 @@
           <!-- Top Action Row: Spawn Routes Header & Add Route -->
           <div class="flex items-center justify-between px-1.5 shrink-0 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80">
             <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 pl-1">
-              <Footprints class="w-3.5 h-3.5 text-emerald-400" />
-              <span>{{ $t('sidebar.spawnRoutes') }} ({{ routeStore.routes.length }})</span>
+              <component :is="isSpawnPoints ? MapPin : Footprints" class="w-3.5 h-3.5 text-emerald-400" />
+              <span>{{ $t(isSpawnPoints ? 'sidebar.spawnPoints' : 'sidebar.spawnRoutes') }} ({{ routeStore.routes.length }})</span>
             </div>
 
             <!-- New Route Button -->
@@ -313,7 +313,7 @@
               :leading-icon="Plus"
               @click="handleAddNewRoute"
             >
-              {{ $t('sidebar.newRoute') }}
+              {{ $t(isSpawnPoints ? 'sidebar.newSpawn' : 'sidebar.newRoute') }}
             </UiButton>
           </div>
 
@@ -369,14 +369,15 @@
                     class="text-xs font-bold truncate"
                     :class="routeStore.selectedRouteIndex === idx ? 'text-emerald-300 font-semibold' : 'text-slate-200'"
                   >
-                    {{ (route.name || `Route ${idx + 1}`).replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${idx + 1}` }}
+                    {{ isSpawnPoints ? spawnLabel(idx) : (route.name || `Route ${idx + 1}`).replace(/\s*\(\d+,\s*\d+\)/g, '').trim() || `Route ${idx + 1}` }}
                   </span>
                 </div>
 
                 <!-- Draw / Edit / Focus / Delete Buttons -->
                 <div class="flex items-center gap-1 shrink-0">
-                  <!-- Draw Button with Pen Icon -->
+                  <!-- Draw Button with Pen Icon (walked paths only) -->
                   <UiButton
+                    v-if="!isSpawnPoints"
                     :variant="routeStore.isDrawingRoute && routeStore.selectedRouteIndex === idx ? 'game-amber' : 'primary'"
                     size="xs"
                     :leading-icon="PenTool"
@@ -407,8 +408,9 @@
                     @click.stop="handleRelocateStart(idx)"
                   />
 
-                  <!-- Set / Relocate Player Base Point -->
+                  <!-- Set / Relocate Player Base Point (walked paths only) -->
                   <UiIconButton 
+                    v-if="!isSpawnPoints"
                     :icon="Castle"
                     size="sm"
                     variant="ghost"
@@ -440,7 +442,7 @@
                     {{ $t('sidebar.playerStartCoord') || 'Base' }}: ({{ route.playerCameraPoint.col }}, {{ route.playerCameraPoint.row }})
                   </span>
                 </div>
-                <span class="text-slate-500">
+                <span v-if="!isSpawnPoints" class="text-slate-500">
                   {{ getRouteStats(route, idx) }}
                 </span>
               </div>
@@ -613,6 +615,7 @@ import { useNotificationStore } from '../stores/notificationStore'
 import { AssetItem, ToolType } from '../types/map'
 import AnchorAdjustModal from './AnchorAdjustModal.vue'
 import { useI18n } from '../stores/i18nStore'
+import { getEditorFeatures } from '../domain/map'
 
 const emit = defineEmits<{
   (e: 'focus-cell', pos: { col: number; row: number }): void
@@ -642,11 +645,31 @@ watch([() => assetStore.selectedCategory, () => mapStore.totalTilesCount], ([cat
   }
 }, { immediate: true })
 
-const topTabItems = computed<TabItem[]>(() => [
-  { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
-  { id: 'layers', label: t('common.layers') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
-  { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: routeStore.routes.length }
-])
+// Routes are creep paths in tower defense, only spawn points in hide & seek, and not used by the hero genre
+const routeKind = computed(() => getEditorFeatures(mapStore.project).routes)
+const isSpawnPoints = computed(() => routeKind.value === 'spawns')
+
+watch(routeKind, (kind) => {
+  if (kind === 'none' && activeTopTab.value === 'routes') activeTopTab.value = 'elements'
+}, { immediate: true })
+
+const topTabItems = computed<TabItem[]>(() => {
+  const items: TabItem[] = [
+    { id: 'elements', label: t('sidebar.objectsTab') || 'Objects', icon: Boxes, count: mapStore.totalTilesCount },
+    { id: 'layers', label: t('common.layers') || 'Layers', icon: Layers, count: mapStore.project.layers.length },
+  ]
+  if (routeKind.value !== 'none') {
+    items.push(isSpawnPoints.value
+      ? { id: 'routes', label: t('sidebar.spawnsTab'), icon: MapPin, count: routeStore.routes.length }
+      : { id: 'routes', label: t('sidebar.routesTab') || 'Routes', icon: Footprints, count: routeStore.routes.length })
+  }
+  return items
+})
+
+/** Hide & seek: the first spawn point is the seekers' base, the others are the hiders' */
+function spawnLabel(idx: number): string {
+  return idx === 0 ? t('sidebar.seekerSpawn') : t('sidebar.hiderSpawn', { number: idx })
+}
 
 const assetCategoryItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
@@ -676,7 +699,7 @@ function handleSelectRoute(idx: number) {
     routeStore.selectedRouteIndex = null
   } else {
     routeStore.selectedRouteIndex = idx
-    characterStore.spawnAtRoute(idx)
+    if (!isSpawnPoints.value) characterStore.spawnAtRoute(idx)
   }
 }
 
