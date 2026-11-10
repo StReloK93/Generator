@@ -284,7 +284,7 @@ function createBlank(): void {
     id: newProjectileId(),
     name: t('pe.newName'),
     isCustom: true,
-    body: [createLayer({ shape: 'orb', color: '#fbbf24', size: 14, alpha: 0.3, glow: 1 }), createLayer({ shape: 'orb', color: '#f97316', size: 7 }), createLayer({ shape: 'orb', color: '#ffffff', size: 3 })],
+    body: [createLayer({ shape: 'orb', color: '#f97316', size: 7 }), createLayer({ shape: 'orb', color: '#ffffff', size: 3 })],
   }))
 }
 

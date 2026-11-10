@@ -231,16 +231,11 @@ export function drawLayer(g: Graphics, layer: BodyLayer, x: number, y: number, a
       rot += (c / copies) * TAU
     }
 
-    if (layer.glow > 0) {
-      const gr = Math.max(r, len)
-      g.circle(px, py, gr * 2.6).fill({ color, alpha: 0.05 * layer.glow * fade })
-      g.circle(px, py, gr * 1.8).fill({ color, alpha: 0.09 * layer.glow * fade })
-      g.circle(px, py, gr * 1.3).fill({ color, alpha: 0.14 * layer.glow * fade })
-    }
-
     g.save()
-    g.translateTransform(px, py)
+    // Pixi's rotate also turns the translation already on the matrix (around the canvas origin),
+    // so rotate first and translate after, or the body drifts away from its trail
     g.rotateTransform(rot)
+    g.translateTransform(px, py)
     fillShape(g, layer, r, len, color, alpha, time)
     g.restore()
   }

@@ -61,7 +61,15 @@ interface TimedEffect {
   age: number
   duration: number
   seed: number
+  /** The unit it hit: the strike (or the beam's end) moves along with it while that unit is still found */
+  targetId?: string
 }
+
+/**
+ * Where a unit stands now (null once it is gone): (x, y) is the ground under its feet, `height` how far above
+ * that its body is. Ground strikes sit on the feet; a beam ends at the body.
+ */
+export type LocateTarget = (id: string) => { x: number; y: number; height?: number } | null
 
 interface Ring {
   x: number
@@ -181,14 +189,17 @@ export class ProjectileFx {
     if (im.decalRadius > 0) this.decals.push({ x, y, color: hex(im.decalColor), radius: im.decalRadius, age: 0, life: im.decalLife })
   }
 
-  /** An instant beam (from the muzzle) or strike (at the target) */
-  public strike(def: ProjectileDefinition, startX: number, startY: number, x: number, y: number): void {
+  /** An instant beam (from the muzzle) or strike (at the target); with `targetId` it follows that unit (see endFrame) */
+  public strike(def: ProjectileDefinition, startX: number, startY: number, x: number, y: number, targetId?: string): void {
     const duration = def.behavior === 'beam' ? def.beam.duration : def.strike.duration
-    this.strikes.push({ def, x, y, startX, startY, age: 0, duration, seed: Math.floor(Math.random() * 1e9) })
+    this.strikes.push({ def, x, y, startX, startY, age: 0, duration, seed: Math.floor(Math.random() * 1e9), targetId })
   }
 
-  /** Forgets flights that were not drawn this frame and draws particles, strikes, rings and flashes on top */
-  public endFrame(): void {
+  /**
+   * Forgets flights that were not drawn this frame and draws particles, strikes, rings and flashes on top.
+   * `locate` moves each strike that has a target onto where that unit stands now; one whose unit is gone stays put.
+   */
+  public endFrame(locate?: LocateTarget): void {
     for (const [id, f] of this.flights) if (!f.seen) this.flights.delete(id)
     const g = this.g
     const dt = this.dt
@@ -199,6 +210,13 @@ export class ProjectileFx {
       if (s.age >= s.duration) {
         this.strikes.splice(i, 1)
         continue
+      }
+      if (s.targetId && locate) {
+        const at = locate(s.targetId)
+        if (at) {
+          s.x = at.x
+          s.y = s.def.behavior === 'beam' ? at.y - (at.height ?? 0) : at.y
+        }
       }
       const t = s.age / s.duration
       if (s.def.behavior === 'beam') drawBeam(g, s.def.beam, s.startX, s.startY, s.x, s.y, t, this.time)

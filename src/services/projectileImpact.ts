@@ -20,7 +20,7 @@ export function emitProjectileImpact(x: number, y: number, projectileType: strin
   }
 }
 
-/** Instant attack (sky strike, beam) drawn from the tower muzzle to the target. */
-export function emitProjectileStrike(startX: number, startY: number, x: number, y: number, projectileType: string): void {
-  combatEvents.emitStrike({ x, y, startX, startY, projectileType })
+/** Instant attack (sky strike, beam) drawn from the tower muzzle to the target; it follows `targetUnitId` while it lasts. */
+export function emitProjectileStrike(startX: number, startY: number, x: number, y: number, projectileType: string, targetUnitId?: string): void {
+  combatEvents.emitStrike({ x, y, startX, startY, projectileType, targetUnitId: targetUnitId || undefined })
 }

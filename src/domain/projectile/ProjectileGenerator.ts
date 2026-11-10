@@ -163,7 +163,6 @@ export function generateProjectile(options: GenerateOptions = {}, random: Random
   const size = between(random, 5, 11)
 
   const body: BodyLayer[] = []
-  if (random() < 0.75) body.push(createLayer({ shape: 'orb', color: p.glow, size: size * between(random, 1.5, 2.2), alpha: between(random, 0.2, 0.4), glow: 1 }))
   const main = pick(random, MAIN_SHAPES)
   const spin = main.spin ? between(random, main.spin[0], main.spin[1]) * (random() < 0.5 ? -1 : 1) : 0
   const sides = main.sides ? Math.round(between(random, main.sides[0], main.sides[1])) : 5
@@ -171,11 +170,11 @@ export function generateProjectile(options: GenerateOptions = {}, random: Random
   body.push(createLayer({
     shape: main.shape, color: p.main, size: round(size), stretch, spin: round(spin, 10), sides, faceFlight: spin === 0,
     inner: round(between(random, 0.3, 0.7), 0.05), pulse: random() < 0.3 ? round(between(random, 0.08, 0.25), 0.01) : 0, pulseSpeed: round(between(random, 2, 10), 0.5),
-    outlineColor: p.dark, outlineWidth: random() < 0.35 ? 1.2 : 0, glow: random() < 0.4 ? 0.5 : 0,
+    outlineColor: p.dark, outlineWidth: random() < 0.35 ? 1.2 : 0,
   }))
   if (random() < 0.45) body.push(createLayer({ shape: main.shape, color: p.accent, size: round(size * 0.6), stretch, spin: round(spin, 10), sides, faceFlight: spin === 0, alpha: 0.85, offset: round(between(random, 0, 3)) }))
   if (random() < 0.7) body.push(createLayer({ shape: 'orb', color: p.core, size: round(size * between(random, 0.3, 0.45)), offset: main.stretch[0] > 1.4 ? round(size * 0.4) : 0 }))
-  if (random() < 0.2) body.push(createLayer({ shape: pick(random, ['orb', 'star', 'diamond'] as const), color: p.core, size: round(size * 0.3), orbit: round(size * between(random, 1.3, 2)), orbitSpeed: round(between(random, 1, 3), 0.5), copies: Math.round(between(random, 2, 4)), glow: 0.6, spin: 300 }))
+  if (random() < 0.2) body.push(createLayer({ shape: pick(random, ['orb', 'star', 'diamond'] as const), color: p.core, size: round(size * 0.3), orbit: round(size * between(random, 1.3, 2)), orbitSpeed: round(between(random, 1, 3), 0.5), copies: Math.round(between(random, 2, 4)), spin: 300 }))
 
   const multi = random() < 0.25
   const particleShape = random() < 0.6 ? (p.emitter.shape ?? 'dot') : pick(random, PARTICLES)
@@ -197,7 +196,7 @@ export function generateProjectile(options: GenerateOptions = {}, random: Random
       : { count: 1, pattern: 'line', spread: 14, turns: 2 },
     body,
     trail: { style: pick(random, TRAILS), color: p.glow, colorEnd: p.main, alpha: round(between(random, 0.55, 0.9), 0.05), width: round(size * between(random, 0.5, 1)), length: Math.round(between(random, 6, 18)) },
-    emitter: createParticles({ ...p.emitter, shape: particleShape, amount: random() < 0.25 ? 0 : Math.round(between(random, 8, 36)) }),
+    emitter: { ...p.emitter, shape: particleShape, amount: random() < 0.25 ? 0 : Math.round(between(random, 8, 36)) },
     strike: { style: pick(random, STRIKE_STYLES), color: p.main, color2: p.accent, core: p.core, size: Math.round(between(random, 24, 48)), duration: round(between(random, 0.4, 0.75), 0.05), count: Math.round(between(random, 4, 10)) },
     beam: { style: pick(random, BEAM_STYLES), color: p.main, core: p.core, width: round(between(random, 3, 8), 0.5), jitter: Math.round(between(random, 6, 18)), duration: round(between(random, 0.2, 0.4), 0.05) },
     impact: {

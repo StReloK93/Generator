@@ -3,6 +3,8 @@ import type { BeamConfig, StrikeConfig } from '../../../types/projectile'
 import { hex } from './ProjectileShapes'
 
 const TAU = Math.PI * 2
+/** Ground strikes (spikes, eruption, fissure) rise in a ring around the target from this share of their size, not on top of it */
+const RING_INNER = 0.6
 
 /** Small seeded random so a strike keeps its shape over its frames */
 function seeded(seed: number): () => number {
@@ -114,7 +116,7 @@ export function drawStrike(g: Graphics, s: StrikeConfig, x: number, y: number, t
       groundGlow(g, x, y, r, main, grow)
       for (let i = 0; i < s.count; i++) {
         const a = (i / s.count) * TAU + random() * 0.6
-        const d = r * (0.25 + random() * 0.75)
+        const d = r * (RING_INNER + random() * (1 - RING_INNER))
         const bx = x + Math.cos(a) * d
         const by = y + Math.sin(a) * d * 0.5
         const h = r * (0.7 + random() * 0.8) * grow
@@ -130,10 +132,13 @@ export function drawStrike(g: Graphics, s: StrikeConfig, x: number, y: number, t
         const k = Math.min(1, Math.max(0, (t - start) / 0.5))
         if (k <= 0 || k >= 1) continue
         const h = easeOut(k) * r * (3 + random() * 3)
-        const bx = x + (random() - 0.5) * r * 0.7 + Math.sin(k * 6 + i) * 4
+        const a = (i / (s.count * 2)) * TAU + random() * 0.5
+        const d = r * (RING_INNER + random() * 0.3)
+        const bx = x + Math.cos(a) * d + Math.sin(k * 6 + i) * 4
+        const by = y + Math.sin(a) * d * 0.5
         const size = r * 0.3 * (1 - k * 0.6)
-        g.circle(bx, y - h, size * 1.6).fill({ color: second, alpha: 0.3 * (1 - k) })
-        g.circle(bx, y - h, size).fill({ color: i % 3 === 0 ? core : main, alpha: 1 - k })
+        g.circle(bx, by - h, size * 1.6).fill({ color: second, alpha: 0.3 * (1 - k) })
+        g.circle(bx, by - h, size).fill({ color: i % 3 === 0 ? core : main, alpha: 1 - k })
       }
       break
     }
@@ -142,9 +147,14 @@ export function drawStrike(g: Graphics, s: StrikeConfig, x: number, y: number, t
       groundGlow(g, x, y, r, main, fade)
       for (let i = 0; i < s.count; i++) {
         const a = (i / s.count) * TAU + random()
-        const len = r * (0.8 + random() * 0.7) * k
-        jagged(g, x, y, x + Math.cos(a) * len, y + Math.sin(a) * len * 0.5, 4, seeded(seed + i), 4, main, 0.5 * fade)
-        jagged(g, x, y, x + Math.cos(a) * len, y + Math.sin(a) * len * 0.5, 4, seeded(seed + i), 1.5, core, fade)
+        const from = r * RING_INNER
+        const len = from + r * (0.5 + random() * 0.7) * k
+        const x0 = x + Math.cos(a) * from
+        const y0 = y + Math.sin(a) * from * 0.5
+        const x1 = x + Math.cos(a) * len
+        const y1 = y + Math.sin(a) * len * 0.5
+        jagged(g, x0, y0, x1, y1, 4, seeded(seed + i), 4, main, 0.5 * fade)
+        jagged(g, x0, y0, x1, y1, 4, seeded(seed + i), 1.5, core, fade)
       }
       break
     }

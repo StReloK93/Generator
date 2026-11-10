@@ -36,7 +36,6 @@ export function createLayer(patch: Partial<BodyLayer> = {}): BodyLayer {
     pulseSpeed: 2,
     sides: 5,
     inner: 0.45,
-    glow: 0,
     outlineColor: '#ffffff',
     outlineWidth: 0,
     orbit: 0,
@@ -68,6 +67,8 @@ export function createParticles(patch: Partial<ParticleConfig> = {}): ParticleCo
 
 const DEFAULT_MOTION: MotionConfig = { speed: 12, arc: 0.2, wobble: 0, wobbleFreq: 2, shadow: true }
 const DEFAULT_LAUNCH: LaunchConfig = { count: 1, pattern: 'line', spread: 14, turns: 2 }
+/** Flight particles shed behind the projectile in this cone (degrees); a full 360° sprays a cloud around it */
+const EMITTER_SPREAD = 50
 const DEFAULT_TRAIL: TrailConfig = { style: 'ribbon', color: '#fbbf24', colorEnd: '#ef4444', alpha: 0.8, width: 6, length: 12 }
 const DEFAULT_STRIKE: StrikeConfig = { style: 'bolt', color: '#60a5fa', color2: '#a78bfa', core: '#ffffff', size: 36, duration: 0.5, count: 6 }
 const DEFAULT_BEAM: BeamConfig = { style: 'laser', color: '#22d3ee', core: '#ffffff', width: 5, jitter: 8, duration: 0.25 }
@@ -107,7 +108,7 @@ export function createProjectile(patch: ProjectilePatch = {}): ProjectileDefinit
     launch: { ...DEFAULT_LAUNCH, ...patch.launch },
     body: (patch.body ?? [createLayer()]).map(l => createLayer(l)),
     trail: { ...DEFAULT_TRAIL, ...patch.trail },
-    emitter: createParticles(patch.emitter),
+    emitter: createParticles({ spread: EMITTER_SPREAD, ...patch.emitter }),
     strike: { ...DEFAULT_STRIKE, ...patch.strike },
     beam: { ...DEFAULT_BEAM, ...patch.beam },
     impact: { ...DEFAULT_IMPACT, ...patch.impact, burst: createParticles({ amount: 14, ...patch.impact?.burst }) },
@@ -153,7 +154,6 @@ function normalizeLayer(raw: Loose<BodyLayer>): BodyLayer {
     pulseSpeed: num(raw.pulseSpeed, d.pulseSpeed, 0, 30),
     sides: Math.round(num(raw.sides, d.sides, 2, 16)),
     inner: num(raw.inner, d.inner, 0.05, 0.95),
-    glow: num(raw.glow, d.glow, 0, 1),
     outlineColor: color(raw.outlineColor, d.outlineColor),
     outlineWidth: num(raw.outlineWidth, d.outlineWidth, 0, 10),
     orbit: num(raw.orbit, d.orbit, 0, 200),
@@ -312,7 +312,6 @@ function migrateLegacyProjectile(r: Record<string, any>): ProjectileDefinition {
     motion: { speed: num(mv.speed, 12, 1, 60), arc: mv.hasArc ? 0.6 : 0.1, wobble: 0, wobbleFreq: 2, shadow: true },
     launch,
     body: [
-      createLayer({ shape: 'orb', color: glow, alpha: 0.35, size: size * 1.6, glow: 0.8 }),
       createLayer({ shape, color: main, size, stretch: shape === 'arrow' || shape === 'teardrop' ? 2.5 : shape === 'flame' ? 2 : 1, spin: shape === 'shuriken' || shape === 'star' ? 720 : 0, faceFlight: shape !== 'shuriken', assetId: typeof v.spriteTextureId === 'string' ? v.spriteTextureId : '' }),
       createLayer({ shape: 'orb', color: core, size: size * 0.4, alpha: 0.95 }),
     ],

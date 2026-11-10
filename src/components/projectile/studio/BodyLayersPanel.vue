@@ -56,7 +56,6 @@
         <UiSlider v-model="layer.alpha" :label="$t('pe.alpha')" :min="0.05" :max="1" :step="0.05" />
         <UiSlider v-model="layer.stretch" :label="$t('pe.stretch')" :min="0.2" :max="10" :step="0.1" unit="×" />
         <UiSlider v-model="layer.offset" :label="$t('pe.offset')" :min="-40" :max="40" :step="1" unit="px" />
-        <UiSlider v-model="layer.glow" :label="$t('pe.glow')" :min="0" :max="1" :step="0.05" />
         <UiSlider v-model="layer.rotation" :label="$t('pe.rotation')" :min="-180" :max="180" :step="5" unit="°" />
         <UiSlider v-model="layer.spin" :label="$t('pe.spin')" :min="-1800" :max="1800" :step="30" unit="°/s" />
         <UiSlider v-model="layer.pulse" :label="$t('pe.pulse')" :min="0" :max="0.8" :step="0.02" />

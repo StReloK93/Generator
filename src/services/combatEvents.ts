@@ -10,6 +10,8 @@ export interface StrikeVisualEvent {
   startX?: number
   startY?: number
   projectileType: string
+  /** The unit it hit, so the strike moves along with it */
+  targetUnitId?: string
 }
 
 export interface FloatingTextEvent {

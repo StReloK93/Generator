@@ -63,8 +63,6 @@ export interface BodyLayer {
   sides: number
   /** Inner radius share: star depth, ring thickness, crescent cut (0..1) */
   inner: number
-  /** Soft halo around the shape (0 = none, 1 = strong) */
-  glow: number
   outlineColor: string
   outlineWidth: number
   /** Orbit radius in pixels: the layer circles the head `copies` times (0 = stays on the head) */

@@ -89,34 +89,33 @@ interface FamilyPart {
 
 type Family = (p: ElementPalette) => FamilyPart
 
-const glowOrb = (p: ElementPalette, size: number, alpha = 0.3): Partial<BodyLayer> => ({ shape: 'orb', color: p.glow, size, alpha, glow: 1 })
 const core = (p: ElementPalette, size: number, offset = 0): Partial<BodyLayer> => ({ shape: 'orb', color: p.core, size, offset, alpha: 0.95 })
 
 /** Flying body families: each one is a different silhouette and way of flying */
 export const FLYING_FAMILIES: Record<string, Family> = {
-  orb: p => ({ body: [glowOrb(p, 15), { shape: 'orb', color: p.main, size: 8, pulse: 0.12, pulseSpeed: 6, glow: 0.4 }, core(p, 3.5)], motion: { speed: 12, arc: 0.15 } }),
+  orb: p => ({ body: [{ shape: 'orb', color: p.main, size: 8, pulse: 0.12, pulseSpeed: 6 }, core(p, 3.5)], motion: { speed: 12, arc: 0.15 } }),
   comet: p => ({
-    body: [{ shape: 'flame', color: p.glow, size: 10, stretch: 2.6, alpha: 0.4, glow: 0.8 }, { shape: 'flame', color: p.main, size: 7, stretch: 2.2 }, core(p, 3, 3)],
+    body: [{ shape: 'flame', color: p.glow, size: 10, stretch: 2.6, alpha: 0.4 }, { shape: 'flame', color: p.main, size: 7, stretch: 2.2 }, core(p, 3, 3)],
     trail: { length: 18, width: 8 }, motion: { speed: 14, arc: 0.25 },
   }),
   flame: p => ({
-    body: [glowOrb(p, 16, 0.25), { shape: 'flame', color: p.accent, size: 10, stretch: 1.8, pulse: 0.15, pulseSpeed: 9 }, { shape: 'flame', color: p.main, size: 7, stretch: 1.5, offset: 1 }, core(p, 3.5, 3)],
+    body: [{ shape: 'flame', color: p.accent, size: 10, stretch: 1.8, pulse: 0.15, pulseSpeed: 9 }, { shape: 'flame', color: p.main, size: 7, stretch: 1.5, offset: 1 }, core(p, 3.5, 3)],
     motion: { speed: 11, arc: 0.3 },
   }),
   arrow: p => ({
-    body: [{ shape: 'arrow', color: p.dark, size: 3, stretch: 7, outlineColor: p.main, outlineWidth: 0 }, { shape: 'teardrop', color: p.main, size: 3, stretch: 2, offset: 18, glow: 0.6 }],
+    body: [{ shape: 'arrow', color: p.dark, size: 3, stretch: 7, outlineColor: p.main, outlineWidth: 0 }, { shape: 'teardrop', color: p.main, size: 3, stretch: 2, offset: 18 }],
     trail: { style: 'line', width: 2, length: 8 }, motion: { speed: 20, arc: 0.6 }, emitter: { amount: 10 },
   }),
   bolt: p => ({
-    body: [glowOrb(p, 14, 0.25), { shape: 'bolt', color: p.main, size: 7, stretch: 3, glow: 0.6 }, { shape: 'bolt', color: p.core, size: 3.5, stretch: 3 }],
+    body: [{ shape: 'bolt', color: p.main, size: 7, stretch: 3 }, { shape: 'bolt', color: p.core, size: 3.5, stretch: 3 }],
     trail: { style: 'zigzag' }, motion: { speed: 22, arc: 0 },
   }),
   shard: p => ({
-    body: [{ shape: 'diamond', color: p.glow, size: 9, stretch: 3, alpha: 0.35, glow: 0.7 }, { shape: 'diamond', color: p.main, size: 6, stretch: 3 }, { shape: 'diamond', color: p.core, size: 2.5, stretch: 2.6, offset: 3 }],
+    body: [{ shape: 'diamond', color: p.glow, size: 9, stretch: 3, alpha: 0.35 }, { shape: 'diamond', color: p.main, size: 6, stretch: 3 }, { shape: 'diamond', color: p.core, size: 2.5, stretch: 2.6, offset: 3 }],
     motion: { speed: 18, arc: 0.1 },
   }),
   star: p => ({
-    body: [glowOrb(p, 14, 0.25), { shape: 'star', color: p.main, size: 9, sides: 5, inner: 0.45, spin: 540, faceFlight: false }, { shape: 'star', color: p.core, size: 4, sides: 5, spin: 540, faceFlight: false }],
+    body: [{ shape: 'star', color: p.main, size: 9, sides: 5, inner: 0.45, spin: 540, faceFlight: false }, { shape: 'star', color: p.core, size: 4, sides: 5, spin: 540, faceFlight: false }],
     motion: { speed: 12, arc: 0.3 },
   }),
   shuriken: p => ({
@@ -124,7 +123,7 @@ export const FLYING_FAMILIES: Record<string, Family> = {
     trail: { style: 'ghost', length: 6 }, motion: { speed: 16, arc: 0.15 },
   }),
   crescent: p => ({
-    body: [{ shape: 'crescent', color: p.glow, size: 16, inner: 0.62, alpha: 0.35, glow: 0.6 }, { shape: 'crescent', color: p.main, size: 13, inner: 0.66 }, { shape: 'crescent', color: p.core, size: 11, inner: 0.82 }],
+    body: [{ shape: 'crescent', color: p.glow, size: 16, inner: 0.62, alpha: 0.35 }, { shape: 'crescent', color: p.main, size: 13, inner: 0.66 }, { shape: 'crescent', color: p.core, size: 11, inner: 0.82 }],
     trail: { width: 12, length: 10 }, motion: { speed: 13, arc: 0 },
   }),
   rocket: p => ({
@@ -133,7 +132,7 @@ export const FLYING_FAMILIES: Record<string, Family> = {
     trail: { style: 'none' }, motion: { speed: 15, arc: 0.15, wobble: 6, wobbleFreq: 3 },
   }),
   spear: p => ({
-    body: [{ shape: 'diamond', color: p.glow, size: 5, stretch: 8, alpha: 0.35, glow: 0.6 }, { shape: 'diamond', color: p.main, size: 3.2, stretch: 8 }, { shape: 'diamond', color: p.core, size: 3, stretch: 2.4, offset: 20 }],
+    body: [{ shape: 'diamond', color: p.glow, size: 5, stretch: 8, alpha: 0.35 }, { shape: 'diamond', color: p.main, size: 3.2, stretch: 8 }, { shape: 'diamond', color: p.core, size: 3, stretch: 2.4, offset: 20 }],
     trail: { width: 3, length: 14 }, motion: { speed: 24, arc: 0.2 },
   }),
   boulder: p => ({
@@ -141,15 +140,15 @@ export const FLYING_FAMILIES: Record<string, Family> = {
     trail: { style: 'dots', length: 6, width: 4 }, motion: { speed: 9, arc: 1 },
   }),
   ring: p => ({
-    body: [{ shape: 'ring', color: p.glow, size: 14, inner: 0.7, stretch: 0.55, alpha: 0.4, glow: 0.6 }, { shape: 'ring', color: p.main, size: 11, inner: 0.75, stretch: 0.55, pulse: 0.15, pulseSpeed: 5 }],
+    body: [{ shape: 'ring', color: p.glow, size: 14, inner: 0.7, stretch: 0.55, alpha: 0.4 }, { shape: 'ring', color: p.main, size: 11, inner: 0.75, stretch: 0.55, pulse: 0.15, pulseSpeed: 5 }],
     trail: { style: 'ghost', length: 6 }, motion: { speed: 12, arc: 0 },
   }),
   orbitals: p => ({
-    body: [glowOrb(p, 11), { shape: 'orb', color: p.main, size: 5 }, { shape: 'orb', color: p.core, size: 3, orbit: 12, orbitSpeed: 2, copies: 3, glow: 0.7 }],
+    body: [{ shape: 'orb', color: p.main, size: 5 }, { shape: 'orb', color: p.core, size: 3, orbit: 12, orbitSpeed: 2, copies: 3 }],
     motion: { speed: 11, arc: 0.2 },
   }),
   cross: p => ({
-    body: [glowOrb(p, 15, 0.25), { shape: 'cross', color: p.main, size: 10, inner: 0.3, spin: 360, faceFlight: false, glow: 0.5 }, core(p, 3)],
+    body: [{ shape: 'cross', color: p.main, size: 10, inner: 0.3, spin: 360, faceFlight: false }, core(p, 3)],
     motion: { speed: 12, arc: 0.2 },
   }),
   spikes: p => ({
@@ -157,36 +156,36 @@ export const FLYING_FAMILIES: Record<string, Family> = {
     motion: { speed: 10, arc: 0.6 },
   }),
   teardrop: p => ({
-    body: [{ shape: 'teardrop', color: p.glow, size: 8, stretch: 2, alpha: 0.35, glow: 0.7 }, { shape: 'teardrop', color: p.main, size: 6, stretch: 1.8 }, core(p, 2.2, 3)],
+    body: [{ shape: 'teardrop', color: p.glow, size: 8, stretch: 2, alpha: 0.35 }, { shape: 'teardrop', color: p.main, size: 6, stretch: 1.8 }, core(p, 2.2, 3)],
     motion: { speed: 13, arc: 0.5 },
   }),
   feather: p => ({
-    body: [{ shape: 'feather', color: p.main, size: 5, stretch: 4, outlineColor: p.core, outlineWidth: 0.8 }, { shape: 'orb', color: p.glow, size: 9, alpha: 0.25, glow: 1, offset: 6 }],
+    body: [{ shape: 'feather', color: p.main, size: 5, stretch: 4, outlineColor: p.core, outlineWidth: 0.8 }],
     motion: { speed: 15, arc: 0.2, wobble: 8, wobbleFreq: 2 },
   }),
   skull: p => ({
-    body: [glowOrb(p, 16, 0.3), { shape: 'skull', color: p.main, size: 9, pulse: 0.1, pulseSpeed: 4, faceFlight: false }],
+    body: [{ shape: 'skull', color: p.main, size: 9, pulse: 0.1, pulseSpeed: 4, faceFlight: false }],
     trail: { style: 'ghost', length: 8 }, motion: { speed: 10, arc: 0.1, wobble: 5, wobbleFreq: 3 },
   }),
   volley: p => ({
-    body: [{ shape: 'arrow', color: p.dark, size: 2.4, stretch: 6 }, { shape: 'teardrop', color: p.main, size: 2.6, stretch: 2, offset: 14, glow: 0.6 }],
+    body: [{ shape: 'arrow', color: p.dark, size: 2.4, stretch: 6 }, { shape: 'teardrop', color: p.main, size: 2.6, stretch: 2, offset: 14 }],
     launch: { count: 3, pattern: 'fan', spread: 18 }, trail: { style: 'line', width: 1.6, length: 6 }, motion: { speed: 19, arc: 0.55 },
   }),
   helix: p => ({
-    body: [glowOrb(p, 9), { shape: 'orb', color: p.main, size: 5 }, core(p, 2)],
+    body: [{ shape: 'orb', color: p.main, size: 5 }, core(p, 2)],
     launch: { count: 2, pattern: 'helix', spread: 13, turns: 2.5 }, motion: { speed: 12, arc: 0.1 },
   }),
   swarm: p => ({
-    body: [glowOrb(p, 7, 0.3), { shape: 'orb', color: p.main, size: 3.4 }],
+    body: [{ shape: 'orb', color: p.main, size: 3.4 }],
     launch: { count: 5, pattern: 'scatter', spread: 24 }, trail: { length: 8, width: 3 }, emitter: { amount: 8 },
     motion: { speed: 13, arc: 0.3, wobble: 6, wobbleFreq: 4 },
   }),
   barrage: p => ({
-    body: [{ shape: 'diamond', color: p.main, size: 4, stretch: 3, glow: 0.4 }, { shape: 'diamond', color: p.core, size: 1.8, stretch: 2.4, offset: 2 }],
+    body: [{ shape: 'diamond', color: p.main, size: 4, stretch: 3 }, { shape: 'diamond', color: p.core, size: 1.8, stretch: 2.4, offset: 2 }],
     launch: { count: 4, pattern: 'stagger', spread: 12 }, trail: { length: 8, width: 3 }, motion: { speed: 20, arc: 0.1 },
   }),
   trinity: p => ({
-    body: [glowOrb(p, 9), { shape: 'star', color: p.main, size: 6, sides: 4, spin: 600, faceFlight: false }],
+    body: [{ shape: 'star', color: p.main, size: 6, sides: 4, spin: 600, faceFlight: false }],
     launch: { count: 3, pattern: 'orbit', spread: 15, turns: 1.5 }, motion: { speed: 11, arc: 0.15 },
   }),
 }
@@ -244,7 +243,7 @@ export function buildFlying(element: ProjectileElement, family: string, id = `${
     element,
     behavior: 'flying',
     trail: { style: p.trail, color: p.glow, colorEnd: p.main, alpha: 0.8, width: 6, length: 12 },
-    emitter: createParticles(p.emitter),
+    emitter: p.emitter,
     impact: impactFor(p),
   })
   return mergeFamily(base, (FLYING_FAMILIES[family] ?? FLYING_FAMILIES.orb)(p))

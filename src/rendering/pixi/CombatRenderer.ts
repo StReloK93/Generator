@@ -12,6 +12,34 @@ import { ProjectileFx } from './projectile/ProjectileFx'
 
 const SHOCKWAVE_LIFE = 0.55
 
+/**
+ * Where a unit's feet are drawn, as its tile plus a screen offset — the same placement UnitRenderer uses
+ * (pairs formation side step, per-unit / wave offsetY and the global elevation), so effects land on the sprite.
+ */
+function unitFeet(
+  unit: any,
+  tileWidth: number,
+  formation: string | undefined,
+  elevation: number,
+  waveOffsetY: number | undefined
+): { col: number; row: number; dx: number; dy: number } | null {
+  const col = unit.movement ? unit.movement.currentCol : unit.currentCol
+  const row = unit.movement ? unit.movement.currentRow : unit.currentRow
+  if (typeof col !== 'number' || typeof row !== 'number') return null
+  let dx = 0
+  let dy = 0
+  const sideOffset = unit.identity ? unit.identity.sideOffset : (unit.sideOffset ?? 0)
+  if (formation === 'pairs' && sideOffset) {
+    const direction = unit.movement ? unit.movement.direction : (unit.direction ?? 2)
+    const offsetDist = tileWidth * 0.15 * sideOffset
+    dx += Math.cos((direction * Math.PI) / 4 + Math.PI / 2) * offsetDist
+    dy += Math.sin((direction * Math.PI) / 4 + Math.PI / 2) * 0.5 * offsetDist
+  }
+  const offsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? waveOffsetY ?? 0
+  dy -= (Number(offsetY) || 0) + elevation
+  return { col, row, dx, dy }
+}
+
 export class CombatRenderer {
   public combatGraphics: Graphics
   /** Projectile bodies, trails, particles, impacts, strikes and beams (fed by combat and combatEvents) */
@@ -30,7 +58,7 @@ export class CombatRenderer {
     this.projectileFx = new ProjectileFx(this.combatGraphics)
 
     this.unsubscribeStrike = combatEvents.onStrike((evt) => {
-      this.projectileFx.strike(getProjectile(evt.projectileType), evt.startX ?? evt.x, evt.startY ?? evt.y, evt.x, evt.y)
+      this.projectileFx.strike(getProjectile(evt.projectileType), evt.startX ?? evt.x, evt.startY ?? evt.y, evt.x, evt.y, evt.targetUnitId)
     })
     this.unsubscribeShockwave = combatEvents.onShockwave((evt) => {
       this.activeShockwaves.push({ ...evt, life: SHOCKWAVE_LIFE })
@@ -252,8 +280,21 @@ export class CombatRenderer {
       this.combatGraphics.ellipse(w.x, w.y, rx * 0.97, rx * 0.485).stroke({ width: 1, color: 0xffffff, alpha: 0.6 * fade })
     }
 
-    // 4. Particles, strikes, beams, impact rings and flashes
-    this.projectileFx.endFrame()
+    // 4. Particles, strikes, beams, impact rings and flashes; strikes stay on their unit while it walks
+    const formation = useGameStore()?.formation
+    const elevation = Number(characterStore?.unitElevation) || 0
+    const waveCfg = (() => {
+      const ws = useWaveStore()
+      return ws?.currentWaveConfig || ws?.waveConfigs?.[ws?.currentWaveIndex ?? 0] || null
+    })()
+    this.projectileFx.endFrame(id => {
+      const unit = units.find((u: any) => u.id === id)
+      if (!unit || (unit.lifecycle ? unit.lifecycle.isDead : unit.isDead)) return null
+      const feet = unitFeet(unit, tileWidth, formation, elevation, waveCfg?.offsetY)
+      if (!feet) return null
+      const base = gridToScreen(feet.col, feet.row, tileWidth, tileHeight)
+      return { x: base.x + feet.dx, y: base.y + feet.dy, height: tileHeight * 0.5 }
+    })
 
 
     // 5. Floating Unit HP Bars

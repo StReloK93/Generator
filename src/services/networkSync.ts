@@ -554,7 +554,7 @@ class NetworkSyncBuffer {
       if (isInstantProjectile(getProjectile(projectileType))) {
         const x = event.targetX || 0
         const y = event.targetY || 0
-        emitProjectileStrike(event.startX ?? x, event.startY ?? y, x, y, projectileType)
+        emitProjectileStrike(event.startX ?? x, event.startY ?? y, x, y, projectileType, event.unitId)
         emitProjectileImpact(x, y, projectileType, event.isSplash ? event.splashRadius || 1.5 : 0)
         return
       }

@@ -22,6 +22,10 @@ interface PreviewShot {
 }
 
 let shotCounter = 0
+/** The preview's one target dummy, so strikes follow it like they follow a unit in the game */
+const PREVIEW_TARGET_ID = 'preview-target'
+/** How far below the target point the preview dummy stands (ProjectilePreview draws its ground ring there) */
+const DUMMY_FEET = 16
 
 /**
  * A small firing range for previews (studio, projectile picker, tower preview): fires a projectile from a muzzle
@@ -42,7 +46,7 @@ export class ProjectilePreviewStage {
   /** Fires one shot of `def` (all of its volley) from `from` at `to` */
   public fire(def: ProjectileDefinition, from: StagePoint, to: StagePoint): void {
     if (isInstantProjectile(def)) {
-      this.fx.strike(def, from.x, from.y, to.x, to.y)
+      this.fx.strike(def, from.x, from.y, to.x, to.y, PREVIEW_TARGET_ID)
       this.fx.impact(def, to.x, to.y)
       return
     }
@@ -91,7 +95,8 @@ export class ProjectilePreviewStage {
       this.fx.drawFlying({ ...s, targetX: target.x, targetY: target.y })
     }
 
-    this.fx.endFrame()
+    // The dummy's feet (its ground ring) are 16px below its centre, the point shots fly at
+    this.fx.endFrame(id => (id === PREVIEW_TARGET_ID ? { x: target.x, y: target.y + DUMMY_FEET, height: DUMMY_FEET } : null))
   }
 
   public clear(): void {

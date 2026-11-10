@@ -93,7 +93,7 @@ export class CombatEngine {
           const projDef = getProjectile(tower.projectileId)
           const projId = projDef.id
           if (isInstantProjectile(projDef)) {
-            emitProjectileStrike(muzzleX, muzzleY, targetX, targetY, projId)
+            emitProjectileStrike(muzzleX, muzzleY, targetX, targetY, projId, bestTarget.id)
 
             const dummyProj: Projectile = {
               id: `instant-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
