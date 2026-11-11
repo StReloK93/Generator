@@ -31,10 +31,9 @@
           <Map class="size-3.5" /> {{ $t('play.maps') }}
           <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ builtinMaps.length }}</span>
         </h3>
-        <MapListPicker
+        <MapBrowser
           v-model="selectedMapId"
           :maps="builtinMaps"
-          show-players
           class="flex-1 -mx-2"
           @pick="handleCreateRoom"
         />
@@ -175,7 +174,7 @@ import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { applyMapPayloadToStores, getBuiltinMaps, type MapSummary } from '../../services/mapManager'
 import type { ActiveRoomSummary } from '../../types/multiplayer'
-import MapListPicker from './MapListPicker.vue'
+import MapBrowser from './MapBrowser.vue'
 
 const props = defineProps<{
   isOpen: boolean

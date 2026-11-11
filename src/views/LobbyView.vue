@@ -22,6 +22,7 @@
       <div class="ml-auto flex items-center gap-1.5 shrink-0">
         <span v-if="multiplayerStore.connectionStatus === 'error'" class="text-[11px] text-rose-300 truncate max-w-40">{{ $t('play.serverUnreachable') }}</span>
         <span v-else-if="multiplayerStore.connectionStatus !== 'connected'" class="size-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <UiIconButton :icon="UserPlus" size="sm" variant="ghost" :title="$t('lobby.invite')" @click="inviteFriends" />
         <VoiceChatControl />
         <!-- Chat: the panel opens below the icon -->
         <div class="relative">
@@ -137,9 +138,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { X, Users, Check, Play, BellRing, Map, Clock, MessageSquare, Search, EyeOff } from 'lucide-vue-next'
+import { X, Users, Check, Play, BellRing, Map, Clock, MessageSquare, Search, EyeOff, UserPlus } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiCard, UiModal } from '../components/ui'
 import { useMultiplayerStore } from '../stores/multiplayerStore'
 import { useMapStore } from '../stores/mapStore'
@@ -150,6 +151,8 @@ import { useI18n } from '../stores/i18nStore'
 import { lockLandscape } from '../utils/pwaOrientation'
 import { getProjectMapId } from '../services/mapManager'
 import { gamePath, lobbyPath } from '../router/paths'
+import { fetchTelegramAppUrl } from '../services/networkService'
+import { setBackButton, shareInTelegram, telegramRoomLink } from '../services/telegram'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import VoiceChatControl from '../components/VoiceChatControl.vue'
@@ -204,6 +207,7 @@ const filledSlotsCount = computed(() => {
 })
 
 onMounted(async () => {
+  setBackButton(handleLeave)
   multiplayerStore.setRouter(router)
   const code = (route.params.roomId as string) || ''
   // Opened by URL (page refresh or shared link): get back into this tab's room, otherwise join it
@@ -238,6 +242,34 @@ watch(
   { immediate: true }
 )
 
+
+onUnmounted(() => setBackButton(null))
+
+/**
+ * Invites friends to this room: in Telegram through its "share to chat" screen, elsewhere the phone's share sheet
+ * or the clipboard. With the server's Telegram app link the invite opens the Mini App straight into the room.
+ */
+async function inviteFriends() {
+  const code = multiplayerStore.roomId
+  if (!code) return
+  const text = t('lobby.inviteText', { name: multiplayerStore.roomName || mapStore.project.name })
+  const appUrl = await fetchTelegramAppUrl()
+  const link = appUrl
+    ? telegramRoomLink(appUrl, code)
+    : new URL(lobbyPath(code).slice(1), `${location.origin}${import.meta.env.BASE_URL}`).href
+  if (shareInTelegram(link, text)) return
+  if (navigator.share) {
+    // Closing the share sheet rejects: nothing to do then
+    await navigator.share({ title: t('app.name'), text, url: link }).catch(() => {})
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(link)
+    notify.success(t('lobby.inviteCopied'))
+  } catch {
+    notify.info(link)
+  }
+}
 
 function handleStartGame() {
   lockLandscape()

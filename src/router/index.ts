@@ -41,7 +41,7 @@ const routes = [
     name: 'editor-game',
     component: () => import('../views/EditorGameView.vue'),
   },
-  // Fallback for Telegram Mini App #tgWebAppData launch params or invalid routes
+  // Unknown routes go home
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',
@@ -53,10 +53,13 @@ export const router = createRouter({
   routes,
 })
 
-// Navigation guard to seamlessly handle Telegram WebApp hash parameters
-router.beforeEach((to, _from, next) => {
-  if (to.fullPath.includes('tgWebApp') || to.path.includes('tgWebApp')) {
-    return next('/')
-  }
-  next()
+// Telegram opens the Mini App with its launch data in the hash (#tgWebAppData=...) and sometimes the query
+// (?tgWebAppStartParam=...). The SDK has read them already: drop them and stay on the page that was opened
+// (a bot button can open /lobby/<room> directly).
+router.beforeEach((to) => {
+  const telegramQuery = Object.keys(to.query).filter(key => key.startsWith('tgWebApp'))
+  if (!to.hash.includes('tgWebApp') && telegramQuery.length === 0) return true
+  const query = { ...to.query }
+  for (const key of telegramQuery) delete query[key]
+  return { path: to.path, query, hash: '', replace: true }
 })

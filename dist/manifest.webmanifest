@@ -1,7 +1,7 @@
 {
-  "name": "Defensor TD - Tactical Tower Defense",
-  "short_name": "Defensor TD",
-  "description": "Izometrik Tower Defense va Taktik Xarita Dvijogi",
+  "name": "Realms",
+  "short_name": "Realms",
+  "description": "Isometric game worlds and map editor",
   "id": "./",
   "start_url": "./",
   "scope": "./",

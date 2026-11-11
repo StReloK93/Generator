@@ -61,7 +61,7 @@
         </h2>
         
         <p class="text-xs sm:text-sm text-slate-400 leading-relaxed mb-6 font-medium">
-          Defensor TD keng izometrik taktik jang maydoniga ega. To'liq vizual effektlar va qulay boshqaruv uchun qurilmangizni albom (gorizontal) rejimiga o'giring.
+          {{ $t('app.name') }} keng izometrik taktik jang maydoniga ega. To'liq vizual effektlar va qulay boshqaruv uchun qurilmangizni albom (gorizontal) rejimiga o'giring.
         </p>
 
         <!-- Action Buttons -->

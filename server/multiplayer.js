@@ -64,6 +64,11 @@ export function createMultiplayerApp(httpServer) {
     res.json(turnIceServers())
   })
 
+  // The Telegram Mini App link (https://t.me/<bot>/<app>): room invites open it straight into the room
+  app.get('/api/telegram', (_req, res) => {
+    res.json({ appUrl: process.env.TELEGRAM_APP_URL || null })
+  })
+
   app.delete('/api/rooms/:roomId', (req, res) => {
     rooms.delete(req.params.roomId)
     res.json({ ok: true })

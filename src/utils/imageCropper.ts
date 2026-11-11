@@ -29,6 +29,28 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
+ * Reads a picked image file and shrinks it to fit `maxWidth` × `maxHeight` (keeping its shape), as a WebP data URL.
+ * Keeps pictures stored inside map files small.
+ */
+export async function imageFileToDataUrl(file: File, maxWidth: number, maxHeight: number): Promise<string> {
+  const objectUrl = URL.createObjectURL(file)
+  try {
+    const img = await loadImage(objectUrl)
+    const scale = Math.min(1, maxWidth / img.naturalWidth, maxHeight / img.naturalHeight)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas 2D is not available')
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    return canvas.toDataURL('image/webp', 0.82)
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+/**
  * Analyzes non-transparent pixels and calculates the tight bounding box (Auto-Trim).
  */
 export async function getAutoTrimRect(src: string, alphaTolerance = 5): Promise<CropRect> {

@@ -32,6 +32,7 @@ import { gridToScreen } from '../utils/isometric'
 import { readSession, writeSession, removeSession, clearMatch } from '../services/sessionResume'
 import { getProjectMapId } from '../services/mapManager'
 import { gamePath, lobbyPath } from '../router/paths'
+import { telegramUserName } from '../services/telegram'
 
 /** Room codes are 6 digits (easy to read out and type on a phone's number pad) */
 const ROOM_CODE_LENGTH = 6
@@ -76,8 +77,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   const notify = useNotificationStore()
   const { t } = useI18n()
 
-  // Local Player Identity
-  const savedName = localStorage.getItem('isocraft_player_name') || `Player_${Math.floor(Math.random() * 900 + 100)}`
+  // Local Player Identity (a new player in Telegram starts with their Telegram name)
+  const savedName = localStorage.getItem('isocraft_player_name') || telegramUserName() || `Player_${Math.floor(Math.random() * 900 + 100)}`
 
   // Kept for the tab's lifetime: after a refresh the host recognizes the same player and gives the seat back
   const myPlayerId = ref<string>(

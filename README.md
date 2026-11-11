@@ -1,6 +1,6 @@
-# 🏰 Defensor - Tower Defense Game & Map Engine
+# Realms (Olamlar / Царства) - Isometric Game & Map Engine
 
-A high-performance Isometric Map Editor and playable Tower Defense Game built with **Vue 3**, **TypeScript**, **Pinia**, **PixiJS 8**, and **Tailwind CSS**.
+A high-performance Isometric Map Editor and game with several genres (Tower Defense, Hide & Seek, Hero Adventure) built with **Vue 3**, **TypeScript**, **Pinia**, **PixiJS 8**, and **Tailwind CSS**.
 
 ---
 
@@ -45,3 +45,18 @@ cd Generator
 npm install
 npm run dev
 ```
+
+## Telegram Mini App
+
+The game runs as a Telegram Mini App with no extra build: it goes full screen on phones, keeps clear of Telegram's
+own buttons, uses Telegram's back button in the lobby, asks before closing during a game, vibrates on taps and at
+the end of a game, and takes the player's name and language from Telegram.
+
+1. Deploy the server (`npm start`) on a public **https** address.
+2. In [@BotFather](https://t.me/BotFather): `/newbot`, then `/newapp` for that bot with the game's https address
+   and a short name (e.g. `play`). This gives the Mini App link `https://t.me/<bot>/play`.
+3. In `.env` on the server (see `.env.example`):
+   - `TELEGRAM_WEBAPP_URL` — the game's https address;
+   - `TELEGRAM_BOT_TOKEN` — the bot token: the server then sets the bot's menu button and answers `/start`;
+   - `TELEGRAM_APP_URL` — the Mini App link: the lobby's invite button shares `…?startapp=room_<code>`, which opens
+     the game straight in that room.

@@ -9,7 +9,7 @@
       sizeClasses,
       customClass
     ]"
-    @click="$emit('click', $event)"
+    @click="onClick"
   >
     <slot>
       <component :is="icon" :class="iconSizeClass" />
@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { haptic } from '../../services/telegram'
 
 export type IconButtonVariant = 'default' | 'tool' | 'ghost' | 'danger' | 'success' | 'amber'
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg'
@@ -44,9 +45,15 @@ const props = withDefaults(defineProps<Props>(), {
   customClass: '',
 })
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
+
+/** Every tap gives a light vibration in Telegram */
+function onClick(event: MouseEvent) {
+  haptic()
+  emit('click', event)
+}
 
 const variantClasses = computed(() => {
   if (props.variant === 'tool') {

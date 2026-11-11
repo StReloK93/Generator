@@ -1,0 +1,73 @@
+{
+  "frames": {
+    "tower_ice3": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 109,
+        "h": 142
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 73,
+        "y": 333,
+        "w": 109,
+        "h": 142
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_N": {
+      "frame": {
+        "x": 113,
+        "y": 2,
+        "w": 161,
+        "h": 137
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 374,
+        "w": 161,
+        "h": 137
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    },
+    "stoneWallTop_E": {
+      "frame": {
+        "x": 276,
+        "y": 2,
+        "w": 161,
+        "h": 135
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 328,
+        "w": 161,
+        "h": 135
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 512
+      }
+    }
+  },
+  "meta": {
+    "image": "structures_atlas_1.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 512,
+      "h": 256
+    },
+    "scale": "1"
+  }
+}

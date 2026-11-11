@@ -36,6 +36,10 @@ export interface MapDetails {
   startingGold: number
   startingLives: number
   clans: Array<{ id: string; name: string; color: string }>
+  /** Hide & seek: seeker seats, rounds and the length of a round in seconds */
+  seekers: number
+  rounds: number
+  roundTime: number
 }
 
 /** Player-facing summary of a raw map payload (shown in the map picker). */
@@ -43,6 +47,7 @@ export function getMapDetails(raw: any): MapDetails {
   const project = raw?.project || raw || {}
   const waves: Array<{ isBoss?: boolean }> = raw?.waveData?.waveConfigs || raw?.waveConfigs || project.waveConfigs || []
   const settings = normalizeGameSettings(project.gameSettings)
+  const hideSeek = normalizeHideSeekSettings(project.hideSeekSettings)
   return {
     waves: waves.length,
     bossWaves: waves.filter(w => w.isBoss).length,
@@ -50,6 +55,9 @@ export function getMapDetails(raw: any): MapDetails {
     startingGold: settings.startingGold,
     startingLives: settings.startingLives,
     clans: (project.clans || []).map((c: any) => ({ id: c.id, name: c.name, color: c.color || '#e9b63c' })),
+    seekers: hideSeek.seekerSlots,
+    rounds: hideSeek.roundCount,
+    roundTime: hideSeek.roundTime,
   }
 }
 

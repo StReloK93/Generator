@@ -312,6 +312,8 @@ export interface MapProject {
   waterCells?: string[] // list of `${col},${row}` cells designated as animated water
   collisionSubcells?: string[] // list of `${subCol},${subRow}` 2x2 subgrid obstacle cells for hero & unit collision
   buildMode?: 'all' | 'custom'
+  /** Picture the map picker shows for this map (image data URL); without it the picker draws the map small */
+  previewImage?: string
   createdAt: number
   updatedAt: number
 }

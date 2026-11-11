@@ -1,6 +1,6 @@
-# Defensor: Tower Defense Game & Isometric Map Engine
+# Realms (Olamlar / Царства): Isometric Game & Map Engine
 
-Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida qurilgan professional izometrik xarita muharriri (Redaktor) va to'liq interaktiv Tower Defense (TD) o'yin dvijogidir.
+Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida qurilgan professional izometrik xarita muharriri (Redaktor) va o'yin dvijogidir (nomi har tilda tarjima qilinadi: i18n `app.name`): har bir xarita bitta janrga tegishli — Tower Defense (`td`), Hide & Seek (`hideseek`), Hero Adventure (`hero`); janrlar ro'yxati `domain/map/MapMode.ts` da.
 
 
 
@@ -123,6 +123,8 @@ Xarita muharriri (`EditorView`) va Asset muharriri (`AssetEditorView`) dan tashq
 2. **Ixcham va Qulay Boshqaruv (Touch & Mobile Friendly)**:
    - Tugmalar, kartalar va inputlar barmog'i bilan teginish uchun qulay (`touch-target`, kamida `h-9` yoki `h-10` interaktiv maydonlar).
    - Matnlar qisqa, tushunarli, muhim harakatlar (Play, Host, Join) birinchi o'rinda.
+
+3. **Telegram Mini App**: Telegram SDK faqat `src/services/telegram.ts` orqali chaqiriladi (Telegramdan tashqarida hamma funksiyasi no-op). Ekran tepasiga yopishgan UI Telegramning yopish/menyu tugmalari ostida qolmasligi uchun `pt-safe` (yoki faqat Telegramda: `pt-tg` / `mt-tg`) ishlatadi.
 
 ---
 

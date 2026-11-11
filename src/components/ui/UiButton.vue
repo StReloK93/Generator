@@ -9,7 +9,7 @@
       block ? 'w-full' : '',
       customClass
     ]"
-    @click="$emit('click', $event)"
+    @click="onClick"
   >
     <!-- Loading spinner -->
     <UiSpinner v-if="loading" custom-class="-ml-0.5 mr-2 h-4 w-4" />
@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { UiSpinner } from '../svg'
+import { haptic } from '../../services/telegram'
 
 export type ButtonVariant = 
   | 'primary' 
@@ -72,9 +73,15 @@ const props = withDefaults(defineProps<Props>(), {
   customClass: '',
 })
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
+
+/** Every tap gives a light vibration in Telegram */
+function onClick(event: MouseEvent) {
+  haptic()
+  emit('click', event)
+}
 
 const variantClasses = computed(() => {
   if (props.variant === 'tool') {

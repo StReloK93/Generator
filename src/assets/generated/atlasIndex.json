@@ -3,7 +3,8 @@
     "terrain_atlas"
   ],
   "structures": [
-    "structures_atlas"
+    "structures_atlas_0",
+    "structures_atlas_1"
   ],
   "props": [
     "props_atlas"

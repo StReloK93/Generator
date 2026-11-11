@@ -210,6 +210,7 @@ export function buildFullProjectJsonPayload(
       waterCells: project.waterCells || [],
       collisionSubcells: project.collisionSubcells || [],
       buildMode: project.buildMode || 'all',
+      ...(project.previewImage ? { previewImage: project.previewImage } : {}),
       customProjectiles: customProjectilesUsedBy(resolvedTowerBlueprints.map((bp: { projectileId?: string }) => bp.projectileId)),
       createdAt: project.createdAt || Date.now(),
       updatedAt: Date.now(),

@@ -41,6 +41,15 @@ export function resolvePeerOptions(): Promise<PeerOptions> {
   return peerOptionsPromise
 }
 
+/** The Telegram Mini App link the server is set up with (TELEGRAM_APP_URL), or null when it has none. */
+let telegramAppUrlPromise: Promise<string | null> | null = null
+export function fetchTelegramAppUrl(): Promise<string | null> {
+  telegramAppUrlPromise ??= fetch(`${API_URL}/telegram`)
+    .then(async res => (res.ok ? ((await res.json()) as { appUrl: string | null }).appUrl : null))
+    .catch(() => null)
+  return telegramAppUrlPromise
+}
+
 /** How often a host re-announces its room to the public list (server drops it after 10s of silence). */
 const ROOM_HEARTBEAT_MS = 2000
 

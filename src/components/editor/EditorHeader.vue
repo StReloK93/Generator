@@ -10,7 +10,7 @@
         :title="$t('header.home')"
         @click="router.push('/')"
       >
-        <span class="hidden md:inline font-bold">Defensor</span>
+        <span class="hidden md:inline font-bold">{{ $t('app.name') }}</span>
       </UiButton>
 
       <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
@@ -21,6 +21,34 @@
         :title="mapStore.project.name || $t('header.newMap')"
       >
         <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || $t('header.newMap') }}</span>
+      </div>
+
+      <!-- Map picture for the map picker (without one the picker draws the map small) -->
+      <input ref="coverInput" type="file" accept="image/*" class="hidden" @change="onCoverPicked" />
+      <UiIconButton
+        v-if="!mapStore.project.previewImage"
+        :icon="ImagePlus"
+        size="sm"
+        variant="ghost"
+        :title="$t('header.mapCover')"
+        @click="coverInput?.click()"
+      />
+      <div v-else class="relative group shrink-0">
+        <img
+          :src="mapStore.project.previewImage"
+          alt=""
+          :title="$t('header.mapCover')"
+          class="h-7 aspect-2/1 rounded-md object-cover border border-slate-700 cursor-pointer"
+          @click="coverInput?.click()"
+        />
+        <UiIconButton
+          :icon="X"
+          size="xs"
+          variant="danger"
+          :title="$t('header.removeMapCover')"
+          custom-class="absolute! -top-1.5 -right-1.5 hidden! group-hover:inline-flex!"
+          @click="setCover(undefined)"
+        />
       </div>
 
       <!-- Map Genre (fixed when the map is created) -->
@@ -172,10 +200,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload
+  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload, ImagePlus, X
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher, UiBadge } from '../ui'
 import { getMapMode } from '../../domain/map'
@@ -190,6 +218,7 @@ import { useTowerStore } from '../../stores/towerStore'
 import { useI18nStore } from '../../stores/i18nStore'
 import { sanitizeMapId, saveEditorDraft, registerSessionCustomMap } from '../../services/mapManager'
 import { buildFullProjectJsonPayload } from '../../utils/exportHelpers'
+import { imageFileToDataUrl } from '../../utils/imageCropper'
 
 const router = useRouter()
 const mapStore = useMapStore()
@@ -200,6 +229,23 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const { t } = useI18nStore()
+
+/** Largest stored size of the map picture (it travels inside the map file) */
+const COVER_MAX_WIDTH = 640
+const COVER_MAX_HEIGHT = 400
+const coverInput = ref<HTMLInputElement | null>(null)
+
+function setCover(dataUrl: string | undefined) {
+  mapStore.project.previewImage = dataUrl
+  mapStore.project.updatedAt = Date.now()
+}
+
+async function onCoverPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (file) setCover(await imageFileToDataUrl(file, COVER_MAX_WIDTH, COVER_MAX_HEIGHT))
+}
 
 const mapMode = computed(() => getMapMode(mapStore.project))
 const modeInfo = computed(() => MAP_MODE_INFO[mapMode.value])

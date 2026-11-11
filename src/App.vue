@@ -27,9 +27,8 @@
         <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col items-center max-w-sm w-full">
-          <!-- DEFENSOR Brand Title -->
-          <h1 class="text-3xl sm:text-4xl font-black tracking-widest text-white mb-2 drop-shadow-md">
-            DEFENSOR
+          <h1 class="font-display uppercase text-3xl sm:text-4xl font-black tracking-[0.18em] pl-[0.18em] mb-2 bg-linear-to-b from-brand-50 via-brand-300 to-brand-600 bg-clip-text text-transparent">
+            {{ $t('app.name') }}
           </h1>
           <p class="text-xs font-semibold text-amber-400/90 mb-8 tracking-wider uppercase min-h-4">
             {{ $t(preloadStageKey) }}
@@ -56,14 +55,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { UiToastContainer, UiConfirmModal } from './components/ui'
 import DeviceOrientationGuard from './components/common/DeviceOrientationGuard.vue'
-import { initPwaAndOrientation } from './utils/pwaOrientation'
+import { initPwaAndOrientation, isPortrait } from './utils/pwaOrientation'
+import { initTelegram, setClosingConfirmation, setLandscapeLock, telegramStartRoom } from './services/telegram'
+import { lobbyPath } from './router/paths'
 import { assetManager } from './services/assetManager'
 import { useAssetStore } from './stores/assetStore'
+import { useI18nStore } from './stores/i18nStore'
 
 const assetStore = useAssetStore()
+const i18n = useI18nStore()
+
+// The browser tab shows the game's name in the chosen language
+watchEffect(() => {
+  document.title = i18n.t('app.name')
+})
+
+// Telegram Mini App: closing asks first in a room or a game (it would drop the player), and a game keeps the
+// phone sideways once it has been turned
+initTelegram()
+const route = useRoute()
+const router = useRouter()
+const PLAY_ROUTES = ['lobby', 'game', 'room-game', 'editor-game']
+const isPlaying = computed(() => PLAY_ROUTES.includes(String(route.name)))
+watchEffect(() => setClosingConfirmation(isPlaying.value))
+watchEffect(() => setLandscapeLock(isPlaying.value && route.name !== 'lobby' && !isPortrait.value))
+
+/** A friend's Telegram invite opens their room once (a reload of the app keeps the player where they are) */
+const START_ROOM_USED_KEY = 'tg_start_room_used'
+function openInvitedRoom() {
+  const room = telegramStartRoom()
+  if (!room || sessionStorage.getItem(START_ROOM_USED_KEY) === room) return
+  sessionStorage.setItem(START_ROOM_USED_KEY, room)
+  router.replace(lobbyPath(room))
+}
 
 // Global App Preloader State
 const isPreloading = ref(!assetManager.isBundleLoaded('core'))
@@ -122,6 +150,7 @@ async function runPreloadSequence() {
 
 onMounted(async () => {
   const cleanup = initPwaAndOrientation()
+  openInvitedRoom()
   onUnmounted(() => {
     cleanup()
   })

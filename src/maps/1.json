@@ -33624,7 +33624,7 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": -24
         },
-        "projectileId": "fireball",
+        "projectileId": "fire-comet",
         "targetStrategy": "first",
         "levels": [
           {
@@ -33718,7 +33718,7 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": -20
         },
-        "projectileId": "magma_geyser_burst",
+        "projectileId": "fire-strike-eruption",
         "targetStrategy": "first",
         "levels": [
           {
@@ -33831,14 +33831,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "custom_1789582542158_lnev",
+        "projectileId": "frost-shard",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
             "name": "Tower_ice1",
             "cost": 10,
-            "damage": 10,
+            "damage": 11,
             "attackSpeed": 1,
             "range": 5,
             "isSplash": false,
@@ -33848,7 +33848,7 @@
             "effects": [
               {
                 "type": "damage",
-                "amount": 5,
+                "amount": 6,
                 "element": "frost"
               },
               {
@@ -33856,7 +33856,10 @@
                 "percent": 20,
                 "duration": 3
               }
-            ]
+            ],
+            "frostBonusDamage": 6,
+            "slowPercent": 20,
+            "slowDuration": 3
           }
         ]
       },
@@ -33877,7 +33880,7 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "custom_1789582622693_n5g8",
+        "projectileId": "frost-spear",
         "targetStrategy": "first",
         "levels": [
           {
@@ -33902,7 +33905,10 @@
                 "percent": 30,
                 "duration": 3
               }
-            ]
+            ],
+            "frostBonusDamage": 5,
+            "slowPercent": 30,
+            "slowDuration": 3
           }
         ]
       },
@@ -33923,7 +33929,7 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "custom_1789582622693_n5g8",
+        "projectileId": "frost-strike-nova",
         "targetStrategy": "first",
         "levels": [
           {
@@ -33950,7 +33956,10 @@
                 "percent": 50,
                 "duration": 2
               }
-            ]
+            ],
+            "frostBonusDamage": 20,
+            "slowPercent": 50,
+            "slowDuration": 2
           }
         ]
       },
@@ -33971,14 +33980,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "custom_1789735101659_yf3q",
+        "projectileId": "frost-star",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
             "name": "Tower_ice4",
             "cost": 230,
-            "damage": 120,
+            "damage": 130,
             "attackSpeed": 0.8,
             "range": 6,
             "isSplash": true,
@@ -33998,7 +34007,10 @@
                 "percent": 30,
                 "duration": 2.5
               }
-            ]
+            ],
+            "frostBonusDamage": 20,
+            "slowPercent": 30,
+            "slowDuration": 2.5
           }
         ]
       },
@@ -34019,7 +34031,7 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "meteor_fall_strike",
+        "projectileId": "fire-strike-meteor",
         "targetStrategy": "first",
         "levels": [
           {
@@ -34081,14 +34093,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "line_streak_beam",
+        "projectileId": "frost-strike-spikes",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
             "name": "Tower_ice5",
             "cost": 380,
-            "damage": 380,
+            "damage": 470,
             "attackSpeed": 1.6,
             "range": 7,
             "isSplash": true,
@@ -34117,12 +34129,13 @@
               {
                 "type": "stun",
                 "duration": 0.5
-              },
-              {
-                "type": "chain",
-                "targets": 2
               }
-            ]
+            ],
+            "frostBonusDamage": 20,
+            "slowPercent": 50,
+            "slowDuration": 3,
+            "electricBonusDamage": 20,
+            "stunDuration": 0.5
           }
         ]
       },
@@ -34135,7 +34148,7 @@
           "assetId": "sprite-tower blood1",
           "assetName": "Tower blood1.webp",
           "assetPath": "",
-          "scale": 2.8,
+          "scale": 1,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34143,14 +34156,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "fireball",
+        "projectileId": "custom_julion_blood_drop",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
-            "name": "Tower_ice3",
+            "name": "Blood tower",
             "cost": 15,
-            "damage": 8,
+            "damage": 9,
             "attackSpeed": 1,
             "range": 6,
             "isSplash": true,
@@ -34162,10 +34175,12 @@
             "effects": [
               {
                 "type": "bleed",
-                "dps": 4,
+                "dps": 5,
                 "duration": 4
               }
-            ]
+            ],
+            "bleedDps": 5,
+            "bleedDuration": 4
           }
         ]
       },
@@ -34178,7 +34193,7 @@
           "assetId": "sprite-tower blood3",
           "assetName": "Tower blood3.webp",
           "assetPath": "",
-          "scale": 1.55,
+          "scale": 1,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34186,14 +34201,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "fireball",
+        "projectileId": "custom_julion_blood_geyser",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
-            "name": "Tower blood2",
+            "name": "Blood TO",
             "cost": 45,
-            "damage": 22,
+            "damage": 26,
             "attackSpeed": 1.2,
             "range": 5,
             "isSplash": true,
@@ -34205,10 +34220,12 @@
             "effects": [
               {
                 "type": "bleed",
-                "dps": 10,
+                "dps": 12,
                 "duration": 3
               }
-            ]
+            ],
+            "bleedDps": 12,
+            "bleedDuration": 3
           }
         ]
       },
@@ -34221,7 +34238,7 @@
           "assetId": "sprite-tower blood2",
           "assetName": "Tower blood2.webp",
           "assetPath": "",
-          "scale": 1.9,
+          "scale": 1,
           "spanX": 1,
           "spanY": 1,
           "anchorX": 0.5,
@@ -34229,14 +34246,14 @@
           "muzzleOffsetX": 0,
           "muzzleOffsetY": 0
         },
-        "projectileId": "fireball",
+        "projectileId": "custom_julion_blood_blades",
         "targetStrategy": "first",
         "levels": [
           {
             "level": 1,
             "name": "Tower blood2",
             "cost": 110,
-            "damage": 120,
+            "damage": 150,
             "attackSpeed": 1,
             "range": 5,
             "isSplash": false,
@@ -34246,8 +34263,147 @@
             "effects": [
               {
                 "type": "bleed",
-                "dps": 12,
+                "dps": 15,
                 "duration": 3
+              }
+            ],
+            "bleedDps": 15,
+            "bleedDuration": 3
+          }
+        ]
+      },
+      {
+        "id": "tower-julion-blood-dome",
+        "name": "Blood Dome",
+        "description": "Bloodseeker splash tower: a rain of blood over a wide area",
+        "clanId": "clan-1790058637054-7q3o",
+        "asset": {
+          "assetId": "sprite-tower blood5",
+          "assetName": "tower blood5.webp",
+          "assetPath": "",
+          "scale": 1,
+          "spanX": 1,
+          "spanY": 1,
+          "anchorX": 0.5,
+          "anchorY": 0.88,
+          "muzzleOffsetX": 0,
+          "muzzleOffsetY": -40
+        },
+        "projectileId": "custom_julion_blood_rain",
+        "targetStrategy": "first",
+        "levels": [
+          {
+            "level": 1,
+            "name": "Blood Dome",
+            "cost": 230,
+            "damage": 150,
+            "attackSpeed": 0.8,
+            "range": 5.5,
+            "isSplash": true,
+            "splashRadius": 1.8,
+            "splashType": "falloff",
+            "bleedDps": 25,
+            "bleedDuration": 3,
+            "traits": [
+              "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 25,
+                "duration": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tower-julion-blood-king",
+        "name": "Blood King",
+        "description": "Bloodseeker top tower: crimson pillars and heavy bleed",
+        "clanId": "clan-1790058637054-7q3o",
+        "asset": {
+          "assetId": "sprite-tower blood4",
+          "assetName": "tower blood4.webp",
+          "assetPath": "",
+          "scale": 1,
+          "spanX": 1,
+          "spanY": 1,
+          "anchorX": 0.5,
+          "anchorY": 0.88,
+          "muzzleOffsetX": 0,
+          "muzzleOffsetY": -50
+        },
+        "projectileId": "custom_julion_blood_pillar",
+        "targetStrategy": "first",
+        "levels": [
+          {
+            "level": 1,
+            "name": "Blood King",
+            "cost": 420,
+            "damage": 320,
+            "attackSpeed": 0.8,
+            "range": 6.5,
+            "isSplash": true,
+            "splashRadius": 1.6,
+            "splashType": "falloff",
+            "bleedDps": 60,
+            "bleedDuration": 3,
+            "traits": [
+              "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 60,
+                "duration": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tower-julion-blood-citadel",
+        "name": "Blood Citadel",
+        "description": "Bloodseeker top tower: a heavy blood orb whose bleed jumps to three more enemies",
+        "clanId": "clan-1790058637054-7q3o",
+        "asset": {
+          "assetId": "sprite-tower blood6",
+          "assetName": "tower blood6.webp",
+          "assetPath": "",
+          "scale": 1,
+          "spanX": 1,
+          "spanY": 1,
+          "anchorX": 0.5,
+          "anchorY": 0.88,
+          "muzzleOffsetX": 0,
+          "muzzleOffsetY": -60
+        },
+        "projectileId": "custom_julion_blood_orb",
+        "targetStrategy": "first",
+        "levels": [
+          {
+            "level": 1,
+            "name": "Blood Citadel",
+            "cost": 560,
+            "damage": 370,
+            "attackSpeed": 0.7,
+            "range": 7,
+            "isSplash": false,
+            "bleedDps": 80,
+            "bleedDuration": 3,
+            "traits": [
+              "blood"
+            ],
+            "effects": [
+              {
+                "type": "bleed",
+                "dps": 80,
+                "duration": 3
+              },
+              {
+                "type": "chain",
+                "targets": 3
               }
             ]
           }
@@ -34821,109 +34977,1014 @@
     "buildMode": "custom",
     "customProjectiles": [
       {
-        "identity": {
-          "id": "custom_1790244461539_5z8n",
-          "name": "Middle Fire",
-          "nameUz": "O'rtacha olov",
-          "category": "fire",
-          "description": "Yangi maxsus snaryad konfiguratsiyasi",
-          "version": 1,
-          "isCustom": true
-        },
-        "movement": {
+        "version": 2,
+        "id": "custom_1790244461539_5z8n",
+        "name": "Middle Fire",
+        "element": "fire",
+        "behavior": "flying",
+        "isCustom": true,
+        "motion": {
           "speed": 12,
-          "hasArc": true,
-          "isLaser": false,
-          "isInstant": false
+          "arc": 0.6,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
         },
-        "visual": {
-          "shape": "procedural_flame",
-          "size": 10,
-          "length": 10,
-          "points": 4,
-          "colorHex": 16347926,
-          "colorCss": "#f97316",
-          "glowColorHex": 16498468,
-          "glowColorCss": "#fbbf24",
-          "coreColorHex": 16498468,
-          "coreColorCss": "#fbbf24",
-          "alpha": 1,
-          "scale": 1
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
         },
+        "body": [
+          {
+            "shape": "flame",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 10,
+            "stretch": 2,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#fbbf24",
+            "alpha": 0.95,
+            "size": 4,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
         "trail": {
-          "style": "particles",
-          "colorHex": 15680580,
-          "colorCss": "#ef4444",
+          "style": "dots",
+          "color": "#ef4444",
+          "colorEnd": "#f97316",
           "alpha": 0.7,
-          "length": 20,
-          "width": 9
+          "width": 9,
+          "length": 20
         },
-        "formation": {
-          "type": "single",
-          "satelliteCount": 0
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "bolt",
+          "color": "#f97316",
+          "color2": "#fbbf24",
+          "core": "#fbbf24",
+          "size": 40,
+          "duration": 0.5,
+          "count": 6
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#f97316",
+          "core": "#fbbf24",
+          "width": 9,
+          "jitter": 6,
+          "duration": 0.25
         },
         "impact": {
-          "sparkType": "ice_shard",
-          "sparkCount": 16,
-          "sparkColorHex": 16498468,
-          "sparkColorCss": "#fbbf24",
-          "shockwaveRadius": 24,
-          "shockwaveColorHex": 15680580,
-          "shockwaveColorCss": "#ef4444",
-          "hasDoubleRing": true
+          "flashColor": "#fbbf24",
+          "flashSize": 18,
+          "ringColor": "#ef4444",
+          "ringCount": 2,
+          "ringRadius": 24,
+          "ringWidth": 2,
+          "burst": {
+            "shape": "dot",
+            "color": "#fbbf24",
+            "colorEnd": "#f97316",
+            "amount": 16,
+            "size": 3,
+            "sizeEnd": 0.5,
+            "speed": 90,
+            "spread": 360,
+            "life": 0.45,
+            "gravity": 0,
+            "drag": 0.4,
+            "alpha": 1
+          },
+          "decalColor": "#1c1917",
+          "decalRadius": 0,
+          "decalLife": 1.5
         }
       },
       {
-        "identity": {
-          "id": "custom_1790249232525_9ll0",
-          "name": "Big Fire (Copy)",
-          "nameUz": "Katta olov",
-          "category": "fire",
-          "description": "Yangi maxsus snaryad konfiguratsiyasi",
-          "version": 1,
-          "isCustom": true
-        },
-        "movement": {
+        "version": 2,
+        "id": "custom_1790249232525_9ll0",
+        "name": "Big Fire (Copy)",
+        "element": "fire",
+        "behavior": "flying",
+        "isCustom": true,
+        "motion": {
           "speed": 20,
-          "hasArc": true,
-          "isLaser": false,
-          "isInstant": false
+          "arc": 0.6,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
         },
-        "visual": {
-          "shape": "procedural_flame",
-          "size": 13,
-          "length": 10,
-          "points": 4,
-          "colorHex": 16347926,
-          "colorCss": "#f97316",
-          "glowColorHex": 16498468,
-          "glowColorCss": "#fbbf24",
-          "coreColorHex": 16498468,
-          "coreColorCss": "#fbbf24",
-          "alpha": 1,
-          "scale": 1
+        "launch": {
+          "count": 2,
+          "pattern": "helix",
+          "spread": 14,
+          "turns": 2
         },
+        "body": [
+          {
+            "shape": "flame",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 13,
+            "stretch": 2,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#fbbf24",
+            "alpha": 0.95,
+            "size": 5.2,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
         "trail": {
-          "style": "particles",
-          "colorHex": 15680580,
-          "colorCss": "#ef4444",
+          "style": "dots",
+          "color": "#ef4444",
+          "colorEnd": "#f97316",
           "alpha": 0.7,
-          "length": 20,
-          "width": 9
+          "width": 9,
+          "length": 20
         },
-        "formation": {
-          "type": "twin_helix",
-          "satelliteCount": 0
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "bolt",
+          "color": "#f97316",
+          "color2": "#fbbf24",
+          "core": "#fbbf24",
+          "size": 40,
+          "duration": 0.5,
+          "count": 6
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#f97316",
+          "core": "#fbbf24",
+          "width": 9,
+          "jitter": 6,
+          "duration": 0.25
         },
         "impact": {
-          "sparkType": "ice_shard",
-          "sparkCount": 16,
-          "sparkColorHex": 16498468,
-          "sparkColorCss": "#fbbf24",
-          "shockwaveRadius": 24,
-          "shockwaveColorHex": 15680580,
-          "shockwaveColorCss": "#ef4444",
-          "hasDoubleRing": true
+          "flashColor": "#fbbf24",
+          "flashSize": 18,
+          "ringColor": "#ef4444",
+          "ringCount": 2,
+          "ringRadius": 24,
+          "ringWidth": 2,
+          "burst": {
+            "shape": "dot",
+            "color": "#fbbf24",
+            "colorEnd": "#f97316",
+            "amount": 16,
+            "size": 3,
+            "sizeEnd": 0.5,
+            "speed": 90,
+            "spread": 360,
+            "life": 0.45,
+            "gravity": 0,
+            "drag": 0.4,
+            "alpha": 1
+          },
+          "decalColor": "#1c1917",
+          "decalRadius": 0,
+          "decalLife": 1.5
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_drop",
+        "name": "Qon tomchisi",
+        "element": "void",
+        "behavior": "flying",
+        "isCustom": true,
+        "motion": {
+          "speed": 13,
+          "arc": 0.45,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "teardrop",
+            "color": "#fb7185",
+            "alpha": 0.35,
+            "size": 8,
+            "stretch": 2,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "teardrop",
+            "color": "#b91c1c",
+            "alpha": 1,
+            "size": 6,
+            "stretch": 1.8,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#3f0610",
+            "outlineWidth": 1,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#ffe4e6",
+            "alpha": 0.9,
+            "size": 2,
+            "stretch": 1,
+            "offset": 3,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#dc2626",
+          "colorEnd": "#450a0a",
+          "alpha": 0.75,
+          "width": 5,
+          "length": 12
+        },
+        "emitter": {
+          "shape": "dot",
+          "color": "#ef4444",
+          "colorEnd": "#3f0610",
+          "amount": 20,
+          "size": 2.2,
+          "sizeEnd": 0.8,
+          "speed": 14,
+          "spread": 360,
+          "life": 0.5,
+          "gravity": 160,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "bolt",
+          "color": "#60a5fa",
+          "color2": "#a78bfa",
+          "core": "#ffffff",
+          "size": 36,
+          "duration": 0.5,
+          "count": 6
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 14,
+          "ringColor": "#b91c1c",
+          "ringCount": 1,
+          "ringRadius": 22,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 12,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 18,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_geyser",
+        "name": "Qon fontani",
+        "element": "void",
+        "behavior": "strike",
+        "isCustom": true,
+        "motion": {
+          "speed": 12,
+          "arc": 0.2,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "orb",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 8,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "alpha": 0.8,
+          "width": 6,
+          "length": 12
+        },
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "eruption",
+          "color": "#b91c1c",
+          "color2": "#7f1d1d",
+          "core": "#fecdd3",
+          "size": 28,
+          "duration": 0.65,
+          "count": 9
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 18.2,
+          "ringColor": "#b91c1c",
+          "ringCount": 1,
+          "ringRadius": 28.6,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 15.600000000000001,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 23,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_blades",
+        "name": "Qon qilichlari",
+        "element": "void",
+        "behavior": "strike",
+        "isCustom": true,
+        "motion": {
+          "speed": 12,
+          "arc": 0.2,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "orb",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 8,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "alpha": 0.8,
+          "width": 6,
+          "length": 12
+        },
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "blades",
+          "color": "#dc2626",
+          "color2": "#450a0a",
+          "core": "#fff1f2",
+          "size": 34,
+          "duration": 0.6,
+          "count": 4
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 16.8,
+          "ringColor": "#b91c1c",
+          "ringCount": 1,
+          "ringRadius": 26.4,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 14.399999999999999,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 22,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_pillar",
+        "name": "Qon ustuni",
+        "element": "void",
+        "behavior": "strike",
+        "isCustom": true,
+        "motion": {
+          "speed": 12,
+          "arc": 0.2,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "orb",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 8,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "alpha": 0.8,
+          "width": 6,
+          "length": 12
+        },
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "pillar",
+          "color": "#dc2626",
+          "color2": "#7f1d1d",
+          "core": "#ffe4e6",
+          "size": 30,
+          "duration": 0.7,
+          "count": 5
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 21,
+          "ringColor": "#b91c1c",
+          "ringCount": 2,
+          "ringRadius": 33,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 18,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 27,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_rain",
+        "name": "Qon yomg'iri",
+        "element": "void",
+        "behavior": "strike",
+        "isCustom": true,
+        "motion": {
+          "speed": 12,
+          "arc": 0.2,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "orb",
+            "color": "#f97316",
+            "alpha": 1,
+            "size": 8,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "alpha": 0.8,
+          "width": 6,
+          "length": 12
+        },
+        "emitter": {
+          "shape": "dot",
+          "color": "#fbbf24",
+          "colorEnd": "#ef4444",
+          "amount": 0,
+          "size": 3,
+          "sizeEnd": 0.5,
+          "speed": 60,
+          "spread": 50,
+          "life": 0.45,
+          "gravity": 0,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "rain",
+          "color": "#dc2626",
+          "color2": "#7f1d1d",
+          "core": "#fecdd3",
+          "size": 40,
+          "duration": 0.65,
+          "count": 12
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 19.599999999999998,
+          "ringColor": "#b91c1c",
+          "ringCount": 1,
+          "ringRadius": 30.799999999999997,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 16.799999999999997,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 25,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
+        }
+      },
+      {
+        "version": 2,
+        "id": "custom_julion_blood_orb",
+        "name": "Qon sferasi",
+        "element": "void",
+        "behavior": "flying",
+        "isCustom": true,
+        "motion": {
+          "speed": 11,
+          "arc": 0.25,
+          "wobble": 0,
+          "wobbleFreq": 2,
+          "shadow": true
+        },
+        "launch": {
+          "count": 1,
+          "pattern": "line",
+          "spread": 14,
+          "turns": 2
+        },
+        "body": [
+          {
+            "shape": "orb",
+            "color": "#fb7185",
+            "alpha": 0.3,
+            "size": 13,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0.15,
+            "pulseSpeed": 5,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#b91c1c",
+            "alpha": 1,
+            "size": 9,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#3f0610",
+            "outlineWidth": 1.2,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#ffe4e6",
+            "alpha": 1,
+            "size": 3,
+            "stretch": 1,
+            "offset": 2,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 0,
+            "orbitSpeed": 1,
+            "copies": 1,
+            "faceFlight": true,
+            "assetId": ""
+          },
+          {
+            "shape": "orb",
+            "color": "#ef4444",
+            "alpha": 1,
+            "size": 2.5,
+            "stretch": 1,
+            "offset": 0,
+            "rotation": 0,
+            "spin": 0,
+            "pulse": 0,
+            "pulseSpeed": 2,
+            "sides": 5,
+            "inner": 0.45,
+            "outlineColor": "#ffffff",
+            "outlineWidth": 0,
+            "orbit": 14,
+            "orbitSpeed": 2.5,
+            "copies": 3,
+            "faceFlight": true,
+            "assetId": ""
+          }
+        ],
+        "trail": {
+          "style": "ribbon",
+          "color": "#dc2626",
+          "colorEnd": "#450a0a",
+          "alpha": 0.8,
+          "width": 9,
+          "length": 16
+        },
+        "emitter": {
+          "shape": "ember",
+          "color": "#fb7185",
+          "colorEnd": "#3f0610",
+          "amount": 30,
+          "size": 2.6,
+          "sizeEnd": 0.5,
+          "speed": 18,
+          "spread": 360,
+          "life": 0.5,
+          "gravity": -40,
+          "drag": 0.4,
+          "alpha": 1
+        },
+        "strike": {
+          "style": "bolt",
+          "color": "#60a5fa",
+          "color2": "#a78bfa",
+          "core": "#ffffff",
+          "size": 36,
+          "duration": 0.5,
+          "count": 6
+        },
+        "beam": {
+          "style": "laser",
+          "color": "#22d3ee",
+          "core": "#ffffff",
+          "width": 5,
+          "jitter": 8,
+          "duration": 0.25
+        },
+        "impact": {
+          "flashColor": "#fecdd3",
+          "flashSize": 22.400000000000002,
+          "ringColor": "#b91c1c",
+          "ringCount": 2,
+          "ringRadius": 35.2,
+          "ringWidth": 2,
+          "decalColor": "#450a0a",
+          "decalRadius": 19.200000000000003,
+          "decalLife": 2.4,
+          "burst": {
+            "shape": "dot",
+            "color": "#ef4444",
+            "colorEnd": "#3f0610",
+            "amount": 29,
+            "size": 3,
+            "sizeEnd": 1,
+            "speed": 120,
+            "spread": 360,
+            "life": 0.55,
+            "gravity": 320,
+            "drag": 0.4,
+            "alpha": 1
+          }
         }
       }
     ],

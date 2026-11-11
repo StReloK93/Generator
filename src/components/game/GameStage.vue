@@ -75,7 +75,7 @@
     <!-- Floating Hero Control Widget (Only in Hero Adventure mode) -->
     <div 
       v-if="isCanvasReady && mapMode === 'hero'"
-      class="absolute top-3 left-3 sm:top-4 sm:left-4 z-40 pointer-events-auto"
+      class="absolute top-3 left-3 sm:top-4 sm:left-4 mt-tg z-40 pointer-events-auto"
     >
       <HeroControlWidget />
     </div>
@@ -125,6 +125,7 @@ import {
 } from '../../services/mapManager'
 import { saveMatch, restoreMatch, clearMatch } from '../../services/sessionResume'
 import { useNotificationStore } from '../../stores/notificationStore'
+import { hapticResult } from '../../services/telegram'
 
 const props = withDefaults(
   defineProps<{
@@ -333,6 +334,15 @@ watch(isChatOpen, (open) => {
     unreadCount.value = 0
   }
 })
+
+// The phone buzzes at the end of a game (Telegram)
+watch(
+  () => gameStore.gameState,
+  (state) => {
+    if (state === 'victory') hapticResult('success')
+    else if (state === 'game_over') hapticResult('error')
+  }
+)
 </script>
 
 <style scoped>

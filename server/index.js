@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import express from 'express'
 import { createMultiplayerApp } from './multiplayer.js'
 import { startTurnServer } from './turn.js'
+import { startTelegramBot } from './telegramBot.js'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -30,6 +31,7 @@ app.use(APP_BASE, (req, res, next) => {
 if (APP_BASE !== '/') app.get('/', (_req, res) => res.redirect(APP_BASE))
 
 startTurnServer()
+startTelegramBot()
 server.listen(PORT, () => {
-  console.log(`Defensor server: http://localhost:${PORT}${APP_BASE}`)
+  console.log(`Realms server: http://localhost:${PORT}${APP_BASE}`)
 })

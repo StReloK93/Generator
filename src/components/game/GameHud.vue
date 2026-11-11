@@ -1,7 +1,7 @@
 <template>
   <aside
     class="absolute top-0 right-0 z-50 pointer-events-none flex flex-col select-none"
-    :class="isHideSeekMode ? 'p-2 pt-safe' : 'h-full w-60 sm:w-64 max-w-[85vw]'">
+    :class="isHideSeekMode ? 'p-2 pt-safe' : 'h-full w-60 sm:w-64 max-w-[85vw] pt-tg'">
     <!-- Hide & seek: the whole screen is the game, its HUD lives in HideSeekOverlay -->
     <div v-if="isHideSeekMode" class="flex items-start gap-1.5">
       <VoiceChatControl v-if="multiplayerStore.roomId" size="lg" button-class="bg-slate-950/80! backdrop-blur-md"
