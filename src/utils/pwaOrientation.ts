@@ -2,7 +2,6 @@ import { ref } from 'vue'
 import { isTelegram } from '../services/telegram'
 
 export const isPortrait = ref<boolean>(false)
-export const isMobileDevice = ref<boolean>(false)
 export const isFullscreen = ref<boolean>(false)
 export const isStandalone = ref<boolean>(false)
 export const canInstallPwa = ref<boolean>(false)
@@ -25,20 +24,6 @@ export function checkOrientation(): boolean {
 }
 
 /**
- * Detects if the current device is a mobile phone or tablet
- */
-export function checkMobile(): boolean {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false
-
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || ''
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
-  const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window
-
-  // Treat as mobile if UA matches or if touch device with typical mobile/tablet viewport width
-  return isMobileUA || (isTouch && Math.min(window.innerWidth, window.innerHeight) <= 1024)
-}
-
-/**
  * Checks if running as an installed PWA (Standalone/Fullscreen display mode)
  */
 export function checkStandalone(): boolean {
@@ -49,62 +34,6 @@ export function checkStandalone(): boolean {
     (window.navigator as any).standalone === true ||
     isTelegram
   )
-}
-
-/**
- * Asks the browser to keep the screen sideways. It never switches to full screen by itself (that is the player's
- * choice in the settings); most browsers only lock inside full screen or an installed app, elsewhere this does nothing.
- */
-export async function lockLandscape(): Promise<boolean> {
-  try {
-    const screenAny = window.screen as any
-    const orient = screenAny?.orientation
-    if (orient && typeof orient.lock === 'function') {
-      try {
-        await orient.lock('landscape')
-        return true
-      } catch {
-        try {
-          await orient.lock('landscape-primary')
-          return true
-        } catch {}
-      }
-    } else if (screenAny?.lockOrientation) {
-      try {
-        screenAny.lockOrientation('landscape')
-        return true
-      } catch {}
-    } else if (screenAny?.webkitLockOrientation) {
-      try {
-        screenAny.webkitLockOrientation('landscape')
-        return true
-      } catch {}
-    } else if (screenAny?.mozLockOrientation) {
-      try {
-        screenAny.mozLockOrientation('landscape')
-        return true
-      } catch {}
-    }
-  } catch {
-    // Silently continue
-  }
-  return false
-}
-
-/**
- * Unlocks orientation lock
- */
-export function unlockOrientation(): void {
-  try {
-    const screenAny = window.screen as any
-    if (screenAny?.orientation?.unlock) {
-      screenAny.orientation.unlock()
-    } else if (screenAny?.unlockOrientation) {
-      screenAny.unlockOrientation()
-    }
-  } catch {
-    // Silently continue
-  }
 }
 
 /**
@@ -131,7 +60,6 @@ export function initPwaAndOrientation(): () => void {
 
   const updateState = () => {
     isPortrait.value = checkOrientation()
-    isMobileDevice.value = checkMobile()
     isStandalone.value = checkStandalone()
     isFullscreen.value = !!document.fullscreenElement
   }

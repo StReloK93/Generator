@@ -34,6 +34,7 @@ import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
+import { useSettingsStore } from '../../stores/settingsStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import {  AssetItem } from '../../types/map'
@@ -51,6 +52,7 @@ const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
 const hideSeekStore = useHideSeekStore()
+const settings = useSettingsStore()
 const { t } = useI18n()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
@@ -313,7 +315,8 @@ const PINCH_GRACE_MS = 200
 /** A sneak finger lifted this soon (and without sliding) was a tap on the map */
 const SNEAK_TAP_MS = 250
 
-/** Hide & seek: a finger held on the right half of the screen sneaks; it is not a camera gesture */
+/** Hide & seek with the joystick: a finger held on the right half of the screen sneaks; it is not a camera gesture
+ * (walking by taps has a sneak button instead) */
 let sneakTouch: { id: number; start: number; x: number; y: number; moved: boolean } | null = null
 
 function cameraTouches(e: TouchEvent): Touch[] {
@@ -350,7 +353,7 @@ function handleTouchStart(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  if (getMapMode(mapStore.project) === 'hideseek') claimSneakTouch(e)
+  if (getMapMode(mapStore.project) === 'hideseek' && settings.controls === 'joystick') claimSneakTouch(e)
   camera.handleTouchStart(cameraTouches(e), viewportContainerRef.value)
 }
 

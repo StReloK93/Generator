@@ -1,7 +1,7 @@
 <template>
   <div class="overflow-y-auto p-2.5 sm:p-4 short:p-2 flex flex-col gap-2.5 sm:gap-3 short:gap-2">
-    <!-- Genre, name and size; the map's picture small in the corner -->
-    <div class="flex items-start gap-3">
+    <!-- Genre, name and size; the map's picture small in the corner (on an upright phone large, on top) -->
+    <div class="flex items-start gap-3 portrait:flex-col-reverse portrait:items-stretch portrait:gap-2.5">
       <div class="min-w-0 flex-1">
         <div :class="['flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider', playInfo.accent]">
           <component :is="MAP_MODE_INFO[map.mode].icon" class="size-3.5 shrink-0" />
@@ -10,7 +10,7 @@
         <h3 class="mt-0.5 text-base sm:text-xl font-extrabold text-brand-200 truncate">{{ map.name }}</h3>
         <span class="text-[11px] sm:text-xs text-slate-400">{{ map.cols }} × {{ map.rows }}</span>
       </div>
-      <MapPreviewImage :map="map" class="w-32 sm:w-44 short:w-28 aspect-2/1 rounded-xl border border-slate-800 shrink-0" />
+      <MapPreviewImage :map="map" class="w-32 sm:w-44 short:w-28 portrait:w-full aspect-2/1 rounded-xl border border-slate-800 shrink-0" />
     </div>
 
     <!-- How to play: three steps of the genre -->

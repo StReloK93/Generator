@@ -6,11 +6,10 @@
     :style="{ opacity: hideSeekStore.dangerLevel * 0.85 }"
   />
 
-  <!-- Top strip: clock first, then the indicators (menu / voice sit top-right, mr-24 leaves them room). In Telegram's
-       full screen it sits between Telegram's own buttons (hud-*) instead of taking a row below them. -->
-  <div class="absolute inset-x-0 top-0 z-30 hud-top hud-px pointer-events-none">
+  <!-- Top strip: clock first, then the indicators (menu / voice sit top-right, mr-24 leaves them room) -->
+  <div class="absolute inset-x-0 top-0 z-30 pt-safe pl-safe pr-safe pointer-events-none">
     <div class="mr-24 flex flex-col items-start gap-1.5">
-      <div class="hud-band flex items-center gap-1.5 w-full">
+      <div class="min-h-10 flex items-center gap-1.5 w-full">
         <HideSeekPanel class="flex-1 min-w-0">
           <template #lead>
             <div
@@ -35,9 +34,10 @@
     </div>
   </div>
 
-  <!-- Touch screens: the lower left of the screen is a floating joystick. It appears under the thumb wherever it lands
-       (no aiming for a small pad); a quick tap there still taps the map. -->
+  <!-- Touch screens with the joystick chosen in the settings: the lower left of the screen is a floating joystick. It
+       appears under the thumb wherever it lands; a quick tap there still taps the map. -->
   <div
+    v-if="settings.controls === 'joystick'"
     ref="stickZoneRef"
     class="hidden pointer-coarse:block absolute left-0 bottom-0 w-1/2 h-3/4 z-25 touch-none"
     @pointerdown="onStickDown"
@@ -55,6 +55,23 @@
         :style="{ transform: `translate(${stick.knobX}px, ${stick.knobY}px)` }"
       />
     </div>
+  </div>
+
+  <!-- Touch screens walking by taps (the default): sneaking is a switch under the left thumb -->
+  <div v-else class="hidden pointer-coarse:flex absolute left-0 bottom-0 z-30 pb-safe pl-safe flex-col items-center gap-1 pointer-events-none">
+    <UiButton
+      :variant="hideSeekStore.isSneaking ? 'game-green' : 'secondary'"
+      size="md"
+      :disabled="!hideSeekStore.canMove"
+      custom-class="size-15 p-0! rounded-full! pointer-events-auto backdrop-blur-md"
+      :title="$t('hideseek.sneak')"
+      @click="hideSeekStore.setSneakHeld(!hideSeekStore.isSneaking)"
+    >
+      <template #leading><Footprints class="size-6" /></template>
+    </UiButton>
+    <span class="rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold" :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'">
+      {{ $t('hideseek.sneak') }}
+    </span>
   </div>
 
   <!-- Bottom-left on desktop: key hints -->
@@ -79,43 +96,72 @@
     </div>
   </div>
 
-  <!-- Right edge: gadgets in a column (the middle of the screen stays free) -->
-  <div class="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2.5 pointer-events-none pr-safe">
-    <UiButton
-      v-for="gadget in gadgetButtons"
-      :key="gadget.key"
-      :variant="gadget.active ? 'game-green' : 'secondary'"
-      size="md"
-      :disabled="!hideSeekStore.canMove || gadget.count === 0 || gadget.blocked"
-      custom-class="relative size-12 p-0! rounded-full! pointer-events-auto backdrop-blur-md"
-      :title="`${$t(gadget.label)} (${gadget.key})`"
-      @click="gadget.run"
-    >
-      <template #leading>
-        <component :is="gadget.icon" class="size-5" />
-        <span
-          v-if="gadget.count !== null"
-          class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black leading-5 tabular-nums"
-        >{{ gadget.count }}</span>
-        <span class="pointer-coarse:hidden absolute -bottom-1 -right-1 px-1 rounded bg-slate-950 border border-slate-700 text-[9px] font-bold text-slate-300">{{ gadget.key }}</span>
-      </template>
-    </UiButton>
+  <!-- Skills around the right thumb: the main "use" button in the corner, the others on an arc around it -->
+  <div class="absolute right-0 bottom-0 z-30 pb-safe pr-safe pointer-events-none">
+    <div class="relative size-52 mr-1 mb-1">
+      <UiButton
+        v-for="gadget in gadgetButtons"
+        :key="gadget.key"
+        :variant="gadget.active ? 'game-green' : 'secondary'"
+        size="md"
+        :disabled="!hideSeekStore.canMove || gadget.count === 0 || gadget.blocked"
+        :custom-class="[
+          'absolute! p-0! rounded-full! pointer-events-auto backdrop-blur-md',
+          gadget.key === 'E' ? 'size-16 ring-2 ring-amber-400/40' : 'size-12',
+          gadget.timer && gadget.timer.cooldown > 0 ? 'disabled:opacity-100!' : '',
+        ]"
+        :style="gadgetPlaces[gadget.key]"
+        :title="`${$t(gadget.label)} (${gadget.key})`"
+        @click="gadget.run"
+      >
+        <template #leading>
+          <component :is="gadget.icon" :class="gadget.key === 'E' ? 'size-7' : 'size-5'" />
+          <template v-if="gadget.timer">
+            <!-- Working: the ring runs down, red and pulsing in its last seconds -->
+            <svg v-if="gadget.timer.left > 0" class="absolute -inset-1 -rotate-90 pointer-events-none" viewBox="0 0 36 36">
+              <circle
+                cx="18" cy="18" r="16.5" fill="none" stroke-width="3" stroke-linecap="round"
+                :class="isEnding(gadget.timer) ? 'stroke-rose-400 animate-pulse' : 'stroke-emerald-300'"
+                :stroke-dasharray="`${(gadget.timer.left / gadget.timer.total) * RING} ${RING}`"
+              />
+            </svg>
+            <span
+              v-if="gadget.timer.left > 0"
+              class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 min-w-5 h-4 px-1 rounded-full text-[10px] font-black leading-4 tabular-nums text-slate-950"
+              :class="isEnding(gadget.timer) ? 'bg-rose-400 animate-pulse' : 'bg-emerald-300'"
+            >{{ Math.ceil(gadget.timer.left) }}</span>
+            <!-- Cooling down: a dark sweep over the button and the seconds to wait -->
+            <template v-else-if="gadget.timer.cooldown > 0">
+              <span class="absolute inset-0 rounded-full pointer-events-none" :style="{ background: `conic-gradient(rgba(2, 6, 23, 0.75) ${(gadget.timer.cooldown / gadget.timer.cooldownTotal) * 100}%, rgba(2, 6, 23, 0.25) 0)` }" />
+              <span class="absolute inset-0 flex items-center justify-center text-sm font-black text-white tabular-nums drop-shadow">{{ Math.ceil(gadget.timer.cooldown) }}</span>
+            </template>
+          </template>
+          <span
+            v-if="gadget.count !== null"
+            class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black leading-5 tabular-nums"
+          >{{ gadget.count }}</span>
+          <span class="pointer-coarse:hidden absolute -bottom-1 -right-1 px-1 rounded bg-slate-950 border border-slate-700 text-[9px] font-bold text-slate-300">{{ gadget.key }}</span>
+        </template>
+      </UiButton>
+    </div>
   </div>
 
-  <!-- Bottom-right corner: minimap (tap to enlarge); holding the empty right half of the screen sneaks -->
-  <div class="absolute bottom-3 right-3 z-30 flex flex-col items-end gap-1.5 pointer-events-none pb-safe pr-safe">
+  <!-- Top right, under the menu: the minimap (tap to enlarge); with the joystick, holding the right half sneaks -->
+  <div class="absolute right-0 top-0 z-30 flex flex-col items-end gap-1.5 pointer-events-none pt-safe pr-safe">
+    <div class="h-11 shrink-0" />
+    <HideSeekMinimap
+      class="pointer-events-auto cursor-pointer transition-[width] duration-200"
+      :class="isMapLarge ? 'w-72 sm:w-96 portrait:w-64' : 'w-32 sm:w-44'"
+      :title="$t('hideseek.map')"
+      @click="isMapLarge = !isMapLarge"
+    />
     <span
+      v-if="settings.controls === 'joystick'"
       class="hidden pointer-coarse:flex items-center gap-1 rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold transition-colors"
       :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'"
     >
       <Footprints class="size-3" />{{ hideSeekStore.isSneaking ? $t('hideseek.sneak') : $t('hideseek.sneakTouchHint') }}
     </span>
-    <HideSeekMinimap
-      class="pointer-events-auto cursor-pointer transition-[width] duration-200"
-      :class="isMapLarge ? 'w-72 sm:w-96' : 'w-36 sm:w-44'"
-      :title="$t('hideseek.map')"
-      @click="isMapLarge = !isMapLarge"
-    />
   </div>
 
   <!-- Room game: everyone picks their hero here; the match starts once all have -->
@@ -158,7 +204,7 @@
     <div class="flex flex-col gap-2">
       <!-- Team size: the player plus bot teammates against as many bots -->
       <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
-      <!-- Hero: each has a trait and two abilities (Q / F) -->
+      <!-- Hero: each has a trait and three abilities (Q / F / G) -->
       <HideSeekHeroPicker v-model="soloHero" />
       <UiCard
         v-for="option in SOLO_ROLES"
@@ -233,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Waypoints, Eye, UserRound } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
@@ -247,9 +293,12 @@ import { ABILITY_ICONS, ABILITY_KEYS } from './hideSeekTraitInfo'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
 import { hideSeekAudio } from '../../services/hideSeekAudio'
+import { haptic } from '../../services/telegram'
+import { useSettingsStore } from '../../stores/settingsStore'
 
 const router = useRouter()
 const hideSeekStore = useHideSeekStore()
+const settings = useSettingsStore()
 const multiplayerStore = useMultiplayerStore()
 const { t } = useI18n()
 const { exitGame } = useGameExit()
@@ -371,21 +420,47 @@ function run(action: () => void) {
 }
 
 
-/** My hero's abilities (both roles): the badge counts the cooldown down, green while a timed one runs */
+/** An ability button's timers: what it started still runs (left of total), then its cooldown */
+interface AbilityTimer {
+  left: number
+  total: number
+  cooldown: number
+  cooldownTotal: number
+}
+/** Circumference of the ring (r = 16.5 in a 36 box) */
+const RING = 2 * Math.PI * 16.5
+/** In its last seconds a running ability warns that it is about to end */
+const ENDING_SEC = 2
+const isEnding = (timer: AbilityTimer) => timer.left <= ENDING_SEC
+
+/** My hero's abilities (both roles): green with a running ring while one works, then the cooldown sweep */
 const abilityButtons = computed(() =>
   hideSeekStore.myAbilities.map((ability, slot) => ({
     key: ABILITY_KEYS[slot],
     label: `hideseek.ability.${ability.id}`,
     icon: ABILITY_ICONS[ability.id],
-    count: ability.cooldown > 0 ? ability.cooldown : null,
-    active: ability.active,
+    count: null,
+    active: ability.left > 0,
     blocked: ability.cooldown > 0,
+    timer: ability as AbilityTimer | null,
     run: run(() => hideSeekStore.castAbility(slot)),
   }))
 )
 
+// A short buzz when a running ability is about to end, and another when it is over
+watch(
+  () => hideSeekStore.myAbilities.map(a => a.left),
+  (now, before) => {
+    now.forEach((left, i) => {
+      const was = before?.[i] ?? 0
+      if (was > ENDING_SEC && left <= ENDING_SEC && left > 0) haptic('light')
+      else if (was > 0 && left === 0) haptic('medium')
+    })
+  }
+)
+
 /** Abilities first; seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
-const gadgetButtons = computed(() => [...abilityButtons.value, ...roleButtons.value])
+const gadgetButtons = computed(() => [...abilityButtons.value, ...roleButtons.value.map(b => ({ ...b, timer: null }))])
 const roleButtons = computed(() =>
   isSeeker.value
     ? [
@@ -407,6 +482,35 @@ const roleButtons = computed(() =>
         },
       ]
 )
+
+/**
+ * Where each skill sits: the main "use" button (E) in the corner; the hero's abilities (Q / F / G) evenly on an inner
+ * quarter circle around it (from its left up to above it), the role's gadgets on an outer one between them. Every one is
+ * a short thumb move away. Offsets are from the box's corner.
+ */
+const USE_SIZE = 64
+const SKILL_SIZE = 48
+const INNER_RADIUS = 88
+const OUTER_RADIUS = 150
+/** Outer ring: from this angle (left) to that one (up), between the inner buttons */
+const OUTER_FROM = 162
+const OUTER_TO = 108
+const gadgetPlaces = computed<Record<string, { right: string; bottom: string }>>(() => {
+  const offset = USE_SIZE / 2 - SKILL_SIZE / 2
+  const places: Record<string, { right: string; bottom: string }> = { E: { right: '0px', bottom: '0px' } }
+  const ring = (keys: string[], radius: number, from: number, to: number) =>
+    keys.forEach((key, i) => {
+      const degrees = keys.length === 1 ? (from + to) / 2 : from - (i * (from - to)) / (keys.length - 1)
+      const angle = (degrees * Math.PI) / 180
+      places[key] = {
+        right: `${Math.round(offset - Math.cos(angle) * radius)}px`,
+        bottom: `${Math.round(offset + Math.sin(angle) * radius)}px`,
+      }
+    })
+  ring(abilityButtons.value.map(g => g.key), INNER_RADIUS, 180, 90)
+  ring(roleButtons.value.map(g => g.key).filter(key => key !== 'E'), OUTER_RADIUS, OUTER_FROM, OUTER_TO)
+  return places
+})
 
 // --- Floating joystick (screen-space direction, length 0..1) ---
 /** Radius of the joystick base (size-28) in px */

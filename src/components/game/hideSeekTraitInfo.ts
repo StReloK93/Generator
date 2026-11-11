@@ -2,6 +2,7 @@ import type { Component } from 'vue'
 import {
   Rabbit, Dumbbell, HandHelping, Ghost, Eye, Worm, Flame, WandSparkles,
   Zap, Wind, HeartPulse, Shield, Waypoints, Radar, ScanSearch, Anchor, Megaphone, Shovel, Bird, Copy, CircleDot,
+  FastForward, Hammer, Axe, History, ScanEye, Pickaxe, Egg, ArrowLeftRight,
 } from 'lucide-vue-next'
 import type { AbilityId, HideSeekTrait } from '../../domain/hideseek'
 
@@ -35,7 +36,15 @@ export const ABILITY_ICONS: Record<AbilityId, Component> = {
   fireWall: Flame,
   decoy: Copy,
   snare: CircleDot,
+  sprint: FastForward,
+  bash: Hammer,
+  berserk: Axe,
+  rewind: History,
+  stalk: ScanEye,
+  tunnel: Pickaxe,
+  nest: Egg,
+  swap: ArrowLeftRight,
 }
 
-/** Keys of the two ability slots */
-export const ABILITY_KEYS = ['Q', 'F']
+/** Keys of the three ability slots */
+export const ABILITY_KEYS = ['Q', 'F', 'G']

@@ -1,11 +1,13 @@
 <template>
-  <!-- Tower defence controls along the bottom edge, where thumbs rest: towers on the left, the one main action
-       (start the wave / build here) always in the same spot on the right -->
-  <div class="flex items-end justify-between gap-2 w-full pb-safe pl-safe pr-safe select-none pointer-events-none">
-    <!-- Left: the picked tower's card above the shop -->
-    <div class="flex flex-col items-start gap-1.5 min-w-0 flex-1">
+  <!-- Tower defence controls along the bottom edge, where thumbs rest. Upright phone: the picked tower's card, the one
+       main action (start the wave / build here) full width, the tower shop at the very bottom. Sideways: card and shop
+       on the left, the main action on the right. -->
+  <div class="grid grid-cols-[minmax(0,1fr)_auto] portrait:grid-cols-1 items-end gap-x-2 gap-y-1.5 w-full pb-safe pl-safe pr-safe select-none pointer-events-none">
+    <div class="col-start-1 row-start-1 empty:hidden">
       <TowerInfoCard />
-      <div class="pointer-events-auto flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar pt-2.5 pr-2.5">
+    </div>
+    <div class="col-start-1 row-start-2 portrait:row-start-3 min-w-0">
+      <div class="pointer-events-auto flex items-center gap-2 max-w-full w-fit overflow-x-auto no-scrollbar pt-2.5 pr-2.5">
         <UiButton
           v-for="bp in towerStore.playerClanBlueprints"
           :key="bp.id"
@@ -32,8 +34,8 @@
       </div>
     </div>
 
-    <!-- Right: what comes next, then the main action -->
-    <div class="pointer-events-auto flex flex-col items-end gap-1.5 shrink-0">
+    <!-- What comes next, then the main action -->
+    <div class="col-start-2 row-start-1 row-span-2 portrait:col-start-1 portrait:row-start-2 portrait:row-span-1 pointer-events-auto flex flex-col items-end gap-1.5">
       <div
         v-if="isPreparing && !buildBlueprint && nextWave"
         class="flex items-center gap-2 h-7 px-2.5 rounded-full border border-slate-700/70 bg-slate-950/80 backdrop-blur-md text-[11px] font-bold tabular-nums"
@@ -53,7 +55,7 @@
         </span>
       </div>
 
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5 portrait:w-full">
         <UiButton
           v-if="!multiplayerStore.roomId"
           variant="secondary"
@@ -68,30 +70,30 @@
 
         <!-- Building: pick a cell, then confirm it here -->
         <template v-if="buildBlueprint">
-          <span v-if="!towerStore.pendingBuildCell" class="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md text-amber-200 text-xs font-bold">
+          <span v-if="!towerStore.pendingBuildCell" class="flex items-center justify-center gap-1.5 h-11 px-3 portrait:flex-1 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md text-amber-200 text-xs font-bold">
             <span class="size-1.5 rounded-full bg-amber-400 animate-pulse" />{{ $t('game.tapToPlace') }}
           </span>
           <UiIconButton :icon="X" size="lg" custom-class="h-11! w-11! bg-slate-950/85! text-rose-300! border-rose-500/50! backdrop-blur-md" :title="$t('game.cancelBuild')" @click="towerStore.cancelBuild()" />
-          <UiButton v-if="towerStore.pendingBuildCell" variant="game-green" size="lg" :leading-icon="Check" custom-class="h-11" :disabled="towerStore.myGold < buildCost" @click="confirmBuild">
+          <UiButton v-if="towerStore.pendingBuildCell" variant="game-green" size="lg" :leading-icon="Check" custom-class="h-11 portrait:flex-1" :disabled="towerStore.myGold < buildCost" @click="confirmBuild">
             {{ $t('game.build') }}
           </UiButton>
         </template>
 
         <!-- Between waves: start the next one (a room's host; everyone sees the countdown) -->
         <template v-else-if="isPreparing">
-          <span v-if="multiplayerStore.roomId" class="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md text-amber-300 text-sm font-black tabular-nums">
+          <span v-if="multiplayerStore.roomId" class="flex items-center gap-1.5 h-11 px-3 shrink-0 rounded-xl bg-slate-950/80 border border-amber-500/40 backdrop-blur-md text-amber-300 text-sm font-black tabular-nums">
             <Timer class="size-4" />{{ Math.ceil(gameStore.prepCountdown) }}s
           </span>
-          <UiButton v-if="canStartWave" variant="game-amber" size="lg" :leading-icon="Play" custom-class="h-11" @click="startWave">
+          <UiButton v-if="canStartWave" variant="game-amber" size="lg" :leading-icon="Play" custom-class="h-11 portrait:flex-1" @click="startWave">
             {{ $t('game.startWaveNow') }}
           </UiButton>
         </template>
 
-        <span v-else-if="gameStore.gameState === 'wave_running'" class="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-slate-950/80 border border-emerald-500/40 backdrop-blur-md text-emerald-200 text-xs font-bold">
+        <span v-else-if="gameStore.gameState === 'wave_running'" class="flex items-center justify-center gap-1.5 h-11 px-3 portrait:flex-1 rounded-xl bg-slate-950/80 border border-emerald-500/40 backdrop-blur-md text-emerald-200 text-xs font-bold">
           <Swords class="size-4 text-emerald-400 animate-pulse" />{{ $t('game.waveRunning') }}
         </span>
 
-        <span v-else class="flex items-center h-11 px-3 rounded-xl bg-slate-950/80 border border-slate-700/70 backdrop-blur-md text-slate-300 text-xs font-medium">
+        <span v-else class="flex items-center justify-center h-11 px-3 portrait:flex-1 rounded-xl bg-slate-950/80 border border-slate-700/70 backdrop-blur-md text-slate-300 text-xs font-medium">
           {{ $t('game.waitingNextWave') }}
         </span>
       </div>

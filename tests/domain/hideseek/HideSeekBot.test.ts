@@ -12,6 +12,7 @@ import {
   CollisionGrid,
   ALTAR_REACH,
   noEffects,
+  seededRandom,
 } from '@/domain/hideseek'
 import { GridCoord } from '@/types/map'
 import labyrinth from '@/maps/Labyrinth.json'
@@ -155,9 +156,11 @@ describe('HideSeekBot', () => {
     const brain = createBotBrain(grid, spawns, chests.length, 0)
     let self: GridCoord = { ...spawns[1] }
     let facing = 0
+    // A fixed random sequence: the same walk every run
+    const random = seededRandom(3)
     // It has to find them first: it only knows the altars it has seen
     for (let t = 0; t < 300 * 10 && chests.some(c => !c.lit); t++) {
-      thinkBot(brain, 'hider', senses(self, facing, null, chests), grid, settings, Math.random, 0.1)
+      thinkBot(brain, 'hider', senses(self, facing, null, chests), grid, settings, random, 0.1)
       const step = stepAlongPath(self, brain.path, settings.runSpeed * 0.1)
       brain.path = step.path
       self = step.pos

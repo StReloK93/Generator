@@ -122,6 +122,9 @@ const AIM_COLOR = 0xc084fc
 const SCOUT_COLOR = 0x7dd3fc
 const FIRE_COLOR = 0xf97316
 const SNARE_COLOR = 0xd6a35c
+/** A bird's nest, a stalker's trail */
+const NEST_COLOR = 0xd97706
+const TRAIL_COLOR = 0x7dd3fc
 const JAIL_TINT = 0x7c8794
 const JAIL_COLOR = 0x94a3b8
 /** Own character inside a barrel: a faint outline so the player knows where they are */
@@ -708,6 +711,15 @@ export class HideSeekRenderer {
       } else if (mark.kind === 'snare') {
         g.ellipse(p.x, p.y, tileWidth * 0.14, tileHeight * 0.14).stroke({ width: 2, color: SNARE_COLOR, alpha: 0.9 })
         g.circle(p.x, p.y, 2).fill({ color: SNARE_COLOR, alpha: 0.9 })
+      } else if (mark.kind === 'nest') {
+        // A small round nest of twigs, its glow beating slowly
+        const glow = 0.5 + 0.3 * Math.sin(time * 3)
+        g.ellipse(p.x, p.y, tileWidth * 0.22, tileHeight * 0.22).fill({ color: NEST_COLOR, alpha: 0.25 * glow })
+        g.ellipse(p.x, p.y - 2, tileWidth * 0.14, tileHeight * 0.12).stroke({ width: 3, color: NEST_COLOR, alpha: 0.95 })
+        g.circle(p.x, p.y - 4, 3).fill({ color: 0xfef3c7, alpha: 0.95 })
+      } else if (mark.kind === 'trail') {
+        // The stalker's watchful way: faint eyes on the floor
+        g.ellipse(p.x, p.y, tileWidth * 0.07, tileHeight * 0.07).fill({ color: TRAIL_COLOR, alpha: 0.55 })
       }
     }
 

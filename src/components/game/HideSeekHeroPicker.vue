@@ -34,7 +34,7 @@
       </UiCard>
     </div>
 
-    <!-- What the picked hero can do: one passive trait and two abilities, the same in both roles -->
+    <!-- What the picked hero can do: one passive trait and three abilities, the same in both roles -->
     <div v-if="modelValue" class="flex flex-col gap-1 rounded-xl bg-slate-950/60 border border-slate-800 px-2.5 py-2 text-[11px] leading-snug">
       <p v-if="trait" class="flex items-start gap-1.5 text-slate-300">
         <component :is="trait.icon" class="size-3.5 shrink-0 mt-px text-amber-300" />

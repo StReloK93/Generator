@@ -188,33 +188,9 @@
    their height as --tg-safe-area-inset-top + --tg-content-safe-area-inset-top (0 outside Telegram). */
 :root {
   --app-inset-top: 0px;
-  --tg-side: 0px;
 }
 html.tg-app {
   --app-inset-top: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
-  /* Width kept free at each side for Telegram's corner buttons; 0 when they do not float over the page
-     (no content inset: the trick turns any inset of 1px or more into the full 7rem) */
-  --tg-side: min(7rem, calc(var(--tg-content-safe-area-inset-top, 0px) * 100));
-}
-
-/* Game HUD strip along the top edge. In Telegram's full screen it moves up into the row of Telegram's own buttons,
-   in the free middle between them (hud-px keeps clear of the buttons), instead of taking a row below them.
-   hud-band is one row of that strip: as tall as Telegram's button row, its content centred in it. */
-.hud-top {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
-}
-.hud-band {
-  min-height: 2.5rem;
-}
-.hud-px {
-  padding-left: calc(max(env(safe-area-inset-left, 0px), 0.5rem) + var(--tg-side));
-  padding-right: calc(max(env(safe-area-inset-right, 0px), 0.5rem) + var(--tg-side));
-}
-html.tg-app .hud-top {
-  padding-top: var(--tg-safe-area-inset-top, 0px);
-}
-html.tg-app .hud-band {
-  min-height: max(var(--tg-content-safe-area-inset-top, 0px), 2.75rem);
 }
 
 /* Top padding / margin that only exists under Telegram's buttons (game HUDs that sit flush with the top) */

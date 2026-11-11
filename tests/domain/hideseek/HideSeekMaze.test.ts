@@ -38,6 +38,29 @@ describe('HideSeekMaze', () => {
     }
   })
 
+  it('has no dead ends: every 2x2 corridor cell has at least two ways out (crawl holes do not count)', () => {
+    for (const seed of [1, 7, 99, 2024, 31337]) {
+      const maze = generateMaze(seed, options)
+      const closed = new Set([...maze.walls, ...maze.holes].map(e => `${e.axis}${e.col},${e.row}`))
+      // A side of a maze cell is open when one of its two map edges is (a room partition may close the other)
+      const open = (axis: 'v' | 'h', col: number, row: number, along: 'col' | 'row') =>
+        [0, 1].some(k => !closed.has(`${axis}${along === 'col' ? col + k : col},${along === 'row' ? row + k : row}`))
+      for (let x = 0; x < options.cols / 2; x++) {
+        for (let y = 0; y < options.rows / 2; y++) {
+          const c = x * 2
+          const r = y * 2
+          const ways = [
+            x > 0 && open('v', c, r, 'row'),
+            x < options.cols / 2 - 1 && open('v', c + 2, r, 'row'),
+            y > 0 && open('h', c, r, 'col'),
+            y < options.rows / 2 - 1 && open('h', c, r + 2, 'col'),
+          ].filter(Boolean).length
+          expect(ways, `seed ${seed} cell ${x},${y}`).toBeGreaterThanOrEqual(2)
+        }
+      }
+    }
+  })
+
   it('lets only crawlers through crawl holes; shut doors stop everyone', () => {
     const maze = generateMaze(5, options)
     expect(maze.holes.length).toBeGreaterThan(0)

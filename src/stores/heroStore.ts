@@ -6,14 +6,14 @@ import { useMapStore } from './mapStore'
 import { getModelActionFrameCount } from '@/utils/characterUtils'
 
 export const HERO_MODELS = [
-  { id: 'warrior', label: 'Warrior' },
-  { id: 'orc', label: 'Orc' },
-  { id: 'demon', label: 'Demon' },
-  { id: 'male', label: 'Male' },
-  { id: 'female', label: 'Female' },
-  { id: 'zombi', label: 'Zombi' },
-  { id: 'bird', label: 'Bird' },
-  { id: 'barry', label: 'Barry' },
+  { id: 'warrior', label: 'Grimvald' },
+  { id: 'orc', label: 'Thorgak' },
+  { id: 'demon', label: 'Vexmorth' },
+  { id: 'male', label: 'Ruzzifer' },
+  { id: 'female', label: 'Selvara' },
+  { id: 'zombi', label: 'Gulgoth' },
+  { id: 'bird', label: 'Aeryx' },
+  { id: 'barry', label: 'Fizzwick' },
 ] as const
 
 export interface TargetMarkerState {

@@ -71,23 +71,23 @@ export const useNotificationStore = defineStore('notificationStore', () => {
   }
 
   function success(message: string, title?: string, duration?: number) {
-    return show({ type: 'success', title: title || 'Muvaffaqiyatli', message, duration })
+    return show({ type: 'success', title, message, duration })
   }
 
   function error(message: string, title?: string, duration?: number) {
-    return show({ type: 'error', title: title || 'Xatolik', message, duration })
+    return show({ type: 'error', title, message, duration })
   }
 
   function warning(message: string, title?: string, duration?: number) {
-    return show({ type: 'warning', title: title || 'Diqqat', message, duration })
+    return show({ type: 'warning', title, message, duration })
   }
 
   function info(message: string, title?: string, duration?: number) {
-    return show({ type: 'info', title: title || 'Ma\'lumot', message, duration })
+    return show({ type: 'info', title, message, duration })
   }
 
   function gold(message: string, title?: string, duration?: number) {
-    return show({ type: 'gold', title: title || 'Oltin yetarli emas', message, duration })
+    return show({ type: 'gold', title, message, duration })
   }
 
   // Interactive Promise-based Confirm Modal

@@ -21,7 +21,6 @@ interface TelegramWebApp {
   expand(): void
   requestFullscreen(): void
   lockOrientation(): void
-  unlockOrientation(): void
   disableVerticalSwipes(): void
   enableClosingConfirmation(): void
   disableClosingConfirmation(): void
@@ -70,13 +69,11 @@ export function initTelegram(): void {
 }
 
 /**
- * Telegram can only lock the orientation the phone is in right now. So it is locked once the player has turned the
- * phone sideways in a game, and released everywhere else (locking at startup would trap a portrait phone).
+ * The game is played upright. Telegram can only lock the orientation the phone is in right now, so it is locked as
+ * soon as the phone stands upright (and stays locked).
  */
-export function setLandscapeLock(lock: boolean): void {
-  if (!tg || !supports('8.0') || !isPhone()) return
-  if (lock) tg.lockOrientation()
-  else tg.unlockOrientation()
+export function lockPortrait(): void {
+  if (tg && supports('8.0') && isPhone()) tg.lockOrientation()
 }
 
 /** Asks before Telegram closes the app (in a room or a running game, where closing would drop the player) */

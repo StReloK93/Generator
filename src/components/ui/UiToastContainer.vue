@@ -1,18 +1,19 @@
 <template>
-  <!-- Compact game-style notices in the top-left corner, clear of the right HUD and the play field center -->
-  <div class="fixed top-2 left-2 sm:top-3 sm:left-3 z-100! pointer-events-none flex flex-col items-start gap-1.5 w-max max-w-60 sm:max-w-72 select-none pt-safe pl-safe">
+  <!-- Compact game-style notices at the top centre, just below the game HUD row (never over gold / lives / menu) -->
+  <div class="fixed inset-x-0 top-0 z-100! pointer-events-none flex flex-col items-center gap-1.5 px-4 select-none pt-safe">
+    <div class="h-11 shrink-0" />
     <TransitionGroup
       enter-active-class="transition duration-200 ease-out"
-      enter-from-class="-translate-x-3 opacity-0"
-      enter-to-class="translate-x-0 opacity-100"
+      enter-from-class="-translate-y-2 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
       leave-active-class="transition duration-150 ease-in"
       leave-from-class="opacity-100"
-      leave-to-class="-translate-x-2 opacity-0"
+      leave-to-class="-translate-y-2 opacity-0"
     >
       <div
         v-for="toast in notificationStore.toasts"
         :key="toast.id"
-        class="pointer-events-auto cursor-pointer max-w-full flex items-start gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border-l-3 bg-slate-950/85 backdrop-blur-md shadow-lg shadow-black/40"
+        class="pointer-events-auto cursor-pointer w-max max-w-80 flex items-start gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border-l-3 bg-slate-950/85 backdrop-blur-md shadow-lg shadow-black/40"
         :class="accent(toast.type).border"
         :title="$t('common.close')"
         @click="notificationStore.dismiss(toast.id)"

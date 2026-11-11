@@ -3,13 +3,13 @@
     :is-open="isOpen"
     size="4xl"
     hide-header
-    custom-class="h-120"
+    custom-class="h-120 portrait:h-full"
     body-class="p-0! space-y-0! overflow-hidden! flex flex-col"
     @close="emit('update:isOpen', false)"
   >
     <!-- Same look as the room: one card, a compact header, two columns with a soft line between them -->
-    <header class="px-2.5 pt-2 pb-1 flex items-center gap-2 shrink-0">
-      <h2 class="text-sm sm:text-base font-extrabold text-slate-50 truncate flex items-center gap-1.5">
+    <header class="px-2.5 pt-2 pb-1 flex flex-wrap items-center gap-2 shrink-0">
+      <h2 class="text-sm sm:text-base font-extrabold text-slate-50 truncate flex items-center gap-1.5 portrait:flex-1">
         <Users class="size-4 text-emerald-400 shrink-0" /> {{ $t('home.multiplayer') }}
       </h2>
       <UiInput
@@ -18,16 +18,21 @@
         :leading-icon="User"
         :maxlength="16"
         size="sm"
-        custom-class="ml-auto w-36 sm:w-44"
+        custom-class="ml-auto w-36 sm:w-44 portrait:order-last portrait:basis-full portrait:ml-0"
         @change="multiplayerStore.setPlayerProfile(playerName)"
       />
       <UiIconButton :icon="X" size="sm" variant="ghost" :title="$t('common.close')" @click="emit('update:isOpen', false)" />
     </header>
 
-    <main class="flex-1 min-h-0 px-1.5 sm:px-2.5 pb-1.5 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5">
-      <!-- MAPS (double click hosts right away) -->
-      <section class="flex flex-col min-h-0 min-w-0">
-        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-brand-300">
+    <!-- Upright phone: the open rooms and hosting a room are two tabs -->
+    <div class="hidden portrait:block shrink-0 px-2.5 pb-1.5">
+      <UiTabs v-model="tab" :items="tabs" variant="segmented" size="sm" fill />
+    </div>
+
+    <main class="flex-1 min-h-0 px-1.5 sm:px-2.5 pb-1.5 grid grid-cols-[1fr_auto_1fr] portrait:grid-cols-1 gap-1.5 sm:gap-2.5">
+      <!-- HOST: pick a map (double click hosts right away), optional password -->
+      <section :class="['flex flex-col min-h-0 min-w-0', tab === 'host' ? '' : 'portrait:hidden']">
+        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-brand-300 portrait:hidden">
           <Map class="size-3.5" /> {{ $t('play.maps') }}
           <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ builtinMaps.length }}</span>
         </h3>
@@ -37,25 +42,7 @@
           class="flex-1 -mx-2"
           @pick="handleCreateRoom"
         />
-      </section>
-
-      <div class="w-px my-1 bg-linear-to-b from-transparent via-slate-500/60 to-transparent" />
-
-      <!-- HOST (optional password) and the open rooms -->
-      <section class="flex flex-col min-h-0 min-w-0">
-        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
-          <Radio class="size-3.5 animate-pulse" /> {{ $t('play.publicRooms') }}
-          <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ multiplayerStore.availableRooms.length }}</span>
-          <UiIconButton
-            :icon="RefreshCw"
-            size="xs"
-            variant="ghost"
-            :title="$t('common.refresh')"
-            :custom-class="isRefreshing ? '[&_svg]:animate-spin' : ''"
-            @click="refreshRooms"
-          />
-        </h3>
-        <div class="py-1.5 flex items-center gap-1.5 shrink-0">
+        <div class="pt-1.5 flex items-center gap-1.5 shrink-0 border-t border-slate-800">
           <UiInput
             v-model="hostPassword"
             type="password"
@@ -78,8 +65,26 @@
             {{ isCreatingRoom ? $t('play.hosting') : $t('play.hostGame') }}
           </UiButton>
         </div>
+      </section>
 
-      <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5">
+      <div class="w-px my-1 bg-linear-to-b from-transparent via-slate-500/60 to-transparent portrait:hidden" />
+
+      <!-- The open rooms -->
+      <section :class="['flex flex-col min-h-0 min-w-0', tab === 'rooms' ? '' : 'portrait:hidden']">
+        <h3 class="h-6 flex items-center gap-1.5 px-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
+          <Radio class="size-3.5 animate-pulse" /> {{ $t('play.publicRooms') }}
+          <span class="ml-auto font-bold text-slate-500 tabular-nums">{{ multiplayerStore.availableRooms.length }}</span>
+          <UiIconButton
+            :icon="RefreshCw"
+            size="xs"
+            variant="ghost"
+            :title="$t('common.refresh')"
+            :custom-class="isRefreshing ? '[&_svg]:animate-spin' : ''"
+            @click="refreshRooms"
+          />
+        </h3>
+
+      <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5 pt-1">
         <div
           v-for="room in multiplayerStore.availableRooms"
           :key="room.roomId"
@@ -167,7 +172,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Gamepad2, User, Users, Lock, Radio, RefreshCw, Map, WifiOff, X } from 'lucide-vue-next'
-import { UiModal, UiButton, UiIconButton, UiInput, UiBadge } from '../ui'
+import { UiModal, UiButton, UiIconButton, UiInput, UiBadge, UiTabs } from '../ui'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
 import { useNotificationStore } from '../../stores/notificationStore'
@@ -199,6 +204,13 @@ const isRefreshing = ref(false)
 /** The room asking for a password, and what was typed for it */
 const lockedRoom = ref<ActiveRoomSummary | null>(null)
 const joinPassword = ref('')
+
+/** Upright phone: which half is shown (joining is what most players come for) */
+const tab = ref<'rooms' | 'host'>('rooms')
+const tabs = computed(() => [
+  { id: 'rooms', label: t('play.publicRooms') },
+  { id: 'host', label: t('play.hostTab') },
+])
 
 const builtinMaps = getBuiltinMaps()
 const selectedMapId = ref(builtinMaps[0]?.id || '')

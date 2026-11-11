@@ -60,6 +60,12 @@
         <LobbyPlayerSlot v-for="slot in team.slots" :key="slot.slotIndex" :slot="slot" />
       </section>
       <div class="col-start-2 row-start-1 w-px my-1 bg-linear-to-b from-transparent via-slate-500/60 to-transparent" />
+      <!-- Upright phone: the map and how it is played fill the room while it waits -->
+      <section class="hidden portrait:flex flex-col gap-2 mt-2 col-span-3 row-start-2">
+        <MapPreviewImage v-if="roomMap" :map="roomMap" class="w-full aspect-2/1 rounded-2xl border border-slate-800" />
+        <h2 class="px-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{{ $t('maps.howToPlay') }}</h2>
+        <HowToPlay :mode="roomMode" />
+      </section>
     </main>
     <main v-else class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-1 sm:grid-cols-2 content-start gap-1.5">
       <LobbyPlayerSlot
@@ -67,11 +73,17 @@
         :key="slot.slotIndex"
         :slot="slot"
       />
+      <!-- Upright phone: the map and how it is played fill the room while it waits -->
+      <section class="hidden portrait:flex flex-col gap-2 mt-2 col-span-full">
+        <MapPreviewImage v-if="roomMap" :map="roomMap" class="w-full aspect-2/1 rounded-2xl border border-slate-800" />
+        <h2 class="px-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{{ $t('maps.howToPlay') }}</h2>
+        <HowToPlay :mode="roomMode" />
+      </section>
     </main>
 
     <!-- Action bar -->
     <footer class="px-1.5 sm:px-2.5 pt-1 pb-1.5 flex items-center shrink-0">
-      <div class="ml-auto shrink-0">
+      <div class="ml-auto shrink-0 portrait:ml-0 portrait:w-full portrait:[&>button]:w-full">
         <UiButton
           v-if="!multiplayerStore.isHost"
           :variant="multiplayerStore.myPlayer?.isReady ? 'game-green' : 'game-amber'"
@@ -148,19 +160,25 @@ import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
-import { lockLandscape } from '../utils/pwaOrientation'
-import { getProjectMapId } from '../services/mapManager'
+import { getBuiltinMaps, getProjectMapId } from '../services/mapManager'
+import { getMapMode } from '../domain/map'
 import { gamePath, lobbyPath } from '../router/paths'
 import { fetchTelegramAppUrl } from '../services/networkService'
 import { setBackButton, shareInTelegram, telegramRoomLink } from '../services/telegram'
 import LobbyPlayerSlot from '../components/LobbyPlayerSlot.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import VoiceChatControl from '../components/VoiceChatControl.vue'
+import HowToPlay from '../components/HowToPlay.vue'
+import MapPreviewImage from '../components/home/MapPreviewImage.vue'
 
 const route = useRoute()
 const router = useRouter()
 const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
+
+/** The room's map among the built-in ones (its picture), and its genre */
+const roomMap = computed(() => getBuiltinMaps().find(m => m.name === mapStore.project.name) ?? null)
+const roomMode = computed(() => getMapMode(mapStore.project))
 const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const notify = useNotificationStore()
@@ -233,7 +251,6 @@ watch(
   () => multiplayerStore.roomGameState,
   (state) => {
     if (state === 'in_game') {
-      lockLandscape()
       gameStore.entrySource = 'lobby'
       const code = multiplayerStore.roomId || (route.params.roomId as string)
       router.push(gamePath(getProjectMapId(mapStore.project), code))
@@ -272,7 +289,6 @@ async function inviteFriends() {
 }
 
 function handleStartGame() {
-  lockLandscape()
   multiplayerStore.startGame(router)
 }
 

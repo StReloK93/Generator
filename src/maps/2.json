@@ -31297,7 +31297,7 @@
       {
         "id": "clan-1789541192592-w54z",
         "name": "Freezer",
-        "description": "",
+        "description": "Slows the enemy down and shatters it with ice: buys time for every other tower.",
         "iconName": "Snowflake",
         "color": "#06b6d4",
         "bannerColor": "",
@@ -31306,9 +31306,9 @@
       {
         "id": "clan-1790058637054-7q3o",
         "name": "Bloodseeker",
-        "description": "",
-        "iconName": "Flame",
-        "color": "#38bdf8",
+        "description": "Makes the enemy bleed; its great towers strike whole crowds at once.",
+        "iconName": "Droplet",
+        "color": "#e11d48",
         "bannerColor": "",
         "isDefault": false
       }

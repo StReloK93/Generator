@@ -6,13 +6,13 @@
     :icon="Swords"
     :teleport="true"
     size="4xl"
-    custom-class="h-120"
-    body-class="p-0! space-y-0! overflow-hidden! flex"
+    custom-class="h-120 portrait:h-auto"
+    body-class="p-0! space-y-0! overflow-hidden! flex portrait:flex-col"
     @close="emit('update:isOpen', false)"
   >
     <template v-if="waveStore.waveConfigs.length > 0">
-      <!-- Left: wave list -->
-      <aside ref="listRef" class="w-36 sm:w-48 shrink-0 min-h-0 overflow-y-auto p-2 flex flex-col gap-1 border-r border-slate-800 bg-slate-950/30">
+      <!-- Wave list: on the left, on an upright phone a row of numbers on top -->
+      <aside ref="listRef" class="w-36 sm:w-48 shrink-0 min-h-0 overflow-y-auto p-2 flex flex-col gap-1 border-r border-slate-800 bg-slate-950/30 portrait:w-full portrait:flex-row portrait:overflow-x-auto portrait:overflow-y-hidden portrait:border-r-0 portrait:border-b no-scrollbar">
         <UiButton
           v-for="(wave, idx) in waveStore.waveConfigs"
           :key="idx"
@@ -21,12 +21,12 @@
           block
           :active="selectedIndex === idx"
           :data-active="selectedIndex === idx"
-          :custom-class="['justify-start! text-left min-h-9 shrink-0 [&>span]:flex-1 [&>span]:min-w-0', idx < waveStore.currentWaveIndex && selectedIndex !== idx ? 'opacity-50' : '']"
+          :custom-class="['justify-start! text-left min-h-9 shrink-0 [&>span]:flex-1 [&>span]:min-w-0 portrait:w-auto! portrait:min-w-11 portrait:justify-center!', idx < waveStore.currentWaveIndex && selectedIndex !== idx ? 'opacity-50' : '']"
           @click="selectedIndex = idx"
         >
           <span class="flex items-center gap-2 min-w-0">
-            <span class="w-5 shrink-0 text-right font-extrabold">{{ idx + 1 }}</span>
-            <span class="flex-1 min-w-0 truncate">{{ wave.name || `${$t('game.wave')} ${idx + 1}` }}</span>
+            <span class="w-5 shrink-0 text-right font-extrabold portrait:w-auto">{{ idx + 1 }}</span>
+            <span class="flex-1 min-w-0 truncate portrait:hidden">{{ wave.name || `${$t('game.wave')} ${idx + 1}` }}</span>
             <Crown v-if="wave.isBoss" class="size-3.5 shrink-0 text-amber-400" />
             <span v-if="idx === waveStore.currentWaveIndex" class="size-2 shrink-0 rounded-full bg-emerald-400" />
           </span>
@@ -34,8 +34,8 @@
       </aside>
 
       <!-- Right: selected wave -->
-      <section v-if="activeWave" class="flex-1 min-w-0 min-h-0 flex">
-        <div class="w-2/5 shrink-0 p-2.5 sm:p-3">
+      <section v-if="activeWave" class="flex-1 min-w-0 min-h-0 flex portrait:flex-col portrait:overflow-y-auto">
+        <div class="w-2/5 shrink-0 p-2.5 sm:p-3 portrait:w-full portrait:h-44">
           <CharacterLivePreview
             class="h-full"
             :model-value="activeWave.characterModel || 'male'"
@@ -52,7 +52,7 @@
           />
         </div>
 
-        <div class="flex-1 min-w-0 min-h-0 overflow-y-auto py-2.5 sm:py-3 pr-2.5 sm:pr-3 flex flex-col gap-2.5">
+        <div class="flex-1 min-w-0 min-h-0 overflow-y-auto py-2.5 sm:py-3 pr-2.5 sm:pr-3 flex flex-col gap-2.5 portrait:px-3 portrait:pt-0 portrait:overflow-visible">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h3 class="text-sm sm:text-base font-extrabold text-brand-200 truncate">
               {{ activeWave.name || `${$t('game.wave')} ${selectedIndex + 1}` }}
@@ -144,7 +144,7 @@ watch(() => props.isOpen, async (open) => {
   if (!open) return
   selectedIndex.value = Math.max(0, Math.min(waveStore.waveConfigs.length - 1, waveStore.currentWaveIndex || 0))
   await nextTick()
-  listRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'center' })
+  listRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'center', inline: 'center' })
 })
 
 const activeWave = computed(() => waveStore.waveConfigs[selectedIndex.value] || waveStore.waveConfigs[0] || null)

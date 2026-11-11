@@ -17,6 +17,14 @@
       <span class="flex items-center gap-2"><Maximize2 class="size-4 text-emerald-300" />{{ $t('common.fullscreen') }}</span>
     </UiSwitch>
 
+    <!-- Touch screens: how to walk in the maze (tapping where to go, or a joystick) -->
+    <div v-if="isTouch" class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200">
+        <Footprints class="size-4 text-emerald-300" />{{ $t('settings.controls') }}
+      </span>
+      <UiTabs v-model="settings.controls" :items="controlOptions" variant="segmented" size="sm" fill />
+    </div>
+
     <div class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
       <span class="flex items-center gap-2 text-xs font-semibold text-slate-200">
         <Languages class="size-4 text-emerald-300" />{{ $t('settings.language') }}
@@ -28,7 +36,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Languages, Maximize2, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
+import { Footprints, Languages, Maximize2, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
 import { UiSwitch, UiTabs } from './ui'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useI18nStore, type SupportedLocale } from '../stores/i18nStore'
@@ -41,4 +49,9 @@ const i18n = useI18nStore()
 
 const languages = computed(() => i18n.locales.map(l => ({ id: l.code, label: l.nativeName })))
 const canFullscreen = computed(() => !isStandalone.value && document.fullscreenEnabled)
+const isTouch = window.matchMedia('(pointer: coarse)').matches
+const controlOptions = computed(() => [
+  { id: 'tap', label: i18n.t('settings.controlsTap') },
+  { id: 'joystick', label: i18n.t('settings.controlsJoystick') },
+])
 </script>

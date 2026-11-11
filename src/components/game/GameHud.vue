@@ -1,11 +1,10 @@
 <template>
-  <!-- Top strip over the game. In Telegram's full screen it sits in the free middle of Telegram's own button row
-       (between its Close and menu buttons) instead of taking a row of the screen below them. -->
-  <header class="absolute inset-x-0 top-0 z-50 hud-top hud-px grid grid-cols-[1fr_auto_1fr] items-start gap-2 pointer-events-none select-none">
+  <!-- Top strip over the game (in Telegram below Telegram's own buttons) -->
+  <header class="absolute inset-x-0 top-0 z-50 pt-safe pl-safe pr-safe grid grid-cols-[1fr_auto_1fr] items-start gap-1.5 pointer-events-none select-none">
     <div />
 
     <!-- Centre: what the player watches all game (gold to spend, lives left, the wave) -->
-    <div class="hud-band flex items-center min-w-0">
+    <div class="min-h-10 flex items-center min-w-0">
       <div
         v-if="isTdMode"
         class="pointer-events-auto flex items-center gap-3 sm:gap-4 h-9 pl-3 pr-1 rounded-full border border-slate-700/70 bg-slate-950/80 backdrop-blur-md shadow-lg tabular-nums"
@@ -37,7 +36,7 @@
 
     <!-- Right: voice and the menu; in a room the players (and their gold) below -->
     <div class="flex flex-col items-end gap-1.5 min-w-0">
-      <div class="hud-band flex items-center gap-1.5">
+      <div class="min-h-10 flex items-center gap-1.5">
         <VoiceChatControl v-if="multiplayerStore.roomId" size="lg" button-class="bg-slate-950/80! backdrop-blur-md" class="pointer-events-auto" />
         <UiIconButton :icon="Menu" size="lg" :title="$t('game.menu')" custom-class="pointer-events-auto bg-slate-950/80! backdrop-blur-md" @click="isMenuOpen = true" />
       </div>

@@ -302,6 +302,20 @@ function sidewaysClear(grid: CollisionGrid, col: number, row: number, oc: number
   return true
 }
 
+/** The nearest spot a body fits at (itself when it already does): someone who came up inside a wall steps out. */
+export function nearestFreeSpot(grid: CollisionGrid, p: GridCoord): GridCoord {
+  if (bodyFits(grid, p.col, p.row)) return { col: p.col, row: p.row }
+  for (let r = 0.25; r <= 6; r += 0.25) {
+    const steps = Math.max(8, Math.round(r * 16))
+    for (let i = 0; i < steps; i++) {
+      const a = (i / steps) * Math.PI * 2
+      const at = { col: p.col + Math.cos(a) * r, row: p.row + Math.sin(a) * r }
+      if (bodyFits(grid, at.col, at.row)) return at
+    }
+  }
+  return { col: p.col, row: p.row }
+}
+
 function isSubCellWalkable(grid: CollisionGrid, subCol: number, subRow: number): boolean {
   if (subCol < 0 || subRow < 0 || subCol >= grid.subCols || subRow >= grid.subRows) return false
   return grid.blocked[subRow * grid.subCols + subCol] === 0

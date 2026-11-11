@@ -67,8 +67,7 @@
     </div>
 
     <!-- 5. Game Over, Victory, Clan Select & TD Config Modals -->
-    <GameOverModal />
-    <GameVictoryModal />
+    <GameResultModal />
     <ClanSelectModal v-if="mapMode === 'td'" />
     <GameConfigModal />
 
@@ -101,8 +100,7 @@ import GameControls from './GameControls.vue'
 import HeroControlWidget from './HeroControlWidget.vue'
 import HideSeekOverlay from './HideSeekOverlay.vue'
 import DevTestSandboxToolbar from './DevTestSandboxToolbar.vue'
-import GameOverModal from './GameOverModal.vue'
-import GameVictoryModal from './GameVictoryModal.vue'
+import GameResultModal from './GameResultModal.vue'
 import ClanSelectModal from './ClanSelectModal.vue'
 import GameConfigModal from '../GameConfigModal.vue'
 import LobbyChat from '../LobbyChat.vue'
@@ -115,7 +113,6 @@ import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { useI18n } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { getMapMode } from '../../domain/map'
-import { lockLandscape } from '../../utils/pwaOrientation'
 import {
   getGameMapDataById,
   getEditorMapDataById,
@@ -168,9 +165,6 @@ const isMapLoaded = computed(() => {
 })
 
 onMounted(async () => {
-  // Lock screen to landscape orientation if supported
-  lockLandscape()
-
   const roomCode = (route.params.roomId as string) || ''
 
   // Track entry source explicitly based on mode

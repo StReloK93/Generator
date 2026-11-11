@@ -284,6 +284,28 @@ export interface HideSeekSettings {
   snareTime: number
   snareLife: number
   snareCooldown: number
+  /** The heroes' own third abilities (G). hasteFactor: speed while sprinting, stalking or berserk; rewindTime: how
+   * far back a rewind goes (seconds); a stalker's trail keeps watch stalkTrailLife seconds within stalkTrailRadius */
+  hasteFactor: number
+  sprintTime: number
+  sprintCooldown: number
+  bashRange: number
+  bashTime: number
+  bashCooldown: number
+  swapRange: number
+  swapCooldown: number
+  berserkTime: number
+  berserkCooldown: number
+  rewindTime: number
+  rewindCooldown: number
+  stalkTime: number
+  stalkCooldown: number
+  stalkTrailLife: number
+  stalkTrailRadius: number
+  tunnelTime: number
+  tunnelCooldown: number
+  nestTime: number
+  nestCooldown: number
 }
 
 export interface MapProject {

@@ -125,6 +125,7 @@ Xarita muharriri (`EditorView`) va Asset muharriri (`AssetEditorView`) dan tashq
    - Matnlar qisqa, tushunarli, muhim harakatlar (Play, Host, Join) birinchi o'rinda.
 
 3. **Telegram Mini App**: Telegram SDK faqat `src/services/telegram.ts` orqali chaqiriladi (Telegramdan tashqarida hamma funksiyasi no-op). Ekran tepasiga yopishgan UI Telegramning yopish/menyu tugmalari ostida qolmasligi uchun `pt-safe` (yoki faqat Telegramda: `pt-tg` / `mt-tg`) ishlatadi.
+4. **Tik (portret) o'yin**: o'yin telefon tik holatda o'ynaladi (albomga majburlanmaydi, Telegramda tik holatda qulflanadi). O'yin HUD'lari tik ekranga mos bo'lishi shart (Tailwind `portrait:` / `landscape:` variantlari); kompyuterda keng ekran ham ishlayveradi.
 
 ---
 

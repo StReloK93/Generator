@@ -1,13 +1,13 @@
 <template>
   <div class="relative h-dvh w-screen citadel-backdrop text-slate-100 flex flex-col justify-between overflow-hidden select-none font-sans px-4 sm:px-8 py-3 sm:py-5 pt-safe pb-safe">
     <!-- ================= HORIZON: the clans' towers at dusk ================= -->
-    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-radial-[ellipse_at_50%_100%] from-brand-600/20 via-brand-900/5 to-transparent"></div>
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-radial-[ellipse_at_50%_100%] portrait:inset-y-0 portrait:h-auto portrait:bg-radial-[ellipse_at_50%_50%] from-brand-600/20 via-brand-900/5 to-transparent"></div>
     <img
       :src="homeHorizon"
       alt=""
       aria-hidden="true"
       draggable="false"
-      class="horizon-rise pointer-events-none absolute z-10 bottom-7 left-1/2 -translate-x-1/2 w-full max-w-230 max-h-[40dvh] object-contain object-bottom short:max-h-none short:bottom-5 short:left-auto short:right-3 short:translate-x-0 short:w-1/2 short:max-w-115"
+      class="horizon-rise portrait:hidden pointer-events-none absolute z-10 bottom-7 left-1/2 -translate-x-1/2 w-full max-w-230 max-h-[40dvh] object-contain object-bottom short:max-h-none short:bottom-5 short:left-auto short:right-3 short:translate-x-0 short:w-1/2 short:max-w-115"
     />
     <div class="pointer-events-none absolute z-10 inset-x-0 bottom-0 h-16 bg-linear-to-t from-slate-950 to-transparent"></div>
     <!-- Embers rise over the towers, light rays and fog drift (Pixi) -->
@@ -70,26 +70,36 @@
       </div>
     </header>
 
-    <!-- ================= 4. MINIMALIST CENTER MENU ================= -->
-    <main class="relative z-20 flex-1 flex flex-col items-center justify-center gap-7 pb-[38dvh] short:pb-0 short:gap-4 short:w-1/2 max-w-md mx-auto w-full short:mx-0 short:max-w-none">
-      <!-- Game Title -->
-      <div class="flex flex-col items-center text-center">
-        <div class="flex items-center gap-3 sm:gap-4">
-          <span class="h-px w-10 sm:w-16 short:w-8 bg-linear-to-r from-transparent to-brand-400/70"></span>
+    <!-- ================= 4. MENU =================
+         Wide screens: title and buttons in the middle above the towers.
+         Upright phone: title with the towers under it in the middle, the buttons at the bottom where the thumb rests. -->
+    <main class="relative z-20 flex-1 flex flex-col items-center justify-center gap-7 pb-[38dvh] short:pb-0 short:gap-4 short:w-1/2 max-w-md mx-auto w-full short:mx-0 short:max-w-none portrait:justify-between portrait:pb-2 portrait:gap-4">
+      <div class="flex flex-col items-center text-center portrait:flex-1 portrait:w-full">
+        <!-- Title: in the middle of the space above the towers on an upright phone -->
+        <div class="flex flex-col items-center portrait:flex-1 portrait:justify-center">
+        <div class="flex items-center gap-3 sm:gap-4 portrait:gap-2">
+          <span class="h-px w-6 sm:w-16 short:w-8 portrait:hidden bg-linear-to-r from-transparent to-brand-400/70"></span>
           <span class="size-2 rotate-45 bg-brand-400 shadow-[0_0_10px_rgba(233,182,60,0.8)]"></span>
-          <h1 class="font-display text-5xl sm:text-7xl short:text-4xl font-black uppercase tracking-[0.18em] pl-[0.18em] bg-linear-to-b from-brand-50 via-brand-300 to-brand-600 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(233,182,60,0.35)]">
+          <h1 class="font-display text-5xl sm:text-7xl short:text-4xl font-black uppercase tracking-[0.18em] pl-[0.18em] portrait:tracking-[0.12em] portrait:pl-[0.12em] bg-linear-to-b from-brand-50 via-brand-300 to-brand-600 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(233,182,60,0.35)]">
             {{ $t('app.name') }}
           </h1>
           <span class="size-2 rotate-45 bg-brand-400 shadow-[0_0_10px_rgba(233,182,60,0.8)]"></span>
-          <span class="h-px w-10 sm:w-16 short:w-8 bg-linear-to-l from-transparent to-brand-400/70"></span>
+          <span class="h-px w-6 sm:w-16 short:w-8 portrait:hidden bg-linear-to-l from-transparent to-brand-400/70"></span>
         </div>
         <p class="mt-2 font-display text-sm sm:text-base short:text-xs font-semibold text-brand-200/70 tracking-[0.3em] uppercase">
           {{ $t('home.tagline') }}
         </p>
+        </div>
+
+        <!-- Upright phone: the clans' towers stand on a warm glow right above the buttons, like on a stage -->
+        <div class="hidden portrait:block relative w-[125%] max-w-160 mt-6">
+          <div class="absolute inset-x-[8%] -bottom-2 h-2/5 rounded-full bg-brand-500/25 blur-2xl"></div>
+          <img :src="homeHorizon" alt="" aria-hidden="true" draggable="false" class="horizon-rise relative w-full object-contain" />
+        </div>
       </div>
 
       <!-- Primary Action Buttons Only -->
-      <div class="flex flex-col gap-3.5 short:gap-3 w-full max-w-xs sm:max-w-sm short:max-w-72">
+      <div class="flex flex-col gap-3.5 short:gap-3 w-full max-w-xs sm:max-w-sm short:max-w-72 portrait:max-w-sm">
         
         <!-- Single Player Button -> Opens Map Modal -->
         <UiButton
@@ -155,7 +165,7 @@ import {
 import homeHorizon from '../assets/ui/home-horizon.webp'
 import { UiButton, UiIconButton, UiModal } from '../components/ui'
 import SettingsPanel from '../components/SettingsPanel.vue'
-import { canInstallPwa, promptPwaInstall, lockLandscape } from '../utils/pwaOrientation'
+import { canInstallPwa, promptPwaInstall } from '../utils/pwaOrientation'
 import { isTelegram } from '../services/telegram'
 import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
@@ -250,9 +260,6 @@ async function selectAndStartMap(mapData: any) {
 
     // Provide a smooth feedback buffer for the button loading spinner
     await new Promise(resolve => setTimeout(resolve, 350))
-
-    // Attempt to lock landscape orientation on game start
-    lockLandscape()
 
     await router.push(gamePath(cleanId))
   } catch (err) {

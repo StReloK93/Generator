@@ -17,6 +17,7 @@ import {
   spottedWithin,
   TORCH_SIGHT_FACTOR,
   scoutedBy,
+  trailSees,
   fireWallEnds,
 } from '../domain/hideseek'
 
@@ -98,7 +99,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     ((mySeat?.effects.sense ?? 0) > 0 ||
       inSight(p, within) ||
       ((mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange) ||
-      (!!mySeat && scoutedBy(match.marks, mySeat.team, p, settings)))
+      scoutedBy(match.marks, me.id, p, settings) ||
+      match.marks.some(m => m.kind === 'trail' && m.by === me.id && trailSees(m, p, settings) && hasLineOfSight(grid, m, p)))
   /** 0 = dark .. 1 = fully lit by the player's lantern / sight or by a candle */
   const lightAt = (p: GridCoord): number => {
     if (over) return 1
@@ -159,11 +161,11 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     lightFadeWidth: LIGHT_FADE_WIDTH,
     lightAt,
     aim: !over && me && ctx.aimRadius > 0 ? { col: me.col, row: me.row, radius: ctx.aimRadius } : null,
-    // Fire is seen by all; a team's own scout birds and snares only by that team
+    // Fire is seen by all; a team's own snares by that team; a scout bird, a nest and a stalker's trail only by their owner
     marks: over
       ? []
       : match.marks
-          .filter(m => m.kind === 'fireWall' || ((m.kind === 'scout' || m.kind === 'snare') && m.team === mySeat?.team))
+          .filter(m => m.kind === 'fireWall' || (m.kind === 'snare' && m.team === mySeat?.team) || ((m.kind === 'scout' || m.kind === 'nest' || m.kind === 'trail') && m.by === me?.id))
           .map(m => ({
             kind: m.kind,
             col: m.col,

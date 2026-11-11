@@ -67,7 +67,12 @@ import {
   markExplored,
   createBotBrain,
   abilitiesOf,
-  abilityActive,
+  abilityTimeLeft,
+  abilityCooldown,
+  markLife,
+  sprintSight,
+  fireWallCrossed,
+  nearestFreeSpot,
   startAbility,
   tickAbilities,
   useAbility,
@@ -209,7 +214,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** An opponent is sensing the whole map right now (they see me, and I see them) */
   const isSensed = ref(false)
   /** My hero's abilities (Q, F): whole seconds of cooldown left, and whether a timed one is running */
-  const myAbilities = ref<{ id: AbilityId; cooldown: number; active: boolean }[]>([])
+  /** My abilities: cooldown left of its full length, and what one started that still runs (own effect or mark) */
+  const myAbilities = ref<{ id: AbilityId; cooldown: number; cooldownTotal: number; left: number; total: number }[]>([])
+  /** Seconds left of what the other side put on me */
+
   /** Rounds each side won, and the side that won the match */
   const roundWins = ref<Record<HideSeekRole, number>>({ seeker: 0, hider: 0 })
   const matchWinner = ref<HideSeekRole | null>(null)
@@ -345,8 +353,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   /** Walking / route finding: only the crawler squeezes through the crawl holes */
-  const moveGrid = (p: HideSeekBody) => (crawlsThroughHoles(traitOf(p.model)) ? hiderGrid : (grid ?? EMPTY_GRID))
-  const pathGrid = (p: HideSeekBody) => (crawlsThroughHoles(traitOf(p.model)) ? hiderPaths : seekerPaths)
+  /** Tunnelling under the walls: only the map's edge stops them */
+  let openGrid = EMPTY_GRID
+  const tunnelling = (p: HideSeekBody) => (seatOf(match, p.id)?.effects.tunnel ?? 0) > 0
+  const moveGrid = (p: HideSeekBody) => (tunnelling(p) ? openGrid : crawlsThroughHoles(traitOf(p.model)) ? hiderGrid : (grid ?? EMPTY_GRID))
+  const pathGrid = (p: HideSeekBody) => (tunnelling(p) ? openGrid : crawlsThroughHoles(traitOf(p.model)) ? hiderPaths : seekerPaths)
 
   /** Collision for the current doors (a random labyrinth) or the map's own walls. */
   function rebuildGrids(): void {
@@ -358,6 +369,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     } else {
       grid = hiderGrid = seekerPaths = hiderPaths = buildCollisionGrid(mapStore.project)
     }
+    openGrid = { subCols: grid.subCols, subRows: grid.subRows, blocked: new Uint8Array(grid.subCols * grid.subRows) }
     refreshTorchGlows()
   }
 
@@ -639,7 +651,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       .sort((a, b) => b.score - a.score)
   }
 
-  /** Chain and ability timers on the HUD (whole seconds), and whether I am frozen. */
+  /** The ability rings and timers refresh this often (seconds) */
+  const TIMER_HUD_SEC = 0.1
+  let timerHudAge = 0
+
+  /** Chain and ability timers on the HUD, and whether I am frozen. */
   function applyTimerHud(): void {
     const seat = seatOf(match, myId())
     const chain = chainOf(match, myId())
@@ -650,12 +666,19 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     dazedLeft.value = up(seat?.dazed ?? 0)
     isFrozenMe.value = isFrozen(match, myId())
     isSensed.value = !!seat && match.seats.some(s => s.team !== seat.team && s.effects.sense > 0)
-    myAbilities.value = abilitiesOf(myPlayer()?.model).map((id, slot) => ({
-      id,
-      cooldown: up(seat?.cooldowns[slot] ?? 0),
-      // A timed one runs, or what it left on the map is still there
-      active: !!seat && (abilityActive(seat.effects, id) || (isMarkAbility(id) && match.marks.some(m => m.by === myId() && m.kind === id))),
-    }))
+    const tenth = (v: number) => Math.round(Math.max(0, v) * 10) / 10
+    myAbilities.value = abilitiesOf(myPlayer()?.model).map((id, slot) => {
+      // A timed one runs on me, or what it left on the map is still there
+      const own = seat ? abilityTimeLeft(seat.effects, id, settings) : null
+      const mark = isMarkAbility(id) ? match.marks.find(m => m.by === myId() && m.kind === id) : undefined
+      return {
+        id,
+        cooldown: tenth(seat?.cooldowns[slot] ?? 0),
+        cooldownTotal: abilityCooldown(id, settings),
+        left: tenth(own ? own.left : mark ? mark.timeLeft : 0),
+        total: own ? own.total : mark && isMarkAbility(id) ? markLife(id, settings) : 0,
+      }
+    })
   }
 
   function newBot(body: HideSeekBody, rank: number): BotState {
@@ -743,6 +766,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     else if (code === 'KeyR') useChain()
     else if (code === 'KeyQ') castAbility(0)
     else if (code === 'KeyF') castAbility(1)
+    else if (code === 'KeyG') castAbility(2)
     else if (code === 'Escape' && aimingSlot.value >= 0) aimingSlot.value = -1
     else return false
     return true
@@ -923,15 +947,32 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     applyTimerHud()
   }
 
-  /** A leap of the user's own body: dash, blink, or a hider's hook thrown ahead (a seeker's hook pulls others). */
+  /** A leap of the user's own body: dash, blink, rewind, or a hider's hook thrown ahead (a seeker's hook pulls others). */
   function isLeap(body: HideSeekBody, ability: AbilityId): boolean {
-    return ability === 'dash' || ability === 'blink' || (ability === 'hook' && body.role === 'hider')
+    return ability === 'dash' || ability === 'blink' || ability === 'rewind' || (ability === 'hook' && body.role === 'hider')
+  }
+
+  /** Where I walked lately (for a rewind): oldest first, a little longer back than a rewind goes */
+  let myTrack: { t: number; col: number; row: number }[] = []
+  let trackClock = 0
+  function recordTrack(me: HideSeekBody, deltaSec: number): void {
+    trackClock += deltaSec
+    myTrack.push({ t: trackClock, col: me.col, row: me.row })
+    const keepFrom = trackClock - settings.rewindTime - 0.5
+    while (myTrack.length > 1 && myTrack[0].t < keepFrom) myTrack.shift()
+  }
+  /** Where I stood a rewind ago (or as far back as I know) */
+  function rewindSpot(): GridCoord | null {
+    return myTrack.find(p => p.t >= trackClock - settings.rewindTime) ?? myTrack[0] ?? null
   }
 
   /** What an ability does to its user's own body: a leap moves it (a blink up to `target` when aimed), second wind
    * fills the breath. */
   function actAbility(body: HideSeekBody, ability: AbilityId, breath: Stamina, target: GridCoord | null = null): Stamina {
-    if (isLeap(body, ability)) {
+    if (ability === 'rewind') {
+      const back = body.id === myId() ? rewindSpot() : null
+      if (back) Object.assign(body, { col: back.col, row: back.row, targetCol: back.col, targetRow: back.row })
+    } else if (isLeap(body, ability)) {
       const walls = pathGrid(body)
       const to =
         ability === 'blink'
@@ -990,6 +1031,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (id === myId()) {
       clickPath = []
       pending = null
+      myTrack = []
       if (!isSolo()) sendMyState(p)
     }
   }
@@ -1250,6 +1292,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     }
   }
 
+  let wasTunnelling = false
   function updateMe(me: HideSeekBody, deltaSec: number): void {
     const sneaking = sneakHeld
     isSneaking.value = sneaking
@@ -1262,6 +1305,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const rules = rulesOf(me)
     const mySeat = seatOf(match, me.id)
     const distance = moveSpeed(me.role, sneaking, stamina, rules) * (mySeat ? motionFactor(mySeat.effects, settings) : 1) * deltaSec
+    const before = { col: me.col, row: me.row }
+    // The tunnel ran out: the way planned under the walls is gone, and up inside a wall I step out of it
+    const inTunnel = tunnelling(me)
+    if (wasTunnelling && !inTunnel) {
+      clickPath = []
+      pending = null
+      const out = nearestFreeSpot(moveGrid(me), me)
+      Object.assign(me, { col: out.col, row: out.row, targetCol: out.col, targetRow: out.row })
+    }
+    wasTunnelling = inTunnel
 
     if (!canMove.value || me.hidden !== -1 || !grid) {
       clickPath = []
@@ -1285,6 +1338,13 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     } else {
       me.moving = false
     }
+    // An opponent's fire wall: nobody walks through it
+    if (mySeat && fireWallCrossed(match.marks, mySeat.team, before, me, settings)) {
+      Object.assign(me, { col: before.col, row: before.row, moving: false })
+      clickPath = []
+      pending = null
+    }
+    recordTrack(me, deltaSec)
 
     // Walking a route through a shut door: push it open (not the door walked to on purpose: that one is used on arrival)
     if (clickPath.length > 0) {
@@ -1397,7 +1457,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         abilities: abilitiesOf(body.model),
         cooldowns: seat.cooldowns,
         effects: seat.effects,
-        reveals: match.marks.filter(m => m.kind === 'scout' && m.team === seat.team),
+        reveals: match.marks.filter(m => m.kind === 'scout' && m.by === body.id),
       },
       pathGrid(body),
       body.role === 'seeker' && isHunting.value ? huntSettings(rules) : rules,
@@ -1441,6 +1501,12 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (bot.brain.path.length > 0) openDoorsAhead(body, index => applyAction({ kind: 'door', index, open: true }, body.id))
     const step = stepAlongPath(body, bot.brain.path, moveSpeed(body.role, body.sneaking, bot.stamina, rules) * motionFactor(seat.effects, settings) * deltaSec)
     bot.brain.path = step.path
+    // An opponent's fire wall stops a bot too: it waits, then plans again
+    if (fireWallCrossed(match.marks, seat.team, body, step.pos, settings)) {
+      bot.brain.path = []
+      body.moving = false
+      return
+    }
     body.col = body.targetCol = step.pos.col
     body.row = body.targetRow = step.pos.row
     if (step.facing !== null) body.facing = step.facing
@@ -1620,7 +1686,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const me = myPlayer()
     if (me) updateMe(me, deltaSec)
     if (!isReferee()) advanceGuestTimers(deltaSec)
-    if (isFrozen(match, myId()) !== isFrozenMe.value) applyTimerHud()
+    timerHudAge += deltaSec
+    if (timerHudAge >= TIMER_HUD_SEC || isFrozen(match, myId()) !== isFrozenMe.value) {
+      timerHudAge = 0
+      applyTimerHud()
+    }
     if (isSolo() && !needsSoloRole.value) updateBots(deltaSec)
     updateOthers(me, deltaSec)
 
@@ -1628,7 +1698,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const over = isRoundOver(match)
     // Own eyes (a keen eye sees further); the seeker sees further still during the hunt
     const own = me ? rulesOf(me) : settings
-    const sight = isHunting.value && me?.role === 'seeker' ? huntSettings(own) : own
+    const hunting = isHunting.value && me?.role === 'seeker' ? huntSettings(own) : own
+    const sight = (seatOf(match, myId())?.effects.sprint ?? 0) > 0 ? sprintSight(hunting) : hunting
     const vision = over || !me ? null : castVision(grid, me, visionFacing, sight, sight.lanternRadius)
     updateEffects(me, vision, deltaSec)
 

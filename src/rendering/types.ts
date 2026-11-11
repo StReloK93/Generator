@@ -114,7 +114,7 @@ export interface HideSeekFootprintView {
 /** A bell trap (the seeker sees their own; others only when it rings or is in sight). */
 /** Something an ability left on the map: a scout bird (radius), a fire wall (ends), a snare */
 export interface HideSeekMarkView {
-  kind: 'scout' | 'fireWall' | 'decoy' | 'snare'
+  kind: 'scout' | 'fireWall' | 'decoy' | 'snare' | 'nest' | 'trail'
   col: number
   row: number
   radius: number

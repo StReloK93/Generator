@@ -5,6 +5,18 @@ import { setHapticsEnabled } from '../services/telegram'
 
 const SOUND_KEY = 'isocraft_sound'
 const VIBRATION_KEY = 'isocraft_vibration'
+const CONTROLS_KEY = 'isocraft_controls'
+
+/** How a touch player walks in the maze: tap where to go, or a thumb joystick */
+export type MoveControls = 'tap' | 'joystick'
+
+function readControls(): MoveControls {
+  try {
+    return localStorage.getItem(CONTROLS_KEY) === 'joystick' ? 'joystick' : 'tap'
+  } catch {
+    return 'tap'
+  }
+}
 
 function readFlag(key: string): boolean {
   try {
@@ -22,10 +34,11 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
-/** The player's own preferences (game sounds, vibration), kept on this device. The language lives in i18nStore. */
+/** The player's own preferences (game sounds, vibration, maze controls), kept on this device. The language lives in i18nStore. */
 export const useSettingsStore = defineStore('settings', () => {
   const soundOn = ref(readFlag(SOUND_KEY))
   const vibrationOn = ref(readFlag(VIBRATION_KEY))
+  const controls = ref<MoveControls>(readControls())
 
   watch(
     soundOn,
@@ -44,5 +57,13 @@ export const useSettingsStore = defineStore('settings', () => {
     { immediate: true }
   )
 
-  return { soundOn, vibrationOn }
+  watch(controls, value => {
+    try {
+      localStorage.setItem(CONTROLS_KEY, value)
+    } catch {
+      // Private mode: the choice lasts this visit only
+    }
+  })
+
+  return { soundOn, vibrationOn, controls }
 })

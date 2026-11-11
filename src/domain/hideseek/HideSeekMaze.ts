@@ -3,10 +3,11 @@ import { CollisionGrid } from './HideSeekRules'
 
 /**
  * Random hide & seek labyrinth (pure, seeded: every client builds the same maze from the host's seed).
- * Maze cells are 2x2 map cells (corridors two tiles wide). Rooms are carved into the maze: their walls keep a
- * couple of entrances (some get doors), a short partition inside makes a corner you cannot see into from the
- * door, cabinets stand in room corners and barrels in corridor dead ends. Crawl holes are shortcuts only hiders
- * squeeze through; candle stands light up a few places.
+ * Maze cells are 2x2 map cells (corridors two tiles wide). There are no dead ends: every corridor leads on, so a
+ * chased hider always has a way out. Rooms are carved into the maze: their walls keep a couple of entrances (some
+ * get doors), a short partition inside makes a corner you cannot see into from the door, cabinets stand in room
+ * corners and barrels in the corners of corridor bends. Crawl holes are shortcuts only hiders squeeze through;
+ * candle stands light up a few places.
  */
 
 /** Sprite suffix of a prop = the way its front faces: E +col, W -col, S +row, N -row */
@@ -302,6 +303,32 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     if (yard.y + yard.h < H) south[gateX][yard.y + yard.h - 1] = false
   }
 
+  // No dead ends: a corridor cell with a single way out gets a second one. Into another dead end first (one
+  // opening removes two), then any corridor; a room or a base only when nothing else is next to it.
+  const ways = (x: number, y: number) =>
+    [x < W - 1 && !east[x][y], x > 0 && !east[x - 1][y], y < H - 1 && !south[x][y], y > 0 && !south[x][y - 1]].filter(Boolean).length
+  const inYard = (x: number, y: number) => [plaza, home].some(r => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h)
+  for (const [x, y] of shuffle(Array.from({ length: W * H }, (_, i) => [i % W, Math.floor(i / W)] as const), random)) {
+    if (roomAt[x][y] !== -1 || inYard(x, y) || ways(x, y) !== 1) continue
+    const closed: CellWall[] = [
+      ...(x < W - 1 ? [{ type: 'e' as const, x, y }] : []),
+      ...(x > 0 ? [{ type: 'e' as const, x: x - 1, y }] : []),
+      ...(y < H - 1 ? [{ type: 's' as const, x, y }] : []),
+      ...(y > 0 ? [{ type: 's' as const, x, y: y - 1 }] : []),
+    ].filter(w => !isOpen(w))
+    const beyond = (w: CellWall): [number, number] => (w.x === x && w.y === y ? across(w) : [w.x, w.y])
+    const cost = (w: CellWall) => {
+      const [nx, ny] = beyond(w)
+      if (roomAt[nx][ny] !== -1 || inYard(nx, ny)) return 2
+      return ways(nx, ny) === 1 ? 0 : 1
+    }
+    const way = shuffle(closed, random).sort((a, b) => cost(a) - cost(b))[0]
+    if (!way) continue
+    setOpen(way, true)
+    const room = roomAt[beyond(way)[0]][beyond(way)[1]]
+    if (room !== -1) entrances[room].push(way)
+  }
+
   // Crawl holes: walls between corridor cells that are a long walk apart
   const distanceFrom = (sx: number, sy: number) => {
     const dist = Array.from({ length: W }, () => Array<number>(H).fill(Infinity))
@@ -379,7 +406,8 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
 
   const wallAt = (e: MazeEdge) => kind.get(edgeKey(e)) === 'wall'
 
-  // A partition in every room: a short wall from one side inwards, making a corner hidden from the doors
+  // A partition in every room: a short free-standing wall a step in from one side, making a corner hidden from the
+  // doors; both its ends can be walked around (no pocket to get trapped in)
   rooms.forEach(r => {
     const c0 = r.x * CELL
     const r0 = r.y * CELL
@@ -390,11 +418,11 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
     const depth = Math.max(1, Math.floor((vertical ? rh : cw) / 2))
     for (const at of shuffle(Array.from({ length: span - 3 }, (_, i) => i + 2), random)) {
       const fromTop = random() < 0.5
-      // The partition stands on the line between two cells, touching the room wall it grows from
+      // The partition stands on the line between two cells, one tile away from the room wall it faces
       const pieces: MazeEdge[] = Array.from({ length: depth }, (_, k) =>
         vertical
-          ? { axis: 'v', col: c0 + at, row: fromTop ? r0 + k : r0 + rh - 1 - k }
-          : { axis: 'h', col: fromTop ? c0 + k : c0 + cw - 1 - k, row: r0 + at }
+          ? { axis: 'v', col: c0 + at, row: fromTop ? r0 + 1 + k : r0 + rh - 2 - k }
+          : { axis: 'h', col: fromTop ? c0 + 1 + k : c0 + cw - 2 - k, row: r0 + at }
       )
       const base: MazeEdge[] = vertical
         ? [-1, 0].map(k => ({ axis: 'h' as const, col: c0 + at + k, row: fromTop ? r0 : r0 + rh }))
@@ -493,9 +521,9 @@ export function generateMaze(seed: number, options: MazeOptions): HideSeekMaze {
   }
   const cabinetCount = Math.round(options.hideSpotCount * CABINET_SHARE)
   const roomCorners = shuffle(cells.filter(c => c.room && c.frontSeen), random)
-  const deadEnds = shuffle(cells.filter(c => !c.room), random).sort((a, b) => b.walls - a.walls)
+  const corridorCorners = shuffle(cells.filter(c => !c.room), random).sort((a, b) => b.walls - a.walls)
   const cabinets = pick(roomCorners, cabinetCount, [], SPOT_SPACING)
-  const barrels = pick(deadEnds, options.hideSpotCount - cabinets.length, cabinets, SPOT_SPACING)
+  const barrels = pick(corridorCorners, options.hideSpotCount - cabinets.length, cabinets, SPOT_SPACING)
   const spots: HideSpot[] = [
     ...cabinets.map(c => ({ col: c.col, row: c.row, kind: 'cabinet' as const, facing: c.facing })),
     ...barrels.map(c => ({ col: c.col, row: c.row, kind: 'barrel' as const, facing: c.facing })),

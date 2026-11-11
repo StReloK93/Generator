@@ -50,7 +50,6 @@
 
     <UiToastContainer />
     <UiConfirmModal />
-    <DeviceOrientationGuard />
   </div>
 </template>
 
@@ -58,9 +57,8 @@
 import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UiToastContainer, UiConfirmModal } from './components/ui'
-import DeviceOrientationGuard from './components/common/DeviceOrientationGuard.vue'
 import { initPwaAndOrientation, isPortrait } from './utils/pwaOrientation'
-import { initTelegram, setClosingConfirmation, setLandscapeLock, telegramStartRoom } from './services/telegram'
+import { initTelegram, lockPortrait, setClosingConfirmation, telegramStartRoom } from './services/telegram'
 import { lobbyPath } from './router/paths'
 import { assetManager } from './services/assetManager'
 import { useAssetStore } from './stores/assetStore'
@@ -85,7 +83,9 @@ const router = useRouter()
 const PLAY_ROUTES = ['lobby', 'game', 'room-game', 'editor-game']
 const isPlaying = computed(() => PLAY_ROUTES.includes(String(route.name)))
 watchEffect(() => setClosingConfirmation(isPlaying.value))
-watchEffect(() => setLandscapeLock(isPlaying.value && route.name !== 'lobby' && !isPortrait.value))
+watchEffect(() => {
+  if (isPortrait.value) lockPortrait()
+})
 
 /** A friend's Telegram invite opens their room once (a reload of the app keeps the player where they are) */
 const START_ROOM_USED_KEY = 'tg_start_room_used'

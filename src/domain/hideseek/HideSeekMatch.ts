@@ -2,16 +2,19 @@ import {
   AbilityEffects,
   AbilityId,
   AbilityMark,
+  ABILITY_SLOTS,
   EffectKind,
   abilitiesOf,
   distanceToSegment,
   fireWallEnds,
   isMarkAbility,
   markLife,
+  abilityCooldown,
   noEffects,
   scoutSpot,
   startAbility,
   tickAbilities,
+  touchable,
 } from './HideSeekAbilities'
 import { GridCoord, HideSeekSettings } from '../../types/map'
 import {
@@ -234,7 +237,7 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
       chainCooldown: 0,
       dazed: 0,
       catches: 0,
-      cooldowns: [0, 0],
+      cooldowns: Array<number>(ABILITY_SLOTS).fill(0),
       effects: noEffects(),
     })),
     champion: null,
@@ -298,7 +301,7 @@ export function startRound(
     seat.chainCooldown = 0
     seat.dazed = 0
     seat.catches = 0
-    seat.cooldowns = [0, 0]
+    seat.cooldowns = Array<number>(ABILITY_SLOTS).fill(0)
     seat.effects = noEffects()
   }
   match.marks = []
@@ -424,6 +427,7 @@ export function tickMatch(
     seat.dazed = Math.max(0, seat.dazed - deltaSec)
     tickAbilities(seat.cooldowns, seat.effects, deltaSec)
   }
+  dropTrails(match, bodies, settings)
 
   // Chains: one that runs out leaves the seeker dazed; a chain whose player left breaks
   for (const chain of [...match.chains]) {
@@ -526,7 +530,7 @@ export function tickMatch(
     const body = byId.get(seat.id)!
     if (seat.jailed) continue
     seat.score += settings.scorePerSecond * deltaSec
-    if (!graceOver || body.hidden !== -1 || seat.effects.shield > 0 || seat.effects.burrow > 0 || (arena.home && insideRect(arena.home, body))) continue
+    if (!graceOver || body.hidden !== -1 || seat.effects.shield > 0 || !touchable(seat.effects) || (arena.home && insideRect(arena.home, body))) continue
     const catcher = activeSeekers.find(s => {
       const seekerBody = byId.get(s.id)!
       return isCaught(grid, seekerBody, body, { ...settings, catchDistance: catchReach(settings, seekerBody.trait) })
@@ -554,10 +558,30 @@ export function tickMatch(
   return events
 }
 
+/** A stalking runner leaves a trail point every TRAIL_STEP tiles: it keeps watch for them a while */
+function dropTrails(match: HideSeekMatch, bodies: MatchBody[], settings: HideSeekSettings): void {
+  for (const body of bodies) {
+    const seat = seatOf(match, body.id)
+    if (!seat || seat.effects.stalk <= 0) continue
+    const last = [...match.marks].reverse().find(m => m.kind === 'trail' && m.by === body.id)
+    if (last && Math.hypot(last.col - body.col, last.row - body.row) < TRAIL_STEP) continue
+    match.marks.push({ kind: 'trail', by: body.id, team: seat.team, facing: 0, timeLeft: markLife('trail', settings), model: '', col: body.col, row: body.row })
+  }
+}
+
+/** A nest's cooldown starts (flown back to, or run out) */
+function restNest(match: HideSeekMatch, bodies: MatchBody[], by: string, settings: HideSeekSettings): void {
+  const seat = seatOf(match, by)
+  const slot = abilitiesOf(bodies.find(b => b.id === by)?.model).indexOf('nest')
+  if (seat && slot >= 0) seat.cooldowns[slot] = abilityCooldown('nest', settings)
+}
+
 /** Snares catch prey this close */
 const SNARE_RADIUS = 0.8
 /** Fire walls burn whoever comes this close to the line */
 const FIRE_REACH = 0.7
+/** A stalker drops a trail point every this many tiles */
+const TRAIL_STEP = 1
 
 /** Ability marks: they run out; opponents crossing a fire wall are slowed, stepping on a snare are rooted, touching a
  * decoy makes it vanish. */
@@ -565,7 +589,7 @@ function tickMarks(match: HideSeekMatch, bodies: MatchBody[], settings: HideSeek
   const opponents = (mark: AbilityMark) =>
     bodies.filter(b => {
       const seat = seatOf(match, b.id)
-      return !!seat && seat.team !== mark.team && !seat.jailed && b.hidden === -1 && seat.effects.burrow <= 0
+      return !!seat && seat.team !== mark.team && !seat.jailed && b.hidden === -1 && touchable(seat.effects)
     })
   const put = (id: string, effect: EffectKind, seconds: number) => {
     const seat = seatOf(match, id)
@@ -576,7 +600,11 @@ function tickMarks(match: HideSeekMatch, bodies: MatchBody[], settings: HideSeek
   }
   match.marks = match.marks.filter(mark => {
     mark.timeLeft -= deltaSec
-    if (mark.timeLeft <= 0) return false
+    if (mark.timeLeft <= 0) {
+      // A nest that was never flown back to: its cooldown starts now
+      if (mark.kind === 'nest') restNest(match, bodies, mark.by, settings)
+      return false
+    }
     if (mark.kind === 'fireWall') {
       const [a, b] = fireWallEnds(mark, settings)
       for (const o of opponents(mark)) if (distanceToSegment(o, a, b) <= FIRE_REACH) put(o.id, 'slowed', settings.fireWallSlowTime)
@@ -604,7 +632,7 @@ export function startChain(match: HideSeekMatch, hiderId: string, bodies: MatchB
   if (hider.jailed || hider.lit === 0 || hider.chainCooldown > 0 || body.hidden !== -1 || isFrozen(match, hiderId)) return []
   const distance = (b: MatchBody) => Math.hypot(b.col - body.col, b.row - body.row)
   const target = bodies
-    .filter(b => seatOf(match, b.id)?.role === 'seeker' && seatOf(match, b.id)!.effects.shield <= 0 && seatOf(match, b.id)!.effects.burrow <= 0 && !isFrozen(match, b.id) && distance(b) <= settings.chainRange && hasLineOfSight(grid, body, b))
+    .filter(b => seatOf(match, b.id)?.role === 'seeker' && seatOf(match, b.id)!.effects.shield <= 0 && touchable(seatOf(match, b.id)!.effects) && !isFrozen(match, b.id) && distance(b) <= settings.chainRange && hasLineOfSight(grid, body, b))
     .sort((a, b) => distance(a) - distance(b))[0]
   if (!target) return []
   match.chains.push({ hider: hiderId, seeker: target.id, timeLeft: settings.chainTime })
@@ -631,8 +659,17 @@ export function useAbility(match: HideSeekMatch, by: string, slot: number, bodie
   const distance = (b: MatchBody) => Math.hypot(b.col - body.col, b.row - body.row)
   const opponents = bodies.filter(b => {
     const other = seatOf(match, b.id)
-    return !!other && other.team !== seat.team && !other.jailed && b.hidden === -1 && other.effects.burrow <= 0
+    return !!other && other.team !== seat.team && !other.jailed && b.hidden === -1 && touchable(other.effects)
   })
+  /** Puts a timed effect on another player and tells everyone */
+  const put = (id: string, effect: EffectKind, seconds: number) => {
+    const other = seatOf(match, id)!
+    other.effects[effect] = Math.max(other.effects[effect], seconds)
+    events.push({ kind: 'effect', id, effect, seconds })
+  }
+  /** The nearest opponent in sight within `range` */
+  const nearestInSight = (range: number) =>
+    opponents.filter(b => distance(b) <= range && hasLineOfSight(grid, body, b)).sort((a, b) => distance(a) - distance(b))[0]
 
   if (ability === 'hook' && seat.role === 'seeker') {
     const prey = opponents
@@ -644,11 +681,22 @@ export function useAbility(match: HideSeekMatch, by: string, slot: number, bodie
     const t = Math.min(1, HOOK_LANDING / d)
     events.push({ kind: 'pulled', id: prey.id, col: body.col + (prey.col - body.col) * t, row: body.row + (prey.row - body.row) * t })
   } else if (ability === 'roar') {
-    for (const o of opponents.filter(b => distance(b) <= settings.roarRange)) {
-      const other = seatOf(match, o.id)!
-      other.effects.slowed = Math.max(other.effects.slowed, settings.roarTime)
-      events.push({ kind: 'effect', id: o.id, effect: 'slowed', seconds: settings.roarTime })
+    for (const o of opponents.filter(b => distance(b) <= settings.roarRange)) put(o.id, 'slowed', settings.roarTime)
+  } else if (ability === 'bash') {
+    for (const o of opponents.filter(b => distance(b) <= settings.bashRange)) put(o.id, 'rooted', settings.bashTime)
+  } else if (ability === 'nest') {
+    // Pressed again while the nest lasts: fly back to it (then it cools down)
+    const nest = match.marks.find(m => m.kind === 'nest' && m.by === by)
+    if (nest) {
+      match.marks = match.marks.filter(m => m !== nest)
+      seat.cooldowns[slot] = abilityCooldown('nest', settings)
+      return [{ kind: 'ability', by, slot, ability, mark: null }, { kind: 'pulled', id: by, col: nest.col, row: nest.row }]
     }
+  } else if (ability === 'swap') {
+    const other = nearestInSight(settings.swapRange)
+    // Nobody to swap with: not spent
+    if (!other) return []
+    events.push({ kind: 'pulled', id: other.id, col: body.col, row: body.row }, { kind: 'pulled', id: by, col: other.col, row: other.row })
   }
 
   let mark: AbilityMark | null = null
