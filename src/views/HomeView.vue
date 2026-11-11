@@ -65,18 +65,8 @@
           {{ $t('home.install') }}
         </UiButton>
 
-        <!-- Ghost Fullscreen Toggle (Telegram runs the app full screen itself) -->
-        <UiButton
-          v-if="!isTelegram"
-          variant="ghost"
-          size="icon-sm"
-          :leading-icon="isFullscreenMode ? Minimize2 : Maximize2"
-          :title="isFullscreenMode ? 'Exit Fullscreen' : 'Fullscreen'"
-          @click="handleToggleFullscreen"
-        />
-
-        <!-- Ghost / Borderless Language Switcher -->
-        <UiLanguageSwitcher />
+        <!-- Sound, vibration, full screen and language: one settings window -->
+        <UiIconButton :icon="Settings" size="lg" :title="$t('common.settings')" custom-class="bg-slate-950/60! backdrop-blur-md" @click="isSettingsOpen = true" />
       </div>
     </header>
 
@@ -141,6 +131,10 @@
 
     <MultiplayerModal v-model:is-open="isMultiplayerOpen" />
 
+    <UiModal :is-open="isSettingsOpen" :title="$t('common.settings')" :icon="Settings" size="sm" :teleport="true" @close="isSettingsOpen = false">
+      <SettingsPanel />
+    </UiModal>
+
     <!-- Editor Setup Modal -->
     <WelcomeProjectModal ref="editorSetupModalRef" />
   </div>
@@ -155,23 +149,22 @@ import {
   Layers,
   Palette,
   Crosshair,
-  Maximize2,
-  Minimize2,
+  Settings,
   Download
 } from 'lucide-vue-next'
 import homeHorizon from '../assets/ui/home-horizon.webp'
-import { UiButton, UiLanguageSwitcher } from '../components/ui'
+import { UiButton, UiIconButton, UiModal } from '../components/ui'
+import SettingsPanel from '../components/SettingsPanel.vue'
 import { canInstallPwa, promptPwaInstall, lockLandscape } from '../utils/pwaOrientation'
 import { isTelegram } from '../services/telegram'
 import { useGameStore } from '../stores/gameStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useI18n } from '../stores/i18nStore'
-import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
+import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import HomeBackdrop from '../components/home/HomeBackdrop.vue'
 import MapSelectionModal from '../components/home/MapSelectionModal.vue'
 import MultiplayerModal from '../components/home/MultiplayerModal.vue'
 import { assetManager } from '../services/assetManager'
-import { toggleAppFullscreen, isAppFullscreen } from '../utils/fullscreen'
 import {
   getBuiltinMaps,
   sanitizeMapId,
@@ -186,7 +179,6 @@ const notify = useNotificationStore()
 const { t } = useI18n()
 
 const editorSetupModalRef = ref<any>(null)
-const isFullscreenMode = ref(false)
 const isDesktopDevice = ref(false)
 
 function checkIsDesktopDevice() {
@@ -199,13 +191,10 @@ function checkIsDesktopDevice() {
   isDesktopDevice.value = !isMobileUA && !isTouch && !isSmallDevice && !isSmallWidth
 }
 
-function checkFullscreenState() {
-  isFullscreenMode.value = isAppFullscreen()
-}
-
 // Modals & Button States
 const isMapModalOpen = ref(false)
 const isMultiplayerOpen = ref(false)
+const isSettingsOpen = ref(false)
 const isStartingGame = ref(false)
 const selectedMapId = ref<string>('')
 
@@ -225,12 +214,9 @@ function openMapModal() {
 }
 
 onMounted(async () => {
-  checkFullscreenState()
   checkIsDesktopDevice()
   window.addEventListener('resize', checkIsDesktopDevice)
   window.addEventListener('orientationchange', checkIsDesktopDevice)
-  document.addEventListener('fullscreenchange', checkFullscreenState)
-  document.addEventListener('webkitfullscreenchange', checkFullscreenState)
 
   if (availableMaps.value.length > 0) {
     selectedMapId.value = availableMaps.value[0].id
@@ -240,14 +226,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', checkIsDesktopDevice)
   window.removeEventListener('orientationchange', checkIsDesktopDevice)
-  document.removeEventListener('fullscreenchange', checkFullscreenState)
-  document.removeEventListener('webkitfullscreenchange', checkFullscreenState)
 })
-
-async function handleToggleFullscreen() {
-  const active = await toggleAppFullscreen()
-  isFullscreenMode.value = active
-}
 
 function goToEditor() {
   editorSetupModalRef.value?.open('new', false)

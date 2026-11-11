@@ -216,13 +216,21 @@ export function smoothPath(grid: CollisionGrid, start: GridCoord, path: GridCoor
   return result
 }
 
-/** A blocked axis hands its speed to the free one only when the free axis is a real part of the move */
+/** Pushing along a wall this much (share of the step) already slides at full speed; less slides slower, down to
+ * the plain sideways part of the push (so a push straight into a wall barely moves along it) */
+const SLIDE_FULL_SHARE = 0.7
 const SLIDE_MIN_SHARE = 0.3
 
+/** Corner help: walking into a wall this close beside an opening slips sideways into the opening */
+const CORNER_REACH = 0.45
+const CORNER_PROBE = 0.05
+
 /**
- * Moves by (dCol, dRow) in small steps, sliding along walls at full speed: when one axis is blocked,
- * the whole step goes along the other axis. (Screen-relative input is diagonal on the grid while the
- * corridors are grid-aligned, so plain axis clipping would make running along a wall ~30% slower.)
+ * Moves by (dCol, dRow) in small steps. When a step hits a wall:
+ * - right beside an opening (a side corridor, a doorway) it slips sideways into it, so a turn does not need a
+ *   pixel-exact line-up (corner help);
+ * - otherwise it slides along the wall: fast when the push clearly goes along it, barely when it goes into it
+ *   (a thumb pushing into a wall must not shoot the character off sideways, e.g. backwards).
  */
 export function moveWithCollision(grid: CollisionGrid, pos: GridCoord, dCol: number, dRow: number): GridCoord {
   const length = Math.hypot(dCol, dRow)
@@ -238,21 +246,60 @@ export function moveWithCollision(grid: CollisionGrid, pos: GridCoord, dCol: num
       row += sr
       continue
     }
-    const colFree = bodyFits(grid, col + sc, row)
-    const rowFree = bodyFits(grid, col, row + sr)
-    if (rowFree && Math.abs(sr) >= stepLen * SLIDE_MIN_SHARE) {
-      const slide = Math.sign(sr) * stepLen
-      row += bodyFits(grid, col, row + slide) ? slide : sr
-    } else if (colFree && Math.abs(sc) >= stepLen * SLIDE_MIN_SHARE) {
-      const slide = Math.sign(sc) * stepLen
-      col += bodyFits(grid, col + slide, row) ? slide : sc
-    } else if (rowFree) {
-      row += sr
+    const corner = cornerSlip(grid, col, row, sc, sr, stepLen)
+    if (corner) {
+      col += corner.col
+      row += corner.row
+      continue
+    }
+    // Slide along the free axis (the one pushed harder first, when a corner leaves both free)
+    const rowFree = sr !== 0 && bodyFits(grid, col, row + sr)
+    const colFree = sc !== 0 && bodyFits(grid, col + sc, row)
+    if (rowFree && (!colFree || Math.abs(sr) >= Math.abs(sc))) {
+      row += Math.sign(sr) * slideLength(grid, col, row, 0, Math.sign(sr), Math.abs(sr), stepLen)
     } else if (colFree) {
-      col += sc
+      col += Math.sign(sc) * slideLength(grid, col, row, Math.sign(sc), 0, Math.abs(sc), stepLen)
     }
   }
   return { col, row }
+}
+
+/** How far one step slides along a wall: the push's own sideways part, up to the whole step when it clearly goes along */
+function slideLength(grid: CollisionGrid, col: number, row: number, uc: number, ur: number, part: number, stepLen: number): number {
+  const share = part / stepLen
+  const boost = Math.min(1, Math.max(0, (share - SLIDE_MIN_SHARE) / (SLIDE_FULL_SHARE - SLIDE_MIN_SHARE)))
+  const slide = Math.max(part, stepLen * boost)
+  return bodyFits(grid, col + uc * slide, row + ur * slide) ? slide : part
+}
+
+/**
+ * A step mostly into a wall, with an opening within CORNER_REACH to one side: the sideways move toward that
+ * opening (the side the push leans to is tried first). Null when there is no opening close by.
+ */
+function cornerSlip(grid: CollisionGrid, col: number, row: number, sc: number, sr: number, stepLen: number): GridCoord | null {
+  const alongCol = Math.abs(sc) >= Math.abs(sr)
+  // Only a push mostly along one axis gets help (a diagonal push slides instead)
+  if ((alongCol ? Math.abs(sr) : Math.abs(sc)) > stepLen * SLIDE_MIN_SHARE) return null
+  const fwd = alongCol ? { col: Math.sign(sc) * stepLen, row: 0 } : { col: 0, row: Math.sign(sr) * stepLen }
+  const lean = Math.sign(alongCol ? sr : sc) || 1
+  for (let d = CORNER_PROBE; d <= CORNER_REACH + 1e-9; d += CORNER_PROBE) {
+    for (const side of [lean, -lean]) {
+      const oc = alongCol ? 0 : side * d
+      const or = alongCol ? side * d : 0
+      if (!bodyFits(grid, col + oc, row + or) || !bodyFits(grid, col + oc + fwd.col, row + or + fwd.row)) continue
+      // The way sideways must be open too (no slipping through a wall corner)
+      if (!sidewaysClear(grid, col, row, oc, or)) continue
+      const slip = Math.min(stepLen, d)
+      return { col: Math.sign(oc) * slip, row: Math.sign(or) * slip }
+    }
+  }
+  return null
+}
+
+function sidewaysClear(grid: CollisionGrid, col: number, row: number, oc: number, or: number): boolean {
+  const n = Math.ceil(Math.hypot(oc, or) / CORNER_PROBE)
+  for (let i = 1; i < n; i++) if (!bodyFits(grid, col + (oc * i) / n, row + (or * i) / n)) return false
+  return true
 }
 
 function isSubCellWalkable(grid: CollisionGrid, subCol: number, subRow: number): boolean {
@@ -304,17 +351,23 @@ export function stepAlongPath(
   return { pos: current, path: rest, facing }
 }
 
+/** Steering this close (in angle) to a grid axis runs straight along it: the maze's corridors follow the axes */
+const AXIS_SNAP = (22 * Math.PI) / 180
+
 /**
- * Converts a screen-space input (x right, y down, length <= 1) into a grid-space direction:
- * on the 2:1 isometric grid "screen up" is (-1, -1) and "screen right" is (+1, -1).
+ * Converts a screen-space input (x right, y down, length <= 1) into a grid-space direction that moves the
+ * character the same way on screen (2:1 isometric: a grid axis is drawn ~27° from horizontal). Within AXIS_SNAP
+ * of a grid axis it snaps onto the axis, so both a thumb following a corridor as drawn and a 45° push (W+D) run
+ * straight down it.
  */
 export function screenInputToGrid(x: number, y: number): GridCoord {
-  const col = x + y
-  const row = y - x
-  const len = Math.hypot(col, row)
-  if (len < 1e-6) return { col: 0, row: 0 }
   const strength = Math.min(1, Math.hypot(x, y))
-  return { col: (col / len) * strength, row: (row / len) * strength }
+  if (strength < 1e-6) return { col: 0, row: 0 }
+  // Inverse of the 2:1 projection: screen x = (col - row), screen y = (col + row) / 2
+  const angle = Math.atan2(2 * y - x, x + 2 * y)
+  const axis = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2)
+  const heading = Math.abs(angle - axis) <= AXIS_SNAP ? axis : angle
+  return { col: Math.cos(heading) * strength, row: Math.sin(heading) * strength }
 }
 
 /** Sprite direction (0-7) for a grid-space facing angle. */

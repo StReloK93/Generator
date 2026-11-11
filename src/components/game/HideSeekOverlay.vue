@@ -6,45 +6,59 @@
     :style="{ opacity: hideSeekStore.dangerLevel * 0.85 }"
   />
 
-  <!-- Top strip: clock first, then the indicators; the middle of the screen stays free (menu sits top-right) -->
-  <div class="absolute top-2 left-2 right-16 z-30 flex flex-col items-start gap-1.5 pointer-events-none pt-safe pl-safe">
-    <div class="flex items-start gap-1.5 w-full">
-      <div
-        v-if="isPlaying"
-        class="flex items-center gap-1.5 h-8 shrink-0 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md"
-        :class="hideSeekStore.exitsOpen ? 'border-emerald-400/70 animate-pulse' : hideSeekStore.isHunting ? 'border-rose-500/70 animate-pulse' : hideSeekStore.phase === 'hiding' ? 'border-amber-500/40' : 'border-slate-700/80'"
-        :title="bannerText"
-      >
-        <Timer class="size-3.5 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : 'text-rose-300'" />
-        <span class="text-xs font-black tabular-nums text-amber-300">{{ formattedTime }}</span>
+  <!-- Top strip: clock first, then the indicators (menu / voice sit top-right, mr-24 leaves them room). In Telegram's
+       full screen it sits between Telegram's own buttons (hud-*) instead of taking a row below them. -->
+  <div class="absolute inset-x-0 top-0 z-30 hud-top hud-px pointer-events-none">
+    <div class="mr-24 flex flex-col items-start gap-1.5">
+      <div class="hud-band flex items-center gap-1.5 w-full">
+        <HideSeekPanel class="flex-1 min-w-0">
+          <template #lead>
+            <div
+              v-if="isPlaying"
+              class="flex items-center gap-1.5 h-8 shrink-0 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md"
+              :class="hideSeekStore.exitsOpen ? 'border-emerald-400/70 animate-pulse' : hideSeekStore.isHunting ? 'border-rose-500/70 animate-pulse' : hideSeekStore.phase === 'hiding' ? 'border-amber-500/40' : 'border-slate-700/80'"
+              :title="bannerText"
+            >
+              <Timer class="size-3.5 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : 'text-rose-300'" />
+              <span class="text-xs font-black tabular-nums text-amber-300">{{ formattedTime }}</span>
+            </div>
+          </template>
+        </HideSeekPanel>
       </div>
-      <HideSeekPanel class="flex-1 min-w-0" />
-    </div>
-    <div
-      v-if="statusText"
-      class="flex items-center gap-1.5 h-7 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md text-[11px] font-bold"
-      :class="statusClass"
-    >
-      <component :is="statusIcon" class="size-3.5 shrink-0" />{{ statusText }}
+      <div
+        v-if="statusText"
+        class="flex items-center gap-1.5 h-7 rounded-full border px-2.5 bg-slate-950/80 backdrop-blur-md text-[11px] font-bold"
+        :class="statusClass"
+      >
+        <component :is="statusIcon" class="size-3.5 shrink-0" />{{ statusText }}
+      </div>
     </div>
   </div>
 
-  <!-- Bottom-left: joystick on touch screens, key hints on desktop -->
-  <div class="absolute bottom-3 left-3 z-30 pointer-events-none pb-safe pl-safe">
+  <!-- Touch screens: the lower left of the screen is a floating joystick. It appears under the thumb wherever it lands
+       (no aiming for a small pad); a quick tap there still taps the map. -->
+  <div
+    ref="stickZoneRef"
+    class="hidden pointer-coarse:block absolute left-0 bottom-0 w-1/2 h-3/4 z-25 touch-none"
+    @pointerdown="onStickDown"
+    @pointermove="onStickMove"
+    @pointerup="onStickUp"
+    @pointercancel="onStickUp($event, false)"
+  >
     <div
-      ref="joystickRef"
-      class="hidden pointer-coarse:block relative size-28 rounded-full bg-slate-900/60 border-2 border-slate-600/60 backdrop-blur-sm pointer-events-auto touch-none"
-      @pointerdown="onJoystickDown"
-      @pointermove="onJoystickMove"
-      @pointerup="onJoystickUp"
-      @pointercancel="onJoystickUp"
+      class="absolute size-28 -ml-14 -mt-14 rounded-full border-2 backdrop-blur-sm transition-opacity duration-150 pointer-events-none"
+      :class="stick.active ? 'bg-slate-900/50 border-slate-500/60 opacity-100' : 'bg-slate-900/40 border-slate-600/40 opacity-60'"
+      :style="stickBaseStyle"
     >
       <div
         class="absolute top-1/2 left-1/2 size-12 -ml-6 -mt-6 rounded-full bg-brand-400/70 border-2 border-brand-200/70 shadow-lg"
-        :style="{ transform: `translate(${knob.x}px, ${knob.y}px)` }"
+        :style="{ transform: `translate(${stick.knobX}px, ${stick.knobY}px)` }"
       />
     </div>
+  </div>
 
+  <!-- Bottom-left on desktop: key hints -->
+  <div class="absolute bottom-3 left-3 z-30 pointer-events-none pb-safe pl-safe">
     <div class="flex pointer-coarse:hidden flex-col gap-0.5 max-w-72 rounded-xl bg-slate-950/70 backdrop-blur-md border border-slate-800/80 px-2.5 py-2 text-[10px] text-slate-400">
       <span class="flex items-center gap-1.5"><MousePointerClick class="size-3" />{{ $t('hideseek.clickHint') }}</span>
       <span class="flex items-center gap-1.5"><Move class="size-3" />{{ $t('hideseek.moveHint') }}</span>
@@ -394,44 +408,70 @@ const roleButtons = computed(() =>
       ]
 )
 
-// --- Virtual joystick (screen-space direction, length 0..1) ---
-const joystickRef = ref<HTMLElement | null>(null)
-const knob = reactive({ x: 0, y: 0 })
-let activePointer: number | null = null
+// --- Floating joystick (screen-space direction, length 0..1) ---
+/** Radius of the joystick base (size-28) in px */
+const STICK_RADIUS = 56
+/** The first part of a throw does nothing (a resting thumb never creeps); past FULL it runs at full speed */
+const STICK_DEAD_ZONE = 0.18
+const STICK_FULL = 0.6
+/** A touch that ends this soon, without sliding, is a tap on the map */
+const TAP_MS = 250
+const TAP_SLOP = 10
 
-function updateJoystick(e: PointerEvent) {
-  const el = joystickRef.value
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  const radius = rect.width / 2
-  let dx = e.clientX - (rect.left + radius)
-  let dy = e.clientY - (rect.top + radius)
-  const len = Math.hypot(dx, dy)
-  if (len > radius) {
-    dx = (dx / len) * radius
-    dy = (dy / len) * radius
-  }
-  knob.x = dx
-  knob.y = dy
-  hideSeekStore.setJoystick(dx / radius, dy / radius)
-}
+const emit = defineEmits<{ tap: [clientX: number, clientY: number] }>()
 
-function onJoystickDown(e: PointerEvent) {
+const stickZoneRef = ref<HTMLElement | null>(null)
+/** Base centre (zone px) and knob offset; at rest the base waits in the corner as a hint */
+const stick = reactive({ active: false, x: 0, y: 0, knobX: 0, knobY: 0 })
+let stickPointer: number | null = null
+let stickTouch = { x: 0, y: 0, time: 0, moved: false }
+
+const stickBaseStyle = computed(() =>
+  stick.active
+    ? { left: `${stick.x}px`, top: `${stick.y}px` }
+    : { left: 'calc(env(safe-area-inset-left, 0px) + 4.75rem)', top: 'calc(100% - env(safe-area-inset-bottom, 0px) - 4.75rem)' }
+)
+
+function onStickDown(e: PointerEvent) {
+  const zone = stickZoneRef.value
+  if (stickPointer !== null || !zone) return
   hideSeekAudio.unlock()
-  activePointer = e.pointerId
-  joystickRef.value?.setPointerCapture(e.pointerId)
-  updateJoystick(e)
+  stickPointer = e.pointerId
+  zone.setPointerCapture(e.pointerId)
+  const rect = zone.getBoundingClientRect()
+  // The base appears right under the thumb: nothing moves until the thumb slides
+  Object.assign(stick, { active: true, x: e.clientX - rect.left, y: e.clientY - rect.top, knobX: 0, knobY: 0 })
+  stickTouch = { x: e.clientX, y: e.clientY, time: performance.now(), moved: false }
 }
 
-function onJoystickMove(e: PointerEvent) {
-  if (e.pointerId === activePointer) updateJoystick(e)
+function onStickMove(e: PointerEvent) {
+  const zone = stickZoneRef.value
+  if (e.pointerId !== stickPointer || !zone) return
+  if (Math.hypot(e.clientX - stickTouch.x, e.clientY - stickTouch.y) > TAP_SLOP) stickTouch.moved = true
+  const rect = zone.getBoundingClientRect()
+  const dx = e.clientX - rect.left - stick.x
+  const dy = e.clientY - rect.top - stick.y
+  const len = Math.hypot(dx, dy)
+  if (len < 1e-3) return hideSeekStore.setJoystick(0, 0)
+  const ux = dx / len
+  const uy = dy / len
+  // Pulled past the rim: the base follows the thumb, so turning around answers at once
+  if (len > STICK_RADIUS) {
+    stick.x += ux * (len - STICK_RADIUS)
+    stick.y += uy * (len - STICK_RADIUS)
+  }
+  const reach = Math.min(len, STICK_RADIUS)
+  stick.knobX = ux * reach
+  stick.knobY = uy * reach
+  const strength = Math.min(1, Math.max(0, (reach / STICK_RADIUS - STICK_DEAD_ZONE) / (STICK_FULL - STICK_DEAD_ZONE)))
+  hideSeekStore.setJoystick(ux * strength, uy * strength)
 }
 
-function onJoystickUp(e: PointerEvent) {
-  if (e.pointerId !== activePointer) return
-  activePointer = null
-  knob.x = 0
-  knob.y = 0
+function onStickUp(e: PointerEvent, tapped = true) {
+  if (e.pointerId !== stickPointer) return
+  stickPointer = null
+  Object.assign(stick, { active: false, knobX: 0, knobY: 0 })
   hideSeekStore.setJoystick(0, 0)
+  if (tapped && !stickTouch.moved && performance.now() - stickTouch.time < TAP_MS) emit('tap', stickTouch.x, stickTouch.y)
 }
 </script>

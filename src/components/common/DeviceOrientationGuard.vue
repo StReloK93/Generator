@@ -122,9 +122,11 @@ import {
   isPortrait,
   isMobileDevice,
   canInstallPwa,
+  isStandalone,
   lockLandscape,
   promptPwaInstall,
 } from '@/utils/pwaOrientation'
+import { requestAppFullscreen } from '@/utils/fullscreen'
 
 const route = useRoute()
 const isDismissed = ref(false)
@@ -139,7 +141,9 @@ const shouldShowGuard = computed(() => {
   return isGameRoute.value && isPortrait.value && isMobileDevice.value && !isDismissed.value
 })
 
+/** The player asked for it: in a browser the lock needs full screen first (an installed app does not) */
 async function handleForceLandscape() {
+  if (!isStandalone.value) await requestAppFullscreen()
   await lockLandscape()
 }
 

@@ -37,9 +37,10 @@ describe('HideSeekRules', () => {
 
   it('stops movement at walls but slides along them', () => {
     const grid = wallGrid()
+    // ~27° off straight into the wall: it slides with the push's own sideways part
     const next = moveWithCollision(grid, { col: 1.5, row: 1 }, 2, 1)
     expect(next.col).toBeLessThan(2.25)
-    expect(next.row).toBeGreaterThan(2.5)
+    expect(next.row).toBeGreaterThan(1.8)
   })
 
   it('keeps full running speed when sliding along a wall (diagonal screen input)', () => {
@@ -57,6 +58,23 @@ describe('HideSeekRules', () => {
     expect(next.row).toBeLessThan(4.15)
   })
 
+  it('does not shoot off along a wall (e.g. backwards) when the push mostly goes into it', () => {
+    const grid = wallGrid()
+    const start = { col: 2, row: 4 }
+    // ~25° off straight into the wall, leaning back (-row): only a little drift, not a full-speed run
+    const next = moveWithCollision(grid, start, Math.cos(0.44), -Math.sin(0.44))
+    expect(start.row - next.row).toBeLessThan(0.5)
+  })
+
+  it('slips into a side opening when the push into the wall is a little off (corner help)', () => {
+    // The wall at col 2.5 has a doorway at row 3 (sub-rows 5-7 open)
+    const collisionSubcells: string[] = []
+    for (let sr = 0; sr < 12; sr++) if (sr < 5 || sr > 7) collisionSubcells.push(`5,${sr}`)
+    const grid = buildCollisionGrid({ cols: 6, rows: 6, collisionSubcells })
+    const next = moveWithCollision(grid, { col: 2, row: 3.35 }, 1.5, 0)
+    expect(next.col).toBeGreaterThan(3)
+  })
+
   it('walks a click-to-move path at a steady pace and drops reached waypoints', () => {
     const step = stepAlongPath({ col: 1, row: 1 }, [{ col: 2, row: 1 }, { col: 2, row: 3 }], 1.5)
     expect(step.pos.col).toBeCloseTo(2)
@@ -71,6 +89,15 @@ describe('HideSeekRules', () => {
     const right = screenInputToGrid(1, 0)
     expect(right.col).toBeCloseTo(Math.SQRT1_2)
     expect(right.row).toBeCloseTo(-Math.SQRT1_2)
+  })
+
+  it('runs straight down a corridor both when pushed as drawn (~27°) and at 45°', () => {
+    const drawn = screenInputToGrid(Math.cos(0.4636), -Math.sin(0.4636))
+    expect(drawn.col).toBeCloseTo(0)
+    expect(drawn.row).toBeCloseTo(-1)
+    const diagonal = screenInputToGrid(Math.SQRT1_2, -Math.SQRT1_2)
+    expect(diagonal.col).toBeCloseTo(0)
+    expect(diagonal.row).toBeCloseTo(-1)
   })
 
   it('sees only inside the forward cone (no eyes in the back) and never through walls', () => {

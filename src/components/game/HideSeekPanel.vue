@@ -1,7 +1,8 @@
 <template>
-  <!-- Top indicator strip: role and rounds won, treasure, trait, breath, footsteps -->
+  <!-- Top indicator strip: the caller's lead (the clock), role and rounds won, treasure, trait, breath, footsteps -->
   <div class="flex items-start justify-between gap-2 min-w-0">
     <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+      <slot name="lead" />
       <div
         class="flex items-center gap-1.5 h-8 rounded-full border pl-1 pr-2.5 bg-slate-950/80 backdrop-blur-md"
         :class="isSeeker ? 'border-rose-500/40' : 'border-emerald-500/40'"

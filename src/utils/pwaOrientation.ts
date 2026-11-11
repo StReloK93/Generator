@@ -52,41 +52,11 @@ export function checkStandalone(): boolean {
 }
 
 /**
- * Programmatically requests landscape orientation lock.
- * If needed, enters Fullscreen first (since Screen Orientation API requires fullscreen on many mobile browsers).
+ * Asks the browser to keep the screen sideways. It never switches to full screen by itself (that is the player's
+ * choice in the settings); most browsers only lock inside full screen or an installed app, elsewhere this does nothing.
  */
 export async function lockLandscape(): Promise<boolean> {
   try {
-    // 1. Enter Fullscreen on document element (supporting all browser vendor prefixes)
-    const doc = document as any
-    const docEl = (document.documentElement || document.body) as any
-    const isAlreadyFs = Boolean(
-      doc.fullscreenElement ||
-      doc.webkitFullscreenElement ||
-      doc.mozFullScreenElement ||
-      doc.msFullscreenElement
-    )
-
-    if (!isAlreadyFs) {
-      const requestFs =
-        docEl.requestFullscreen ||
-        docEl.webkitRequestFullscreen ||
-        docEl.webkitRequestFullScreen ||
-        docEl.mozRequestFullScreen ||
-        docEl.msRequestFullscreen
-
-      // Browsers reject (and log) fullscreen requests without a user gesture, e.g. when the host starts a guest's game
-      const hasUserGesture = navigator.userActivation?.isActive ?? true
-      if (requestFs && hasUserGesture) {
-        try {
-          await requestFs.call(docEl)
-        } catch {
-          // Fullscreen request might require gesture or fail on some iOS versions
-        }
-      }
-    }
-
-    // 2. Attempt Screen Orientation Lock
     const screenAny = window.screen as any
     const orient = screenAny?.orientation
     if (orient && typeof orient.lock === 'function') {

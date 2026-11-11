@@ -7,6 +7,12 @@
 class HideSeekAudio {
   private ctx: AudioContext | null = null
   private noise: AudioBuffer | null = null
+  /** The player turned game sounds off (settings) */
+  private muted = false
+
+  public setMuted(muted: boolean): void {
+    this.muted = muted
+  }
 
   private getContext(): AudioContext | null {
     if (this.ctx) return this.ctx
@@ -28,7 +34,7 @@ class HideSeekAudio {
 
   /** A tune must not get lost: wait for the (already unlocked) context to resume first. */
   private async play(sound: (ctx: AudioContext, out: AudioNode, t: number) => void): Promise<void> {
-    const ctx = this.getContext()
+    const ctx = this.muted ? null : this.getContext()
     if (!ctx) return
     if (ctx.state === 'suspended') await ctx.resume().catch(() => {})
     if (ctx.state !== 'running') return
@@ -71,7 +77,7 @@ class HideSeekAudio {
 
   /** Stereo output for one sound; null while audio is locked or the sound is inaudible. */
   private output(volume: number, pan: number): { ctx: AudioContext; out: StereoPannerNode } | null {
-    const ctx = this.getContext()
+    const ctx = this.muted ? null : this.getContext()
     if (!ctx || ctx.state !== 'running' || volume <= 0.01) return null
     const out = ctx.createStereoPanner()
     out.pan.value = Math.max(-1, Math.min(1, pan))

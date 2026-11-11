@@ -102,13 +102,20 @@ export function setBackButton(handler: (() => void) | null): void {
   }
 }
 
+/** The player turned vibration off (settings) */
+let hapticsOn = true
+
+export function setHapticsEnabled(on: boolean): void {
+  hapticsOn = on
+}
+
 /** A short vibration on taps (phones only) */
 export function haptic(style: HapticImpact = 'light'): void {
-  if (tg && supports('6.1')) tg.HapticFeedback.impactOccurred(style)
+  if (tg && hapticsOn && supports('6.1')) tg.HapticFeedback.impactOccurred(style)
 }
 
 export function hapticResult(type: 'error' | 'success' | 'warning'): void {
-  if (tg && supports('6.1')) tg.HapticFeedback.notificationOccurred(type)
+  if (tg && hapticsOn && supports('6.1')) tg.HapticFeedback.notificationOccurred(type)
 }
 
 /** The player's Telegram name, used as the default nickname */

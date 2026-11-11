@@ -345,6 +345,30 @@ export const useTowerStore = defineStore('towerStore', () => {
     selectedPlacedTowerId.value = id
   }
 
+  /** In a room each player has their own purse (the room's player list); alone it is the game's gold */
+  function myRoomPlayer() {
+    return multiplayerStore.roomId ? multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId) : undefined
+  }
+
+  /** The gold this player can spend on towers */
+  const myGold = computed(() => {
+    const me = myRoomPlayer()
+    return me ? (me.gold ?? 0) : gameStore.gold
+  })
+
+  /** Pays for a tower or an upgrade; false (nothing paid) when the gold is short */
+  function spendGold(cost: number): boolean {
+    if (myGold.value < cost) return false
+    const me = myRoomPlayer()
+    if (me) {
+      me.gold = (me.gold ?? 0) - cost
+      gameStore.gold = me.gold
+    } else {
+      gameStore.gold -= cost
+    }
+    return true
+  }
+
   function placeTowerAt(col: number, row: number, blueprintId?: string): PlacedTower | null {
     const bpId = blueprintId || activeBuildTowerId.value
     const bp = blueprints.value.find(b => b.id === bpId)
@@ -360,23 +384,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     }
 
     // 3. Oltin yetarliligini tekshirish va yechib olish
-    if (gameStore.isGameMode) {
-      let currentGold = gameStore.gold
-      const myPl = multiplayerStore.roomId
-        ? multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
-        : null
-      if (myPl) currentGold = myPl.gold ?? 0
-
-      const towerCost = bp.levels[0].cost ?? 100
-      if (currentGold < towerCost) return null
-
-      if (myPl) {
-        myPl.gold = currentGold - towerCost
-        gameStore.gold = myPl.gold
-      } else {
-        gameStore.gold -= towerCost
-      }
-    }
+    if (gameStore.isGameMode && !spendGold(bp.levels[0].cost ?? 100)) return null
 
     ensureBlueprintLevels(bp)
     const lvl1 = bp.levels?.[0] || extractLevelConfigFromBp(bp, 1)
@@ -473,22 +481,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     const nextLvlCfg = bp.levels[nextLvlIndex]
     const upgradeCost = nextLvlCfg.cost
 
-    if (gameStore.isGameMode) {
-      let currentGold = gameStore.gold
-      const myPl = multiplayerStore.roomId
-        ? multiplayerStore.players.find(p => p.id === multiplayerStore.myPlayerId)
-        : null
-      if (myPl) currentGold = myPl.gold ?? 0
-
-      if (currentGold < upgradeCost) return false
-
-      if (myPl) {
-        myPl.gold = currentGold - upgradeCost
-        gameStore.gold = myPl.gold
-      } else {
-        gameStore.gold -= upgradeCost
-      }
-    }
+    if (gameStore.isGameMode && !spendGold(upgradeCost)) return false
 
     tower.level = nextLvlCfg.level
     tower.damage = nextLvlCfg.damage
@@ -723,6 +716,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     damageFloaters,
     blueprintMap,
     selectedPlacedTower,
+    myGold,
     selectedClan,
     selectedEditorClan,
     playerClanBlueprints,

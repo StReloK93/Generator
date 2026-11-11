@@ -26,7 +26,7 @@
         <!-- Modal Dialog Box -->
         <div 
           :class="[
-            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl shadow-black/60 inset-shadow-[0_1px_0_rgba(240,203,94,0.12)] overflow-hidden flex flex-col max-h-[94dvh] animate-in zoom-in-95 duration-200 z-10',
+            'relative glass-panel w-full rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl shadow-black/60 inset-shadow-[0_1px_0_rgba(240,203,94,0.12)] overflow-hidden flex flex-col max-h-full animate-in zoom-in-95 duration-200 z-10',
             sizeClasses,
             customClass
           ]"

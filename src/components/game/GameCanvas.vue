@@ -326,6 +326,9 @@ function cellClickAt(clientX: number, clientY: number) {
   gameController.handleCellClick(gridCoord)
 }
 
+/** A tap that landed on an overlay over the map (the hide & seek joystick zone) */
+defineExpose({ tapAt: cellClickAt })
+
 function releaseSneak() {
   sneakTouch = null
   hideSeekStore.setSneakHeld(false)

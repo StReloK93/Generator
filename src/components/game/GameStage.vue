@@ -81,7 +81,7 @@
     </div>
 
     <!-- Hide & seek: phase banner, touch joystick and match result -->
-    <HideSeekOverlay v-if="isCanvasReady && mapMode === 'hideseek'" />
+    <HideSeekOverlay v-if="isCanvasReady && mapMode === 'hideseek'" @tap="(x, y) => canvasRef?.tapAt(x, y)" />
 
     <!-- 6. Developer Test & Sandbox Toolbar (Only in TD Redactor/Editor Playtest Mode) -->
     <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode && mapMode === 'td'" />
@@ -153,7 +153,7 @@ const isEditorPlaytestMode = computed(() => {
   return props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game'
 })
 
-const canvasRef = ref<any>(null)
+const canvasRef = ref<InstanceType<typeof GameCanvas> | null>(null)
 const isCanvasReady = ref(false)
 const isLeavingRoute = ref(false)
 const isChatOpen = ref(false)

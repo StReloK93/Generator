@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { WaveConfig, TowerTraitType, RouteInfo, Route } from '../types/map'
 import {
   CharacterUnit,
@@ -82,20 +82,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
   // ==========================================
   // 2. COMPUTEDS
   // ==========================================
-  /**
-   * Count of active, living enemies currently marching on the field.
-   */
-  const aliveEnemiesCount = computed(() => {
-    if (multiplayerStore.roomId) {
-      return networkSyncBuffer.renderUnitsList.filter(
-        u => u.isSpawned && !u.isDead && !u.hasReachedEnd
-      ).length
-    }
-    return units.value.filter(
-      u => u.lifecycle.isSpawned && !u.lifecycle.isDead && !u.lifecycle.hasReachedEnd
-    ).length
-  })
-
   // ==========================================
   // 4. UNIT CREATION & SPAWNING
   // ==========================================
@@ -594,7 +580,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
     routeWaveProgress,
     isEnabled,
     isPlaying,
-    aliveEnemiesCount,
     initializeUnits,
     syncLiveUnitsWithWaveConfig,
     spawnAtRoute,

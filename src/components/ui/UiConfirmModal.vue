@@ -10,11 +10,11 @@
     >
       <div 
         v-if="notificationStore.confirmState?.isOpen"
-        class="fixed inset-0 z-100! flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md select-none"
+        class="fixed inset-0 z-100! flex items-center justify-center p-4 pt-safe pb-safe bg-slate-950/80 backdrop-blur-md select-none"
         @click.self="notificationStore.confirmState?.resolve(false)"
       >
         <div 
-          class="w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 flex flex-col gap-4 animate-in zoom-in-95 duration-150 relative overflow-hidden"
+          class="w-full max-w-sm max-h-full overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 flex flex-col gap-4 animate-in zoom-in-95 duration-150 relative overflow-hidden"
         >
           <!-- Ambient header glow -->
           <div 

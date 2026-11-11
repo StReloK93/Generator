@@ -65,9 +65,12 @@ import { lobbyPath } from './router/paths'
 import { assetManager } from './services/assetManager'
 import { useAssetStore } from './stores/assetStore'
 import { useI18nStore } from './stores/i18nStore'
+import { useSettingsStore } from './stores/settingsStore'
 
 const assetStore = useAssetStore()
 const i18n = useI18nStore()
+// Applies the saved sound / vibration choices before anything plays
+useSettingsStore()
 
 // The browser tab shows the game's name in the chosen language
 watchEffect(() => {
