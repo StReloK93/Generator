@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { hideSeekAudio } from '../services/hideSeekAudio'
+import { backgroundMusic } from '../services/backgroundMusic'
 import { setHapticsEnabled } from '../services/telegram'
 
 const SOUND_KEY = 'isocraft_sound'
+const MUSIC_KEY = 'isocraft_music'
 const VIBRATION_KEY = 'isocraft_vibration'
 const CONTROLS_KEY = 'isocraft_controls'
 
@@ -34,9 +36,10 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
-/** The player's own preferences (game sounds, vibration, maze controls), kept on this device. The language lives in i18nStore. */
+/** The player's own preferences (game sounds, music, vibration, maze controls), kept on this device. The language lives in i18nStore. */
 export const useSettingsStore = defineStore('settings', () => {
   const soundOn = ref(readFlag(SOUND_KEY))
+  const musicOn = ref(readFlag(MUSIC_KEY))
   const vibrationOn = ref(readFlag(VIBRATION_KEY))
   const controls = ref<MoveControls>(readControls())
 
@@ -45,6 +48,14 @@ export const useSettingsStore = defineStore('settings', () => {
     on => {
       hideSeekAudio.setMuted(!on)
       writeFlag(SOUND_KEY, on)
+    },
+    { immediate: true }
+  )
+  watch(
+    musicOn,
+    on => {
+      backgroundMusic.setEnabled(on)
+      writeFlag(MUSIC_KEY, on)
     },
     { immediate: true }
   )
@@ -65,5 +76,5 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   })
 
-  return { soundOn, vibrationOn, controls }
+  return { soundOn, musicOn, vibrationOn, controls }
 })

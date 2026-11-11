@@ -7,6 +7,10 @@
       </span>
     </UiSwitch>
 
+    <UiSwitch v-model="settings.musicOn" variant="emerald" custom-class="p-2.5!">
+      <span class="flex items-center gap-2"><Music class="size-4 text-emerald-300" />{{ $t('settings.music') }}</span>
+    </UiSwitch>
+
     <!-- Only Telegram gives the game a vibration motor -->
     <UiSwitch v-if="isTelegram" v-model="settings.vibrationOn" variant="emerald" custom-class="p-2.5!">
       <span class="flex items-center gap-2"><Vibrate class="size-4 text-emerald-300" />{{ $t('settings.vibration') }}</span>
@@ -36,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Footprints, Languages, Maximize2, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
+import { Footprints, Languages, Maximize2, Music, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
 import { UiSwitch, UiTabs } from './ui'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useI18nStore, type SupportedLocale } from '../stores/i18nStore'

@@ -64,6 +64,7 @@ import { assetManager } from './services/assetManager'
 import { useAssetStore } from './stores/assetStore'
 import { useI18nStore } from './stores/i18nStore'
 import { useSettingsStore } from './stores/settingsStore'
+import { backgroundMusic } from './services/backgroundMusic'
 
 const assetStore = useAssetStore()
 const i18n = useI18nStore()
@@ -83,6 +84,8 @@ const router = useRouter()
 const PLAY_ROUTES = ['lobby', 'game', 'room-game', 'editor-game']
 const isPlaying = computed(() => PLAY_ROUTES.includes(String(route.name)))
 watchEffect(() => setClosingConfirmation(isPlaying.value))
+// The music belongs to the home page only
+watchEffect(() => backgroundMusic.setActive(route.name === 'home'))
 watchEffect(() => {
   if (isPortrait.value) lockPortrait()
 })
