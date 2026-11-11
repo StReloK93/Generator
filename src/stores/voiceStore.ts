@@ -22,7 +22,7 @@ export const useVoiceStore = defineStore('voice', () => {
   const mutedIds = ref<string[]>([])
 
   /** Only hide & seek splits the room into sides; elsewhere the whole room plays together */
-  const hasTeams = computed(() => multiplayerStore.isHideSeekRoom)
+  const hasTeams = computed(() => multiplayerStore.hasHideSeekTeams)
 
   const targets = computed<VoiceTarget[]>(() => {
     const me = multiplayerStore.myPlayer

@@ -165,6 +165,8 @@ export type MatchEvent =
   /** dazed: the chain ran out (the seeker stands dazed); otherwise the seeker was freed or the hider caught */
   | { kind: 'chainEnd'; hider: string; seeker: string; dazed: boolean }
   | { kind: 'caught'; id: string }
+  /** Curse genre: the curse jumped from one player to another */
+  | { kind: 'cursed'; from: string; to: string }
   | { kind: 'freed'; id: string; by: string }
   | { kind: 'bell'; col: number; row: number }
   | { kind: 'ability'; by: string; slot: number; ability: AbilityId; mark: AbilityMark | null }
@@ -585,7 +587,7 @@ const TRAIL_STEP = 1
 
 /** Ability marks: they run out; opponents crossing a fire wall are slowed, stepping on a snare are rooted, touching a
  * decoy makes it vanish. */
-function tickMarks(match: HideSeekMatch, bodies: MatchBody[], settings: HideSeekSettings, deltaSec: number, events: MatchEvent[]): void {
+export function tickMarks(match: HideSeekMatch, bodies: MatchBody[], settings: HideSeekSettings, deltaSec: number, events: MatchEvent[]): void {
   const opponents = (mark: AbilityMark) =>
     bodies.filter(b => {
       const seat = seatOf(match, b.id)

@@ -48,7 +48,7 @@
     <!-- Players -->
     <!-- Hide & seek: the two teams side by side, seekers left, hiders right, a soft line between them -->
     <main
-      v-if="multiplayerStore.isHideSeekRoom"
+      v-if="multiplayerStore.hasHideSeekTeams"
       class="flex-1 min-h-0 overflow-y-auto px-1.5 sm:px-2.5 py-1 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5"
     >
       <section v-for="team in teams" :key="team.id" :class="['flex flex-col gap-1.5 short:gap-1 min-w-0', team.id === 'hiders' ? 'col-start-3 row-start-1' : '']">
@@ -104,7 +104,7 @@
             disabled
             custom-class="min-w-44 short:py-2"
           >
-            {{ $t('hideseek.needTeams') }}
+            {{ $t(multiplayerStore.hasHideSeekTeams ? 'hideseek.needTeams' : 'curse.needPlayers') }}
           </UiButton>
           <UiButton
             v-else-if="!multiplayerStore.isAllReady"

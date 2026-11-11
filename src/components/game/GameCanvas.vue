@@ -40,7 +40,7 @@ import { usePixiCamera } from '../../composables/usePixiCamera'
 import {  AssetItem } from '../../types/map'
 import { assetManager } from '../../services/assetManager'
 import { GameController } from '../../controllers/game/GameController'
-import { getMapMode } from '../../domain/map'
+import { getMapMode, isMazeMode } from '../../domain/map'
 
 const mapStore = useMapStore()
 const toolStore = useToolStore()
@@ -269,7 +269,7 @@ function handleMouseDown(e: MouseEvent) {
   }
 
   // Shift is "sneak" in hide & seek, so it must not start a camera pan there
-  const shiftPans = e.shiftKey && getMapMode(mapStore.project) !== 'hideseek'
+  const shiftPans = e.shiftKey && !isMazeMode(getMapMode(mapStore.project))
   if (e.button === 1 || camera.isSpacePressed.value || (!towerStore.activeBuildTowerId && e.button === 0 && shiftPans)) {
     camera.startPan(e.clientX, e.clientY)
     return
@@ -353,7 +353,7 @@ function handleTouchStart(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  if (getMapMode(mapStore.project) === 'hideseek' && settings.controls === 'joystick') claimSneakTouch(e)
+  if (isMazeMode(getMapMode(mapStore.project)) && settings.controls === 'joystick') claimSneakTouch(e)
   camera.handleTouchStart(cameraTouches(e), viewportContainerRef.value)
 }
 

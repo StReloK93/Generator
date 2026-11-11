@@ -49,6 +49,10 @@ export interface HideSeekAvatarView {
   hidden: boolean
   /** Dazed after a chain ran out (stars over the head) */
   dazed: boolean
+  /** Curse genre: carries the curse (a pulsing violet flame ring) */
+  cursed: boolean
+  /** Curse genre: turned to stone (grey, no chain ring) */
+  stone: boolean
 }
 
 /** An altar as this player knows it: found by seeing it (a lit one is known to all). */

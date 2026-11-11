@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { Coins, Crown, Heart, Repeat, Search, Swords, Timer, Users } from 'lucide-vue-next'
+import { Coins, Crown, Flame, Heart, Repeat, Search, Swords, Timer, Users } from 'lucide-vue-next'
 import { getMapDetails, type MapSummary } from '../../services/mapManager'
 import { MAP_MODE_INFO, MAP_MODE_PLAY_INFO } from '../mapModeInfo'
 import MapPreviewImage from './MapPreviewImage.vue'
@@ -91,6 +91,13 @@ const stats = computed<Array<{ icon: Component; color: string; value: string | n
       { icon: Search, color: 'text-rose-300', value: d.seekers, label: 'home.info.seekers' },
       { icon: Repeat, color: 'text-purple-300', value: d.rounds, label: 'home.info.rounds' },
       { icon: Timer, color: 'text-amber-300', value: minutes(d.roundTime), label: 'home.info.roundTime' },
+    ]
+  }
+  if (props.map.mode === 'curse') {
+    return [
+      players,
+      { icon: Repeat, color: 'text-purple-300', value: d.rounds, label: 'home.info.rounds' },
+      { icon: Flame, color: 'text-fuchsia-300', value: minutes(d.roundTime), label: 'home.info.curseFuse' },
     ]
   }
   return [players]

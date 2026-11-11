@@ -3,8 +3,8 @@ import { isInsideGrid } from '../../utils/isometric'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { useHeroStore } from '../../stores/heroStore'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
-import { getMapMode } from '../../domain/map'
-import { hideSeekAudio } from '../../services/hideSeekAudio'
+import { getMapMode, isMazeMode } from '../../domain/map'
+import { gameAudio } from '../../services/gameAudio'
 import { startBackgroundTicker } from '../../utils/backgroundTicker'
 import type { useMapStore } from '../../stores/mapStore'
 import type { useToolStore } from '../../stores/toolStore'
@@ -48,7 +48,7 @@ export class GameController {
   }
 
   public setupSimulationLoop(): void {
-    if (getMapMode(this.deps.mapStore.project) === 'hideseek') {
+    if (isMazeMode(getMapMode(this.deps.mapStore.project))) {
       this.setupHideSeekLoop()
       return
     }
@@ -125,7 +125,7 @@ export class GameController {
     }
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping(e)) return
-      hideSeekAudio.unlock()
+      gameAudio.unlock()
       if (hideSeekStore.setKey(e.code, true)) e.preventDefault()
     }
     const onKeyUp = (e: KeyboardEvent) => {
@@ -188,8 +188,8 @@ export class GameController {
     const isHeroMode = mapStore.project?.gameMode === 'hero'
 
     // Hide & seek: click / tap walks there or lifts a chest lid (WASD and the touch joystick steer directly)
-    if (getMapMode(mapStore.project) === 'hideseek') {
-      hideSeekAudio.unlock()
+    if (isMazeMode(getMapMode(mapStore.project))) {
+      gameAudio.unlock()
       useHideSeekStore().clickCell(gridCoord.col, gridCoord.row)
       return
     }
@@ -321,7 +321,7 @@ export class GameController {
     // Hide & seek never shares the cursor: it would give away where a player is looking
     if (
       multiplayerStore.roomId &&
-      getMapMode(mapStore.project) !== 'hideseek' &&
+      !isMazeMode(getMapMode(mapStore.project)) &&
       isInsideGrid(gridCoord.col, gridCoord.row, mapStore.project.cols, mapStore.project.rows)
     ) {
       multiplayerStore.broadcastTeammateHover(gridCoord.col, gridCoord.row)

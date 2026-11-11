@@ -1,5 +1,11 @@
 import { Layer, RouteInfo, TileItem } from '../../types/map'
-import { HideSeekMaze, MazeEdge, edgeSubCells, insideRect } from './HideSeekMaze'
+import { HideSeekMaze, MazeEdge, edgeSubCells, insideRect, seededRandom } from './HideSeekMaze'
+
+/**
+ * How a labyrinth is dressed: 'classic' (hide & seek) is plain sand and aged stone; 'ruins' (the curse) is a
+ * cracked flagstone floor overgrown with grass and flowers, with crumbling wall pieces. Only the look differs.
+ */
+export type MazeTheme = 'classic' | 'ruins'
 
 /**
  * A labyrinth as map content: one plain sand floor and single stone wall lines, crawl
@@ -29,20 +35,54 @@ export function edgePlacement(edge: MazeEdge, cols: number): { col: number; row:
   return edge.row > 0 ? { col: edge.col, row: edge.row - 1, suffix: 'N', depthOffset: 1 } : { col: edge.col, row: edge.row, suffix: 'S', depthOffset: 0 }
 }
 
-function floorAt(maze: HideSeekMaze, col: number, row: number): string {
+/** Ruins: cracked flagstones, worn paths and grass taking the old halls back */
+const RUIN_STONES = ['sprite-stoneUneven_E', 'sprite-stoneMissingTiles_E', 'sprite-stoneTile_E', 'sprite-stoneUneven_E']
+const RUIN_GRASS = ['sprite-grass', 'sprite-grass', 'sprite-grasscombo', 'sprite-grassflower']
+const RUIN_EDGE = ['sprite-dirtTiles_E', 'sprite-dirt_E']
+/** Share of inner wall pieces that have crumbled (still walls: only their look) */
+const RUIN_BROKEN_WALLS = 0.18
+
+/** Where the grass grows: a few round patches; a cell inside one is overgrown, at its rim worn dirt. */
+function overgrowth(maze: HideSeekMaze): (col: number, row: number) => 'grass' | 'edge' | null {
+  const random = seededRandom(maze.seed ^ 0x5eed)
+  const patches = Array.from({ length: Math.max(4, Math.round((maze.cols * maze.rows) / 110)) }, () => ({
+    col: random() * maze.cols,
+    row: random() * maze.rows,
+    radius: 1.5 + random() * 3.5,
+  }))
+  return (col, row) => {
+    let best = Infinity
+    for (const p of patches) best = Math.min(best, Math.hypot(col - p.col, row - p.row) / p.radius)
+    return best <= 1 ? 'grass' : best <= 1.35 ? 'edge' : null
+  }
+}
+
+/** A stable pick per cell (the same cell looks the same for every player). */
+function pick<T>(list: T[], seed: number, col: number, row: number): T {
+  const h = Math.imul((col * 73856093) ^ (row * 19349663) ^ seed, 0x9e3779b1) >>> 0
+  return list[h % list.length]
+}
+
+function floorAt(maze: HideSeekMaze, col: number, row: number, grown: ReturnType<typeof overgrowth> | null): string {
   if (col === maze.jail.col && row === maze.jail.row) return JAIL_FLOOR
   if (insideRect(maze.seekerBase, { col, row })) return SEEKER_FLOOR
   if (insideRect(maze.hiderBase, { col, row })) return HOME_FLOOR
-  return FLOOR
+  if (!grown) return FLOOR
+  const cover = grown(col, row)
+  if (cover === 'grass') return pick(RUIN_GRASS, maze.seed, col, row)
+  if (cover === 'edge') return pick(RUIN_EDGE, maze.seed, col, row)
+  return pick(RUIN_STONES, maze.seed, col, row)
 }
 
-export function buildMazeMap(maze: HideSeekMaze): MazeMapContent {
+export function buildMazeMap(maze: HideSeekMaze, theme: MazeTheme = 'classic'): MazeMapContent {
   let next = 0
   const id = () => `maze-${maze.seed.toString(36)}-${(next++).toString(36)}`
+  const grown = theme === 'ruins' ? overgrowth(maze) : null
+  const crumble = seededRandom(maze.seed ^ 0xb0b)
   const ground: Record<string, TileItem[]> = {}
   const walls: Record<string, TileItem[]> = {}
   for (let col = 0; col < maze.cols; col++) {
-    for (let row = 0; row < maze.rows; row++) ground[`${col},${row}`] = [{ id: id(), x: col, y: row, assetId: floorAt(maze, col, row), zIndex: 0 }]
+    for (let row = 0; row < maze.rows; row++) ground[`${col},${row}`] = [{ id: id(), x: col, y: row, assetId: floorAt(maze, col, row, grown), zIndex: 0 }]
   }
   const put = (edge: MazeEdge, base: string) => {
     const at = edgePlacement(edge, maze.cols)
@@ -52,7 +92,9 @@ export function buildMazeMap(maze: HideSeekMaze): MazeMapContent {
     if (at.depthOffset) item.depthOffset = at.depthOffset
     ;(walls[`${at.col},${at.row}`] ||= []).push(item)
   }
-  for (const edge of maze.walls) put(edge, 'stoneWallAged')
+  // Ruins: some inner wall pieces have crumbled (the outer ring stays whole)
+  const inner = (edge: MazeEdge) => (edge.axis === 'v' ? edge.col > 0 && edge.col < maze.cols : edge.row > 0 && edge.row < maze.rows)
+  for (const edge of maze.walls) put(edge, theme === 'ruins' && inner(edge) && crumble() < RUIN_BROKEN_WALLS ? 'stoneWallBroken' : 'stoneWallAged')
   for (const edge of maze.holes) put(edge, 'stoneWallHole')
 
   const collision = new Set<string>()

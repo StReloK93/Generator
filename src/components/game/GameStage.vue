@@ -80,7 +80,7 @@
     </div>
 
     <!-- Hide & seek: phase banner, touch joystick and match result -->
-    <HideSeekOverlay v-if="isCanvasReady && mapMode === 'hideseek'" @tap="(x, y) => canvasRef?.tapAt(x, y)" />
+    <HideSeekOverlay v-if="isCanvasReady && isMazeMode(mapMode)" @tap="(x, y) => canvasRef?.tapAt(x, y)" />
 
     <!-- 6. Developer Test & Sandbox Toolbar (Only in TD Redactor/Editor Playtest Mode) -->
     <DevTestSandboxToolbar v-if="isCanvasReady && isEditorPlaytestMode && mapMode === 'td'" />
@@ -112,7 +112,8 @@ import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { useI18n } from '../../stores/i18nStore'
 import { networkSyncBuffer } from '../../services/networkSync'
-import { getMapMode } from '../../domain/map'
+import { getMapMode, isMazeMode } from '../../domain/map'
+import { useTdSounds } from '../../composables/useTdSounds'
 import {
   getGameMapDataById,
   getEditorMapDataById,
@@ -145,6 +146,7 @@ const notify = useNotificationStore()
 const { t } = useI18n()
 
 const mapMode = computed(() => getMapMode(mapStore.project))
+useTdSounds(mapMode)
 
 const isEditorPlaytestMode = computed(() => {
   return props.isEditorMode || gameStore.entrySource === 'editor' || route.name === 'editor-game'
@@ -244,7 +246,7 @@ const ownsSimulation = computed(() => !multiplayerStore.roomId || multiplayerSto
 function saveRunningMatch() {
   if (!gameStore.isGameMode) return
   // Hide & seek: every player keeps their own character (the host / solo also the whole match)
-  if (mapMode.value === 'hideseek') hideSeekStore.saveSession()
+  if (isMazeMode(mapMode.value)) hideSeekStore.saveSession()
   else if (mapMode.value === 'td' && ownsSimulation.value) saveMatch(matchOwner.value)
 }
 

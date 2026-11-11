@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import { hideSeekAudio } from '../services/hideSeekAudio'
+import { gameAudio } from '../services/gameAudio'
 import { backgroundMusic } from '../services/backgroundMusic'
 import { setHapticsEnabled } from '../services/telegram'
 
@@ -46,7 +46,7 @@ export const useSettingsStore = defineStore('settings', () => {
   watch(
     soundOn,
     on => {
-      hideSeekAudio.setMuted(!on)
+      gameAudio.setMuted(!on)
       writeFlag(SOUND_KEY, on)
     },
     { immediate: true }

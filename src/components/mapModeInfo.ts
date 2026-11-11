@@ -1,5 +1,5 @@
 import type { Component } from 'vue'
-import { Castle, Coins, Flame, Footprints, Ghost, Heart, Lock, Search, Swords, Users } from 'lucide-vue-next'
+import { Castle, Coins, Flame, Footprints, Ghost, Heart, Lock, Package, Search, Skull, Swords, Users } from 'lucide-vue-next'
 import type { MapGameMode } from '../types/map'
 import type { BadgeVariant } from './ui'
 
@@ -7,6 +7,7 @@ import type { BadgeVariant } from './ui'
 export const MAP_MODE_INFO: Record<MapGameMode, { icon: Component; label: string; desc: string; settings: string; badge: BadgeVariant }> = {
   td: { icon: Castle, label: 'genre.td', desc: 'genre.tdDesc', settings: 'common.tdSettings', badge: 'amber' },
   hideseek: { icon: Ghost, label: 'genre.hideseek', desc: 'genre.hideseekDesc', settings: 'genre.hideseekSettings', badge: 'purple' },
+  curse: { icon: Skull, label: 'genre.curse', desc: 'genre.curseDesc', settings: 'genre.curseSettings', badge: 'purple' },
   hero: { icon: Swords, label: 'genre.hero', desc: 'genre.heroDesc', settings: 'genre.heroSettings', badge: 'emerald' },
 }
 
@@ -31,6 +32,15 @@ export const MAP_MODE_PLAY_INFO: Record<
       { icon: Search, text: 'maps.howto.hideseek.1' },
       { icon: Flame, text: 'maps.howto.hideseek.2' },
       { icon: Lock, text: 'maps.howto.hideseek.3' },
+    ],
+  },
+  curse: {
+    label: 'genre.curse',
+    accent: 'text-fuchsia-300',
+    howTo: [
+      { icon: Skull, text: 'maps.howto.curse.1' },
+      { icon: Flame, text: 'maps.howto.curse.2' },
+      { icon: Package, text: 'maps.howto.curse.3' },
     ],
   },
   hero: {

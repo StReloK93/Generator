@@ -69,7 +69,7 @@
       <GameConfigModal />
       <TowerCreateModal />
     </template>
-    <HideSeekConfigModal v-else-if="mapMode === 'hideseek'" />
+    <HideSeekConfigModal v-else-if="isMazeMode(mapMode)" />
     <HeroConfigModal v-else />
 
     <BoxClearModal />
@@ -94,7 +94,7 @@ import ExportModal from '../components/ExportModal.vue'
 import GameConfigModal from '../components/GameConfigModal.vue'
 import HeroConfigModal from '../components/HeroConfigModal.vue'
 import HideSeekConfigModal from '../components/HideSeekConfigModal.vue'
-import { getMapMode } from '../domain/map'
+import { getMapMode, isMazeMode } from '../domain/map'
 import TowerCreateModal from '../components/TowerCreateModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'

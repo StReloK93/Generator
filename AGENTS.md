@@ -1,6 +1,6 @@
 # Realms (Olamlar / Царства): Isometric Game & Map Engine
 
-Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida qurilgan professional izometrik xarita muharriri (Redaktor) va o'yin dvijogidir (nomi har tilda tarjima qilinadi: i18n `app.name`): har bir xarita bitta janrga tegishli — Tower Defense (`td`), Hide & Seek (`hideseek`), Hero Adventure (`hero`); janrlar ro'yxati `domain/map/MapMode.ts` da.
+Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida qurilgan professional izometrik xarita muharriri (Redaktor) va o'yin dvijogidir (nomi har tilda tarjima qilinadi: i18n `app.name`): har bir xarita bitta janrga tegishli — Tower Defense (`td`), Hide & Seek (`hideseek`), La'nat (`curse`: hide & seek dvijogida, har kim o'zi uchun), Hero Adventure (`hero`); janrlar ro'yxati `domain/map/MapMode.ts` da.
 
 
 

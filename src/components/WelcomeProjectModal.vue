@@ -234,7 +234,7 @@ import {
 import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { normalizeHideSeekSettings } from '../domain/hideseek/HideSeekSettings'
-import { getMapMode, MAP_GAME_MODES, DEFAULT_MAP_SIZE } from '../domain/map/MapMode'
+import { getMapMode, isMazeMode, MAP_GAME_MODES, DEFAULT_MAP_SIZE } from '../domain/map/MapMode'
 import { MAP_MODE_INFO } from './mapModeInfo'
 import type { MapGameMode } from '../types/map'
 
@@ -355,7 +355,7 @@ function handleCreateNew() {
   })
   mapStore.project.id = newId
   // Hide & seek rules live in the map from the start (the editor's settings window edits them)
-  if (gameMode === 'hideseek') mapStore.project.hideSeekSettings = normalizeHideSeekSettings()
+  if (isMazeMode(gameMode)) mapStore.project.hideSeekSettings = normalizeHideSeekSettings()
 
   // Configure Hero mode state
   heroStore.toggleHero(gameMode === 'hero')
@@ -460,7 +460,7 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
 
     // Restore Game Settings (Starting Gold, Starting Lives, Wave Prep Time, formation, etc.)
     mapStore.project.gameSettings = normalizeGameSettings(clonedProject.gameSettings || data.gameSettings || data.characterData?.gameSettings)
-    if (getMapMode(clonedProject) === 'hideseek') {
+    if (isMazeMode(getMapMode(clonedProject))) {
       mapStore.project.hideSeekSettings = normalizeHideSeekSettings(clonedProject.hideSeekSettings)
     }
     gameStore.restoreGameSettingsFromProject()

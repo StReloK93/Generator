@@ -1,5 +1,5 @@
 import { MapProject, AssetItem, MapGameMode } from '../types/map'
-import { getMapMode } from '../domain/map'
+import { getMapMode, isMazeMode } from '../domain/map'
 import { normalizeHideSeekSettings } from '../domain/hideseek'
 import { 
   buildFullProjectJsonPayload, 
@@ -87,7 +87,7 @@ function summarizeMap(raw: any, id: string, fallbackName: string): MapSummary {
   const project = raw.project || raw
   const mode = getMapMode(project)
   // Hide & seek seats two teams (its settings); other maps one player per route unless they say otherwise
-  const explicitPlayers = mode === 'hideseek'
+  const explicitPlayers = isMazeMode(mode)
     ? normalizeHideSeekSettings(project.hideSeekSettings).maxPlayers
     : project.playersCount || project.gameSettings?.maxPlayers || project.gameSettings?.playerCount
   const routesCount = project.routes?.length || 0

@@ -126,6 +126,10 @@ const SNARE_COLOR = 0xd6a35c
 const NEST_COLOR = 0xd97706
 const TRAIL_COLOR = 0x7dd3fc
 const JAIL_TINT = 0x7c8794
+/** Curse genre: a statue's grey and the carrier's violet flame */
+const STONE_TINT = 0x6b7280
+const CURSE_COLOR = 0xd946ef
+const CURSE_CORE = 0x581c87
 const JAIL_COLOR = 0x94a3b8
 /** Own character inside a barrel: a faint outline so the player knows where they are */
 const HIDDEN_SELF_ALPHA = 0.35
@@ -748,7 +752,7 @@ export class HideSeekRenderer {
       }
       if (node.container.parent !== layersContainer) layersContainer.addChild(node.container)
       this.updateAvatar(node, avatar, project, deltaSec)
-      if (avatar.visible) node.sprite.tint = avatar.jailed ? JAIL_TINT : litTint(avatar.isMe ? 1 : Math.max(MIN_AVATAR_LIGHT, view.lightAt(avatar)))
+      if (avatar.visible) node.sprite.tint = avatar.stone ? STONE_TINT : avatar.jailed ? JAIL_TINT : litTint(avatar.isMe ? 1 : Math.max(MIN_AVATAR_LIGHT, view.lightAt(avatar)))
     }
 
     for (const [id, node] of this.avatars) {
@@ -802,8 +806,22 @@ export class HideSeekRenderer {
     const ringAlpha = 1 - 0.5 * node.crouch
     node.ring.ellipse(0, 0, rx, ry).fill({ color, alpha: (avatar.isMe ? 0.3 : 0.18) * ringAlpha })
     node.ring.ellipse(0, 0, rx, ry).stroke({ width: 2, color, alpha: 0.9 * ringAlpha })
-    // Jail: a ring of chain links around the caught player's feet
-    if (avatar.jailed) {
+    // Curse: a dark core and a ring of violet flames licking upward, pulsing
+    if (avatar.cursed) {
+      const time = performance.now() / 1000
+      const pulse = 0.5 + 0.5 * Math.sin(time * 6)
+      node.ring.ellipse(0, 0, rx * 1.5, ry * 1.5).fill({ color: CURSE_CORE, alpha: 0.35 + 0.15 * pulse })
+      node.ring.ellipse(0, 0, rx * (1.45 + 0.1 * pulse), ry * (1.45 + 0.1 * pulse)).stroke({ width: 3, color: CURSE_COLOR, alpha: 0.95 })
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2 + time * 1.5
+        const flicker = 0.6 + 0.4 * Math.sin(time * 9 + i * 1.7)
+        const x = Math.cos(a) * rx * 1.5
+        const y = Math.sin(a) * ry * 1.5
+        node.ring.poly([x - 4, y, x + 4, y, x, y - 14 * flicker]).fill({ color: CURSE_COLOR, alpha: 0.8 })
+      }
+    }
+    // Jail: a ring of chain links around the caught player's feet (a statue of the curse has none)
+    if (avatar.jailed && !avatar.stone) {
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2
         node.ring.ellipse(Math.cos(a) * rx * 1.35, Math.sin(a) * ry * 1.35, 4, 2.5).stroke({ width: 2, color: JAIL_COLOR, alpha: 0.95 })

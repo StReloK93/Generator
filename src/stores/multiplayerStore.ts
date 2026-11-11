@@ -26,7 +26,7 @@ import { useHideSeekStore } from './hideSeekStore'
 import { useNotificationStore } from './notificationStore'
 import { useI18n } from './i18nStore'
 import { MapProject } from '../types/map'
-import { getMapMode } from '../domain/map'
+import { getMapMode, isMazeMode } from '../domain/map'
 import { normalizeHideSeekSettings, teamForSlot } from '../domain/hideseek'
 import { gridToScreen } from '../utils/isometric'
 import { readSession, writeSession, removeSession, clearMatch } from '../services/sessionResume'
@@ -134,7 +134,9 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   }
 
   // Computed
-  const isHideSeekRoom = computed(() => getMapMode(mapStore.project) === 'hideseek')
+  const isHideSeekRoom = computed(() => isMazeMode(getMapMode(mapStore.project)))
+  /** Only hide & seek splits the room into seekers and hiders; in the curse everyone plays for themselves */
+  const hasHideSeekTeams = computed(() => getMapMode(mapStore.project) === 'hideseek')
 
   /** Hide & seek: the first lobby slots seek, the rest hide (the map's settings) */
   const hideSeekSeekerSlots = computed(() => normalizeHideSeekSettings(mapStore.project.hideSeekSettings).seekerSlots)
@@ -142,6 +144,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   /** Hide & seek needs a player on each side before it can start (heroes are picked in the game). */
   const hideSeekLobbyIssue = computed<'needTeams' | null>(() => {
     if (!isHideSeekRoom.value) return null
+    // The curse needs someone to pass it to
+    if (!hasHideSeekTeams.value) return players.value.length < 2 ? 'needTeams' : null
     const teams = new Set(players.value.map(p => teamForSlot(p.slotIndex, hideSeekSeekerSlots.value)))
     return teams.size < 2 ? 'needTeams' : null
   })
@@ -182,7 +186,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function initializeSlotsFromMap(project: MapProject): PlayerSlot[] {
     const routesList = project.routes || routeStore.routes || []
     // Hide & seek seats two teams (from its settings); other maps one player per route
-    const count = getMapMode(project) === 'hideseek'
+    const count = isMazeMode(getMapMode(project))
       ? normalizeHideSeekSettings(project.hideSeekSettings).maxPlayers
       : Math.max(1, Math.min(8, routesList.length > 0 ? routesList.length : 4))
     maxPlayers.value = count
@@ -1010,7 +1014,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
    */
   function pickJoinSlot(): PlayerSlot | undefined {
     const free = slots.value.filter(s => s.player === null)
-    if (!isHideSeekRoom.value) return free[0]
+    if (!hasHideSeekTeams.value) return free[0]
     const hasSeeker = slots.value.some(s => s.player && teamForSlot(s.slotIndex, hideSeekSeekerSlots.value) === 0)
     return (hasSeeker ? free.find(s => teamForSlot(s.slotIndex, hideSeekSeekerSlots.value) === 1) : undefined) ?? free[0]
   }
@@ -1638,6 +1642,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     chatMessages,
     isAllReady,
     isHideSeekRoom,
+    hasHideSeekTeams,
     hideSeekSeekerSlots,
     hideSeekLobbyIssue,
     unreadyCount,

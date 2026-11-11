@@ -102,6 +102,7 @@
               <span class="font-extrabold text-xs text-slate-50 truncate">{{ room.roomName }}</span>
               <UiBadge v-if="room.gameMode === 'hero'" variant="rose" size="xs" class="shrink-0">{{ $t('game.modePvp') }}</UiBadge>
               <UiBadge v-else-if="room.gameMode === 'hideseek'" variant="purple" size="xs" class="shrink-0">{{ $t('game.modeHideSeek') }}</UiBadge>
+              <UiBadge v-else-if="room.gameMode === 'curse'" variant="purple" size="xs" class="shrink-0">{{ $t('genre.curse') }}</UiBadge>
               <UiBadge :variant="room.gameState === 'lobby' ? 'emerald' : 'amber'" size="xs" class="shrink-0">
                 {{ room.gameState === 'lobby' ? $t('play.statusWaiting') : $t('play.statusPlaying') }}
               </UiBadge>

@@ -1,12 +1,20 @@
 import { MapGameMode } from '../../types/map'
 
 /** Every genre a map can be made for, in the order the editor offers them. */
-export const MAP_GAME_MODES: readonly MapGameMode[] = ['td', 'hideseek', 'hero']
+export const MAP_GAME_MODES: readonly MapGameMode[] = ['td', 'hideseek', 'curse', 'hero']
 
 /** Single owner of the "which game is this map" rule: maps without a known mode are tower defense. */
 export function getMapMode(project: { gameMode?: MapGameMode } | null | undefined): MapGameMode {
   const mode = project?.gameMode
-  return mode === 'hero' || mode === 'hideseek' ? mode : 'td'
+  return mode === 'hero' || mode === 'hideseek' || mode === 'curse' ? mode : 'td'
+}
+
+/**
+ * Genres played in a labyrinth on the hide & seek engine (its session, renderer, HUD, network and settings):
+ * hide & seek itself and the curse. Only their referee rules differ.
+ */
+export function isMazeMode(mode: MapGameMode): boolean {
+  return mode === 'hideseek' || mode === 'curse'
 }
 
 /** What a genre's game reads from the map, so the editor only offers the tools and settings that genre uses. */
@@ -23,9 +31,12 @@ export interface MapModeEditorFeatures {
   towers: boolean
 }
 
+const MAZE_FEATURES: MapModeEditorFeatures = { buildableZones: false, collision: true, routes: 'spawns', creepPreview: false, towers: false }
+
 const EDITOR_FEATURES: Record<MapGameMode, MapModeEditorFeatures> = {
   td: { buildableZones: true, collision: false, routes: 'paths', creepPreview: true, towers: true },
-  hideseek: { buildableZones: false, collision: true, routes: 'spawns', creepPreview: false, towers: false },
+  hideseek: MAZE_FEATURES,
+  curse: MAZE_FEATURES,
   hero: { buildableZones: false, collision: true, routes: 'none', creepPreview: false, towers: false },
 }
 
@@ -33,5 +44,5 @@ export function getEditorFeatures(project: { gameMode?: MapGameMode } | null | u
   return EDITOR_FEATURES[getMapMode(project)]
 }
 
-/** Starting size of a new map per genre (hide & seek matches the default labyrinth). */
-export const DEFAULT_MAP_SIZE: Record<MapGameMode, number> = { td: 60, hideseek: 40, hero: 60 }
+/** Starting size of a new map per genre (the labyrinth genres match their default labyrinth). */
+export const DEFAULT_MAP_SIZE: Record<MapGameMode, number> = { td: 60, hideseek: 40, curse: 30, hero: 60 }

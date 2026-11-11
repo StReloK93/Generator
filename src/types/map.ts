@@ -135,7 +135,7 @@ export interface RouteInfo {
   playerCameraPoint?: { col: number, row: number }
 }
 
-export type MapGameMode = 'td' | 'hero' | 'hideseek'
+export type MapGameMode = 'td' | 'hero' | 'hideseek' | 'curse'
 
 /** Hide & seek PvP rules stored per map (distances in tiles, times in seconds, angle in degrees). */
 export interface HideSeekSettings {

@@ -66,6 +66,8 @@ export interface HideSeekViewContext {
   explored: Uint8Array
   cols: number
   rows: number
+  /** Curse genre: the seeker role is the curse carrier, the jailed have turned to stone */
+  curse: boolean
 }
 
 /** Everything in sight is evenly lit; only the last stretch (tiles) of each direction fades into the dark */
@@ -194,6 +196,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         color: p.color,
         isMe: p === me,
         jailed,
+        cursed: ctx.curse && !over && !jailed && seat?.role === 'seeker',
+        stone: ctx.curse && jailed,
         hidden: p === me && (p.hidden !== -1 || unseen),
         dazed: !over && (seat?.dazed ?? 0) > 0,
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
@@ -218,6 +222,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
             color: owner?.color ?? '#94a3b8',
             isMe: false,
             jailed: false,
+            cursed: false,
+            stone: false,
             hidden: own,
             dazed: false,
             visible: own || spotted(m),

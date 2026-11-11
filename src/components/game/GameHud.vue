@@ -74,7 +74,7 @@ import { useTowerStore } from '../../stores/towerStore'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
-import { getMapMode } from '../../domain/map'
+import { getMapMode, isMazeMode } from '../../domain/map'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18nStore } from '../../stores/i18nStore'
 import { useGameExit } from '../../composables/useGameExit'
@@ -90,7 +90,7 @@ const { t } = useI18nStore()
 
 /** Tower defence maps get gold, lives and waves; hide & seek draws its own HUD; PvP (hero) maps a hint */
 const isTdMode = computed(() => getMapMode(mapStore.project) === 'td')
-const isHideSeekMode = computed(() => getMapMode(mapStore.project) === 'hideseek')
+const isHideSeekMode = computed(() => isMazeMode(getMapMode(mapStore.project)))
 
 const isMenuOpen = ref(false)
 const isWaveModalOpen = ref(false)

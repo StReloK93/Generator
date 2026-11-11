@@ -8,7 +8,7 @@ export type HideSeekPhase = 'hiding' | 'seeking' | 'roundOver' | 'ended'
 
 /** caught: every hider is in jail; altars: the hiders lit enough altars; time: the hiders ran out of time;
  * left: the other side left */
-export type HideSeekEndReason = 'caught' | 'altars' | 'escaped' | 'time' | 'left'
+export type HideSeekEndReason = 'caught' | 'altars' | 'escaped' | 'time' | 'left' | 'survived'
 
 // ==========================================
 // Altars (the hiders' objective)

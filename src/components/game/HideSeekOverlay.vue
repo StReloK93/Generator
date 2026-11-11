@@ -18,7 +18,7 @@
               :class="hideSeekStore.exitsOpen ? 'border-emerald-400/70 animate-pulse' : hideSeekStore.isHunting ? 'border-rose-500/70 animate-pulse' : hideSeekStore.phase === 'hiding' ? 'border-amber-500/40' : 'border-slate-700/80'"
               :title="bannerText"
             >
-              <Timer class="size-3.5 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : 'text-rose-300'" />
+              <component :is="hideSeekStore.isCurse && hideSeekStore.phase === 'seeking' ? Flame : Timer" class="size-3.5 shrink-0" :class="hideSeekStore.phase === 'hiding' ? 'text-amber-300' : hideSeekStore.isCurse ? 'text-fuchsia-300 animate-pulse' : 'text-rose-300'" />
               <span class="text-xs font-black tabular-nums text-amber-300">{{ formattedTime }}</span>
             </div>
           </template>
@@ -80,13 +80,19 @@
       <span class="flex items-center gap-1.5"><MousePointerClick class="size-3" />{{ $t('hideseek.clickHint') }}</span>
       <span class="flex items-center gap-1.5"><Move class="size-3" />{{ $t('hideseek.moveHint') }}</span>
       <span class="flex items-center gap-1.5"><Footprints class="size-3" />{{ $t('hideseek.sneakHint') }}</span>
+      <!-- The curse: its own rule in one line (altars, chains and candles belong to hide & seek) -->
+      <span v-if="hideSeekStore.isCurse" class="flex items-start gap-1.5 text-fuchsia-200/80">
+        <Skull class="size-3 shrink-0 mt-px" />{{ $t('maps.howto.curse.1') }} {{ $t('maps.howto.curse.2') }}
+      </span>
+      <template v-else>
       <span class="flex items-start gap-1.5 text-amber-200/70">
         <Gem class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.chestHintSeeker') : $t('hideseek.chestHintHider') }}
       </span>
       <span class="flex items-start gap-1.5">
         <DoorOpen class="size-3 shrink-0 mt-px" />{{ isSeeker ? $t('hideseek.propHintSeeker') : $t('hideseek.propHintHider') }}
       </span>
-      <span v-if="isSeeker" class="flex items-start gap-1.5">
+      </template>
+      <span v-if="isSeeker && !hideSeekStore.isCurse" class="flex items-start gap-1.5">
         <Lamp class="size-3 shrink-0 mt-px" />{{ $t('hideseek.candleHint') }}
       </span>
       <span v-for="ability in abilityButtons" :key="ability.key" class="flex items-start gap-1.5 text-sky-200/80">
@@ -189,9 +195,33 @@
     </div>
   </UiModal>
 
+  <!-- Solo curse: me against bots, everyone for themselves -->
+  <UiModal
+    :is-open="hideSeekStore.isActive && hideSeekStore.needsSoloRole && hideSeekStore.isCurse"
+    :title="$t('curse.soloTitle')"
+    :subtitle="$t('curse.soloSubtitle')"
+    :icon="Skull"
+    icon-color="rose"
+    size="sm"
+    :show-close="false"
+    :close-on-backdrop="false"
+    :close-on-escape="false"
+  >
+    <div class="flex flex-col gap-2">
+      <UiTabs v-model="curseBots" :items="curseBotOptions" variant="segmented" size="sm" fill />
+      <HideSeekHeroPicker v-model="soloHero" />
+      <UiButton variant="game-green" size="lg" block :leading-icon="Skull" @click="startCurse">
+        {{ $t('curse.start') }}
+      </UiButton>
+      <UiButton variant="ghost" size="md" block :leading-icon="LogOut" @click="exitGame">
+        {{ $t('hideseek.exit') }}
+      </UiButton>
+    </div>
+  </UiModal>
+
   <!-- Solo: pick a role for the whole match (a bot plays the other one) -->
   <UiModal
-    :is-open="hideSeekStore.isActive && hideSeekStore.needsSoloRole"
+    :is-open="hideSeekStore.isActive && hideSeekStore.needsSoloRole && !hideSeekStore.isCurse"
     :title="$t('hideseek.soloTitle')"
     :subtitle="$t('hideseek.soloSubtitle')"
     :icon="Gem"
@@ -241,7 +271,7 @@
     :close-on-escape="false"
   >
     <div class="flex flex-col gap-2">
-      <span class="text-[11px] font-semibold" :class="hideSeekStore.didIWin ? 'text-emerald-300' : 'text-rose-300'">
+      <span class="text-[11px] font-semibold" :class="iWonRound ? 'text-emerald-300' : 'text-rose-300'">
         {{ roundLine }}
       </span>
       <ul class="flex flex-col gap-1">
@@ -255,6 +285,7 @@
           <span class="size-2 rounded-full shrink-0" :style="{ backgroundColor: row.color }" />
           <span class="flex-1 min-w-0 truncate font-semibold text-slate-100">{{ row.name }}</span>
           <Crown v-if="isMatchOver && row.id === hideSeekStore.champion" class="size-3.5 text-amber-300" />
+          <Skull v-else-if="hideSeekStore.isCurse && isRoundOver && row.jailed" class="size-3.5 text-slate-500" />
           <span class="font-black tabular-nums text-amber-300">{{ row.score }}</span>
         </li>
       </ul>
@@ -281,7 +312,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Waypoints, Eye, UserRound } from 'lucide-vue-next'
+import { Flame, Shield, EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Waypoints, Eye, UserRound } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -292,7 +323,7 @@ import HideSeekHeroPicker from './HideSeekHeroPicker.vue'
 import { ABILITY_ICONS, ABILITY_KEYS } from './hideSeekTraitInfo'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useI18n } from '../../stores/i18nStore'
-import { hideSeekAudio } from '../../services/hideSeekAudio'
+import { gameAudio } from '../../services/gameAudio'
 import { haptic } from '../../services/telegram'
 import { useSettingsStore } from '../../stores/settingsStore'
 
@@ -330,8 +361,17 @@ const soloHero = ref(DEFAULT_HERO_MODEL)
 /** Room game: the hero I am about to pick (the match waits until everyone picked) */
 const roomHero = ref(DEFAULT_HERO_MODEL)
 
+/** Solo curse: how many bots run the labyrinth with me */
+const curseBotOptions = computed<TabItem[]>(() => [3, 5, 7].map(n => ({ id: n, label: t('curse.bots', { n }) })))
+const curseBots = ref<string | number>(5)
+
+function startCurse() {
+  gameAudio.unlock()
+  hideSeekStore.startCurseSolo(Number(curseBots.value), soloHero.value)
+}
+
 function startSolo(role: HideSeekRole) {
-  hideSeekAudio.unlock()
+  gameAudio.unlock()
   hideSeekStore.startSoloRound(role, Number(soloTeamSize.value), soloHero.value)
 }
 
@@ -341,6 +381,10 @@ const isRoundOver = computed(() => hideSeekStore.phase === 'roundOver')
 const isMatchOver = computed(() => hideSeekStore.phase === 'ended')
 
 const bannerText = computed(() => {
+  if (hideSeekStore.isCurse) {
+    if (hideSeekStore.phase === 'hiding') return isSeeker.value ? t('curse.scatterCursed') : t('curse.scatterFree')
+    return isSeeker.value ? t('curse.huntCursed') : t('curse.huntFree')
+  }
   if (hideSeekStore.phase === 'hiding') {
     return isSeeker.value ? t('hideseek.phaseHidingSeeker') : t('hideseek.phaseHidingHider')
   }
@@ -352,6 +396,13 @@ const bannerText = computed(() => {
 /** One line under the banner: caught, inside a barrel, holding a chain. */
 const status = computed(() => {
   if (!isPlaying.value) return null
+  if (hideSeekStore.isCurse) {
+    if (hideSeekStore.isJailed) return { text: t('curse.stone'), icon: Skull, cls: 'border-slate-500/50 text-slate-200' }
+    if (hideSeekStore.dazedLeft > 0) return { text: t('curse.stunned', { s: hideSeekStore.dazedLeft }), icon: Skull, cls: 'border-fuchsia-400/60 text-fuchsia-200' }
+    if (hideSeekStore.isProtected) return { text: t('curse.protected'), icon: Shield, cls: 'border-sky-400/60 text-sky-200' }
+    if (hideSeekStore.isHidden) return { text: t('hideseek.hiddenHint'), icon: Package, cls: 'border-emerald-500/40 text-emerald-200' }
+    return { text: isSeeker.value ? t('curse.huntCursed') : t('curse.huntFree'), icon: isSeeker.value ? Skull : Footprints, cls: isSeeker.value ? 'border-fuchsia-400/60 text-fuchsia-200' : 'border-emerald-500/40 text-emerald-200' }
+  }
   if (hideSeekStore.isJailed) return { text: t('hideseek.jailed'), icon: Lock, cls: 'border-slate-500/50 text-slate-200' }
   if (hideSeekStore.aimingSlot >= 0) return { text: t('hideseek.aimBlink'), icon: Waypoints, cls: 'border-purple-400/60 text-purple-200' }
   if (hideSeekStore.isSensed) return { text: t('hideseek.sensed'), icon: Eye, cls: 'border-rose-400/60 text-rose-200' }
@@ -371,36 +422,51 @@ const RESULT_KEYS = {
   escaped: 'hideseek.reasonEscaped',
   time: 'hideseek.reasonTime',
   left: 'hideseek.reasonLeft',
+  survived: 'hideseek.reasonSurvived',
 } as const
 
 /** Rounds won: seekers : hiders */
 const roundScore = computed(() => `${hideSeekStore.roundWins.seeker} : ${hideSeekStore.roundWins.hider}`)
 
 /** The match is won by a side (the roles stay for the whole match) */
+/** Curse: the one still standing when the round ended (nobody if the last two burnt together) */
+const survivor = computed(() => (hideSeekStore.isCurse ? (hideSeekStore.scores.find(row => !row.jailed) ?? null) : null))
+const championName = computed(() => hideSeekStore.scores.find(row => row.id === hideSeekStore.champion)?.name ?? '')
+
 const resultTitle = computed(() => {
   if (isRoundOver.value) return t('hideseek.roundOver', { n: hideSeekStore.round })
+  if (hideSeekStore.isCurse) return hideSeekStore.champion ? t('curse.championWon', { name: championName.value }) : t('hideseek.draw')
   const side = hideSeekStore.matchWinner
   if (!side) return t('hideseek.draw')
   return t(side === 'seeker' ? 'hideseek.seekersWonMatch' : 'hideseek.hidersWonMatch', { score: roundScore.value })
 })
 
-const iWonMatch = computed(() => hideSeekStore.matchWinner !== null && hideSeekStore.matchWinner === hideSeekStore.myRole)
+const iWonMatch = computed(() =>
+  hideSeekStore.isCurse
+    ? hideSeekStore.champion === multiplayerStore.myPlayerId
+    : hideSeekStore.matchWinner !== null && hideSeekStore.matchWinner === hideSeekStore.myRole
+)
+/** Won the round that just ended: my side won it, or (curse) I am the one still standing */
+const iWonRound = computed(() => (hideSeekStore.isCurse ? survivor.value?.isMe === true : hideSeekStore.didIWin))
+/** The curse ranks single players: the match has a winner when it has a champion */
+const hasMatchWinner = computed(() => (hideSeekStore.isCurse ? hideSeekStore.champion !== null : hideSeekStore.matchWinner !== null))
 
 const resultSubtitle = computed(() => (hideSeekStore.endReason ? t(RESULT_KEYS[hideSeekStore.endReason]) : ''))
 
 const resultIcon = computed(() => {
   if (isRoundOver.value) return Flag
-  if (!hideSeekStore.matchWinner) return Scale
+  if (!hasMatchWinner.value) return Scale
   return iWonMatch.value ? Trophy : Skull
 })
 
 const resultColor = computed(() => {
-  if (isRoundOver.value || !hideSeekStore.matchWinner) return 'cyan' as const
+  if (isRoundOver.value || !hasMatchWinner.value) return 'cyan' as const
   return iWonMatch.value ? ('amber' as const) : ('rose' as const)
 })
 
 /** Who won the round that just ended, from my side's point of view */
 const roundLine = computed(() => {
+  if (hideSeekStore.isCurse) return survivor.value ? t('curse.survivor', { name: survivor.value.name }) : t('curse.noSurvivor')
   const side = hideSeekStore.winner === 'seeker' ? t('hideseek.seekerWonRound') : t('hideseek.hidersWonRound')
   return `${hideSeekStore.didIWin ? t('hideseek.youWin') : t('hideseek.youLose')} · ${side}`
 })
@@ -414,7 +480,7 @@ const isMapLarge = ref(false)
 
 function run(action: () => void) {
   return () => {
-    hideSeekAudio.unlock()
+    gameAudio.unlock()
     action()
   }
 }
@@ -460,7 +526,12 @@ watch(
 )
 
 /** Abilities first; seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
-const gadgetButtons = computed(() => [...abilityButtons.value, ...roleButtons.value.map(b => ({ ...b, timer: null }))])
+/** The curse has no traps, candles or chains: only the use button (open / hide in a barrel) besides the abilities */
+const CURSE_GADGETS = ['E']
+const gadgetButtons = computed(() => [
+  ...abilityButtons.value,
+  ...roleButtons.value.filter(b => !hideSeekStore.isCurse || CURSE_GADGETS.includes(b.key)).map(b => ({ ...b, timer: null })),
+])
 const roleButtons = computed(() =>
   isSeeker.value
     ? [
@@ -539,7 +610,7 @@ const stickBaseStyle = computed(() =>
 function onStickDown(e: PointerEvent) {
   const zone = stickZoneRef.value
   if (stickPointer !== null || !zone) return
-  hideSeekAudio.unlock()
+  gameAudio.unlock()
   stickPointer = e.pointerId
   zone.setPointerCapture(e.pointerId)
   const rect = zone.getBoundingClientRect()

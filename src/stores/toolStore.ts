@@ -57,6 +57,7 @@ export const useToolStore = defineStore('toolStore', () => {
     td: isGameConfigModalOpen,
     hero: isHeroConfigModalOpen,
     hideseek: isHideSeekConfigModalOpen,
+    curse: isHideSeekConfigModalOpen,
   }
 
   function isModeSettingsOpen(mode: MapGameMode): boolean {
