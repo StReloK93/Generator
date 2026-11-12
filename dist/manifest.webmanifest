@@ -6,13 +6,20 @@
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "display_override": [
+    "fullscreen",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
-  "background_color": "#090d16",
+  "background_color": "#0d1b32",
   "theme_color": "#090d16",
   "lang": "uz",
   "dir": "ltr",
-  "categories": ["games", "strategy"],
+  "categories": [
+    "games",
+    "strategy"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -31,12 +38,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }
