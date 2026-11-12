@@ -19,6 +19,8 @@
  */
 /* Short landscape phones: compact layouts */
 @custom-variant short (@media (max-height: 480px));
+/* A tall upright phone: room for a bigger home screen */
+@custom-variant tall (@media (orientation: portrait) and (min-height: 760px));
 
 @theme {
   --color-slate-50: #f8f5f0;
@@ -105,17 +107,91 @@
 }
 
 /* Route transitions: opacity only (scaling a full-screen WebGL canvas resamples and flickers) */
+/* Page to page: the old page sinks back and fades, the new one rises out of a soft blur */
 .game-page-enter-active {
-  transition: opacity 0.22s ease-out;
+  transition: opacity 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.34s ease-out;
 }
-
 .game-page-leave-active {
-  transition: opacity 0.16s ease-in;
+  transition: opacity 0.18s ease-in, transform 0.18s ease-in, filter 0.18s ease-in;
 }
-
-.game-page-enter-from,
+.game-page-enter-from {
+  opacity: 0;
+  transform: translateY(14px) scale(0.985);
+  filter: blur(6px);
+}
 .game-page-leave-to {
   opacity: 0;
+  transform: scale(1.015);
+  filter: blur(4px);
+}
+
+/* A page's parts come up one after the other (delay them with [animation-delay:...]) */
+.page-rise {
+  animation: page-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes page-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The picked map's details change with a short fade */
+.detail-swap-enter-active,
+.detail-swap-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.detail-swap-enter-from {
+  opacity: 0;
+  transform: translateX(8px);
+}
+.detail-swap-leave-to {
+  opacity: 0;
+}
+
+/* Icon button of the menus (settings, back): flat, no rim; a soft tile shows only under the finger */
+.icon-gold {
+  border-radius: 0.75rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--color-brand-200) !important;
+  transition: color 0.2s, background-color 0.2s, transform 0.15s;
+}
+.icon-gold svg {
+  width: 1.375rem !important;
+  height: 1.375rem !important;
+}
+.icon-gold:hover {
+  background: color-mix(in oklab, var(--color-brand-300) 10%, transparent) !important;
+  color: var(--color-brand-100) !important;
+}
+.icon-gold:active {
+  background: color-mix(in oklab, var(--color-brand-300) 16%, transparent) !important;
+  transform: scale(0.92);
+}
+/* The gear turns a little when touched */
+.spin-icon svg {
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.spin-icon:hover svg,
+.spin-icon:active svg {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page-enter-active,
+  .game-page-leave-active,
+  .detail-swap-enter-active,
+  .detail-swap-leave-active {
+    transition: opacity 0.15s;
+  }
+  .game-page-enter-from,
+  .game-page-leave-to {
+    transform: none;
+    filter: none;
+  }
+  .page-rise {
+    animation: none;
+  }
 }
 
 /* Custom modern scrollbars */

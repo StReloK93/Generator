@@ -164,7 +164,8 @@ export type MatchEvent =
   | { kind: 'chain'; hider: string; seeker: string }
   /** dazed: the chain ran out (the seeker stands dazed); otherwise the seeker was freed or the hider caught */
   | { kind: 'chainEnd'; hider: string; seeker: string; dazed: boolean }
-  | { kind: 'caught'; id: string }
+  /** by: the seeker who caught (none when nobody did: the curse's fuse burnt out) */
+  | { kind: 'caught'; id: string; by?: string }
   /** Curse genre: the curse jumped from one player to another */
   | { kind: 'cursed'; from: string; to: string }
   | { kind: 'freed'; id: string; by: string }
@@ -386,7 +387,7 @@ function jail(match: HideSeekMatch, hider: HideSeekSeat, seeker: HideSeekSeat | 
     seeker.score += settings.scoreCatch
     seeker.catches++
   }
-  events.push({ kind: 'caught', id: hider.id })
+  events.push({ kind: 'caught', id: hider.id, by: seeker?.id })
 }
 
 function allHidersJailed(match: HideSeekMatch, present: Set<string>): boolean {

@@ -20,6 +20,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { haptic } from '../../services/telegram'
+import { gameAudio } from '../../services/gameAudio'
 
 export type IconButtonVariant = 'default' | 'tool' | 'ghost' | 'danger' | 'success' | 'amber'
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg'
@@ -52,6 +53,7 @@ const emit = defineEmits<{
 /** Every tap gives a light vibration in Telegram */
 function onClick(event: MouseEvent) {
   haptic()
+  gameAudio.playTap()
   emit('click', event)
 }
 

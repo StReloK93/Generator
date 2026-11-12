@@ -31,6 +31,11 @@ export function renderMapPreview(key: string, project: MapProject, assets: Map<s
   return preview
 }
 
+/** The map behind `key` changed: its picture is drawn again next time. */
+export function forgetMapPreview(key: string): void {
+  previews.delete(key)
+}
+
 async function draw(project: MapProject, assets: Map<string, AssetItem>): Promise<string> {
   const width = PREVIEW_WIDTH * SUPERSAMPLE
   const height = PREVIEW_HEIGHT * SUPERSAMPLE

@@ -68,6 +68,8 @@ export interface HideSeekViewContext {
   rows: number
   /** Curse genre: the seeker role is the curse carrier, the jailed have turned to stone */
   curse: boolean
+  /** A caught player's teleport to the jail (out: leaving, in: arriving; t 0..1) */
+  teleportOf: (id: string) => { phase: 'out' | 'in'; t: number } | null
 }
 
 /** Everything in sight is evenly lit; only the last stretch (tiles) of each direction fades into the dark */
@@ -140,7 +142,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         ? [{ from: { col: hider.col, row: hider.row }, to: { col: seeker.col, row: seeker.row }, left: Math.max(0, chain.timeLeft / settings.chainTime) }]
         : []
     }),
-    spots: match.spots.map((s, i) => ({ col: s.col, row: s.row, kind: s.kind, facing: s.facing, occupied: me?.hidden === i })),
+    spots: match.spots.map((s, i) => ({ col: s.col, row: s.row, kind: s.kind, facing: s.facing, asset: s.asset, occupied: me?.hidden === i })),
     doors: (ctx.maze?.doors ?? []).flatMap((door, i) =>
       door.edges.map(edge => ({ ...edgePlacement(edge, ctx.cols), open: !!match.doors[i] }))
     ),
@@ -195,6 +197,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         model: p.model,
         color: p.color,
         isMe: p === me,
+        teleport: ctx.teleportOf(p.id),
         jailed,
         cursed: ctx.curse && !over && !jailed && seat?.role === 'seeker',
         stone: ctx.curse && jailed,

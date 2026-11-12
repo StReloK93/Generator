@@ -4,6 +4,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import express from 'express'
 import { createMultiplayerApp } from './multiplayer.js'
+import { createMapsApp } from './maps.js'
+import { createAdminAuth } from './admin.js'
+import { createOnline } from './online.js'
 import { startTurnServer } from './turn.js'
 import { startTelegramBot } from './telegramBot.js'
 
@@ -21,6 +24,14 @@ const distDir = path.join(rootDir, 'dist')
 const app = express()
 const server = http.createServer(app)
 
+// Built-in maps, changed from the editor by the signed-in admin (ADMIN_LOGIN / ADMIN_PASSWORD; MAPS_DIR: where the maps
+// live, default src/maps)
+const admin = createAdminAuth({ login: process.env.ADMIN_LOGIN, password: process.env.ADMIN_PASSWORD })
+const mapsDir = process.env.MAPS_DIR ? path.resolve(rootDir, process.env.MAPS_DIR) : path.join(rootDir, 'src', 'maps')
+app.use(admin.app)
+app.use(createMapsApp({ mapsDir, auth: admin }))
+// Who is online, and the chat for all of them
+createOnline(server, { auth: admin })
 app.use(createMultiplayerApp(server))
 app.use(APP_BASE, express.static(distDir))
 // App routes (/game/<map>, /lobby/<room>, ...) are client side: a refresh or shared link gets the app shell

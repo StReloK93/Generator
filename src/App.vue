@@ -50,6 +50,7 @@
 
     <UiToastContainer />
     <UiConfirmModal />
+    <AdminLoginModal />
   </div>
 </template>
 
@@ -57,6 +58,8 @@
 import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UiToastContainer, UiConfirmModal } from './components/ui'
+import AdminLoginModal from './components/AdminLoginModal.vue'
+import { useOnlineStore } from './stores/onlineStore'
 import { initPwaAndOrientation, isPortrait } from './utils/pwaOrientation'
 import { initTelegram, lockPortrait, setClosingConfirmation, telegramStartRoom } from './services/telegram'
 import { lobbyPath } from './router/paths'
@@ -84,8 +87,11 @@ const router = useRouter()
 const PLAY_ROUTES = ['lobby', 'game', 'room-game', 'editor-game']
 const isPlaying = computed(() => PLAY_ROUTES.includes(String(route.name)))
 watchEffect(() => setClosingConfirmation(isPlaying.value))
-// The music belongs to the home page only
-watchEffect(() => backgroundMusic.setActive(route.name === 'home'))
+// The music belongs to the menu pages (home and multiplayer), not to the games and editors
+const MUSIC_ROUTES = ['home', 'play', 'multiplayer']
+watchEffect(() => backgroundMusic.setActive(MUSIC_ROUTES.includes(String(route.name))))
+// Online from the start: others see this player, the big chat and following work everywhere
+useOnlineStore().start(router)
 watchEffect(() => {
   if (isPortrait.value) lockPortrait()
 })

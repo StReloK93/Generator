@@ -47,6 +47,48 @@
         </div>
 
         <!-- ========================================== -->
+        <!-- TAB 0: THE GAME'S MAPS (server, src/maps)  -->
+        <!-- ========================================== -->
+        <div v-show="!isImporting && activeMode === 'maps'" class="flex flex-col gap-3 flex-1">
+          <p class="text-xs text-slate-400 px-1">{{ $t('library.hint') }}</p>
+          <!-- Only the admin changes the game maps -->
+          <div v-if="mapLibrary.needsLogin" class="flex items-center justify-between gap-3 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs text-amber-200">
+            <span class="flex items-center gap-2.5"><ShieldCheck class="size-4 shrink-0" />{{ $t('admin.needed') }}</span>
+            <UiButton variant="game-amber" size="xs" :leading-icon="LogIn" @click="admin.openSignIn()">{{ $t('admin.submit') }}</UiButton>
+          </div>
+          <div v-else-if="!mapLibrary.canWrite" class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-xs text-slate-300">
+            <CloudOff class="size-4 shrink-0 mt-0.5" />
+            <span>{{ $t('library.readOnly') }}</span>
+          </div>
+
+          <p v-if="gameMaps.length === 0" class="py-10 text-center text-sm text-slate-400">{{ $t('library.empty') }}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <UiCard v-for="map in gameMaps" :key="map.file" variant="default" padding="sm"
+              custom-class="flex items-center gap-3 group hover:border-amber-500/50">
+              <MapPreviewImage :map="map" class="w-24 aspect-2/1 rounded-lg shrink-0 border border-slate-800" />
+              <div class="min-w-0 flex-1 flex flex-col gap-1">
+                <h4 class="font-bold text-sm text-slate-100 group-hover:text-amber-300 transition-colors truncate">{{ map.name }}</h4>
+                <div class="flex items-center gap-2 text-[11px] text-slate-400">
+                  <UiBadge :variant="MAP_MODE_INFO[map.mode].badge" size="xs" :icon="MAP_MODE_INFO[map.mode].icon">
+                    {{ $t(MAP_MODE_INFO[map.mode].label) }}
+                  </UiBadge>
+                  <span class="font-mono">{{ map.cols }}×{{ map.rows }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <UiButton variant="game-amber" size="sm" @click="openGameMap(map)">{{ $t('common.open') }}</UiButton>
+                <template v-if="mapLibrary.canWrite">
+                  <UiIconButton variant="ghost" size="sm" :icon="Copy" :title="$t('library.copy')" :disabled="mapLibrary.isBusy"
+                    @click="copyGameMap(map)" />
+                  <UiIconButton variant="ghost" size="sm" :icon="Trash2" :title="$t('library.delete')" :disabled="mapLibrary.isBusy"
+                    custom-class="text-slate-400 hover:text-rose-400 hover:bg-rose-950/40" @click="deleteGameMap(map)" />
+                </template>
+              </div>
+            </UiCard>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
         <!-- TAB 1: CREATE NEW MAP                      -->
         <!-- ========================================== -->
         <!-- Step 1: the genre comes first (the editor then offers only that genre's tools and settings) -->
@@ -198,7 +240,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Sparkles, Upload, History, Trash2, Map, Package, ArrowLeft, ArrowRight } from 'lucide-vue-next'
+import { Sparkles, Upload, History, Trash2, Map, Package, ArrowLeft, ArrowRight, Copy, CloudOff, Library, LogIn, ShieldCheck } from 'lucide-vue-next'
+import { useAdminStore } from '../stores/adminStore'
+import MapPreviewImage from './home/MapPreviewImage.vue'
+import { useMapLibraryStore, type MapLibraryError } from '../stores/mapLibraryStore'
 import {
   UiModal,
   UiTabs,
@@ -229,7 +274,9 @@ import {
 import {
   sanitizeMapId,
   saveEditorDraft,
-  registerSessionCustomMap
+  registerSessionCustomMap,
+  getBuiltinMaps,
+  type MapSummary
 } from '../services/mapManager'
 import { buildFullProjectJsonPayload } from '../utils/exportHelpers'
 import { normalizeGameSettings } from '../domain/simulation/GameSettings'
@@ -252,6 +299,8 @@ const gameStore = useGameStore()
 const towerStore = useTowerStore()
 const heroStore = useHeroStore()
 const notify = useNotificationStore()
+const mapLibrary = useMapLibraryStore()
+const admin = useAdminStore()
 const { t } = useI18n()
 
 const isOpen = ref(false)
@@ -259,7 +308,7 @@ const isForcedMode = ref(false)
 const isImporting = ref(false)
 const importProgress = ref(0)
 const importStageMessage = ref('')
-const activeMode = ref<'new' | 'import' | 'recents'>('new')
+const activeMode = ref<'maps' | 'new' | 'import' | 'recents'>('maps')
 /** null until the genre is picked: a new map starts with picking its genre */
 const selectedGameMode = ref<MapGameMode | null>(null)
 const newProjectName = ref('')
@@ -269,8 +318,14 @@ const selectedPreset = ref("Medium")
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const recentProjects = ref<RecentProjectItem[]>([])
 
+/** The game's maps, by genre (in the editor's genre order), then by name */
+const gameMaps = computed(() =>
+  [...getBuiltinMaps()].sort((a, b) => MAP_GAME_MODES.indexOf(a.mode) - MAP_GAME_MODES.indexOf(b.mode) || a.name.localeCompare(b.name))
+)
+
 const tabItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [
+    { id: 'maps', label: t('library.tab'), icon: Library, count: gameMaps.value.length },
     { id: 'new', label: t('header.newMap'), icon: Sparkles },
     { id: 'import', label: t('common.import'), icon: Upload },
   ]
@@ -547,6 +602,43 @@ async function applyMapProject(rawData: any, options: { isAlreadyNormalized?: bo
   }
 }
 
+const LIBRARY_ERRORS: Record<Exclude<MapLibraryError, '' | 'changed'>, string> = {
+  login: 'admin.needed',
+  'saving-off': 'publish.savingOff',
+  failed: 'publish.failed',
+}
+
+function libraryFailed() {
+  const key = LIBRARY_ERRORS[mapLibrary.error as keyof typeof LIBRARY_ERRORS] ?? 'publish.failed'
+  notify.error(t(key))
+}
+
+/** Opens a game map in the editor (its unsaved edits, if any, come back with it) */
+function openGameMap(map: MapSummary) {
+  isForcedMode.value = false
+  isOpen.value = false
+  router.push(`/editor/${map.id}`)
+}
+
+async function copyGameMap(map: MapSummary) {
+  const copy = await mapLibrary.duplicate(map, t('library.copyName', { name: map.name }))
+  if (copy) notify.success(t('library.copied', { name: copy.name }))
+  else libraryFailed()
+}
+
+async function deleteGameMap(map: MapSummary) {
+  const ok = await notify.confirm({
+    title: t('library.delete'),
+    message: t('library.deleteConfirm', { name: map.name }),
+    confirmText: t('common.delete'),
+    cancelText: t('common.cancel'),
+    variant: 'danger',
+  })
+  if (!ok) return
+  if (await mapLibrary.remove(map)) notify.success(t('library.deleted', { name: map.name }))
+  else libraryFailed()
+}
+
 function openRecentProject(rec: RecentProjectItem) {
   applyMapProject({
     project: rec.project,
@@ -594,9 +686,10 @@ async function handleFileSelected(event: Event) {
 }
 
 defineExpose({
-  open: (mode: 'new' | 'import' | 'recents' = 'new', forced = false) => {
+  open: (mode: 'maps' | 'new' | 'import' | 'recents' = 'maps', forced = false) => {
     reloadRecents()
-    activeMode.value = mode === 'recents' && recentProjects.value.length === 0 ? 'new' : mode
+    activeMode.value =
+      (mode === 'recents' && recentProjects.value.length === 0) || (mode === 'maps' && gameMaps.value.length === 0) ? 'new' : mode
     selectedGameMode.value = null
     newProjectName.value = ''
     isForcedMode.value = forced

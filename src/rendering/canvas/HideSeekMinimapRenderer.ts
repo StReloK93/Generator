@@ -24,6 +24,22 @@ const HOME_EDGE = 'rgba(74, 222, 128, 0.35)'
 export class HideSeekMinimapRenderer {
   constructor(private readonly canvas: HTMLCanvasElement) {}
 
+  /** The diamond the map is drawn in: scale and origin for the canvas size */
+  private static layout(width: number, height: number, cols: number, rows: number) {
+    const s = Math.min(width / (cols + rows), (2 * height) / (cols + rows))
+    return { s, ox: width / 2 + ((rows - cols) * s) / 2, oy: (height - ((cols + rows) * s) / 2) / 2 }
+  }
+
+  /** The map cell under a point of the canvas (canvas pixels), or null off the map. */
+  public cellAt(x: number, y: number, cols: number, rows: number): GridCoord | null {
+    const { s, ox, oy } = HideSeekMinimapRenderer.layout(this.canvas.width, this.canvas.height, cols, rows)
+    const diff = (x - ox) / s
+    const sum = (2 * (y - oy)) / s
+    const col = (sum + diff) / 2
+    const row = (sum - diff) / 2
+    return col < 0 || row < 0 || col > cols || row > rows ? null : { col, row }
+  }
+
   public draw(view: HideSeekMinimapView): void {
     const ctx = this.canvas.getContext('2d')
     if (!ctx) return
@@ -31,9 +47,7 @@ export class HideSeekMinimapRenderer {
     ctx.clearRect(0, 0, width, height)
 
     // Isometric diamond fitted to the canvas: x = (col - row) * s, y = (col + row) * s / 2
-    const s = Math.min(width / (view.cols + view.rows), (2 * height) / (view.cols + view.rows))
-    const ox = width / 2 + ((view.rows - view.cols) * s) / 2
-    const oy = (height - ((view.cols + view.rows) * s) / 2) / 2
+    const { s, ox, oy } = HideSeekMinimapRenderer.layout(width, height, view.cols, view.rows)
     const at = (p: GridCoord) => ({ x: ox + (p.col - p.row) * s, y: oy + ((p.col + p.row) * s) / 2 })
 
     // Explored floor

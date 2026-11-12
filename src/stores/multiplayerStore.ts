@@ -24,6 +24,7 @@ import { useTowerStore } from './towerStore'
 // Used inside handlers only: the hide & seek store itself depends on this store
 import { useHideSeekStore } from './hideSeekStore'
 import { useNotificationStore } from './notificationStore'
+import { useOnlineStore } from './onlineStore'
 import { useI18n } from './i18nStore'
 import { MapProject } from '../types/map'
 import { getMapMode, isMazeMode } from '../domain/map'
@@ -135,6 +136,10 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
 
   // Computed
   const isHideSeekRoom = computed(() => isMazeMode(getMapMode(mapStore.project)))
+  /** The room asks for a password (the host knows its own; a guest reads it from the room list) */
+  const roomHasPassword = computed(() =>
+    isHost.value ? roomPassword.value !== '' : !!availableRooms.value.find(r => r.roomId === roomId.value)?.hasPassword
+  )
   /** Only hide & seek splits the room into seekers and hiders; in the curse everyone plays for themselves */
   const hasHideSeekTeams = computed(() => getMapMode(mapStore.project) === 'hideseek')
 
@@ -957,6 +962,8 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
       }
 
       case 'CHAT': {
+        // A banned player's messages are dropped (the host does not pass them on either)
+        if (useOnlineStore().bannedRoomPlayerIds.includes(msg.payload.senderId)) break
         chatMessages.value.push(msg.payload)
         if (isHost.value && msg.senderId !== myPlayerId.value) {
           networkService.broadcast(msg)
@@ -1336,6 +1343,12 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
   function sendChat(text: string) {
     const trimmed = text.trim()
     if (!trimmed) return
+    // A player banned by the admin writes in no chat
+    const bannedUntil = useOnlineStore().myBanUntil
+    if (bannedUntil) {
+      notify.error(t('online.bannedUntil', { time: new Date(bannedUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }))
+      return
+    }
 
     const chatMsg: ChatMessage = {
       id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -1642,6 +1655,7 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
     chatMessages,
     isAllReady,
     isHideSeekRoom,
+    roomHasPassword,
     hasHideSeekTeams,
     hideSeekSeekerSlots,
     hideSeekLobbyIssue,

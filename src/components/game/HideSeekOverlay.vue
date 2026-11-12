@@ -6,6 +6,36 @@
     :style="{ opacity: hideSeekStore.dangerLevel * 0.85 }"
   />
 
+  <!-- Who caught whom, for a moment -->
+  <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0 -translate-y-3 scale-95" leave-active-class="transition duration-200" leave-to-class="opacity-0">
+    <div v-if="hideSeekStore.catchNote" class="absolute top-24 inset-x-0 z-35 flex justify-center pointer-events-none pt-safe">
+      <div
+        class="flex items-center gap-2 rounded-full border px-3.5 py-1.5 backdrop-blur-md text-sm font-bold shadow-lg"
+        :class="hideSeekStore.catchNote.me ? 'bg-rose-950/80 border-rose-500/60 text-rose-100' : hideSeekStore.catchNote.mine ? 'bg-emerald-950/80 border-emerald-400/60 text-emerald-100' : 'bg-slate-950/80 border-sky-400/50 text-sky-100'"
+      >
+        <Lock class="size-4 shrink-0" />
+        {{ catchNoteText }}
+      </div>
+    </div>
+  </Transition>
+
+  <!-- Looking around the map: back to my hero -->
+  <div v-if="hideSeekStore.lookAt" class="absolute bottom-24 inset-x-0 z-35 flex justify-center pointer-events-none pb-safe">
+    <UiButton variant="regal-dark" size="sm" :leading-icon="Crosshair" custom-class="pointer-events-auto" @click="hideSeekStore.setLookAt(null)">
+      {{ $t('hideseek.backToHero') }}
+    </UiButton>
+  </div>
+
+  <!-- The count before the match: "2", "1", then the gong -->
+  <div v-if="hideSeekStore.startCount > 0" class="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+    <span
+      :key="hideSeekStore.startCount"
+      class="font-display font-black text-8xl text-brand-200 drop-shadow-[0_0_30px_rgba(233,182,60,0.6)] animate-in zoom-in-50 fade-in duration-300"
+    >
+      {{ hideSeekStore.startCount }}
+    </span>
+  </div>
+
   <!-- Top strip: clock first, then the indicators (menu / voice sit top-right, mr-24 leaves them room) -->
   <div class="absolute inset-x-0 top-0 z-30 pt-safe pl-safe pr-safe pointer-events-none">
     <div class="mr-24 flex flex-col items-start gap-1.5">
@@ -50,14 +80,17 @@
       :class="stick.active ? 'bg-slate-900/50 border-slate-500/60 opacity-100' : 'bg-slate-900/40 border-slate-600/40 opacity-60'"
       :style="stickBaseStyle"
     >
+      <!-- Inside this ring the hero sneaks, past it the hero runs -->
+      <div class="absolute inset-0 m-auto size-14 rounded-full border border-dashed border-slate-400/40" />
       <div
-        class="absolute top-1/2 left-1/2 size-12 -ml-6 -mt-6 rounded-full bg-brand-400/70 border-2 border-brand-200/70 shadow-lg"
+        class="absolute top-1/2 left-1/2 size-12 -ml-6 -mt-6 rounded-full border-2 shadow-lg transition-colors duration-150"
+        :class="stick.sneaking ? 'bg-emerald-400/70 border-emerald-200/70' : 'bg-brand-400/70 border-brand-200/70'"
         :style="{ transform: `translate(${stick.knobX}px, ${stick.knobY}px)` }"
       />
     </div>
   </div>
 
-  <!-- Touch screens walking by taps (the default): sneaking is a switch under the left thumb -->
+  <!-- Touch screens walking by taps (the default): sneaking is a switch under the left thumb (tap on, tap off) -->
   <div v-else class="hidden pointer-coarse:flex absolute left-0 bottom-0 z-30 pb-safe pl-safe flex-col items-center gap-1 pointer-events-none">
     <UiButton
       :variant="hideSeekStore.isSneaking ? 'game-green' : 'secondary'"
@@ -70,7 +103,7 @@
       <template #leading><Footprints class="size-6" /></template>
     </UiButton>
     <span class="rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold" :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'">
-      {{ $t('hideseek.sneak') }}
+      {{ hideSeekStore.isSneaking ? $t('hideseek.sneakOn') : $t('hideseek.sneak') }}
     </span>
   </div>
 
@@ -102,7 +135,8 @@
     </div>
   </div>
 
-  <!-- Skills around the right thumb: the main "use" button in the corner, the others on an arc around it -->
+  <!-- Skills around the right thumb: the strongest ability in the big corner button, the others on arcs around it
+       (barrels, doors and candles are used by tapping them on the map) -->
   <div class="absolute right-0 bottom-0 z-30 pb-safe pr-safe pointer-events-none">
     <div class="relative size-52 mr-1 mb-1">
       <UiButton
@@ -113,7 +147,7 @@
         :disabled="!hideSeekStore.canMove || gadget.count === 0 || gadget.blocked"
         :custom-class="[
           'absolute! p-0! rounded-full! pointer-events-auto backdrop-blur-md',
-          gadget.key === 'E' ? 'size-16 ring-2 ring-amber-400/40' : 'size-12',
+          gadget.key === mainKey ? 'size-16 ring-2 ring-amber-400/40' : 'size-12',
           gadget.timer && gadget.timer.cooldown > 0 ? 'disabled:opacity-100!' : '',
         ]"
         :style="gadgetPlaces[gadget.key]"
@@ -121,7 +155,7 @@
         @click="gadget.run"
       >
         <template #leading>
-          <component :is="gadget.icon" :class="gadget.key === 'E' ? 'size-7' : 'size-5'" />
+          <component :is="gadget.icon" :class="gadget.key === mainKey ? 'size-7' : 'size-5'" />
           <template v-if="gadget.timer">
             <!-- Working: the ring runs down, red and pulsing in its last seconds -->
             <svg v-if="gadget.timer.left > 0" class="absolute -inset-1 -rotate-90 pointer-events-none" viewBox="0 0 36 36">
@@ -152,21 +186,17 @@
     </div>
   </div>
 
-  <!-- Top right, under the menu: the minimap (tap to enlarge); with the joystick, holding the right half sneaks -->
+  <!-- Top right, under the menu: the minimap (tap to enlarge) -->
   <div class="absolute right-0 top-0 z-30 flex flex-col items-end gap-1.5 pointer-events-none pt-safe pr-safe">
     <div class="h-11 shrink-0" />
     <HideSeekMinimap
       class="pointer-events-auto cursor-pointer transition-[width] duration-200"
-      :class="isMapLarge ? 'w-72 sm:w-96 portrait:w-64' : 'w-32 sm:w-44'"
+      :class="isMapLarge ? 'w-72 sm:w-96 portrait:w-64 short:w-56' : 'w-32 sm:w-44 short:w-28'"
       :title="$t('hideseek.map')"
-      @click="isMapLarge = !isMapLarge"
+      @tap="onMapTap"
     />
-    <span
-      v-if="settings.controls === 'joystick'"
-      class="hidden pointer-coarse:flex items-center gap-1 rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold transition-colors"
-      :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'"
-    >
-      <Footprints class="size-3" />{{ hideSeekStore.isSneaking ? $t('hideseek.sneak') : $t('hideseek.sneakTouchHint') }}
+    <span v-if="isMapLarge" class="rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+      {{ $t('hideseek.mapLookHint') }}
     </span>
   </div>
 
@@ -178,11 +208,12 @@
     :icon="UserRound"
     icon-color="amber"
     size="sm"
+    custom-class="short:max-w-3xl"
     :show-close="false"
     :close-on-backdrop="false"
     :close-on-escape="false"
   >
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 short:grid short:grid-cols-[1fr_15rem] short:items-end">
       <template v-if="hideSeekStore.needsHero">
         <HideSeekHeroPicker v-model="roomHero" />
         <UiButton variant="game-green" size="lg" block @click="multiplayerStore.selectHeroModel(roomHero)">
@@ -203,19 +234,25 @@
     :icon="Skull"
     icon-color="rose"
     size="sm"
+    custom-class="short:max-w-3xl"
     :show-close="false"
     :close-on-backdrop="false"
     :close-on-escape="false"
   >
-    <div class="flex flex-col gap-2">
-      <UiTabs v-model="curseBots" :items="curseBotOptions" variant="segmented" size="sm" fill />
-      <HideSeekHeroPicker v-model="soloHero" />
-      <UiButton variant="game-green" size="lg" block :leading-icon="Skull" @click="startCurse">
-        {{ $t('curse.start') }}
-      </UiButton>
-      <UiButton variant="ghost" size="md" block :leading-icon="LogOut" @click="exitGame">
-        {{ $t('hideseek.exit') }}
-      </UiButton>
+    <!-- Sideways: the choices and heroes on the left, starting on the right -->
+    <div class="flex flex-col gap-2 short:flex-row short:items-start">
+      <div class="flex flex-col gap-2 short:flex-1 short:min-w-0">
+        <UiTabs v-model="curseBots" :items="curseBotOptions" variant="segmented" size="sm" fill />
+        <HideSeekHeroPicker v-model="soloHero" />
+      </div>
+      <div class="flex flex-col gap-2 short:w-52 short:shrink-0">
+        <UiButton variant="game-green" size="lg" block :leading-icon="Skull" @click="startCurse">
+          {{ $t('curse.start') }}
+        </UiButton>
+        <UiButton variant="ghost" size="sm" block :leading-icon="LogOut" @click="exitGame">
+          {{ $t('hideseek.exit') }}
+        </UiButton>
+      </div>
     </div>
   </UiModal>
 
@@ -227,15 +264,20 @@
     :icon="Gem"
     icon-color="amber"
     size="sm"
+    custom-class="short:max-w-3xl"
     :show-close="false"
     :close-on-backdrop="false"
     :close-on-escape="false"
   >
-    <div class="flex flex-col gap-2">
-      <!-- Team size: the player plus bot teammates against as many bots -->
-      <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
-      <!-- Hero: each has a trait and three abilities (Q / F / G) -->
-      <HideSeekHeroPicker v-model="soloHero" />
+    <!-- Sideways: team size and heroes on the left, the two roles (they start the match) on the right -->
+    <div class="flex flex-col gap-2 short:flex-row short:items-start">
+      <div class="flex flex-col gap-2 short:flex-1 short:min-w-0">
+        <!-- Team size: the player plus bot teammates against as many bots -->
+        <UiTabs v-model="soloTeamSize" :items="TEAM_SIZES" variant="segmented" size="sm" fill />
+        <!-- Hero: each has a trait and three abilities (Q / F / G) -->
+        <HideSeekHeroPicker v-model="soloHero" />
+      </div>
+      <div class="flex flex-col gap-2 short:w-52 short:shrink-0">
       <UiCard
         v-for="option in SOLO_ROLES"
         :key="option.role"
@@ -252,15 +294,16 @@
           <span class="text-[11px] text-slate-400">{{ $t(option.desc) }}</span>
         </div>
       </UiCard>
-      <UiButton variant="ghost" size="md" block :leading-icon="LogOut" @click="exitGame">
+      <UiButton variant="ghost" size="sm" block :leading-icon="LogOut" @click="exitGame">
         {{ $t('hideseek.exit') }}
       </UiButton>
+      </div>
     </div>
   </UiModal>
 
   <!-- Round over (break before the next round) and the final standings -->
   <UiModal
-    :is-open="hideSeekStore.isActive && !hideSeekStore.needsSoloRole && (isRoundOver || isMatchOver)"
+    :is-open="hideSeekStore.isActive && !hideSeekStore.needsSoloRole && !hideSeekStore.isTeleporting && (isRoundOver || isMatchOver)"
     :title="resultTitle"
     :subtitle="resultSubtitle"
     :icon="resultIcon"
@@ -300,7 +343,7 @@
           <UiButton variant="game-green" size="lg" block :leading-icon="RotateCcw" @click="hideSeekStore.chooseSoloRole()">
             {{ $t('hideseek.playAgain') }}
           </UiButton>
-          <UiButton variant="ghost" size="md" block :leading-icon="LogOut" @click="exitGame">
+          <UiButton variant="ghost" size="sm" block :leading-icon="LogOut" @click="exitGame">
             {{ $t('hideseek.exit') }}
           </UiButton>
         </template>
@@ -310,9 +353,10 @@
 </template>
 
 <script setup lang="ts">
+import type { GridCoord } from '../../types/map'
 import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Flame, Shield, EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Hand, Lamp, Link, Sparkles, Waypoints, Eye, UserRound } from 'lucide-vue-next'
+import { Flame, Shield, EyeOff, Search, Footprints, Trophy, Skull, Undo2, Gem, LogOut, RotateCcw, Crown, Lock, Package, Flag, Scale, DoorOpen, Timer, Move, MousePointerClick, Bell, Lamp, Link, Sparkles, Waypoints, Eye, UserRound, Crosshair } from 'lucide-vue-next'
 import { UiButton, UiCard, UiModal, UiTabs, type TabItem } from '../ui'
 import HideSeekPanel from './HideSeekPanel.vue'
 import HideSeekMinimap from './HideSeekMinimap.vue'
@@ -486,6 +530,25 @@ function run(action: () => void) {
 }
 
 
+/** The small map grows on a tap; on the big map a tap looks at that spot (the camera goes there, the map shrinks) */
+function onMapTap(cell: GridCoord | null) {
+  if (!isMapLarge.value) {
+    isMapLarge.value = true
+    return
+  }
+  isMapLarge.value = false
+  if (cell) hideSeekStore.setLookAt(cell)
+}
+
+/** "You caught X" / "X caught you" / "X caught Y" */
+const catchNoteText = computed(() => {
+  const note = hideSeekStore.catchNote
+  if (!note) return ''
+  if (note.mine) return t('hideseek.youCaught', { name: note.caught })
+  if (note.me) return t('hideseek.caughtYou', { name: note.catcher ?? '' })
+  return t('hideseek.someoneCaught', { catcher: note.catcher ?? '', name: note.caught })
+})
+
 /** An ability button's timers: what it started still runs (left of total), then its cooldown */
 interface AbilityTimer {
   left: number
@@ -525,22 +588,27 @@ watch(
   }
 )
 
-/** Abilities first; seeker: bell trap, candle, open; hider: hide in a barrel, chain. count null = unlimited */
-/** The curse has no traps, candles or chains: only the use button (open / hide in a barrel) besides the abilities */
-const CURSE_GADGETS = ['E']
+/**
+ * Abilities first, then the role's gadgets (seeker: bell trap, candle; hider: chain); the curse has no gadgets.
+ * Opening, hiding, doors and candles need no button: tapping the barrel / door / candle on the map does it (E on a
+ * keyboard). count null = unlimited
+ */
 const gadgetButtons = computed(() => [
   ...abilityButtons.value,
-  ...roleButtons.value.filter(b => !hideSeekStore.isCurse || CURSE_GADGETS.includes(b.key)).map(b => ({ ...b, timer: null })),
+  ...(hideSeekStore.isCurse ? [] : roleButtons.value.map(b => ({ ...b, timer: null }))),
 ])
+/** The strongest ability (the longest cooldown) takes the big corner button */
+const mainKey = computed(() => {
+  const strongest = [...hideSeekStore.myAbilities.entries()].sort(([, a], [, b]) => b.cooldownTotal - a.cooldownTotal)[0]
+  return strongest ? ABILITY_KEYS[strongest[0]] : ''
+})
 const roleButtons = computed(() =>
   isSeeker.value
     ? [
         { key: 'T', label: 'hideseek.trap', icon: Bell, count: hideSeekStore.gadgets.traps, active: false, blocked: false, run: run(hideSeekStore.dropTrap) },
         { key: 'C', label: 'hideseek.candle', icon: Lamp, count: hideSeekStore.gadgets.candles, active: false, blocked: false, run: run(hideSeekStore.setCandle) },
-        { key: 'E', label: 'hideseek.open', icon: Hand, count: null, active: false, blocked: false, run: run(hideSeekStore.useNearest) },
       ]
     : [
-        { key: 'E', label: 'hideseek.hide', icon: Package, count: null, active: hideSeekStore.isHidden, blocked: false, run: run(hideSeekStore.useNearest) },
         // Chain: unlocked by lighting an altar; the badge counts the cooldown down
         {
           key: 'R',
@@ -555,31 +623,23 @@ const roleButtons = computed(() =>
 )
 
 /**
- * Where each skill sits: the main "use" button (E) in the corner; the hero's abilities (Q / F / G) evenly on an inner
- * quarter circle around it (from its left up to above it), the role's gadgets on an outer one between them. Every one is
- * a short thumb move away. Offsets are from the box's corner.
+ * Where each skill sits, in a tidy corner: the strongest ability in the corner, the other abilities stacked straight
+ * above it, the role's gadgets in a row to its left. Offsets are from the box's corner.
  */
 const USE_SIZE = 64
 const SKILL_SIZE = 48
-const INNER_RADIUS = 88
-const OUTER_RADIUS = 150
-/** Outer ring: from this angle (left) to that one (up), between the inner buttons */
-const OUTER_FROM = 162
-const OUTER_TO = 108
+const SKILL_GAP = 10
 const gadgetPlaces = computed<Record<string, { right: string; bottom: string }>>(() => {
-  const offset = USE_SIZE / 2 - SKILL_SIZE / 2
-  const places: Record<string, { right: string; bottom: string }> = { E: { right: '0px', bottom: '0px' } }
-  const ring = (keys: string[], radius: number, from: number, to: number) =>
-    keys.forEach((key, i) => {
-      const degrees = keys.length === 1 ? (from + to) / 2 : from - (i * (from - to)) / (keys.length - 1)
-      const angle = (degrees * Math.PI) / 180
-      places[key] = {
-        right: `${Math.round(offset - Math.cos(angle) * radius)}px`,
-        bottom: `${Math.round(offset + Math.sin(angle) * radius)}px`,
-      }
-    })
-  ring(abilityButtons.value.map(g => g.key), INNER_RADIUS, 180, 90)
-  ring(roleButtons.value.map(g => g.key).filter(key => key !== 'E'), OUTER_RADIUS, OUTER_FROM, OUTER_TO)
+  const centre = (USE_SIZE - SKILL_SIZE) / 2
+  const step = SKILL_SIZE + SKILL_GAP
+  const places: Record<string, { right: string; bottom: string }> = { [mainKey.value]: { right: '0px', bottom: '0px' } }
+  abilityButtons.value
+    .map(g => g.key)
+    .filter(key => key !== mainKey.value)
+    .forEach((key, i) => (places[key] = { right: `${centre}px`, bottom: `${USE_SIZE + SKILL_GAP + i * step}px` }))
+  if (!hideSeekStore.isCurse) {
+    roleButtons.value.forEach((g, i) => (places[g.key] = { right: `${USE_SIZE + SKILL_GAP + i * step}px`, bottom: `${centre}px` }))
+  }
   return places
 })
 
@@ -589,6 +649,8 @@ const STICK_RADIUS = 56
 /** The first part of a throw does nothing (a resting thumb never creeps); past FULL it runs at full speed */
 const STICK_DEAD_ZONE = 0.18
 const STICK_FULL = 0.6
+/** Pushed less than this far (the inner ring) the hero sneaks */
+const STICK_SNEAK = 0.5
 /** A touch that ends this soon, without sliding, is a tap on the map */
 const TAP_MS = 250
 const TAP_SLOP = 10
@@ -597,7 +659,7 @@ const emit = defineEmits<{ tap: [clientX: number, clientY: number] }>()
 
 const stickZoneRef = ref<HTMLElement | null>(null)
 /** Base centre (zone px) and knob offset; at rest the base waits in the corner as a hint */
-const stick = reactive({ active: false, x: 0, y: 0, knobX: 0, knobY: 0 })
+const stick = reactive({ active: false, x: 0, y: 0, knobX: 0, knobY: 0, sneaking: false })
 let stickPointer: number | null = null
 let stickTouch = { x: 0, y: 0, time: 0, moved: false }
 
@@ -638,15 +700,23 @@ function onStickMove(e: PointerEvent) {
   const reach = Math.min(len, STICK_RADIUS)
   stick.knobX = ux * reach
   stick.knobY = uy * reach
-  const strength = Math.min(1, Math.max(0, (reach / STICK_RADIUS - STICK_DEAD_ZONE) / (STICK_FULL - STICK_DEAD_ZONE)))
+  const tilt = reach / STICK_RADIUS
+  const strength = Math.min(1, Math.max(0, (tilt - STICK_DEAD_ZONE) / (STICK_FULL - STICK_DEAD_ZONE)))
+  // A gentle push (inside the inner ring) sneaks: slow and silent; pushed further it runs
+  const sneaking = tilt > STICK_DEAD_ZONE && tilt < STICK_SNEAK
+  if (sneaking !== stick.sneaking) {
+    stick.sneaking = sneaking
+    hideSeekStore.setSneakHeld(sneaking)
+  }
   hideSeekStore.setJoystick(ux * strength, uy * strength)
 }
 
 function onStickUp(e: PointerEvent, tapped = true) {
   if (e.pointerId !== stickPointer) return
   stickPointer = null
-  Object.assign(stick, { active: false, knobX: 0, knobY: 0 })
+  Object.assign(stick, { active: false, knobX: 0, knobY: 0, sneaking: false })
   hideSeekStore.setJoystick(0, 0)
+  hideSeekStore.setSneakHeld(false)
   if (tapped && !stickTouch.moved && performance.now() - stickTouch.time < TAP_MS) emit('tap', stickTouch.x, stickTouch.y)
 }
 </script>

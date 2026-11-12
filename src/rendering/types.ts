@@ -53,6 +53,8 @@ export interface HideSeekAvatarView {
   cursed: boolean
   /** Curse genre: turned to stone (grey, no chain ring) */
   stone: boolean
+  /** Caught: a beam of light takes them to the jail (out: fading away, in: appearing there; t 0..1) */
+  teleport?: { phase: 'out' | 'in'; t: number } | null
 }
 
 /** An altar as this player knows it: found by seeing it (a lit one is known to all). */
@@ -83,6 +85,8 @@ export interface HideSeekSpotView {
   kind: 'barrel' | 'cabinet'
   /** Sprite suffix: the way the cabinet's front faces */
   facing: 'E' | 'N' | 'S' | 'W'
+  /** The map's own sprite for it (a hand-made labyrinth) */
+  asset?: string
   /** The local player sits inside it */
   occupied: boolean
 }

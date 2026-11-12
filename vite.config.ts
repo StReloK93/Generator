@@ -1,20 +1,36 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 import { createMultiplayerApp } from './server/multiplayer.js'
+import { createMapsApp } from './server/maps.js'
+import { createAdminAuth } from './server/admin.js'
+import { createOnline } from './server/online.js'
 
-// Mounts the multiplayer backend (PeerJS signaling + room list) into the dev/preview server,
+const mapsDir = path.resolve(__dirname, 'src/maps')
+
+// Mounts the backend (admin sign-in, built-in maps, PeerJS signaling + room list) into the dev/preview server,
 // so frontend and server run as one — same as `npm start` in production.
-function multiplayerServerPlugin(): Plugin {
+// Map changes need the admin (ADMIN_LOGIN / ADMIN_PASSWORD in .env); without an admin account the dev server takes them
+// from anyone (it runs on the developer's own computer), preview from nobody.
+function multiplayerServerPlugin(env: Record<string, string>): Plugin {
+  const admin = createAdminAuth({ login: env.ADMIN_LOGIN, password: env.ADMIN_PASSWORD })
   return {
     name: 'defensor-multiplayer-server',
     configureServer(server) {
-      if (server.httpServer) server.middlewares.use(createMultiplayerApp(server.httpServer))
+      server.middlewares.use(admin.app)
+      server.middlewares.use(createMapsApp({ mapsDir, auth: admin, openWrites: true }))
+      if (!server.httpServer) return
+      server.middlewares.use(createMultiplayerApp(server.httpServer))
+      createOnline(server.httpServer, { auth: admin })
     },
     configurePreviewServer(server) {
-      if (server.httpServer) server.middlewares.use(createMultiplayerApp(server.httpServer))
+      server.middlewares.use(admin.app)
+      server.middlewares.use(createMapsApp({ mapsDir, auth: admin }))
+      if (!server.httpServer) return
+      server.middlewares.use(createMultiplayerApp(server.httpServer))
+      createOnline(server.httpServer, { auth: admin })
     },
   }
 }
@@ -62,13 +78,13 @@ function assetAtlasWatcherPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // Served from the domain root; set APP_BASE (e.g. /Generator/) to host under a sub-path
   base: process.env.APP_BASE || '/',
   plugins: [
     vue(),
     tailwindcss(),
-    multiplayerServerPlugin(),
+    multiplayerServerPlugin(loadEnv(mode, __dirname, '')),
     assetAtlasWatcherPlugin(),
   ],
   resolve: {
@@ -79,5 +95,7 @@ export default defineConfig({
   server: {
     host: true, // Listen on all local IPs (LAN support)
     port: 5173,
+    // Maps saved from the editor are read through /api/maps: a saved file must not reload the open pages
+    watch: { ignored: ['**/src/maps/**'] },
   },
-})
+}))

@@ -17,6 +17,8 @@ import { normalizeGameSettings } from '../domain/simulation/GameSettings'
 import { useGameStore } from '../stores/gameStore'
 import { useTowerStore } from '../stores/towerStore'
 import { readSession, writeSession } from './sessionResume'
+import { API_URL } from './serverUrl'
+import { shallowRef } from 'vue'
 
 /** Map list entry (built-in or imported) for the single player and multiplayer map pickers. */
 export interface MapSummary {
@@ -27,6 +29,9 @@ export interface MapSummary {
   rows: number
   playersCount: number
   raw: any
+  /** A built-in map: its file name in src/maps (without .json) and the server's version of it (empty offline) */
+  file?: string
+  version?: string
 }
 
 export interface MapDetails {
@@ -80,8 +85,67 @@ function getSessionCustomMap(cleanId: string): any | null {
   return sessionCustomMaps.get(cleanId)
 }
 
-// 1. Scan and index all built-in maps from src/maps/*.json
-const mapModules = import.meta.glob<any>('../maps/*.json', { eager: true })
+/**
+ * The built-in maps come from the server (/api/maps, the files in src/maps), so a map saved from the editor is what
+ * everybody plays. Without the server (offline, static hosting) the copies built into the app are used instead.
+ */
+const bundledMaps = import.meta.glob<any>('../maps/*.json')
+/** Reactive: the editor adds, saves and deletes maps while pages show the list */
+const builtinMaps = shallowRef<MapSummary[]>([])
+
+/** Whether the server takes edited maps back, and whether only its signed-in admin may change them */
+export const builtinMapSaving = { canSave: false, needsLogin: false }
+
+interface ServerMapList {
+  canSave: boolean
+  needsLogin: boolean
+  maps: { file: string; version: string; data: any }[]
+}
+
+const summarizeBuiltin = (file: string, data: any, version: string): MapSummary => ({
+  ...summarizeMap(data, sanitizeMapId(file), file),
+  file,
+  version,
+})
+
+/** Loads the built-in maps once at start (before the app shows). */
+export async function loadBuiltinMaps(): Promise<void> {
+  try {
+    const res = await fetch(`${API_URL}/maps`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const list: ServerMapList = await res.json()
+    builtinMaps.value = list.maps.map(m => summarizeBuiltin(m.file, m.data, m.version))
+    Object.assign(builtinMapSaving, { canSave: list.canSave, needsLogin: list.needsLogin })
+  } catch (e) {
+    console.warn('[mapManager] Maps server unreachable, using the maps built into the app:', e)
+    builtinMaps.value = await Promise.all(
+      Object.entries(bundledMaps).map(async ([path, load]) => {
+        const mod = await load()
+        const file = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
+        return summarizeBuiltin(file, mod.default || mod, '')
+      })
+    )
+  }
+}
+
+/** The built-in map a map id (its file, name or project id) belongs to. */
+export function findBuiltinMap(mapId: string): MapSummary | undefined {
+  const cleanId = sanitizeMapId(mapId)
+  return builtinMaps.value.find(m => m.id === cleanId || sanitizeMapId(m.name) === cleanId || sanitizeMapId(m.raw?.project?.id) === cleanId)
+}
+
+/** A built-in map was added or saved: everybody in this tab plays that version from now on. */
+export function putBuiltinMap(file: string, data: any, version: string): MapSummary {
+  const map = summarizeBuiltin(file, data, version)
+  const known = builtinMaps.value.some(m => m.file === file)
+  builtinMaps.value = known ? builtinMaps.value.map(m => (m.file === file ? map : m)) : [...builtinMaps.value, map]
+  return map
+}
+
+/** A built-in map was deleted. */
+export function dropBuiltinMap(file: string): void {
+  builtinMaps.value = builtinMaps.value.filter(m => m.file !== file)
+}
 
 function summarizeMap(raw: any, id: string, fallbackName: string): MapSummary {
   const project = raw.project || raw
@@ -105,11 +169,7 @@ function summarizeMap(raw: any, id: string, fallbackName: string): MapSummary {
 }
 
 export function getBuiltinMaps(): MapSummary[] {
-  return Object.entries(mapModules).map(([path, mod]) => {
-    const raw = (mod as any).default || mod
-    const fileName = path.split('/').pop()?.replace(/\.json$/i, '') || 'Map'
-    return summarizeMap(raw, fileName.toLowerCase().replace(/[^a-z0-9]/g, '-'), fileName)
-  })
+  return builtinMaps.value
 }
 
 /** Reads a user-picked map JSON, registers it for this session and returns its list entry. Throws on invalid JSON. */
@@ -133,9 +193,8 @@ export function getProjectMapId(project: Pick<MapProject, 'id' | 'name'>): strin
 }
 
 /**
- * Loads map for GAME PLAY (Single Player / Multiplayer).
- * If the user has edited and saved changes in the editor, load their latest draft from LocalStorage!
- * Otherwise fallback to the official pristine map from src/maps/*.json.
+ * Loads map for GAME PLAY (Single Player / Multiplayer): a map opened this session, else the built-in map as saved on
+ * the server (unsaved editor edits of it are only played from the editor), else a map made in the editor (its draft).
  */
 export function getGameMapDataById(mapId: string): { payload: any; source: 'builtin' | 'custom' | 'editor_draft' } | null {
   if (!mapId) return null
@@ -147,7 +206,11 @@ export function getGameMapDataById(mapId: string): { payload: any; source: 'buil
     return { payload: customMap, source: 'custom' }
   }
 
-  // 2. Check in-progress edited draft in LocalStorage (so editor changes are immediately active in game)
+  // 2. The built-in map
+  const builtin = findBuiltinMap(cleanId)
+  if (builtin) return { payload: builtin.raw, source: 'builtin' }
+
+  // 3. A map made in the editor (only its draft exists)
   try {
     const raw = localStorage.getItem(`defensor_editor_draft_${cleanId}`)
     if (raw) {
@@ -158,17 +221,6 @@ export function getGameMapDataById(mapId: string): { payload: any; source: 'buil
     }
   } catch (e) {
     console.warn(`[mapManager] Error reading editor draft for game ${mapId}:`, e)
-  }
-
-  // 3. Fallback to official built-in maps from src/maps/*.json
-  const builtins = getBuiltinMaps()
-  const builtinMatch = builtins.find(m => 
-    m.id === cleanId || 
-    sanitizeMapId(m.name) === cleanId ||
-    sanitizeMapId(m.raw?.project?.id) === cleanId
-  )
-  if (builtinMatch && builtinMatch.raw) {
-    return { payload: builtinMatch.raw, source: 'builtin' }
   }
 
   return null
@@ -215,17 +267,19 @@ export function getEditorMapDataById(mapId: string): { payload: any; source: 'ed
   }
 
   // 3. Fallback to clean built-in maps
-  const builtins = getBuiltinMaps()
-  const builtinMatch = builtins.find(m => 
-    m.id === cleanId || 
-    sanitizeMapId(m.name) === cleanId ||
-    sanitizeMapId(m.raw?.project?.id) === cleanId
-  )
-  if (builtinMatch && builtinMatch.raw) {
-    return { payload: builtinMatch.raw, source: 'builtin' }
-  }
+  const builtin = findBuiltinMap(cleanId)
+  return builtin ? { payload: builtin.raw, source: 'builtin' } : null
+}
 
-  return null
+const draftKey = (mapId: string) => `defensor_editor_draft_${sanitizeMapId(mapId)}`
+
+/** Forgets the editor's draft of a map (it was saved into the map, or its edits thrown away). */
+export function clearEditorDraft(mapId: string): void {
+  try {
+    localStorage.removeItem(draftKey(mapId))
+  } catch {
+    // Storage blocked: there is no draft either
+  }
 }
 
 /**
@@ -256,7 +310,7 @@ export function saveEditorDraft(
     )
 
     // Save editor draft to LocalStorage
-    localStorage.setItem(`defensor_editor_draft_${cleanId}`, JSON.stringify(fullPayload))
+    localStorage.setItem(draftKey(cleanId), JSON.stringify(fullPayload))
 
     // Also update recents list
     saveRecentProject(
@@ -270,6 +324,60 @@ export function saveEditorDraft(
   } catch (e) {
     console.warn(`[mapManager] Error saving editor draft ${mapId}:`, e)
   }
+}
+
+/** Everything the editor holds about the open map, in the shape the map file is built from. */
+export function collectEditorMapState() {
+  const mapStore = useMapStore()
+  const assetStore = useAssetStore()
+  const routeStore = useRouteStore()
+  const waveStore = useWaveStore()
+  const gameStore = useGameStore()
+  const towerStore = useTowerStore()
+
+  gameStore.syncGameSettingsToProject()
+  waveStore.syncWavesToProject()
+  routeStore.syncRoutesToProject()
+  towerStore.syncToProject()
+
+  return {
+    project: mapStore.project,
+    assets: assetStore.assets,
+    characterData: {
+      routes: routeStore.routes,
+      spawnMode: gameStore.spawnMode,
+      formation: gameStore.formation,
+      pairDistance: gameStore.pairDistance,
+      unitElevation: gameStore.unitElevation,
+      unitScaleMultiplier: gameStore.unitScaleMultiplier,
+      selectedRouteIndex: routeStore.selectedRouteIndex,
+    },
+    towerData: {
+      placedTowers: towerStore.placedTowers,
+      towerBlueprints: towerStore.blueprints,
+      clans: towerStore.clans,
+    },
+    waveData: {
+      waveConfigs: waveStore.waveConfigs,
+      currentWaveIndex: waveStore.currentWaveIndex,
+    },
+    gameSettings: {
+      startingGold: gameStore.startingGold,
+      startingLives: gameStore.startingLives,
+      wavePrepTime: gameStore.wavePrepDuration,
+      spawnMode: gameStore.spawnMode,
+      formation: gameStore.formation,
+      pairDistance: gameStore.pairDistance,
+      unitElevation: gameStore.unitElevation,
+      unitScaleMultiplier: gameStore.unitScaleMultiplier,
+    },
+  }
+}
+
+/** The open map as a map file. */
+export function buildEditorMapPayload(): any {
+  const s = collectEditorMapState()
+  return buildFullProjectJsonPayload(s.project, s.assets, s.characterData, s.towerData, s.waveData, s.gameSettings)
 }
 
 /**

@@ -1,2 +1,8 @@
 node_modules/
 *.tsbuildinfo
+
+# Maps deleted from the editor (server/maps.js keeps them here)
+src/maps/.trash/
+
+# Server settings with passwords (copy .env.example to .env)
+.env

@@ -45,6 +45,7 @@
 </template>
 
 <script setup lang="ts">
+import { gameAudio } from '../../services/gameAudio'
 import { computed } from 'vue'
 
 export type SwitchVariant = 'brand' | 'emerald' | 'amber'
@@ -74,6 +75,7 @@ const emit = defineEmits<{
 
 function handleChange(e: Event) {
   const target = e.target as HTMLInputElement
+  gameAudio.playTap()
   emit('update:modelValue', target.checked)
   emit('change', target.checked)
 }

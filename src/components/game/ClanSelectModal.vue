@@ -19,27 +19,27 @@
         interactive
         padding="none"
         :custom-class="[
-          'cursor-pointer border p-3 flex flex-col gap-2.5 transition-all',
+          'cursor-pointer border p-3 short:p-2 flex flex-col gap-2.5 short:gap-2 transition-all',
           towerStore.selectedClanId === clan.id ? 'bg-slate-900/95 ring-2 ring-amber-400/50 border-amber-400/60' : 'bg-slate-950/80 border-slate-800',
         ]"
         @click="towerStore.setPlayerClan(clan.id)"
       >
         <div class="flex items-center gap-3 min-w-0">
           <div
-            class="size-11 rounded-xl flex items-center justify-center shrink-0 border"
+            class="size-11 short:size-9 rounded-xl flex items-center justify-center shrink-0 border"
             :style="{ backgroundColor: `${clan.color}20`, borderColor: `${clan.color}60`, color: clan.color }"
           >
             <component :is="getClanIcon(clan.iconName)" class="size-6" />
           </div>
           <div class="flex flex-col min-w-0 flex-1">
             <h3 class="font-black text-white text-base leading-tight">{{ clan.name }}</h3>
-            <p v-if="clan.description" class="text-xs text-slate-400 leading-snug mt-0.5">{{ clan.description }}</p>
+            <p v-if="clan.description" class="text-xs text-slate-400 leading-snug mt-0.5 short:line-clamp-3">{{ clan.description }}</p>
           </div>
           <CheckCircle2 v-if="towerStore.selectedClanId === clan.id" class="size-6 shrink-0 text-amber-400 fill-amber-400/20 animate-in zoom-in-50 duration-150" />
         </div>
 
         <!-- The clan's towers, cheapest first -->
-        <div v-if="clan.towers.length" class="flex items-end gap-1.5 overflow-x-auto no-scrollbar">
+        <div v-if="clan.towers.length" class="flex flex-wrap items-end gap-1.5">
           <div
             v-for="bp in clan.towers"
             :key="bp.id"

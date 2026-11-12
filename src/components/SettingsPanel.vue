@@ -1,15 +1,21 @@
 <template>
   <!-- The player's settings, the same on the home page and in the game menu -->
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-2 short:grid short:grid-cols-2 short:items-start short:gap-1.5">
     <UiSwitch v-model="settings.soundOn" variant="emerald" custom-class="p-2.5!">
       <span class="flex items-center gap-2">
         <component :is="settings.soundOn ? Volume2 : VolumeX" class="size-4 text-emerald-300" />{{ $t('settings.sound') }}
       </span>
     </UiSwitch>
 
-    <UiSwitch v-model="settings.musicOn" variant="emerald" custom-class="p-2.5!">
-      <span class="flex items-center gap-2"><Music class="size-4 text-emerald-300" />{{ $t('settings.music') }}</span>
-    </UiSwitch>
+    <!-- Music: on / off and how loud -->
+    <div class="flex flex-col gap-1.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+      <UiSwitch v-model="settings.musicOn" variant="emerald" custom-class="p-2.5! border-0! bg-transparent!">
+        <span class="flex items-center gap-2"><Music class="size-4 text-emerald-300" />{{ $t('settings.music') }}</span>
+      </UiSwitch>
+      <div v-if="settings.musicOn" class="px-3 pb-2.5 -mt-1">
+        <UiSlider v-model="settings.musicVolume" :min="0" :max="100" :step="5" unit="%" />
+      </div>
+    </div>
 
     <!-- Only Telegram gives the game a vibration motor -->
     <UiSwitch v-if="isTelegram" v-model="settings.vibrationOn" variant="emerald" custom-class="p-2.5!">
@@ -22,18 +28,18 @@
     </UiSwitch>
 
     <!-- Touch screens: how to walk in the maze (tapping where to go, or a joystick) -->
-    <div v-if="isTouch" class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
-      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200">
-        <Footprints class="size-4 text-emerald-300" />{{ $t('settings.controls') }}
+    <div v-if="isTouch" class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800 short:col-span-2 short:flex-row short:items-center short:py-1.5">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200 short:shrink-0">
+        <Footprints class="size-4 text-emerald-300 shrink-0" /><span class="short:sr-only">{{ $t('settings.controls') }}</span>
       </span>
-      <UiTabs v-model="settings.controls" :items="controlOptions" variant="segmented" size="sm" fill />
+      <UiTabs v-model="settings.controls" :items="controlOptions" variant="segmented" size="sm" fill class="short:flex-1 short:min-w-0" />
     </div>
 
-    <div class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
-      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200">
-        <Languages class="size-4 text-emerald-300" />{{ $t('settings.language') }}
+    <div class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800 short:col-span-2 short:flex-row short:items-center short:py-1.5">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200 short:shrink-0">
+        <Languages class="size-4 text-emerald-300 shrink-0" /><span class="short:sr-only">{{ $t('settings.language') }}</span>
       </span>
-      <UiTabs :model-value="i18n.currentLocale" :items="languages" variant="segmented" size="sm" fill @update:model-value="i18n.setLocale($event as SupportedLocale)" />
+      <UiTabs :model-value="i18n.currentLocale" :items="languages" variant="segmented" size="sm" fill class="short:flex-1 short:min-w-0" @update:model-value="i18n.setLocale($event as SupportedLocale)" />
     </div>
   </div>
 </template>
@@ -41,7 +47,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Footprints, Languages, Maximize2, Music, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
-import { UiSwitch, UiTabs } from './ui'
+import { UiSwitch, UiTabs, UiSlider } from './ui'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useI18nStore, type SupportedLocale } from '../stores/i18nStore'
 import { isTelegram } from '../services/telegram'

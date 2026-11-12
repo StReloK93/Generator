@@ -5,9 +5,11 @@
     :subtitle="mapStore.project.name || $t('game.menu')"
     :teleport="true"
     size="sm"
+    custom-class="short:max-w-3xl"
     @close="emit('update:isOpen', false)"
   >
-    <div class="flex flex-col gap-2.5 w-full">
+    <div class="flex flex-col gap-2.5 short:gap-2 w-full short:grid short:grid-cols-[11rem_1fr] short:items-start">
+      <div class="flex flex-col gap-2.5">
       <UiButton variant="game-green" size="sm" :leading-icon="Play" class="w-full justify-center" @click="emit('update:isOpen', false)">
         {{ $t('game.resumeGame') }}
       </UiButton>
@@ -20,11 +22,14 @@
       <UiButton variant="secondary" size="sm" :leading-icon="isEditorMode ? Layers : Home" class="w-full justify-center" @click="emit('exit')">
         {{ isEditorMode ? $t('game.returnEditor') : $t('game.returnHome') }}
       </UiButton>
+      </div>
 
       <!-- How this genre is played, for a player who forgot mid-game -->
-      <UiTabs v-model="section" :items="sections" variant="segmented" size="sm" fill class="mt-1" />
-      <HowToPlay v-if="section === 'howto'" :mode="getMapMode(mapStore.project)" />
-      <SettingsPanel v-else />
+      <div class="flex flex-col gap-2.5">
+        <UiTabs v-model="section" :items="sections" variant="segmented" size="sm" fill class="mt-1 short:mt-0" />
+        <HowToPlay v-if="section === 'howto'" :mode="getMapMode(mapStore.project)" />
+        <SettingsPanel v-else />
+      </div>
     </div>
   </UiModal>
 </template>

@@ -10,7 +10,7 @@
     >
       <div 
         v-if="notificationStore.confirmState?.isOpen"
-        class="fixed inset-0 z-100! flex items-center justify-center p-4 pt-safe pb-safe bg-slate-950/80 backdrop-blur-md select-none"
+        class="fixed inset-0 z-1100! flex items-center justify-center p-4 pt-safe pb-safe bg-slate-950/80 backdrop-blur-md select-none"
         @click.self="notificationStore.confirmState?.resolve(false)"
       >
         <div 

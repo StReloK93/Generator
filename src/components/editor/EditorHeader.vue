@@ -56,6 +56,18 @@
         {{ $t(modeInfo.label) }}
       </UiBadge>
 
+      <!-- The game's maps: open, copy, delete -->
+      <UiButton
+        variant="ghost"
+        size="xs"
+        :leading-icon="Library"
+        :title="$t('library.tab')"
+        custom-class="text-amber-300 hover:bg-amber-500/15 border-amber-500/30"
+        @click="emit('open-welcome', 'maps', false)"
+      >
+        <span class="hidden sm:inline">{{ $t('library.tab') }}</span>
+      </UiButton>
+
       <!-- New Map Action Button -->
       <UiButton
         variant="ghost"
@@ -161,6 +173,21 @@
         <span class="hidden sm:inline">{{ $t(modeInfo.settings) }}</span>
       </UiButton>
 
+      <!-- A game map (src/maps): what changed against its file, saving it back on the server; a map made here: adding it to the game -->
+      <UiButton
+        v-if="mapLibrary.entry || mapLibrary.canWrite"
+        :variant="mapLibrary.changeCount > 0 ? 'game-amber' : 'secondary'"
+        size="sm"
+        :leading-icon="mapLibrary.entry ? Save : CloudUpload"
+        :title="$t(mapLibrary.entry ? 'publish.title' : 'publish.addTitle')"
+        @click="mapLibrary.open()"
+      >
+        <span class="hidden sm:inline whitespace-nowrap">{{ $t(mapLibrary.entry ? 'publish.button' : 'publish.addButton') }}</span>
+        <UiBadge v-if="mapLibrary.changeCount > 0" variant="rose" style-type="solid" size="xs" custom-class="ml-1.5">
+          {{ mapLibrary.changeCount }}
+        </UiBadge>
+      </UiButton>
+
       <!-- Play Game Button (Navigates cleanly to /game) -->
       <UiButton
         variant="game-green"
@@ -183,6 +210,19 @@
         <span class="hidden sm:inline">{{ $t('common.export') }}</span>
       </UiButton>
 
+      <!-- The admin: signed in (sign out) or not (sign in); only shown when the server has an admin account -->
+      <UiButton
+        v-if="admin.enabled"
+        :variant="admin.isAdmin ? 'ghost' : 'secondary'"
+        size="sm"
+        :leading-icon="admin.isAdmin ? LogOut : LogIn"
+        :title="admin.isAdmin ? $t('admin.signOut') : $t('admin.title')"
+        :custom-class="admin.isAdmin ? 'text-emerald-300' : ''"
+        @click="admin.isAdmin ? admin.signOut() : admin.openSignIn()"
+      >
+        <span class="hidden lg:inline whitespace-nowrap">{{ admin.isAdmin ? admin.login : $t('admin.short') }}</span>
+      </UiButton>
+
       <!-- Language Switcher -->
       <UiLanguageSwitcher />
 
@@ -203,31 +243,28 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload, ImagePlus, X
+  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload, ImagePlus, X, Save, CloudUpload, Library, LogIn, LogOut
 } from 'lucide-vue-next'
 import { UiButton, UiIconButton, UiLanguageSwitcher, UiBadge } from '../ui'
 import { getMapMode } from '../../domain/map'
 import { MAP_MODE_INFO } from '../mapModeInfo'
 import { useMapStore } from '../../stores/mapStore'
-import { useAssetStore } from '../../stores/assetStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useRouteStore } from '../../stores/routeStore'
-import { useWaveStore } from '../../stores/waveStore'
 import { useGameStore } from '../../stores/gameStore'
-import { useTowerStore } from '../../stores/towerStore'
 import { useI18nStore } from '../../stores/i18nStore'
-import { sanitizeMapId, saveEditorDraft, registerSessionCustomMap } from '../../services/mapManager'
-import { buildFullProjectJsonPayload } from '../../utils/exportHelpers'
+import { sanitizeMapId, saveEditorDraft, registerSessionCustomMap, collectEditorMapState, buildEditorMapPayload } from '../../services/mapManager'
+import { useMapLibraryStore } from '../../stores/mapLibraryStore'
+import { useAdminStore } from '../../stores/adminStore'
 import { imageFileToDataUrl } from '../../utils/imageCropper'
 
 const router = useRouter()
 const mapStore = useMapStore()
-const assetStore = useAssetStore()
 const toolStore = useToolStore()
 const routeStore = useRouteStore()
-const waveStore = useWaveStore()
 const gameStore = useGameStore()
-const towerStore = useTowerStore()
+const mapLibrary = useMapLibraryStore()
+const admin = useAdminStore()
 const { t } = useI18nStore()
 
 /** Largest stored size of the map picture (it travels inside the map file) */
@@ -251,7 +288,7 @@ const mapMode = computed(() => getMapMode(mapStore.project))
 const modeInfo = computed(() => MAP_MODE_INFO[mapMode.value])
 
 const emit = defineEmits<{
-  (e: 'open-welcome', mode?: 'new' | 'import', forced?: boolean): void
+  (e: 'open-welcome', mode?: 'maps' | 'new' | 'import', forced?: boolean): void
   (e: 'open-export'): void
 }>()
 
@@ -277,50 +314,12 @@ function handleStartGame() {
   const cleanId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
   mapStore.project.id = cleanId
 
-  // 1. Sync store state to project
-  gameStore.syncGameSettingsToProject()
-  waveStore.syncWavesToProject()
-  routeStore.syncRoutesToProject()
-  towerStore.syncToProject()
+  // 1. Save editor draft so it is 100% updated in localStorage
+  const state = collectEditorMapState()
+  saveEditorDraft(cleanId, state.project, state.assets, state.characterData, state.towerData, state.waveData, state.gameSettings)
 
-  // 2. Save editor draft so it is 100% updated in localStorage
-  saveEditorDraft(
-    cleanId,
-    mapStore.project,
-    assetStore.assets,
-    {
-      routes: routeStore.routes,
-    },
-    {
-      placedTowers: towerStore.placedTowers,
-      towerBlueprints: towerStore.blueprints,
-      clans: towerStore.clans,
-    },
-    {
-      waveConfigs: waveStore.waveConfigs,
-      currentWaveIndex: waveStore.currentWaveIndex,
-    },
-    mapStore.project.gameSettings
-  )
-
-  // 3. Register as session custom map for game
-  registerSessionCustomMap(cleanId, buildFullProjectJsonPayload(
-    mapStore.project,
-    assetStore.assets,
-    {
-      routes: routeStore.routes,
-    },
-    {
-      placedTowers: towerStore.placedTowers,
-      towerBlueprints: towerStore.blueprints,
-      clans: towerStore.clans,
-    },
-    {
-      waveConfigs: waveStore.waveConfigs,
-      currentWaveIndex: waveStore.currentWaveIndex,
-    },
-    mapStore.project.gameSettings
-  ))
+  // 2. Register as session custom map for game (the editor's version, saved into the map file or not)
+  registerSessionCustomMap(cleanId, buildEditorMapPayload())
 
   router.push(`/editor-game/${cleanId}`)
 }

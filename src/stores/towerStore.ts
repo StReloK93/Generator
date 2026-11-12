@@ -10,6 +10,7 @@ import { useMultiplayerStore } from './multiplayerStore'
 import { gridToScreen } from '../utils/isometric'
 import { TowerClan, GridCoord, TargetStrategy } from '../types/map'
 import { createDefaultClan } from '../utils/towerClans'
+import { getEditorFeatures } from '../domain/map/MapMode'
 import { TowerBlueprintManager } from '../domain/tower/TowerBlueprintManager'
 import { CombatEngine } from '../domain/combat'
 import { customProjectilesUsedBy, DEFAULT_PROJECTILE_ID, registerCustomProjectiles } from '../domain/projectile'
@@ -569,7 +570,11 @@ export const useTowerStore = defineStore('towerStore', () => {
     // The map's own projectiles first, so its towers find them
     registerCustomProjectiles(mapStore.project.customProjectiles ?? [])
     const projClans = mapStore.project.clans || (mapStore.project as any).towerClans
-    if (projClans && Array.isArray(projClans) && projClans.length > 0) {
+    // A genre without towers has no clans either (a default one would only end up in its map file)
+    const hasTowers = getEditorFeatures(mapStore.project).towers
+    if (!hasTowers) {
+      clans.value = []
+    } else if (projClans && Array.isArray(projClans) && projClans.length > 0) {
       clans.value = JSON.parse(JSON.stringify(projClans))
       selectedEditorClanId.value = clans.value[0]?.id || ''
       selectedClanId.value = clans.value[0]?.id || ''
@@ -582,7 +587,7 @@ export const useTowerStore = defineStore('towerStore', () => {
     } else {
       blueprints.value = []
     }
-    ensureDefaultClan()
+    if (hasTowers) ensureDefaultClan()
 
     // Sync all placed towers on the map with their up-to-date normalized blueprint levels
     for (const bp of blueprints.value) {

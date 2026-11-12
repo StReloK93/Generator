@@ -247,7 +247,7 @@ export interface HideSeekMatchStatePayload {
   altars: { c: number; r: number; p: number; l: boolean }[] // col, row, progress 0..1, lit
   altarsNeeded: number
   chains: ChainState[] // a hider holding a seeker
-  spots: { c: number; r: number; k: HideSpotKind; f: SpriteFacing }[] // col, row, kind, sprite facing
+  spots: { c: number; r: number; k: HideSpotKind; f: SpriteFacing; a?: string }[] // col, row, kind, sprite facing, sprite
   traps: { c: number; r: number; ring: number }[] // ring = seconds the bell still rings
   /** Random labyrinth of this round (0 = the map's own layout): guests build it from the seed */
   maze: number

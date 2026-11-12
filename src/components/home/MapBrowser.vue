@@ -11,7 +11,7 @@
           variant="tool"
           size="md"
           block
-          custom-class="justify-start! text-left min-h-10 shrink-0 [&>span]:flex-1 [&>span]:min-w-0"
+          custom-class="justify-start! text-left min-h-10 short:min-h-8 short:py-1! shrink-0 [&>span]:flex-1 [&>span]:min-w-0"
           @click="toggleFolder(folder.mode)"
         >
           <span class="flex items-center gap-2 min-w-0">
@@ -31,7 +31,7 @@
             block
             :active="modelValue === mapItem.id"
             :data-active="modelValue === mapItem.id"
-            custom-class="justify-start! text-left min-h-9 shrink-0 [&>span]:flex-1 [&>span]:min-w-0"
+            custom-class="justify-start! text-left min-h-9 short:min-h-8 short:py-1! shrink-0 [&>span]:flex-1 [&>span]:min-w-0"
             @click="emit('update:modelValue', mapItem.id)"
             @dblclick="emit('pick', mapItem)"
           >
@@ -73,8 +73,8 @@ import { useNotificationStore } from '../../stores/notificationStore'
 import { MAP_MODE_PLAY_INFO } from '../mapModeInfo'
 
 /**
- * The maps as folders, one per genre (Tower Defense, Hide & Seek, PvP): a folder opens into its maps' names.
- * The caller owns the map list and the picked map.
+ * The maps as folders, one per genre (Tower Defense, Hide & Seek, PvP): a folder opens into its maps' names, and only
+ * one is open at a time (opening one closes the other). The caller owns the map list and the picked map.
  */
 const props = defineProps<{
   maps: MapSummary[]
@@ -95,7 +95,8 @@ const SEARCH_FROM = 8
 const notify = useNotificationStore()
 const searchQuery = ref('')
 const listRef = ref<HTMLElement | null>(null)
-const openFolders = ref(new Set<MapGameMode>())
+/** The one open folder (null: all closed) */
+const openFolder = ref<MapGameMode | null>(null)
 
 const folders = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -104,20 +105,18 @@ const folders = computed(() => {
 })
 
 /** While searching every folder with a match is open */
-const isOpen = (mode: MapGameMode) => openFolders.value.has(mode) || searchQuery.value.trim() !== ''
+const isOpen = (mode: MapGameMode) => openFolder.value === mode || searchQuery.value.trim() !== ''
 
 function toggleFolder(mode: MapGameMode) {
-  const next = new Set(openFolders.value)
-  if (!next.delete(mode)) next.add(mode)
-  openFolders.value = next
+  openFolder.value = openFolder.value === mode ? null : mode
 }
 
 // The picked map's folder is open and the map in view
 watch(
   () => props.maps.find(m => m.id === props.modelValue)?.mode,
   async (mode) => {
-    if (!mode || openFolders.value.has(mode)) return
-    openFolders.value = new Set([...openFolders.value, mode])
+    if (!mode || openFolder.value === mode) return
+    openFolder.value = mode
     await nextTick()
     listRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
   },

@@ -151,7 +151,7 @@ export class GameController {
       simulate(rawDeltaSec)
       const view = hideSeekStore.getRenderView()
       if (view) engine.renderHideSeek(view, mapStore.project)
-      const me = hideSeekStore.getMyPosition()
+      const me = hideSeekStore.getCameraTarget()
       if (!me) return
       const k = camera ? 1 - Math.exp(-CAMERA_FOLLOW_RATE * rawDeltaSec) : 1
       camera = camera ? { col: camera.col + (me.col - camera.col) * k, row: camera.row + (me.row - camera.row) * k } : { ...me }

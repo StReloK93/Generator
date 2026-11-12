@@ -105,7 +105,8 @@ const HUNT_COLOR = 0xef4444
 const EXIT_BEAM_COLOR = 0x4ade80
 const EXIT_BEAM_CORE_COLOR = 0xdcfce7/** Barrels / crates a hider can sit in (one per spot, cycling); cabinets are bookcases standing against a wall */
 const SPOT_ASSETS = ['sprite-barrels_E', 'sprite-woodenCrates_E', 'sprite-sacksCrate_E', 'sprite-barrelsStacked_S']
-const spotAsset = (spot: HideSeekSpotView, i: number) => (spot.kind === 'cabinet' ? `sprite-bookcaseBooks_${spot.facing}` : SPOT_ASSETS[i % SPOT_ASSETS.length])
+const spotAsset = (spot: HideSeekSpotView, i: number) =>
+  spot.asset ?? (spot.kind === 'cabinet' ? `sprite-bookcaseBooks_${spot.facing}` : SPOT_ASSETS[i % SPOT_ASSETS.length])
 
 /** A prop sprite placed on a map cell (barrels, cabinets, doors, candle stands). */
 interface PropView extends GridCoord {
@@ -131,6 +132,9 @@ const STONE_TINT = 0x6b7280
 const CURSE_COLOR = 0xd946ef
 const CURSE_CORE = 0x581c87
 const JAIL_COLOR = 0x94a3b8
+/** The beam that takes a caught player to the jail */
+const TELEPORT_COLOR = 0x38bdf8
+const TELEPORT_CORE = 0xe0f2fe
 /** Own character inside a barrel: a faint outline so the player knows where they are */
 const HIDDEN_SELF_ALPHA = 0.35
 
@@ -797,6 +801,7 @@ export class HideSeekRenderer {
       node.sprite.scale.set(scale * (1 + CROUCH_WIDEN * node.crouch), scale * (1 - CROUCH_SQUASH * node.crouch))
       node.sprite.alpha = avatar.hidden ? HIDDEN_SELF_ALPHA : 1 - CROUCH_FADE * node.crouch
       node.sprite.anchor.set(meta?.anchorX ?? 0.5, meta?.anchorY ?? 0.898)
+      node.sprite.y = 0
     }
 
     const color = parseInt(avatar.color.replace('#', ''), 16) || 0x38bdf8
@@ -820,12 +825,51 @@ export class HideSeekRenderer {
         node.ring.poly([x - 4, y, x + 4, y, x, y - 14 * flicker]).fill({ color: CURSE_COLOR, alpha: 0.8 })
       }
     }
+    if (avatar.teleport) this.drawTeleport(node, avatar.teleport, rx, ry, tileHeight)
     // Jail: a ring of chain links around the caught player's feet (a statue of the curse has none)
-    if (avatar.jailed && !avatar.stone) {
+    if (avatar.jailed && !avatar.stone && !avatar.teleport) {
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2
         node.ring.ellipse(Math.cos(a) * rx * 1.35, Math.sin(a) * ry * 1.35, 4, 2.5).stroke({ width: 2, color: JAIL_COLOR, alpha: 0.95 })
       }
+    }
+  }
+
+  /**
+   * A cylinder of light around a caught player: it rises out of the floor, rings climb it, the hero lifts and fades
+   * away (out); in the jail the cylinder brings them back and sinks into the floor (in).
+   */
+  private drawTeleport(node: AvatarNode, teleport: { phase: 'out' | 'in'; t: number }, rx: number, ry: number, tileHeight: number): void {
+    const g = node.ring
+    const { phase, t } = teleport
+    // How strong the cylinder is: grows while leaving, shrinks while arriving
+    const strength = phase === 'out' ? Math.min(1, t * 2.5) : 1 - t
+    // How much of the hero is left (and how far up it has floated)
+    const presence = phase === 'out' ? 1 - Math.max(0, (t - 0.45) / 0.55) : t
+    node.sprite.alpha *= presence
+    node.sprite.y = -(1 - presence) * tileHeight * 0.6
+    const w = rx * 1.7
+    const h = ry * 1.7
+    const top = -tileHeight * 2.8 * Math.min(1, strength * 1.3)
+    const time = performance.now() / 1000
+    // Glow on the floor and the walls of the cylinder, fading upwards
+    g.ellipse(0, 0, w * 1.25, h * 1.25).fill({ color: TELEPORT_COLOR, alpha: 0.25 * strength })
+    const bands = 10
+    for (let i = 0; i < bands; i++) {
+      const y0 = (top * i) / bands
+      const y1 = (top * (i + 1)) / bands
+      g.rect(-w, y1, w * 2, y0 - y1).fill({ color: TELEPORT_COLOR, alpha: 0.2 * strength * (1 - i / bands) })
+    }
+    g.rect(-w * 0.35, top, w * 0.7, -top).fill({ color: TELEPORT_CORE, alpha: 0.25 * strength })
+    // The cylinder's edges and its top and bottom rims
+    g.moveTo(-w, 0).lineTo(-w, top).stroke({ width: 2, color: TELEPORT_CORE, alpha: 0.7 * strength })
+    g.moveTo(w, 0).lineTo(w, top).stroke({ width: 2, color: TELEPORT_CORE, alpha: 0.7 * strength })
+    g.ellipse(0, 0, w, h).stroke({ width: 2.5, color: TELEPORT_CORE, alpha: 0.9 * strength })
+    g.ellipse(0, top, w, h).stroke({ width: 1.5, color: TELEPORT_COLOR, alpha: 0.6 * strength })
+    // Rings climbing the cylinder
+    for (let i = 0; i < 3; i++) {
+      const k = (time * 1.6 + i / 3) % 1
+      g.ellipse(0, top * k, w * (1 - 0.15 * k), h * (1 - 0.15 * k)).stroke({ width: 2, color: TELEPORT_CORE, alpha: 0.8 * strength * (1 - k) })
     }
   }
 

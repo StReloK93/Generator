@@ -18,6 +18,8 @@ export type HideSpotKind = 'barrel' | 'cabinet'
 export interface HideSpot extends GridCoord {
   kind: HideSpotKind
   facing: SpriteFacing
+  /** The sprite it is drawn with (a hand-made map's own); otherwise the game picks one */
+  asset?: string
 }
 
 /** One wall piece on a cell edge: 'v' = the line col - 0.5 beside map row `row`; 'h' = the line row - 0.5 over map col `col`. */

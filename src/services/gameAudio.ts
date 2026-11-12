@@ -4,6 +4,7 @@
  * and short tunes that mark the round's start, the start of the hunt and the round's end.
  * Tower defense: hits, explosions, kills, lost lives, building / upgrading / selling towers
  * (waves and the result reuse the horn and the round-end tunes).
+ * Menus: a soft tap on every button.
  * Browsers only start audio after a user gesture, so input handlers call unlock().
  */
 class GameAudio {
@@ -34,6 +35,28 @@ class GameAudio {
     if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {})
   }
 
+  /** A caught player is taken away: a shimmering sweep upwards. */
+  public playTeleport(): void {
+    void this.play((ctx, out, t) => {
+      this.tone(out, ctx, 'sine', 300, 1400, t, 1.1, 0.12)
+      this.tone(out, ctx, 'triangle', 600, 2400, t + 0.05, 0.9, 0.05)
+      this.tone(out, ctx, 'sine', 1800, 2600, t + 0.7, 0.5, 0.04)
+    })
+  }
+
+  /** A button pressed: a soft wooden tick, quiet and at once (the very first tap only wakes the audio). */
+  public playTap(): void {
+    const ctx = this.muted ? null : this.getContext()
+    if (!ctx) return
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {})
+      return
+    }
+    const t = ctx.currentTime
+    this.tone(ctx.destination, ctx, 'triangle', 1250, 820, t, 0.045, 0.07)
+    this.tone(ctx.destination, ctx, 'sine', 420, 300, t, 0.05, 0.05)
+  }
+
   /** A tune must not get lost: wait for the (already unlocked) context to resume first. */
   private async play(sound: (ctx: AudioContext, out: AudioNode, t: number) => void): Promise<void> {
     const ctx = this.muted ? null : this.getContext()
@@ -56,6 +79,38 @@ class GameAudio {
     void this.play((ctx, out, t) => {
       this.tone(out, ctx, 'sine', 110, 108, t, 2.4, 0.18)
       this.melody(ctx, out, t, [[220, 0, 0.9], [261.6, 0.22, 0.9], [329.6, 0.44, 0.9], [440, 0.66, 1.4]], 0.22)
+    })
+  }
+
+  /**
+   * A start: one big gong (a tower defense wave sets off, a labyrinth or arena game begins). A soft mallet thud, a 172 Hz body with the gong's out-of-tune partials (the 431 Hz one
+   * blooms a little after the strike), each dying at its own pace over some 4 s, the whole note sagging slightly.
+   */
+  public playGong(): void {
+    void this.play((ctx, out, t) => {
+      const F = 172
+      // [ratio to the body, volume, swell (s), length (s)]
+      const partials: [number, number, number, number][] = [
+        [1, 0.32, 0.01, 4],
+        [1.5, 0.12, 0.02, 3],
+        [2.5, 0.3, 0.18, 2.4],
+        [3.6, 0.08, 0.05, 1.3],
+        [5.1, 0.05, 0.02, 0.8],
+      ]
+      for (const [ratio, volume, swell, length] of partials) {
+        const osc = ctx.createOscillator()
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(F * ratio, t)
+        osc.frequency.exponentialRampToValueAtTime(F * ratio * 0.985, t + length)
+        const gain = ctx.createGain()
+        gain.gain.setValueAtTime(0.0001, t)
+        gain.gain.exponentialRampToValueAtTime(volume, t + swell)
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + length)
+        osc.connect(gain).connect(out)
+        osc.start(t)
+        osc.stop(t + length + 0.05)
+      }
+      this.noiseBurst(ctx, out, t, 'lowpass', 400, 0.35, 0.08)
     })
   }
 
@@ -286,16 +341,19 @@ class GameAudio {
     this.tone(o.out, o.ctx, 'triangle', 185, 180, t + 0.18, 0.6, 0.22)
   }
 
-  /** Tower defense: a tower is built (hammer knocks and a settling thump). */
+  /**
+   * Tower defense: a tower is set down — a heavy stone thud: a sharp crack as it lands, a deep blow whose pitch falls
+   * (about 200 -> 45 Hz) and a low rumble dying away (some 0.6 s in all).
+   */
   public playBuild(): void {
     const o = this.output(1, 0)
     if (!o) return
-    const t = o.ctx.currentTime
-    for (let i = 0; i < 3; i++) {
-      this.tone(o.out, o.ctx, 'square', 700, 500, t + i * 0.09, 0.05, 0.08)
-      this.noiseBurst(o.ctx, o.out, t + i * 0.09, 'bandpass', 2000, 0.12, 0.05)
-    }
-    this.tone(o.out, o.ctx, 'sine', 110, 55, t + 0.3, 0.2, 0.4)
+    const { ctx, out } = o
+    const t = ctx.currentTime
+    this.noiseBurst(ctx, out, t, 'highpass', 6000, 0.3, 0.03)
+    this.tone(out, ctx, 'sine', 210, 45, t + 0.01, 0.32, 0.6)
+    this.tone(out, ctx, 'triangle', 140, 60, t + 0.01, 0.18, 0.18)
+    this.noiseBurst(ctx, out, t + 0.02, 'lowpass', 140, 0.35, 0.55)
   }
 
   /** Tower defense: a tower levels up — a bright rising sparkle. */

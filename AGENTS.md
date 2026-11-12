@@ -27,7 +27,9 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`projectileStore.ts`**: Snaryad reyestrining reaktiv ko'zgusi (kutubxona + o'yinchi snaryadlari, import/eksport). Snaryad = qatlamlar (`body`), iz, zarrachalar, harakat, zalp va zarba; `flying` / `strike` / `beam` turlari. Barcha chizish faqat `rendering/pixi/projectile/ProjectileFx` orqali (o'yin va preview'lar uchun bir xil).
   - Xaritadagi minoralar (`placedTowers`: darajalar, kuchaytirish, sotish, jami berilgan zarar, o'ldirilgan dushmanlar).
   - Jang simulyatsiyasi (`updateCombatTick`).
-- **`toolStore.ts`**: Faol asboblar (`select`, `brush`, `eraser`, `bucket`, `line`, `rectangle`), tanlangan element, modal oynalar holati.
+- **`mapLibraryStore.ts`**: O'yin xaritalari (`src/maps`) redaktordan boshqariladi: ochish, nusxa olish, o'chirish (server `.trash` ga ko'chiradi), redaktorda yaratilgan xaritani o'yinga qo'shish, ochiq xaritaning saqlangan fayldan farqlari (`domain/map/MapDiff`), saqlash (versiya tekshiruvi `If-Match`) va o'zgarishlarni bekor qilish. Xaritalarni faqat admin o'zgartiradi (`adminStore.ts` + `server/admin.js`: `.env` dagi `ADMIN_LOGIN` / `ADMIN_PASSWORD` bilan kirish).Xaritalar ilova ochilishida `/api/maps` dan yuklanadi (`server/maps.js`).
+- **`onlineStore.ts`**: Ilovaga kirgan barcha onlayn o'yinchilar va umumiy chat (`server/online.js`, WebSocket `/online`, `services/onlineService.ts`): kim qayerda (bosh sahifa / xona / o'yin), o'yinchini kuzatish (u kirgan xonaga avtomatik kirish), oxirgi 100 xabar. Admin xabarni o'chiradi va vaqtinchalik ban beradi: banlangan o'yinchi hech qaysi chatda yoza olmaydi va ovozli chatda uni hech kim eshitmaydi (`voiceStore`).
+- **`toolStore.ts`**: Faol asboblar(`select`, `brush`, `eraser`, `bucket`, `line`, `rectangle`), tanlangan element, modal oynalar holati.
 
 ### 3. 🖥️ Asosiy Komponentlar (`src/components/` & `src/views/`)
 - **`HomeView.vue`**: Asosiy sahifa (Yangi xona ochish, Onlayn o'yinga ulanish, Xarita redaktori).

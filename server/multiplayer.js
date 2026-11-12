@@ -48,7 +48,7 @@ export function createMultiplayerApp(httpServer) {
       hostName: String(room.hostName || '').slice(0, 20),
       hostColor: String(room.hostColor || ''),
       mapName: String(room.mapName || '').slice(0, 40),
-      gameMode: ['hero', 'hideseek'].includes(room.gameMode) ? room.gameMode : 'td',
+      gameMode: ['hero', 'hideseek', 'curse'].includes(room.gameMode) ? room.gameMode : 'td',
       playersCount: Number(room.playersCount) || 1,
       maxPlayers: Number(room.maxPlayers) || 2,
       gameState: String(room.gameState || 'lobby'),

@@ -50,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import { gameAudio } from '../../services/gameAudio'
 import { computed } from 'vue'
 
 export interface TabItem {
@@ -97,6 +98,7 @@ const normalizedItems = computed<TabItem[]>(() => {
 })
 
 function selectTab(id: string | number) {
+  gameAudio.playTap()
   emit('update:modelValue', id)
   emit('change', id)
 }

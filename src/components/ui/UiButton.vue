@@ -35,6 +35,7 @@
 import { computed } from 'vue'
 import { UiSpinner } from '../svg'
 import { haptic } from '../../services/telegram'
+import { gameAudio } from '../../services/gameAudio'
 
 export type ButtonVariant = 
   | 'primary' 
@@ -44,10 +45,14 @@ export type ButtonVariant =
   | 'secondary' 
   | 'danger' 
   | 'ghost' 
-  | 'outline' 
+  | 'outline'
   | 'tool'
+  /** Old-world menu buttons: beaten gold, and dark stone with a gold rim (they sink in when pressed) */
+  | 'regal'
+  | 'regal-dark'
 
-export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'icon' | 'icon-sm'
+/** `hero`: the big menu buttons (a tall, easy target) */
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'hero' | 'icon' | 'icon-sm'
 
 interface Props {
   variant?: ButtonVariant
@@ -80,6 +85,7 @@ const emit = defineEmits<{
 /** Every tap gives a light vibration in Telegram */
 function onClick(event: MouseEvent) {
   haptic()
+  gameAudio.playTap()
   emit('click', event)
 }
 
@@ -112,6 +118,12 @@ const variantClasses = computed(() => {
     
     case 'ghost':
       return 'bg-transparent text-slate-400 hover:text-slate-50 hover:bg-slate-800/70 border border-transparent'
+
+    case 'regal':
+      return 'font-display font-semibold uppercase tracking-[0.16em] text-brand-950 bg-linear-to-b from-brand-200 to-brand-400 border border-brand-200/80 shadow-[0_8px_24px_-10px_rgba(233,182,60,0.7)] hover:from-brand-100 hover:to-brand-300 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]!'
+
+    case 'regal-dark':
+      return 'font-display font-semibold uppercase tracking-[0.16em] text-brand-100 bg-slate-950/50 backdrop-blur-sm border border-brand-300/35 hover:border-brand-200/70 hover:bg-slate-900/60 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]!'
     
     default:
       return 'bg-brand-400 text-slate-950'
@@ -128,6 +140,8 @@ const sizeClasses = computed(() => {
       return 'px-3.5 sm:px-4 py-2 text-xs sm:text-sm rounded-xl gap-2'
     case 'lg':
       return 'px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-2xl gap-2.5'
+    case 'hero':
+      return 'h-13 px-6 text-sm sm:text-[15px] rounded-xl gap-3'
     case 'icon-sm':
       return 'p-1.5 sm:p-2 rounded-lg aspect-square'
     case 'icon':

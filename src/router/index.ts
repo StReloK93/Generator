@@ -7,6 +7,16 @@ const routes = [
     component: () => import('../views/HomeView.vue'),
   },
   {
+    path: '/play',
+    name: 'play',
+    component: () => import('../views/PlayView.vue'),
+  },
+  {
+    path: '/multiplayer',
+    name: 'multiplayer',
+    component: () => import('../views/MultiplayerView.vue'),
+  },
+  {
     path: '/editor/:mapId?',
     name: 'editor',
     component: () => import('../views/EditorView.vue'),

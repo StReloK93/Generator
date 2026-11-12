@@ -66,62 +66,50 @@
         </UiButton>
 
         <!-- Sound, vibration, full screen and language: one settings window -->
-        <UiIconButton :icon="Settings" size="lg" :title="$t('common.settings')" custom-class="bg-slate-950/60! backdrop-blur-md" @click="isSettingsOpen = true" />
+        <UiIconButton :icon="Settings" size="lg" :title="$t('common.settings')" custom-class="icon-gold spin-icon" @click="isSettingsOpen = true" />
       </div>
     </header>
 
     <!-- ================= 4. MENU =================
          Wide screens: title and buttons in the middle above the towers.
-         Upright phone: title with the towers under it in the middle, the buttons at the bottom where the thumb rests. -->
-    <main class="relative z-20 flex-1 flex flex-col items-center justify-center gap-7 pb-[38dvh] short:pb-0 short:gap-4 short:w-1/2 max-w-md mx-auto w-full short:mx-0 short:max-w-none portrait:justify-between portrait:pb-2 portrait:gap-4">
-      <div class="flex flex-col items-center text-center portrait:flex-1 portrait:w-full">
-        <!-- Title: in the middle of the space above the towers on an upright phone -->
-        <div class="flex flex-col items-center portrait:flex-1 portrait:justify-center">
+         Upright phone: one picture in the middle (title, the clans' towers on a lit stage, the buttons). -->
+    <main class="relative z-20 flex-1 flex flex-col items-center justify-center gap-7 pb-[38dvh] short:pb-0 short:gap-4 short:w-1/2 max-w-md mx-auto w-full short:mx-0 short:max-w-none portrait:justify-center portrait:pb-4 portrait:gap-10 tall:gap-14">
+      <div class="flex flex-col items-center text-center portrait:w-full">
+        <div class="flex flex-col items-center">
         <div class="flex items-center gap-3 sm:gap-4 portrait:gap-2">
-          <span class="h-px w-6 sm:w-16 short:w-8 portrait:hidden bg-linear-to-r from-transparent to-brand-400/70"></span>
+          <span class="h-px w-6 sm:w-16 short:w-8 portrait:w-3 tall:w-2 bg-linear-to-r from-transparent to-brand-400/70"></span>
           <span class="size-2 rotate-45 bg-brand-400 shadow-[0_0_10px_rgba(233,182,60,0.8)]"></span>
-          <h1 class="font-display text-5xl sm:text-7xl short:text-4xl font-black uppercase tracking-[0.18em] pl-[0.18em] portrait:tracking-[0.12em] portrait:pl-[0.12em] bg-linear-to-b from-brand-50 via-brand-300 to-brand-600 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(233,182,60,0.35)]">
+          <h1 class="font-display text-5xl portrait:text-4xl sm:text-7xl short:text-4xl tall:text-5xl font-black uppercase tracking-[0.18em] pl-[0.18em] portrait:tracking-[0.06em] portrait:pl-[0.06em] bg-linear-to-b from-brand-50 via-brand-300 to-brand-600 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(233,182,60,0.35)]">
             {{ $t('app.name') }}
           </h1>
           <span class="size-2 rotate-45 bg-brand-400 shadow-[0_0_10px_rgba(233,182,60,0.8)]"></span>
-          <span class="h-px w-6 sm:w-16 short:w-8 portrait:hidden bg-linear-to-l from-transparent to-brand-400/70"></span>
+          <span class="h-px w-6 sm:w-16 short:w-8 portrait:w-3 tall:w-2 bg-linear-to-l from-transparent to-brand-400/70"></span>
         </div>
-        <p class="mt-2 font-display text-sm sm:text-base short:text-xs font-semibold text-brand-200/70 tracking-[0.3em] uppercase">
+        <p class="mt-2 font-display text-sm sm:text-base short:text-xs portrait:text-xs portrait:tracking-[0.18em] tall:text-sm font-semibold text-brand-200/70 tracking-[0.3em] uppercase text-balance">
           {{ $t('home.tagline') }}
         </p>
         </div>
 
-        <!-- Upright phone: the clans' towers stand on a warm glow right above the buttons, like on a stage -->
-        <div class="hidden portrait:block relative w-[125%] max-w-160 mt-6">
-          <div class="absolute inset-x-[8%] -bottom-2 h-2/5 rounded-full bg-brand-500/25 blur-2xl"></div>
-          <img :src="homeHorizon" alt="" aria-hidden="true" draggable="false" class="horizon-rise relative w-full object-contain" />
+        <!-- Upright phone: the clans' towers, all of them, standing on a lit stage under the title -->
+        <div class="hidden portrait:block relative w-full max-w-md mt-8 tall:mt-12">
+          <!-- Light falling on the stage, the stage's glow and the shadow it throws -->
+          <div class="absolute left-1/2 -translate-x-1/2 -top-10 w-3/5 h-[130%] bg-linear-to-b from-brand-300/10 via-brand-400/5 to-transparent blur-xl"></div>
+          <div class="absolute inset-x-[4%] -bottom-3 h-1/3 rounded-[50%] bg-brand-500/25 blur-2xl"></div>
+          <div class="absolute inset-x-[10%] bottom-0 h-3 rounded-[50%] bg-slate-950/70 blur-md"></div>
+          <!-- The picture cut to the towers (the empty margins of the image left out), so they fill the width -->
+          <img :src="homeHorizon" alt="" aria-hidden="true" draggable="false" class="horizon-rise relative w-full aspect-805/380 object-cover object-[48%_50%]" />
         </div>
       </div>
 
       <!-- Primary Action Buttons Only -->
       <div class="flex flex-col gap-3.5 short:gap-3 w-full max-w-xs sm:max-w-sm short:max-w-72 portrait:max-w-sm">
         
-        <!-- Single Player Button -> Opens Map Modal -->
-        <UiButton
-          variant="game-amber"
-          size="lg"
-          block
-          :leading-icon="Play"
-          class="py-3.5 sm:py-4 text-sm sm:text-base font-black tracking-wider uppercase shadow-lg shadow-amber-500/20 justify-center"
-          @click="openMapModal"
-        >
+        <!-- The two ways to play: beaten gold, and dark stone with a gold rim; a small diamond either side of the words -->
+        <UiButton variant="regal" size="hero" block custom-class="tall:h-15" @click="router.push('/play')">
           {{ $t('home.singleplayer') }}
         </UiButton>
 
-        <!-- Multiplayer Button -> Navigates to Online Mode -->
-        <UiButton
-          variant="game-green"
-          size="lg"
-          block
-          :leading-icon="Users"
-          class="py-3.5 sm:py-4 text-sm sm:text-base font-black tracking-wider uppercase shadow-lg shadow-emerald-500/20 justify-center"
-          @click="isMultiplayerOpen = true"
-        >
+        <UiButton variant="regal-dark" size="hero" block custom-class="tall:h-15" @click="router.push('/multiplayer')">
           {{ $t('home.multiplayer') }}
         </UiButton>
       </div>
@@ -129,19 +117,8 @@
     </main>
 
 
-    <!-- ================= 6. SCALABLE MAP SELECTION MODAL ================= -->
-    <MapSelectionModal
-      v-model:is-open="isMapModalOpen"
-      v-model:selected-map-id="selectedMapId"
-      :maps="availableMaps"
-      :is-starting-game="isStartingGame"
-      @start-map="selectAndStartMap"
-      @imported="customImportedMaps.unshift($event)"
-    />
 
-    <MultiplayerModal v-model:is-open="isMultiplayerOpen" />
-
-    <UiModal :is-open="isSettingsOpen" :title="$t('common.settings')" :icon="Settings" size="sm" :teleport="true" @close="isSettingsOpen = false">
+    <UiModal :is-open="isSettingsOpen" :title="$t('common.settings')" :icon="Settings" size="sm" custom-class="short:max-w-2xl" :teleport="true" @close="isSettingsOpen = false">
       <SettingsPanel />
     </UiModal>
 
@@ -151,11 +128,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Play,
-  Users,
   Layers,
   Palette,
   Crosshair,
@@ -167,26 +142,10 @@ import { UiButton, UiIconButton, UiModal } from '../components/ui'
 import SettingsPanel from '../components/SettingsPanel.vue'
 import { canInstallPwa, promptPwaInstall } from '../utils/pwaOrientation'
 import { isTelegram } from '../services/telegram'
-import { useGameStore } from '../stores/gameStore'
-import { useNotificationStore } from '../stores/notificationStore'
-import { useI18n } from '../stores/i18nStore'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
 import HomeBackdrop from '../components/home/HomeBackdrop.vue'
-import MapSelectionModal from '../components/home/MapSelectionModal.vue'
-import MultiplayerModal from '../components/home/MultiplayerModal.vue'
-import { assetManager } from '../services/assetManager'
-import {
-  getBuiltinMaps,
-  sanitizeMapId,
-  applyMapPayloadToStores,
-  type MapSummary
-} from '../services/mapManager'
-import { gamePath } from '../router/paths'
 
 const router = useRouter()
-const gameStore = useGameStore()
-const notify = useNotificationStore()
-const { t } = useI18n()
 
 const editorSetupModalRef = ref<any>(null)
 const isDesktopDevice = ref(false)
@@ -201,36 +160,12 @@ function checkIsDesktopDevice() {
   isDesktopDevice.value = !isMobileUA && !isTouch && !isSmallDevice && !isSmallWidth
 }
 
-// Modals & Button States
-const isMapModalOpen = ref(false)
-const isMultiplayerOpen = ref(false)
 const isSettingsOpen = ref(false)
-const isStartingGame = ref(false)
-const selectedMapId = ref<string>('')
-
-// Auto-load available maps
-const rawAvailableMaps = getBuiltinMaps()
-
-const customImportedMaps = ref<MapSummary[]>([])
-
-// Hide & seek maps are played against a bot here (the 2 player match is in multiplayer)
-const availableMaps = computed<MapSummary[]>(() => [...customImportedMaps.value, ...rawAvailableMaps])
-
-function openMapModal() {
-  if (!selectedMapId.value && availableMaps.value.length > 0) {
-    selectedMapId.value = availableMaps.value[0].id
-  }
-  isMapModalOpen.value = true
-}
 
 onMounted(async () => {
   checkIsDesktopDevice()
   window.addEventListener('resize', checkIsDesktopDevice)
   window.addEventListener('orientationchange', checkIsDesktopDevice)
-
-  if (availableMaps.value.length > 0) {
-    selectedMapId.value = availableMaps.value[0].id
-  }
 })
 
 onUnmounted(() => {
@@ -238,37 +173,11 @@ onUnmounted(() => {
   window.removeEventListener('orientationchange', checkIsDesktopDevice)
 })
 
+/** The editor starts from the game's maps (open one, or make a new one) */
 function goToEditor() {
-  editorSetupModalRef.value?.open('new', false)
+  editorSetupModalRef.value?.open('maps', false)
 }
 
-async function selectAndStartMap(mapData: any) {
-  if (isStartingGame.value) return
-  isStartingGame.value = true
-
-  try {
-    const cleanId = sanitizeMapId(mapData.id || mapData.name || 'julion')
-    gameStore.entrySource = 'home'
-    gameStore.startLoadingScreen(mapData?.name || t('game.battlefield'))
-    
-    if (mapData.raw) {
-      applyMapPayloadToStores(mapData.raw)
-    }
-
-    // Preload all game textures and sprites while button spinner is running
-    await assetManager.loadGame()
-
-    // Provide a smooth feedback buffer for the button loading spinner
-    await new Promise(resolve => setTimeout(resolve, 350))
-
-    await router.push(gamePath(cleanId))
-  } catch (err) {
-    console.error('Error starting map:', err)
-    notify.error('Failed to load map')
-  } finally {
-    isStartingGame.value = false
-  }
-}
 </script>
 
 <style scoped>

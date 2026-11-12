@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { voiceService, type VoiceTarget } from '../services/voiceService'
 import { useMultiplayerStore } from './multiplayerStore'
+import { useOnlineStore } from './onlineStore'
 import { teamForSlot } from '../domain/hideseek'
 
 /** Who hears my voice: everyone in the room, or only my own team */
@@ -10,6 +11,7 @@ export type VoiceChannel = 'all' | 'team'
 /** Room voice chat: the player's choices; the calls themselves live in voiceService. */
 export const useVoiceStore = defineStore('voice', () => {
   const multiplayerStore = useMultiplayerStore()
+  const online = useOnlineStore()
 
   const isJoined = ref(false)
   const isJoining = ref(false)
@@ -37,8 +39,11 @@ export const useVoiceStore = defineStore('voice', () => {
   })
 
   watch(targets, value => voiceService.setTargets(value), { deep: true })
-  watch(mutedIds, value => voiceService.setMutedIds(value))
-  watch(isMicOn, value => voiceService.setMicEnabled(value))
+  /** Nobody hears a player the admin banned, and a banned player's microphone stays off */
+  const silencedIds = computed(() => [...new Set([...mutedIds.value, ...online.bannedRoomPlayerIds])])
+  const isMicBlocked = computed(() => online.myBanUntil > 0)
+  watch(silencedIds, value => voiceService.setMutedIds(value))
+  watch([isMicOn, isMicBlocked], ([on, blocked]) => voiceService.setMicEnabled(on && !blocked))
   // Leaving the room ends the voice chat too
   watch(() => multiplayerStore.roomId, (id, oldId) => {
     if (id !== oldId) leave()
@@ -49,8 +54,8 @@ export const useVoiceStore = defineStore('voice', () => {
     if (isJoined.value || isJoining.value || !multiplayerStore.roomId) return 'failed'
     isJoining.value = true
     voiceService.setTargets(targets.value)
-    voiceService.setMutedIds(mutedIds.value)
-    voiceService.setMicEnabled(isMicOn.value)
+    voiceService.setMutedIds(silencedIds.value)
+    voiceService.setMicEnabled(isMicOn.value && !isMicBlocked.value)
     const result = await voiceService.join(multiplayerStore.roomId, multiplayerStore.myPlayerId, {
       onConnected: ids => (connectedIds.value = ids),
       onSpeaking: ids => (speakingIds.value = ids),
@@ -92,6 +97,7 @@ export const useVoiceStore = defineStore('voice', () => {
     connectedIds,
     speakingIds,
     mutedIds,
+    isMicBlocked,
     join,
     leave,
     toggleMic,

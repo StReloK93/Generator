@@ -106,6 +106,7 @@ import {
   tickCurse,
   startCurseRound,
   searchSpotCurse,
+  readMapLabyrinth,
 } from '../domain/hideseek'
 import { getMapMode } from '../domain/map'
 import type { GridCoord, HideSeekSettings } from '../types/map'
@@ -187,7 +188,15 @@ interface BotState {
 /**
  * Hide & seek session: local input and movement, gadgets, the network, the solo bot and the per-frame views.
  * The rules live in domain/hideseek: the host (or a solo game) runs the referee (HideSeekMatch), guests mirror it.
- */
+ */
+/** The count before a match ("2", "1"), in seconds; the gong ends it */
+const START_COUNT_SEC = 2
+/** A caught player stands in a beam of light this long before it takes them to the jail, then appears there */
+const TELEPORT_OUT_SEC = 1.2
+const TELEPORT_IN_SEC = 0.6
+/** How long "X caught Y" stays on screen */
+const CATCH_NOTE_SEC = 2.6
+
 export const useHideSeekStore = defineStore('hideSeek', () => {
   const mapStore = useMapStore()
   const multiplayerStore = useMultiplayerStore()
@@ -255,9 +264,30 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Seconds left to pick (then the host picks a random hero for whoever has not) */
   const pickSecondsLeft = ref(0)
   let pickTimer = 0
+  /**
+   * The match starts with a count once every hero is picked: "2", "1", then the gong and the clock runs.
+   * `startCount` is the number shown (0: not counting); `countLeft` -1 until the count began, 0 once it is over.
+   */
+  const startCount = ref(0)
+  let countLeft = -1
+  /** Caught players in the teleport beam: seconds left of leaving (out) and of arriving in the jail (in) */
+  const teleports = new Map<string, { phase: 'out' | 'in'; left: number }>()
+  /** A catch is still being shown (the round's result waits for it) */
+  const isTeleporting = ref(false)
+  /** Who caught whom, shown for a moment (catcher null: the curse's fuse burnt out) */
+  const catchNote = ref<{ catcher: string | null; caught: string; mine: boolean; me: boolean } | null>(null)
+  let catchNoteLeft = 0
+  /** Looking somewhere else on the map (a tap on the big map); null: the camera follows the own character */
+  const lookAt = ref<GridCoord | null>(null)
 
   const canMove = computed(
-    () => !needsSoloRole.value && heroesMissing.value === 0 && !isJailed.value && !isFrozenMe.value && canAct(myRole.value, phase.value)
+    () =>
+      !needsSoloRole.value &&
+      heroesMissing.value === 0 &&
+      startCount.value === 0 &&
+      !isJailed.value &&
+      !isFrozenMe.value &&
+      canAct(myRole.value, phase.value)
   )
   const didIWin = computed(() => winner.value !== null && winner.value === myRole.value)
   /** The curse genre: everyone for themselves, the curse (the seeker role) jumps from player to player */
@@ -370,10 +400,18 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Collision for the current doors (a random labyrinth) or the map's own walls. */
   function rebuildGrids(): void {
     if (maze) {
-      grid = buildMazeGrid(maze, true, match.doors)
-      hiderGrid = buildMazeGrid(maze, false, match.doors)
-      seekerPaths = buildMazeGrid(maze, true, null)
-      hiderPaths = buildMazeGrid(maze, false, null)
+      // A labyrinth drawn on the map: its walls and furniture are the map's own collision
+      const drawnWalls = settings.randomMaze ? null : buildCollisionGrid(mapStore.project).blocked
+      const labyrinth = maze
+      const build = (blockHoles: boolean, doorsOpen: readonly boolean[] | null): CollisionGrid => {
+        const built = buildMazeGrid(labyrinth, blockHoles, doorsOpen)
+        drawnWalls?.forEach((solid, i) => solid && (built.blocked[i] = 1))
+        return built
+      }
+      grid = build(true, match.doors)
+      hiderGrid = build(false, match.doors)
+      seekerPaths = build(true, null)
+      hiderPaths = build(false, null)
     } else {
       grid = hiderGrid = seekerPaths = hiderPaths = buildCollisionGrid(mapStore.project)
     }
@@ -431,10 +469,16 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   // ==========================================
   function startMatch(): void {
     settings = normalizeHideSeekSettings(mapStore.project.hideSeekSettings)
-    maze = null
+    countLeft = -1
+    startCount.value = 0
+    spawns = splitSpawns(routeSpawns())
+    // The labyrinth drawn on the map (its barrels, candles, doors, crawl holes), unless every round builds a random one.
+    // The game draws those pieces itself, so this game's copy of the map leaves them out.
+    const drawn = settings.randomMaze ? null : readMapLabyrinth(mapStore.project, spawns)
+    maze = drawn?.maze ?? null
+    if (drawn) Object.assign(mapStore.project, { layers: drawn.layers, collisionSubcells: drawn.collisionSubcells })
     match = createMatch([])
     rebuildGrids()
-    spawns = splitSpawns(routeSpawns())
     footprints = []
     explored = new Uint8Array(mapStore.project.cols * mapStore.project.rows)
     players.clear()
@@ -526,8 +570,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     restoreOwnState(saved)
     needsSoloRole.value = false
     myRole.value = seatOf(match, myId())?.role ?? 'hider'
-    // Everyone else is already where they were: this tune has played
+    // Everyone else is already where they were: this tune has played, the start count too
     lastTuneKey = `${match.round}:${match.clock.phase}`
+    countLeft = 0
 
     for (const [id, savedBot] of Object.entries(saved.bots ?? {})) {
       const bot = players.get(id)
@@ -623,6 +668,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Solo: back to the role picker for another match. */
   function chooseSoloRole(): void {
     needsSoloRole.value = true
+    // The next match counts in again
+    countLeft = -1
+    startCount.value = 0
     releaseInput()
   }
 
@@ -747,7 +795,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** A tune marks each phase once: round start, the hunt, round end. */
   function playPhaseTune(): void {
     const key = `${match.round}:${match.clock.phase}`
-    if (key === lastTuneKey || needsSoloRole.value) return
+    // Before the start count is over the gong is still to come (it stands for the first phase's tune)
+    if (key === lastTuneKey || needsSoloRole.value || countLeft !== 0) return
     lastTuneKey = key
     const { phase: next, winner: roundWinner } = match.clock
     if (next === 'hiding') gameAudio.playRoundStart()
@@ -766,6 +815,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   function reset(): void {
     isActive.value = false
+    teleports.clear()
+    catchNote.value = null
+    lookAt.value = null
     lastTuneKey = ''
     needsSoloRole.value = false
     players.clear()
@@ -809,6 +861,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (MOVE_KEYS[code]) {
       if (pressed) {
         pressedKeys.add(code)
+        lookAt.value = null
         if (myPlayer()?.hidden !== -1) leaveSpot()
       } else pressedKeys.delete(code)
       return true
@@ -827,6 +880,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   function setJoystick(x: number, y: number): void {
+    if (x !== 0 || y !== 0) lookAt.value = null
     joystick.x = x
     joystick.y = y
   }
@@ -901,6 +955,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   /** Click / tap: open / search / hide (walking up first), or walk there. */
   function clickCell(col: number, row: number): void {
+    lookAt.value = null
     const me = myPlayer()
     if (!me || !canMove.value) return
     const target = { col, row }
@@ -1161,12 +1216,27 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         applyHud()
         break
       }
-      case 'caught':
+      case 'caught': {
         if (isCurse.value) gameAudio.playExplosion()
         gameAudio.playJail(0.7, false)
-        if (event.id === myId()) leaveSpot()
-        placeOwnCharacter(event.id, 'jail')
+        gameAudio.playTeleport()
+        if (event.id === myId()) {
+          leaveSpot()
+          releaseInput()
+        }
+        // The caught one stops in a beam of light; the beam takes them to the jail (tickTeleports)
+        teleports.set(event.id, { phase: 'out', left: TELEPORT_OUT_SEC })
+        if (event.by) {
+          catchNote.value = {
+            catcher: players.get(event.by)?.name ?? '',
+            caught: players.get(event.id)?.name ?? '',
+            mine: event.by === myId(),
+            me: event.id === myId(),
+          }
+          catchNoteLeft = CATCH_NOTE_SEC
+        }
         break
+      }
       case 'freed':
         gameAudio.playJail(0.6, true)
         placeOwnCharacter(event.id, 'home')
@@ -1270,7 +1340,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       altars: match.altars.map(a => ({ c: a.col, r: a.row, p: Math.round(a.progress * 1000) / 1000, l: a.lit })),
       altarsNeeded: match.altarsNeeded,
       chains: match.chains.map(c => ({ ...c })),
-      spots: match.spots.map(s => ({ c: s.col, r: s.row, k: s.kind, f: s.facing })),
+      spots: match.spots.map(s => ({ c: s.col, r: s.row, k: s.kind, f: s.facing, a: s.asset })),
       traps: match.traps.map(t => ({ c: t.col, r: t.row, ring: t.ringing })),
       maze: match.mazeSeed,
       doors: [...match.doors],
@@ -1308,7 +1378,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     match.altars = state.altars.map(a => ({ col: a.c, row: a.r, progress: a.p, lit: a.l }))
     match.altarsNeeded = state.altarsNeeded
     match.chains = state.chains.map(c => ({ ...c }))
-    match.spots = state.spots.map(s => ({ col: s.c, row: s.r, kind: s.k, facing: s.f }))
+    match.spots = state.spots.map(s => ({ col: s.c, row: s.r, kind: s.k, facing: s.f, asset: s.a }))
     match.traps = state.traps.map(t => ({ col: t.c, row: t.r, ringing: t.ring }))
     match.seats = state.seats.map(s => ({ ...s }))
     match.wins = { ...state.wins }
@@ -1322,6 +1392,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     match.marks = state.marks.map(m => ({ ...m }))
     loadMaze(state.maze)
     rebuildGrids()
+    // Joined (or came back) after the match began: no start count
+    if (countLeft < 0 && (match.round > 0 || match.clock.phase !== 'hiding')) countLeft = 0
     if (state.round !== lastRound) onRoundStarted()
     applyHud()
   }
@@ -1737,6 +1809,53 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (left === 0 && multiplayerStore.isHost) multiplayerStore.assignMissingHeroes()
   }
 
+  /** The teleport beams run down: leaving ones go to the jail and appear there, arriving ones fade in. */
+  function tickTeleports(deltaSec: number): void {
+    for (const [id, beam] of teleports) {
+      beam.left -= deltaSec
+      if (beam.left > 0) continue
+      if (beam.phase === 'out') {
+        placeOwnCharacter(id, 'jail')
+        teleports.set(id, { phase: 'in', left: TELEPORT_IN_SEC })
+      } else teleports.delete(id)
+    }
+    if (isTeleporting.value !== teleports.size > 0) isTeleporting.value = teleports.size > 0
+    if (catchNote.value && (catchNoteLeft -= deltaSec) <= 0) catchNote.value = null
+  }
+
+  /** 0..1 of a player's teleport (out: leaving, in: arriving), or null */
+  function teleportOf(id: string): { phase: 'out' | 'in'; t: number } | null {
+    const beam = teleports.get(id)
+    if (!beam) return null
+    const total = beam.phase === 'out' ? TELEPORT_OUT_SEC : TELEPORT_IN_SEC
+    return { phase: beam.phase, t: 1 - Math.max(0, beam.left) / total }
+  }
+
+  /** Look at a spot on the map (a tap on the big map); moving brings the camera back to the own character. */
+  function setLookAt(at: GridCoord | null): void {
+    lookAt.value = at
+  }
+
+  /** Where the camera goes: the spot being looked at, otherwise the own character */
+  function getCameraTarget(): GridCoord | null {
+    if (lookAt.value) return lookAt.value
+    const me = myPlayer()
+    return me ? { col: me.col, row: me.row } : null
+  }
+
+  /** Everyone has a hero: count "2", "1", then the gong, and the match runs. */
+  function updateStartCount(deltaSec: number): void {
+    if (countLeft === 0) return
+    if (countLeft < 0) countLeft = START_COUNT_SEC
+    countLeft = Math.max(0, countLeft - deltaSec)
+    const shown = Math.ceil(countLeft)
+    if (shown !== startCount.value) startCount.value = shown
+    if (countLeft > 0) return
+    gameAudio.playGong()
+    lastTuneKey = `${match.round}:${match.clock.phase}`
+    applyHud()
+  }
+
   /** Room game: the heroes picked in the game become the players' characters (gadgets follow the trickster's trait). */
   function applyHeroModels(): void {
     for (const lobbyPlayer of multiplayerStore.players) {
@@ -1753,7 +1872,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (!isActive.value || !grid) return
 
     updateHeroPick(deltaSec)
-    if (!needsSoloRole.value && heroesMissing.value === 0) {
+    tickTeleports(deltaSec)
+    if (!needsSoloRole.value && heroesMissing.value === 0) updateStartCount(deltaSec)
+    if (!needsSoloRole.value && heroesMissing.value === 0 && countLeft === 0) {
       if (isReferee()) refereeTick(deltaSec)
       else if (match.clock.phase !== 'ended') match.clock.timeLeft = Math.max(0, match.clock.timeLeft - deltaSec)
     }
@@ -1767,7 +1888,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       timerHudAge = 0
       applyTimerHud()
     }
-    if (isSolo() && !needsSoloRole.value) updateBots(deltaSec)
+    if (isSolo() && !needsSoloRole.value && countLeft === 0) updateBots(deltaSec)
     updateOthers(me, deltaSec)
 
     updateHunt(me, deltaSec)
@@ -1800,6 +1921,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       cols: mapStore.project.cols,
       rows: mapStore.project.rows,
       curse: isCurse.value,
+      teleportOf,
     }
     renderView = buildRenderView(viewContext)
   }
@@ -1813,10 +1935,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   /** Camera target: own character. */
-  function getMyPosition(): GridCoord | null {
-    const me = myPlayer()
-    return me ? { col: me.col, row: me.row } : null
-  }
 
   return {
     isActive,
@@ -1835,6 +1953,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     heroesMissing,
     needsHero,
     pickSecondsLeft,
+    startCount,
     aimingSlot,
     isSensed,
     chainHolding,
@@ -1885,6 +2004,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     tick,
     getRenderView,
     getMinimapView,
-    getMyPosition,
+    getCameraTarget,
+    setLookAt,
+    lookAt,
+    catchNote,
+    isTeleporting,
   }
 })

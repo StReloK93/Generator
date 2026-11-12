@@ -307,7 +307,7 @@ describe('HideSeekMatch', () => {
     expect(seatOf(match, 'h')!.jailed).toBe(false)
     expect(searchSpot(match, 0, bodies, settings, 'h')).toEqual([])
     const events = searchSpot(match, 0, bodies, settings, 's')
-    expect(events[0]).toEqual({ kind: 'caught', id: 'h' })
+    expect(events[0]).toEqual({ kind: 'caught', id: 'h', by: 's' })
     expect(match.clock.reason).toBe('caught')
   })
 

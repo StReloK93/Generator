@@ -1,13 +1,11 @@
 import Peer, { DataConnection, PeerOptions } from 'peerjs'
 import { NetMessage, ActiveRoomSummary } from '../types/multiplayer'
 import { networkSyncBuffer } from './networkSync'
+import { SERVER_URL, API_URL } from './serverUrl'
 
 /**
  * Multiplayer backend (server/multiplayer.js): PeerJS signaling on /peer and the public room list on /api.
- * Same origin as the app by default (dev server and `npm start` both host it); VITE_SERVER_URL points elsewhere.
  */
-const SERVER_URL = new URL(import.meta.env.VITE_SERVER_URL || globalThis.location?.origin || 'http://localhost')
-const API_URL = `${SERVER_URL.origin}/api`
 const isSecure = SERVER_URL.protocol === 'https:'
 const STUN_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },

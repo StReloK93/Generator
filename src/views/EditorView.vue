@@ -79,6 +79,7 @@
     <WelcomeProjectModal ref="welcomeModalRef" />
 
     <ExportModal :viewport-ref="viewportRef" />
+    <MapPublishModal @focus-cell="handleFocusCell" />
   </div>
 </template>
 
@@ -99,6 +100,7 @@ import TowerCreateModal from '../components/TowerCreateModal.vue'
 import BoxClearModal from '../components/BoxClearModal.vue'
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal.vue'
 import HistoryModal from '../components/editor/HistoryModal.vue'
+import MapPublishModal from '../components/editor/MapPublishModal.vue'
 import { useMapStore } from '../stores/mapStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useRouteStore } from '../stores/routeStore'
@@ -110,8 +112,10 @@ import {
   getEditorMapDataById, 
   applyMapPayloadToStores, 
   saveEditorDraft, 
-  sanitizeMapId 
+  sanitizeMapId,
+  collectEditorMapState
 } from '../services/mapManager'
+import { useMapLibraryStore } from '../stores/mapLibraryStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -121,6 +125,7 @@ const routeStore = useRouteStore()
 const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const towerStore = useTowerStore()
+const mapLibrary = useMapLibraryStore()
 
 const mapMode = computed(() => getMapMode(mapStore.project))
 
@@ -159,48 +164,16 @@ function autoSaveCurrentState() {
   }
 
   // 1. Synchronize all reactive store values into project
-  gameStore.syncGameSettingsToProject()
-  waveStore.syncWavesToProject()
-  routeStore.syncRoutesToProject()
-  towerStore.syncToProject()
+  const state = collectEditorMapState()
 
   const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
   mapStore.project.id = currentId
 
   // 2. Save editor draft to localStorage
-  saveEditorDraft(
-    currentId,
-    mapStore.project,
-    assetStore.assets,
-    {
-      routes: routeStore.routes,
-      spawnMode: gameStore.spawnMode,
-      formation: gameStore.formation,
-      pairDistance: gameStore.pairDistance,
-      unitElevation: gameStore.unitElevation,
-      unitScaleMultiplier: gameStore.unitScaleMultiplier,
-      selectedRouteIndex: routeStore.selectedRouteIndex,
-    },
-    {
-      placedTowers: towerStore.placedTowers,
-      towerBlueprints: towerStore.blueprints,
-      clans: towerStore.clans,
-    },
-    {
-      waveConfigs: waveStore.waveConfigs,
-      currentWaveIndex: waveStore.currentWaveIndex,
-    },
-    {
-      startingGold: gameStore.startingGold,
-      startingLives: gameStore.startingLives,
-      wavePrepTime: gameStore.wavePrepDuration,
-      spawnMode: gameStore.spawnMode,
-      formation: gameStore.formation,
-      pairDistance: gameStore.pairDistance,
-      unitElevation: gameStore.unitElevation,
-      unitScaleMultiplier: gameStore.unitScaleMultiplier,
-    }
-  )
+  saveEditorDraft(currentId, state.project, state.assets, state.characterData, state.towerData, state.waveData, state.gameSettings)
+
+  // 3. A built-in map: what differs from its saved file
+  mapLibrary.refresh()
 }
 
 watch(
@@ -228,32 +201,34 @@ watch(
   }
 )
 
-function initEditorMap() {
+/** `fromGame`: the map in the stores is a game's copy (a game draws some pieces itself and changes it), so it is loaded again */
+function initEditorMap(fromGame = false) {
   // 1. Resolve Map ID from route params, or fallback to active project in store
   let rawId = (route.params.mapId as string) || ''
   
-  // If navigated to /editor without param, but mapStore already has an active loaded map, redirect to /editor/:mapId
-  if (!rawId && mapStore.project.cols > 0 && mapStore.project.layers && mapStore.project.layers.length > 0) {
-    const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  // /editor without a map while a map was being edited (it has a draft): back to that map, not the blank default one
+  const currentId = sanitizeMapId(mapStore.project.id || mapStore.project.name || 'julion')
+  if (!rawId && getEditorMapDataById(currentId)) {
     router.replace(`/editor/${currentId}`)
     return
   }
 
-  // DIRECT ACCESS: /editor without mapId prompts Welcome/Map Selection modal
+  // DIRECT ACCESS: /editor without mapId offers the game's maps (or a new one)
   if (!rawId) {
-    welcomeModalRef.value?.open('new', true)
+    welcomeModalRef.value?.open('maps', true)
     return
   }
 
   const cleanId = sanitizeMapId(rawId)
 
   // 2. Restore map: if mapStore does not have this map loaded or user accessed different map, load from editor draft or src/maps/
-  if (!mapStore.project.cols || mapStore.project.layers.length === 0 || sanitizeMapId(mapStore.project.id) !== cleanId) {
+  if (fromGame || !mapStore.project.cols || mapStore.project.layers.length === 0 || sanitizeMapId(mapStore.project.id) !== cleanId) {
     const mapData = getEditorMapDataById(cleanId)
     if (mapData) {
       applyMapPayloadToStores(mapData.payload)
+      mapLibrary.startEditing(cleanId, mapData.source)
     } else {
-      welcomeModalRef.value?.open('new', true)
+      welcomeModalRef.value?.open('maps', true)
       return
     }
   }
@@ -268,6 +243,7 @@ onMounted(async () => {
   }
 
   // Active in Editor mode: mark that maps worked on here are editor projects
+  const fromGame = mapStore.isGameMap
   mapStore.isGameMap = false
 
   // STRICT CLEANUP: Always stop any previous game simulation & network snapshots when entering editor
@@ -275,7 +251,7 @@ onMounted(async () => {
   towerStore.clearCombatEffects()
   networkSyncBuffer.clear()
 
-  initEditorMap()
+  initEditorMap(fromGame)
 })
 
 watch(() => route.params.mapId, (newMapId, oldMapId) => {

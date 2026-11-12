@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-2">
-    <div class="grid grid-cols-4 gap-1.5">
+    <div class="grid grid-cols-4 gap-1.5 short:gap-1">
       <UiCard
         v-for="model in HERO_MODELS"
         :key="model.id"
@@ -14,12 +14,12 @@
         :aria-label="model.label"
         @click="emit('update:modelValue', model.id)"
       >
-        <div class="w-full h-14 bg-radial from-slate-700/50 to-transparent flex items-end justify-center overflow-hidden">
+        <div class="w-full h-14 short:h-9 bg-radial from-slate-700/50 to-transparent flex items-end justify-center overflow-hidden">
           <img
             v-if="portraits[model.id]"
             :src="portraits[model.id]"
             :alt="model.label"
-            class="h-13 w-auto object-contain drop-shadow-lg"
+            class="h-13 short:h-8 w-auto object-contain drop-shadow-lg"
             draggable="false"
           />
           <UiSpinner v-else class="size-4 mb-5 text-slate-500" />
@@ -35,7 +35,7 @@
     </div>
 
     <!-- What the picked hero can do: one passive trait and three abilities, the same in both roles -->
-    <div v-if="modelValue" class="flex flex-col gap-1 rounded-xl bg-slate-950/60 border border-slate-800 px-2.5 py-2 text-[11px] leading-snug">
+    <div v-if="modelValue" class="flex flex-col gap-1 rounded-xl bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 text-[11px] leading-snug">
       <p v-if="trait" class="flex items-start gap-1.5 text-slate-300">
         <component :is="trait.icon" class="size-3.5 shrink-0 mt-px text-amber-300" />
         <span><b class="text-amber-200">{{ $t(trait.label) }}</b> · {{ $t('hideseek.passive') }}: {{ $t(trait.desc) }}</span>
@@ -44,8 +44,8 @@
         <component :is="ABILITY_ICONS[ability]" class="size-3.5 shrink-0 mt-px text-sky-300" />
         <span>
           <b class="text-sky-200">{{ ABILITY_KEYS[slot] }} · {{ $t(`hideseek.ability.${ability}`) }}</b>
-          <span class="text-slate-500"> ({{ abilityCooldown(ability, settings) }}{{ $t('hideseek.secondsShort') }})</span>:
-          {{ $t(`hideseek.abilityHint.${ability}`) }}
+          <span class="text-slate-500"> ({{ abilityCooldown(ability, settings) }}{{ $t('hideseek.secondsShort') }})</span><span class="short:hidden">:
+          {{ $t(`hideseek.abilityHint.${ability}`) }}</span>
         </span>
       </p>
     </div>

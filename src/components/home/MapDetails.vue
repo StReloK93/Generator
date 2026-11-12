@@ -6,39 +6,38 @@
         <div :class="['flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider', playInfo.accent]">
           <component :is="MAP_MODE_INFO[map.mode].icon" class="size-3.5 shrink-0" />
           {{ $t(playInfo.label) }}
+          <span class="font-semibold normal-case tracking-normal text-slate-400">· {{ map.cols }} × {{ map.rows }}</span>
         </div>
         <h3 class="mt-0.5 text-base sm:text-xl font-extrabold text-brand-200 truncate">{{ map.name }}</h3>
-        <span class="text-[11px] sm:text-xs text-slate-400">{{ map.cols }} × {{ map.rows }}</span>
       </div>
-      <MapPreviewImage :map="map" class="w-32 sm:w-44 short:w-28 portrait:w-full aspect-2/1 rounded-xl border border-slate-800 shrink-0" />
+      <MapPreviewImage :map="map" class="w-32 sm:w-44 short:w-28 portrait:w-full aspect-2/1 portrait:aspect-3/1 tall:aspect-2/1 rounded-xl border border-slate-800 shrink-0" />
     </div>
 
     <!-- How to play: three steps of the genre -->
     <section class="flex flex-col gap-1.5">
-      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ $t('maps.howToPlay') }}</span>
-      <ol class="flex flex-col gap-1">
-        <li v-for="(step, i) in playInfo.howTo" :key="step.text" class="flex items-start gap-2 text-xs text-slate-300 leading-snug">
+      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 short:hidden">{{ $t('maps.howToPlay') }}</span>
+      <ol class="flex flex-col gap-1 short:gap-0.5">
+        <li v-for="(step, i) in playInfo.howTo" :key="step.text" class="flex items-start gap-2 text-xs short:text-[11px] text-slate-300 leading-snug">
           <span class="relative size-6 shrink-0 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center">
             <component :is="step.icon" :class="['size-3.5', playInfo.accent]" />
             <span class="absolute -top-1 -left-1 size-3.5 rounded-full bg-slate-800 text-[8px] font-black text-slate-300 flex items-center justify-center">{{ i + 1 }}</span>
           </span>
-          <span class="pt-1">{{ $t(step.text) }}</span>
+          <span class="pt-1 short:pt-0.5">{{ $t(step.text) }}</span>
         </li>
       </ol>
     </section>
 
     <!-- Only the numbers that matter for this genre -->
-    <div :class="['grid gap-1.5 sm:gap-2', STAT_COLUMNS[stats.length] ?? 'grid-cols-3']">
+    <div class="grid gap-1.5" :style="{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }">
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-xl bg-slate-950/50 border border-slate-800 px-2 py-1.5 short:py-1 flex items-center gap-2 min-w-0"
+        class="rounded-xl bg-slate-950/50 border border-slate-800 px-1 py-1.5 short:py-1 flex flex-col items-center min-w-0"
       >
-        <component :is="stat.icon" :class="['size-4 shrink-0', stat.color]" />
-        <div class="min-w-0">
-          <div class="text-sm font-extrabold text-slate-50 leading-tight tabular-nums">{{ stat.value }}</div>
-          <div class="text-[10px] text-slate-400 truncate">{{ $t(stat.label) }}</div>
+        <div class="flex items-center gap-1 text-sm font-extrabold text-slate-50 leading-tight tabular-nums">
+          <component :is="stat.icon" :class="['size-3.5 shrink-0', stat.color]" />{{ stat.value }}
         </div>
+        <div class="w-full text-center text-[9px] text-slate-400 truncate">{{ $t(stat.label) }}</div>
       </div>
     </div>
 
@@ -67,9 +66,6 @@ const props = defineProps<{ map: MapSummary }>()
 
 const details = computed(() => getMapDetails(props.map.raw))
 const playInfo = computed(() => MAP_MODE_PLAY_INFO[props.map.mode])
-
-/** One row of stats on wide screens, whatever their number */
-const STAT_COLUMNS: Record<number, string> = { 4: 'grid-cols-2 sm:grid-cols-4', 5: 'grid-cols-3 sm:grid-cols-5' }
 
 const minutes = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 

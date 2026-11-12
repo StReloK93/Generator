@@ -34,7 +34,6 @@ import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 import { useI18n } from '../../stores/i18nStore'
 import { useHideSeekStore } from '../../stores/hideSeekStore'
-import { useSettingsStore } from '../../stores/settingsStore'
 import { IsoEngine } from '../../engine/IsoEngine'
 import { usePixiCamera } from '../../composables/usePixiCamera'
 import {  AssetItem } from '../../types/map'
@@ -52,7 +51,6 @@ const towerStore = useTowerStore()
 const multiplayerStore = useMultiplayerStore()
 const notify = useNotificationStore()
 const hideSeekStore = useHideSeekStore()
-const settings = useSettingsStore()
 const { t } = useI18n()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
@@ -310,18 +308,6 @@ function handleContextMenu() {
 }
 
 // --- Touch Handling ---
-/** A second finger this soon after the sneak finger means a pinch, not sneaking */
-const PINCH_GRACE_MS = 200
-/** A sneak finger lifted this soon (and without sliding) was a tap on the map */
-const SNEAK_TAP_MS = 250
-
-/** Hide & seek with the joystick: a finger held on the right half of the screen sneaks; it is not a camera gesture
- * (walking by taps has a sneak button instead) */
-let sneakTouch: { id: number; start: number; x: number; y: number; moved: boolean } | null = null
-
-function cameraTouches(e: TouchEvent): Touch[] {
-  return Array.from(e.targetTouches).filter(t => t.identifier !== sneakTouch?.id)
-}
 
 function cellClickAt(clientX: number, clientY: number) {
   const rect = camera.getViewportRect(viewportContainerRef.value)
@@ -332,53 +318,25 @@ function cellClickAt(clientX: number, clientY: number) {
 /** A tap that landed on an overlay over the map (the hide & seek joystick zone) */
 defineExpose({ tapAt: cellClickAt })
 
-function releaseSneak() {
-  sneakTouch = null
-  hideSeekStore.setSneakHeld(false)
-}
-
-function claimSneakTouch(e: TouchEvent) {
-  if (sneakTouch && performance.now() - sneakTouch.start < PINCH_GRACE_MS) {
-    releaseSneak()
-    return
-  }
-  const touch = e.changedTouches[0]
-  const rect = camera.getViewportRect(viewportContainerRef.value)
-  if (sneakTouch || cameraTouches(e).length !== 1 || touch.clientX < rect.left + rect.width / 2) return
-  sneakTouch = { id: touch.identifier, start: performance.now(), x: touch.clientX, y: touch.clientY, moved: false }
-  hideSeekStore.setSneakHeld(true)
-}
-
 function handleTouchStart(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  if (isMazeMode(getMapMode(mapStore.project)) && settings.controls === 'joystick') claimSneakTouch(e)
-  camera.handleTouchStart(cameraTouches(e), viewportContainerRef.value)
+  camera.handleTouchStart(Array.from(e.targetTouches), viewportContainerRef.value)
 }
 
 function handleTouchMove(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  const sneak = sneakTouch && Array.from(e.changedTouches).find(t => t.identifier === sneakTouch?.id)
-  if (sneakTouch && sneak && Math.hypot(sneak.clientX - sneakTouch.x, sneak.clientY - sneakTouch.y) > 12) sneakTouch.moved = true
-  camera.handleTouchMove(cameraTouches(e), viewportContainerRef.value)
+  camera.handleTouchMove(Array.from(e.targetTouches), viewportContainerRef.value)
 }
 
 function handleTouchEnd(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
-  const ended = Array.from(e.changedTouches)
-  if (sneakTouch && ended.some(t => t.identifier === sneakTouch?.id)) {
-    const { x, y, start, moved } = sneakTouch
-    releaseSneak()
-    if (!moved && performance.now() - start < SNEAK_TAP_MS) cellClickAt(x, y)
-    if (ended.length === 1) return
-  }
-  camera.handleTouchEnd(cameraTouches(e), cellClickAt)
+  camera.handleTouchEnd(Array.from(e.targetTouches), cellClickAt)
 }
 
 function handleTouchCancel() {
-  if (sneakTouch) releaseSneak()
   camera.touchState.value.isTouch = false
   camera.touchState.value.mode = 'none'
 }

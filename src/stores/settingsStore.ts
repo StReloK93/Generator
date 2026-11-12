@@ -8,6 +8,24 @@ const SOUND_KEY = 'isocraft_sound'
 const MUSIC_KEY = 'isocraft_music'
 const VIBRATION_KEY = 'isocraft_vibration'
 const CONTROLS_KEY = 'isocraft_controls'
+const MUSIC_VOLUME_KEY = 'isocraft_music_volume'
+
+function readNumber(key: string, fallback: number): number {
+  try {
+    const value = Number(localStorage.getItem(key))
+    return localStorage.getItem(key) !== null && Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function writeNumber(key: string, value: number): void {
+  try {
+    localStorage.setItem(key, String(value))
+  } catch {
+    // Private mode: the choice lasts this visit only
+  }
+}
 
 /** How a touch player walks in the maze: tap where to go, or a thumb joystick */
 export type MoveControls = 'tap' | 'joystick'
@@ -42,6 +60,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const musicOn = ref(readFlag(MUSIC_KEY))
   const vibrationOn = ref(readFlag(VIBRATION_KEY))
   const controls = ref<MoveControls>(readControls())
+  /** Music loudness, 0..100 */
+  const musicVolume = ref(readNumber(MUSIC_VOLUME_KEY, 65))
 
   watch(
     soundOn,
@@ -68,6 +88,15 @@ export const useSettingsStore = defineStore('settings', () => {
     { immediate: true }
   )
 
+  watch(
+    musicVolume,
+    value => {
+      backgroundMusic.setVolume(value / 100)
+      writeNumber(MUSIC_VOLUME_KEY, value)
+    },
+    { immediate: true }
+  )
+
   watch(controls, value => {
     try {
       localStorage.setItem(CONTROLS_KEY, value)
@@ -76,5 +105,5 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   })
 
-  return { soundOn, musicOn, vibrationOn, controls }
+  return { soundOn, musicOn, musicVolume, vibrationOn, controls }
 })

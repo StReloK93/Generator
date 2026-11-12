@@ -18,7 +18,7 @@ function throttled(gap: number, play: () => void): () => void {
 }
 
 /**
- * Tower defense game sounds: hits, explosions, kills, lost lives, wave horn, win / lose tunes and tower
+ * Tower defense game sounds: the gong (a wave begins), hits, explosions, kills, lost lives, win / lose tunes and tower
  * build / upgrade / sell. Everything is read from the stores and combat events, so host and multiplayer
  * clients hear the same thing. The "Game sounds" setting mutes them (gameAudio).
  */
@@ -31,6 +31,8 @@ export function useTdSounds(mapMode: Ref<MapGameMode>): void {
   const explosion = throttled(150, () => gameAudio.playExplosion())
   const kill = throttled(80, () => gameAudio.playKill())
   const lifeLost = throttled(300, () => gameAudio.playLifeLost())
+  /** The gong rings some 4 s: at high game speed waves come faster, so they never pile up */
+  const gong = throttled(3000, () => gameAudio.playGong())
 
   // Browsers only start audio after a user gesture
   const unlock = () => gameAudio.unlock()
@@ -65,7 +67,8 @@ export function useTdSounds(mapMode: Ref<MapGameMode>): void {
     () => gameStore.gameState,
     (state, before) => {
       if (!isTd() || state === before) return
-      if (state === 'wave_running') gameAudio.playHunt()
+      // The gong: a wave sets off
+      if (state === 'wave_running') gong()
       else if (state === 'victory') gameAudio.playRoundEnd(true)
       else if (state === 'game_over') gameAudio.playRoundEnd(false)
     }

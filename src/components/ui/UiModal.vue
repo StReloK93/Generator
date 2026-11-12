@@ -10,7 +10,7 @@
     >
       <div 
         v-if="isOpen"
-        class="fixed inset-0 z-1000! flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md select-none pt-safe pb-safe"
+        :class="['fixed inset-0 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md select-none pt-safe pb-safe', stacked ? 'z-1050!' : 'z-1000!']"
         @mousedown.stop
         @mouseup.stop
         @click.stop
@@ -66,7 +66,7 @@
           </div>
 
           <!-- Modal Body (Scrollable) -->
-          <div :class="['overflow-y-auto overflow-x-hidden custom-scrollbar flex-1 p-4 sm:p-6 space-y-4 sm:space-y-5', bodyClass]">
+          <div :class="['overflow-y-auto overflow-x-hidden custom-scrollbar flex-1 p-4 sm:p-6 space-y-4 sm:space-y-5', ownPadding ? '' : 'short:p-3! short:space-y-2.5!', bodyClass]">
             <slot />
           </div>
 
@@ -104,6 +104,8 @@ interface Props {
   closeOnBackdrop?: boolean
   closeOnEscape?: boolean
   hideHeader?: boolean
+  /** Opens over another window (e.g. a sign-in asked for from inside one) */
+  stacked?: boolean
   teleport?: boolean
   customClass?: string | string[] | Record<string, any>
   bodyClass?: string | string[] | Record<string, any>
@@ -120,10 +122,14 @@ const props = withDefaults(defineProps<Props>(), {
   closeOnBackdrop: true,
   closeOnEscape: true,
   hideHeader: false,
+  stacked: false,
   teleport: false,
   customClass: '',
   bodyClass: '',
 })
+
+/** The window sets its own body padding (then the short-screen padding stays out of its way) */
+const ownPadding = computed(() => /(^|\s)p-/.test(String(props.bodyClass)))
 
 const emit = defineEmits<{
   (e: 'close'): void
