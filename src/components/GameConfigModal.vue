@@ -898,8 +898,6 @@
           <!-- Live Character Animation Simulator -->
           <CharacterLivePreview 
             :model-value="selectedWave.characterModel || 'male'" 
-            :anim-speed="characterSettings.animSpeedOf(selectedWave.characterModel || 'male')"
-            :offset-y="selectedWave.offsetY || 0"
             :unit-scale="selectedWave.unitScale || 1.0"
             :unit-variant="selectedWave.unitVariant || 'normal'"
             :variant-tint="selectedWave.variantTint"
@@ -1046,59 +1044,16 @@
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.endWaveBonusDesc') }}</span>
             </UiCard>
 
-            <!-- 5. The character's run animation speed: its own setting, the same on every map -->
+            <!-- 5. The character's run animation speed: not the wave's, set once for every map on the Characters page -->
             <UiCard variant="subtle" padding="sm">
-              <UiSlider 
-                :model-value="characterSettings.animSpeedOf(selectedWave.characterModel || 'male')"
-                :label="$t('config.animSpeed')"
-                :min="MIN_ANIM_SPEED"
-                :max="MAX_ANIM_SPEED"
-                :step="0.1"
-                unit="x"
-                @update:model-value="(val) => characterSettings.setAnimSpeed(selectedWave?.characterModel || 'male', val ?? 1)"
-              />
-              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.animSpeedDesc') }}</span>
-              <div v-if="characterSettings.isDirty" class="flex flex-wrap items-center gap-2 mt-2">
-                <UiButton
-                  v-if="characterSettings.needsLogin"
-                  size="xs"
-                  variant="secondary"
-                  @click="admin.openSignIn()"
-                >
-                  {{ $t('config.animSpeedLogin') }}
-                </UiButton>
-                <UiButton
-                  v-else
-                  size="xs"
-                  variant="primary"
-                  :disabled="!characterSettings.canWrite"
-                  :loading="characterSettings.isBusy"
-                  @click="characterSettings.save()"
-                >
-                  {{ $t('config.animSpeedSave') }}
-                </UiButton>
-                <UiButton size="xs" variant="ghost" @click="characterSettings.discard()">
-                  {{ $t('config.animSpeedDiscard') }}
-                </UiButton>
-              </div>
-              <span v-if="characterSettings.error" class="text-[10px] text-rose-400 block mt-1">{{ $t('config.animSpeedSaveFailed') }}</span>
+              <span class="text-xs text-slate-300">
+                {{ $t('config.animSpeed') }}:
+                <span class="font-bold tabular-nums">{{ characterSettings.animSpeedOf(selectedWave.characterModel || 'male').toFixed(1) }}x</span>
+              </span>
+              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.animSpeedWhere') }}</span>
             </UiCard>
 
-            <!-- 6. Height / Elevation Offset -->
-            <UiCard variant="subtle" padding="sm">
-              <UiSlider 
-                :model-value="selectedWave.offsetY || 0"
-                :label="$t('config.elevationOffset')"
-                :min="-20"
-                :max="40"
-                :step="1"
-                unit="px"
-                @update:model-value="(val) => waveStore.setWaveOffsetY(val || 0)"
-              />
-              <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.elevationOffsetDesc') }}</span>
-            </UiCard>
-
-            <!-- 7. Unit Scale -->
+            <!-- 6. Unit Scale: a multiplier on the character's own size (1 = as set on the Characters page) -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
                 :model-value="selectedWave.unitScale || 1.0"
@@ -1626,7 +1581,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800">
         <div class="flex items-center gap-2">
           <span class="text-xs font-bold text-slate-300">{{ $t('config.availableUnits') }}</span>
-          <UiBadge variant="brand" size="xs">{{ $t('config.modelsCount', { count: availableCharacterModels.length }) }}</UiBadge>
+          <UiBadge variant="brand" size="xs">{{ $t('config.modelsCount', { count: CHARACTER_MODELS.length }) }}</UiBadge>
         </div>
         <div class="text-[11px] text-slate-400">
           {{ $t('config.customizingUnit', { name: selectedWave?.name || '' }) }}
@@ -1639,7 +1594,7 @@
         <!-- Left: Character Models Cards (5 cols) -->
         <div class="lg:col-span-5 flex flex-col gap-2.5 max-h-96 overflow-y-auto custom-scrollbar p-1">
           <div
-            v-for="model in availableCharacterModels"
+            v-for="model in CHARACTER_MODELS"
             :key="model.id"
             @click="tempSelectedUnitModel = model.id"
             :class="tempSelectedUnitModel === model.id
@@ -1731,8 +1686,6 @@
 
           <CharacterLivePreview
             :model-value="tempSelectedUnitModel"
-            :anim-speed="characterSettings.animSpeedOf(tempSelectedUnitModel)"
-            :offset-y="selectedWave?.offsetY || 0"
             :unit-scale="selectedWave?.unitScale || 1.0"
             :unit-variant="tempSelectedVariant"
             :variant-tint="selectedWave?.variantTint"
@@ -1883,8 +1836,7 @@ import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
-import { useAdminStore } from '../stores/adminStore'
-import { MAX_ANIM_SPEED, MIN_ANIM_SPEED, useCharacterSettingsStore } from '../stores/characterSettingsStore'
+import { useCharacterSettingsStore } from '../stores/characterSettingsStore'
 import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevel } from '../types/map'
 import { UNIT_VARIANTS, getVariantDef, getVariantIcon } from '../utils/unitVariants'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
@@ -1893,8 +1845,7 @@ import TowerLivePreview from './game/TowerLivePreview.vue'
 import CharacterLivePreview from './game/CharacterLivePreview.vue'
 import ProjectileSelectModal from './game/ProjectileSelectModal.vue'
 import ProjectileCard from './projectile/ProjectileCard.vue'
-import characterManifest from '../assets/generated/characterManifest.json'
-import { getCharacterMeta } from '../utils/characterUtils'
+import { CHARACTER_MODELS, getCharacterMeta } from '../utils/characterUtils'
 import { useI18n } from '../stores/i18nStore'
 
 const toolStore = useToolStore()
@@ -1904,7 +1855,6 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
-const admin = useAdminStore()
 const characterSettings = useCharacterSettingsStore()
 const { t } = useI18n()
 
@@ -2084,21 +2034,6 @@ function toggleWaveImmunity(traitId: TowerTraitType) {
 const isChangeUnitModalOpen = ref(false)
 const tempSelectedUnitModel = ref('male')
 const tempSelectedVariant = ref<UnitVariantType>('normal')
-
-const availableCharacterModels = computed(() => {
-  const models = Object.values(characterManifest) as Array<{
-    id: string
-    name: string
-    cellWidth: number
-    cellHeight: number
-    actions: Record<string, { id: string; label: string; icon: string; frameCount: number }>
-  }>
-  return models.length > 0 ? models : [
-    { id: 'male', name: 'Male', cellWidth: 256, cellHeight: 512, actions: {} },
-    { id: 'warrior', name: 'Warrior', cellWidth: 256, cellHeight: 256, actions: {} },
-    { id: 'female', name: 'Female', cellWidth: 256, cellHeight: 256, actions: {} },
-  ]
-})
 
 function getUnitModelDisplayName(id?: string): string {
   const lower = String(id || 'male').toLowerCase()

@@ -195,7 +195,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         frame: p.frame,
         sneaking: p.moving && p.sneaking,
         model: p.model,
-        color: p.color,
+        // My side: me and my teammates (the curse is everyone for themselves: only me)
+        friendly: p === me || (teammate && !ctx.curse),
         isMe: p === me,
         teleport: ctx.teleportOf(p.id),
         jailed,
@@ -212,7 +213,6 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         .filter(m => m.kind === 'decoy' && !over)
         .map(m => {
           const own = m.team === mySeat?.team
-          const owner = ctx.bodies.find(p => p.id === m.by)
           return {
             id: `decoy-${m.by}`,
             col: m.col,
@@ -222,7 +222,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
             frame: 0,
             sneaking: false,
             model: m.model,
-            color: owner?.color ?? '#94a3b8',
+            friendly: own,
             isMe: false,
             jailed: false,
             cursed: false,

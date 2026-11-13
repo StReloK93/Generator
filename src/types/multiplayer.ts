@@ -140,7 +140,6 @@ export interface CompactUnitSnapshot {
   hp: number
   mhp?: number
   m?: string // characterModel ('male' | 'female' | 'warrior' | 'demon')
-  oy?: number // vertical elevation offsetY
   as?: number // animation speed multiplier
   us?: number // unit scale multiplier
   fl: number // bitflags: 1: isSpawned, 2: hasReachedEnd, 4: isDead

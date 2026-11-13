@@ -40,7 +40,8 @@ export interface HideSeekAvatarView {
   /** Crouched, tiptoeing walk (Shift) */
   sneaking: boolean
   model: string
-  color: string
+  /** On my side (me, my teammates, our decoys): a green ring under the feet; anyone else a red one */
+  friendly: boolean
   isMe: boolean
   visible: boolean
   /** Caught: stands in the jail (or where they were caught) until a teammate frees them */

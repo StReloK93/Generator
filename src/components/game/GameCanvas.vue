@@ -313,34 +313,68 @@ function handleContextMenu() {
 
 // --- Touch Handling ---
 
-function cellClickAt(clientX: number, clientY: number) {
+/** A touch tap: in hide & seek it walks there quietly (a held press runs, see below) */
+function cellClickAt(clientX: number, clientY: number, gait: 'walk' | 'run' = 'walk') {
   const rect = camera.getViewportRect(viewportContainerRef.value)
   const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
-  gameController.handleCellClick(gridCoord)
+  gameController.handleCellClick(gridCoord, gait)
 }
 
 /** A tap that landed on an overlay over the map (the hide & seek joystick zone) */
 defineExpose({ tapAt: cellClickAt })
+
+// Hide & seek on a touch screen: a finger held still on the map this long runs the hero there (a quick tap walks)
+const HOLD_TO_RUN_MS = 280
+/** A finger this far from where it landed is panning / pinching, not holding */
+const HOLD_SLOP_PX = 12
+let holdTimer: ReturnType<typeof setTimeout> | null = null
+let holdStart: { x: number; y: number } | null = null
+/** The held press already sent the hero running: its lift is not a tap */
+let holdFired = false
+
+function cancelHold() {
+  if (holdTimer) clearTimeout(holdTimer)
+  holdTimer = null
+  holdStart = null
+}
 
 function handleTouchStart(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   camera.handleTouchStart(Array.from(e.targetTouches), viewportContainerRef.value)
+  cancelHold()
+  holdFired = false
+  if (e.targetTouches.length === 1 && isMazeMode(getMapMode(mapStore.project))) {
+    const t = e.targetTouches[0]
+    holdStart = { x: t.clientX, y: t.clientY }
+    holdTimer = setTimeout(() => {
+      if (!holdStart) return
+      holdFired = true
+      cellClickAt(holdStart.x, holdStart.y, 'run')
+      holdTimer = null
+    }, HOLD_TO_RUN_MS)
+  }
 }
 
 function handleTouchMove(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
+  const t = e.targetTouches[0]
+  if (holdStart && (e.targetTouches.length !== 1 || Math.hypot(t.clientX - holdStart.x, t.clientY - holdStart.y) > HOLD_SLOP_PX)) cancelHold()
   camera.handleTouchMove(Array.from(e.targetTouches), viewportContainerRef.value)
 }
 
 function handleTouchEnd(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
-  camera.handleTouchEnd(Array.from(e.targetTouches), cellClickAt)
+  cancelHold()
+  camera.handleTouchEnd(Array.from(e.targetTouches), (x, y) => {
+    if (!holdFired) cellClickAt(x, y)
+  })
 }
 
 function handleTouchCancel() {
+  cancelHold()
   camera.touchState.value.isTouch = false
   camera.touchState.value.mode = 'none'
 }

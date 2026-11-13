@@ -1,10 +1,50 @@
 {
-  "barry": { "animSpeed": 1.2 },
-  "bird": { "animSpeed": 1.1 },
-  "demon": { "animSpeed": 1 },
-  "female": { "animSpeed": 1.5 },
-  "male": { "animSpeed": 1.1 },
-  "orc": { "animSpeed": 2.4 },
-  "warrior": { "animSpeed": 2 },
-  "zombi": { "animSpeed": 1.5 }
+  "barry": {
+    "animSpeed": 2.2,
+    "scale": 0.95,
+    "offsetX": 0,
+    "offsetY": -20
+  },
+  "bird": {
+    "animSpeed": 1.6,
+    "scale": 0.75,
+    "offsetX": 0,
+    "offsetY": -11
+  },
+  "demon": {
+    "animSpeed": 1.2,
+    "scale": 0.7,
+    "offsetX": 0,
+    "offsetY": -2
+  },
+  "female": {
+    "animSpeed": 2.3,
+    "scale": 0.75,
+    "offsetX": 0,
+    "offsetY": -3
+  },
+  "male": {
+    "animSpeed": 1.1,
+    "scale": 0.8,
+    "offsetX": 0,
+    "offsetY": -3
+  },
+  "orc": {
+    "animSpeed": 4,
+    "scale": 0.95,
+    "offsetX": 0,
+    "offsetY": -1
+  },
+  "warrior": {
+    "animSpeed": 2,
+    "scale": 0.7,
+    "offsetX": 0,
+    "offsetY": -3
+  },
+  "zombi": {
+    "animSpeed": 1.5,
+    "scale": 0.75,
+    "offsetX": 0,
+    "offsetY": -12
+  }
 }

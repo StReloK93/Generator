@@ -90,22 +90,7 @@
     </div>
   </div>
 
-  <!-- Touch screens walking by taps (the default): sneaking is a switch under the left thumb (tap on, tap off) -->
-  <div v-else class="hidden pointer-coarse:flex absolute left-0 bottom-0 z-30 pb-safe pl-safe flex-col items-center gap-1 pointer-events-none">
-    <UiButton
-      :variant="hideSeekStore.isSneaking ? 'game-green' : 'secondary'"
-      size="md"
-      :disabled="!hideSeekStore.canMove"
-      custom-class="size-15 p-0! rounded-full! pointer-events-auto backdrop-blur-md"
-      :title="$t('hideseek.sneak')"
-      @click="hideSeekStore.setSneakHeld(!hideSeekStore.isSneaking)"
-    >
-      <template #leading><Footprints class="size-6" /></template>
-    </UiButton>
-    <span class="rounded-full bg-slate-950/70 backdrop-blur-md px-2 py-0.5 text-[10px] font-semibold" :class="hideSeekStore.isSneaking ? 'text-emerald-300' : 'text-slate-400'">
-      {{ hideSeekStore.isSneaking ? $t('hideseek.sneakOn') : $t('hideseek.sneak') }}
-    </span>
-  </div>
+  <!-- Touch screens walking by taps (the default): a tap walks there quietly, a held press runs there (GameCanvas) -->
 
   <!-- Bottom-left on desktop: key hints -->
   <div class="absolute bottom-3 left-3 z-30 pointer-events-none pb-safe pl-safe">

@@ -21,7 +21,7 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`characterStore.ts`**: Faol personajlar (`units`), spawn va simulyatsiya sikli (hisob-kitob `domain/simulation/CrowdSimulation`da).
 - **`routeStore.ts`**: Marshrutlar (`routes: RouteInfo[]` - `routePoints` va `playerCameraPoint`), marshrut chizish.
 - **`waveStore.ts`**: To'lqinlar (`waveConfigs`). Normalizatsiya faqat `WaveManager.normalizeWave` orqali.
-- **`characterSettingsStore.ts`**: Personajlarning o'z sozlamalari (yugurish animatsiyasi tezligi `animSpeed`) — hamma xaritalarda, har bir to'lqinda bir xil. Yagona manba `src/assets/characters/settings.json` (`server/characters.js`, `/api/characters`); redaktorda o'zgartiriladi, admin saqlaydi. To'lqinda animatsiya tezligi yo'q.
+- **`characterSettingsStore.ts`**: Personajlarning o'z sozlamalari (yugurish animatsiyasi tezligi `animSpeed`, o'lcham `scale`, katakdagi joylashuv `offsetX` / `offsetY`) — hamma xaritalarda, har bir to'lqinda bir xil; renderlar va preview ularni modeli bo'yicha shu yerdan o'qiydi. Yagona manba `src/assets/characters/settings.json` (`server/characters.js`, `/api/characters`); faqat alohida "Personajlar" sahifasida (`/characters`, `CharacterSettingsView.vue`, bosh sahifadan) o'zgartiriladi — xaritaga bog'liq emas, redaktorda yo'q; admin saqlaydi. To'lqinda animatsiya tezligi va joylashuv yo'q; to'lqin `unitScale` faqat personaj o'lchamiga ko'paytiruvchi (1 = personajning o'z o'lchami).
 - **`gameStore.ts`**: O'yin rejimi (`isGameMode`, `playerLives`, `gold`, `gameState`, `gameSpeed`) va xarita TD sozlamalari (`startingGold`, `formation`, `pairDistance`, ...) — yagona manba `project.gameSettings`, defaultlar va normalizatsiya faqat `domain/simulation/GameSettings.ts` da.
 - **`towerStore.ts`**:
   - Minora blueprintlari (`blueprints`: `asset`, `projectileId`, `levels[]`). Statlar faqat `levels[]` da, rasm faqat `asset` da; normalizatsiya `TowerBlueprintManager.normalizeBlueprint`. Snaryadning barcha ko'rinishi va tezligi faqat snaryad reyestridan (`domain/projectile` — `getProjectile`) olinadi; xarita o'z minoralari ishlatadigan maxsus snaryadlarni `project.customProjectiles` da saqlaydi.
@@ -36,7 +36,7 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`HomeView.vue`**: Asosiy sahifa (Yangi xona ochish, Onlayn o'yinga ulanish, Xarita redaktori).
 - **`LobbyView.vue`**: Ko'p o'yinchili xona (O'yinchilar slotlari, rang tanlash, xaritani sinxronlash, chat).
 - **`EditorView.vue`**: Asosiy xarita redaktori sahifasi.
-  - **`editor/EditorHeader.vue`**: Yuqori panel (Asboblar: Brush, Bucket, Eraser, Line, Rect, Select; Grid/Symmetry boshqaruvi, Eksport, O'ynab ko'rish).
+  - **`editor/EditorHeader.vue`**: Yuqori panel: chapda Bosh sahifa va xarita menyusi (`UiMenu`: o'yin xaritalari, yangi, import, eksport, xarita rasmi); o'rtada undo/redo/tarix va setka/koordinatalar; o'ngda janr sozlamalari, o'yinga saqlash, sinab o'ynash, admin, til, yordam.
   - **`editor/EditorCanvas.vue`**: PixiJS 8 izometrik muharrir viewporti (Pan, Zoom, qatlamlarni chizish, elementlarni tanlash).
   - **`RightSidebar.vue`**: O'ng yon panel (1-tab: Qatlamlar & Elementlar boshqaruvi; 2-tab: Sprite kutubxonasi & qidiruv).
   - **`ElementInspector.vue`**: Tanlangan katakdagi element sozlamalari (X/Y ofset, masshtab, Z-index, aylantirish).

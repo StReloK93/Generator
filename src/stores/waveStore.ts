@@ -122,13 +122,6 @@ export const useWaveStore = defineStore('waveStore', () => {
     syncWavesToProject()
   }
 
-  function setWaveOffsetY(offset: number) {
-    if (currentWaveConfig.value) {
-      currentWaveConfig.value.offsetY = Math.min(100, Math.max(-100, Math.round(offset)))
-    }
-    syncWavesToProject()
-  }
-
   function setWaveUnitScale(scale: number) {
     if (currentWaveConfig.value) {
       currentWaveConfig.value.unitScale = Math.min(4.0, Math.max(0.3, Math.round(scale * 100) / 100))
@@ -231,7 +224,6 @@ export const useWaveStore = defineStore('waveStore', () => {
     setWaveEndBonus,
     setWaveGoldReward,
     setWaveCharacterModel,
-    setWaveOffsetY,
     setWaveUnitScale,
     setWaveUnitVariant,
     setWaveVariantTint,

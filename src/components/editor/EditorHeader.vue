@@ -1,134 +1,40 @@
 <template>
-  <header class="h-12 sm:h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2 sm:px-4 shrink-0 z-30 select-none shadow-md">
-    <!-- Left: Brand / Home + Map Info -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Home Button -->
-      <UiButton
-        variant="secondary"
-        size="sm"
-        :leading-icon="Home"
-        :title="$t('header.home')"
-        @click="router.push('/')"
-      >
-        <span class="hidden md:inline font-bold">{{ $t('app.name') }}</span>
-      </UiButton>
+  <header class="h-12 sm:h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-2 px-2 sm:px-3 shrink-0 z-30 select-none shadow-md">
+    <!-- Left: where you are (home, the map and everything done to the map as a whole) -->
+    <div class="flex items-center gap-1.5 min-w-0">
+      <UiIconButton :icon="Home" variant="ghost" size="sm" :title="$t('header.home')" @click="router.push('/')" />
 
-      <div class="h-5 w-px bg-slate-800 hidden sm:block"></div>
-
-      <!-- Current Map Name Display -->
-      <div 
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-bold text-slate-200"
-        :title="mapStore.project.name || $t('header.newMap')"
-      >
-        <span class="truncate max-w-25 sm:max-w-32.5">{{ mapStore.project.name || $t('header.newMap') }}</span>
-      </div>
-
-      <!-- Map picture for the map picker (without one the picker draws the map small) -->
+      <UiMenu :items="mapMenuItems" @select="onMapMenu">
+        <template #trigger="{ open, toggle }">
+          <UiButton
+            variant="secondary"
+            size="sm"
+            :leading-icon="modeInfo.icon"
+            :trailing-icon="ChevronDown"
+            :active="open"
+            :title="`${mapStore.project.name || $t('header.newMap')} · ${$t(modeInfo.label)}`"
+            @click="toggle"
+          >
+            <span class="truncate max-w-28 sm:max-w-44">{{ mapStore.project.name || $t('header.newMap') }}</span>
+          </UiButton>
+        </template>
+        <template #header>
+          <div class="flex items-center gap-2.5 px-3 pt-1.5 pb-2.5 mb-1 border-b border-slate-800">
+            <img v-if="mapStore.project.previewImage" :src="mapStore.project.previewImage" alt="" class="h-9 aspect-2/1 rounded-md object-cover border border-slate-700" />
+            <div class="flex flex-col min-w-0">
+              <span class="text-xs font-bold text-slate-100 truncate">{{ mapStore.project.name || $t('header.newMap') }}</span>
+              <span class="text-[10px] text-slate-400 font-mono">
+                {{ $t(modeInfo.label) }} · {{ mapStore.project.cols }}x{{ mapStore.project.rows }}
+              </span>
+            </div>
+          </div>
+        </template>
+      </UiMenu>
       <input ref="coverInput" type="file" accept="image/*" class="hidden" @change="onCoverPicked" />
-      <UiIconButton
-        v-if="!mapStore.project.previewImage"
-        :icon="ImagePlus"
-        size="sm"
-        variant="ghost"
-        :title="$t('header.mapCover')"
-        @click="coverInput?.click()"
-      />
-      <div v-else class="relative group shrink-0">
-        <img
-          :src="mapStore.project.previewImage"
-          alt=""
-          :title="$t('header.mapCover')"
-          class="h-7 aspect-2/1 rounded-md object-cover border border-slate-700 cursor-pointer"
-          @click="coverInput?.click()"
-        />
-        <UiIconButton
-          :icon="X"
-          size="xs"
-          variant="danger"
-          :title="$t('header.removeMapCover')"
-          custom-class="absolute! -top-1.5 -right-1.5 hidden! group-hover:inline-flex!"
-          @click="setCover(undefined)"
-        />
-      </div>
-
-      <!-- Map Genre (fixed when the map is created) -->
-      <UiBadge :variant="modeInfo.badge" size="sm" :icon="modeInfo.icon" :title="$t(modeInfo.desc)" custom-class="hidden md:inline-flex">
-        {{ $t(modeInfo.label) }}
-      </UiBadge>
-
-      <!-- The game's maps: open, copy, delete -->
-      <UiButton
-        variant="ghost"
-        size="xs"
-        :leading-icon="Library"
-        :title="$t('library.tab')"
-        custom-class="text-amber-300 hover:bg-amber-500/15 border-amber-500/30"
-        @click="emit('open-welcome', 'maps', false)"
-      >
-        <span class="hidden sm:inline">{{ $t('library.tab') }}</span>
-      </UiButton>
-
-      <!-- New Map Action Button -->
-      <UiButton
-        variant="ghost"
-        size="xs"
-        :leading-icon="Plus"
-        :title="$t('header.newMap')"
-        custom-class="text-brand-300 hover:bg-brand-500/15 border-brand-500/30"
-        @click="emit('open-welcome', 'new', false)"
-      >
-        <span class="hidden sm:inline">{{ $t('common.create') }}</span>
-      </UiButton>
-
-      <!-- Import Map Action Button -->
-      <UiButton
-        variant="ghost"
-        size="xs"
-        :leading-icon="Upload"
-        :title="$t('common.import')"
-        custom-class="text-teal-300 hover:bg-teal-500/15 border-teal-500/30"
-        @click="emit('open-welcome', 'import', false)"
-      >
-        <span class="hidden sm:inline">{{ $t('common.import') }}</span>
-      </UiButton>
-
-      <!-- Map Dimensions -->
-      <div class="hidden xl:flex items-center gap-1.5 text-xs text-slate-400 font-mono bg-slate-950/60 px-2.5 py-1 rounded-lg border border-slate-800">
-        <span>{{ mapStore.project.cols }}x{{ mapStore.project.rows }}</span>
-        <span class="text-slate-600">|</span>
-        <span>{{ mapStore.project.tileWidth }}x{{ mapStore.project.tileHeight }}px</span>
-      </div>
     </div>
 
-    <!-- Center: Quick Grid & View Toggles -->
-    <div class="flex items-center gap-1 sm:gap-1.5">
-      <!-- Grid Toggle -->
-      <UiButton
-        variant="tool"
-        size="xs"
-        :active="toolStore.showGrid"
-        :leading-icon="Grid"
-        :title="`${$t('header.gridToggle')} (H)`"
-        @click="toolStore.showGrid = !toolStore.showGrid"
-      >
-        <span class="hidden md:inline text-[11px]">{{ $t('header.gridToggle') }}</span>
-      </UiButton>
-
-      <!-- Coordinates Toggle -->
-      <UiButton
-        variant="tool"
-        size="xs"
-        :active="toolStore.showCoordinates"
-        :leading-icon="Hash"
-        :title="`${$t('inspector.gridPosition')} (K)`"
-        @click="toolStore.showCoordinates = !toolStore.showCoordinates"
-      >
-        <span class="hidden md:inline text-[11px]">{{ $t('common.position') }}</span>
-      </UiButton>
-
-      <div class="h-4 w-px bg-slate-800 mx-1"></div>
-
-      <!-- Undo -->
+    <!-- Middle: editing (undo, history) and what the canvas shows -->
+    <div class="flex items-center gap-0.5">
       <UiIconButton
         variant="ghost"
         size="sm"
@@ -137,8 +43,6 @@
         :title="`${$t('header.undo')} (Ctrl+Z)`"
         @click="handleUndo"
       />
-
-      <!-- Redo -->
       <UiIconButton
         variant="ghost"
         size="sm"
@@ -147,22 +51,35 @@
         :title="`${$t('header.redo')} (Ctrl+Y)`"
         @click="handleRedo"
       />
-
-      <!-- History -->
       <UiIconButton
         variant="ghost"
         size="sm"
         :icon="History"
         :active="toolStore.isHistoryModalOpen"
-        :title="`${$t('header.history')} (H)`"
+        :title="$t('header.history')"
         @click="toolStore.isHistoryModalOpen = !toolStore.isHistoryModalOpen"
+      />
+      <div class="h-5 w-px bg-slate-800 mx-1"></div>
+      <UiIconButton
+        variant="ghost"
+        size="sm"
+        :icon="Grid"
+        :active="toolStore.showGrid"
+        :title="`${$t('header.gridToggle')} (H)`"
+        @click="toolStore.showGrid = !toolStore.showGrid"
+      />
+      <UiIconButton
+        variant="ghost"
+        size="sm"
+        :icon="Hash"
+        :active="toolStore.showCoordinates"
+        :title="`${$t('inspector.gridPosition')} (K)`"
+        @click="toolStore.showCoordinates = !toolStore.showCoordinates"
       />
     </div>
 
-    <!-- Right: TD Hub Modal, Start Game, Export -->
-    <div class="flex items-center gap-1.5 sm:gap-2">
-
-      <!-- The map genre's settings window (each genre has only its own settings) -->
+    <!-- Right: the map's game (its genre's settings, saving it into the game, trying it), then the app's own -->
+    <div class="flex items-center gap-1.5">
       <UiButton
         :variant="toolStore.isModeSettingsOpen(mapMode) ? 'game-amber' : 'secondary'"
         size="sm"
@@ -170,63 +87,43 @@
         :title="`${$t(modeInfo.settings)} (T)`"
         @click="toolStore.toggleModeSettings(mapMode)"
       >
-        <span class="hidden sm:inline">{{ $t(modeInfo.settings) }}</span>
+        <span class="hidden lg:inline whitespace-nowrap">{{ $t(modeInfo.settings) }}</span>
       </UiButton>
 
-      <!-- A game map (src/maps): what changed against its file, saving it back on the server; a map made here: adding it to the game -->
+      <!-- Only for whoever may change the game's maps (the signed-in admin): a game map (src/maps): what changed against
+           its file, saving it back on the server; a map made here: adding it to the game. Anyone else keeps their own maps
+           to themselves (export / import). -->
       <UiButton
-        v-if="mapLibrary.entry || mapLibrary.canWrite"
+        v-if="mapLibrary.canWrite"
         :variant="mapLibrary.changeCount > 0 ? 'game-amber' : 'secondary'"
         size="sm"
         :leading-icon="mapLibrary.entry ? Save : CloudUpload"
         :title="$t(mapLibrary.entry ? 'publish.title' : 'publish.addTitle')"
         @click="mapLibrary.open()"
       >
-        <span class="hidden sm:inline whitespace-nowrap">{{ $t(mapLibrary.entry ? 'publish.button' : 'publish.addButton') }}</span>
+        <span class="hidden lg:inline whitespace-nowrap">{{ $t(mapLibrary.entry ? 'publish.button' : 'publish.addButton') }}</span>
         <UiBadge v-if="mapLibrary.changeCount > 0" variant="rose" style-type="solid" size="xs" custom-class="ml-1.5">
           {{ mapLibrary.changeCount }}
         </UiBadge>
       </UiButton>
 
-      <!-- Play Game Button (Navigates cleanly to /game) -->
-      <UiButton
-        variant="game-green"
-        size="sm"
-        :leading-icon="Gamepad2"
-        :title="$t('header.playTest')"
-        @click="handleStartGame"
-      >
-        <span>{{ $t('header.playTest') }}</span>
+      <UiButton variant="game-green" size="sm" :leading-icon="Gamepad2" :title="$t('header.playTest')" @click="handleStartGame">
+        <span class="hidden md:inline whitespace-nowrap">{{ $t('header.playTest') }}</span>
       </UiButton>
 
-      <!-- Export Button -->
-      <UiButton
-        variant="primary"
-        size="sm"
-        :leading-icon="Download"
-        :title="$t('common.export')"
-        @click="toolStore.isExportModalOpen = true; emit('open-export')"
-      >
-        <span class="hidden sm:inline">{{ $t('common.export') }}</span>
-      </UiButton>
+      <div class="h-5 w-px bg-slate-800 mx-0.5 hidden sm:block"></div>
 
       <!-- The admin: signed in (sign out) or not (sign in); only shown when the server has an admin account -->
-      <UiButton
+      <UiIconButton
         v-if="admin.enabled"
-        :variant="admin.isAdmin ? 'ghost' : 'secondary'"
+        variant="ghost"
         size="sm"
-        :leading-icon="admin.isAdmin ? LogOut : LogIn"
-        :title="admin.isAdmin ? $t('admin.signOut') : $t('admin.title')"
+        :icon="admin.isAdmin ? LogOut : LogIn"
+        :title="admin.isAdmin ? `${$t('admin.signOut')} (${admin.login})` : $t('admin.title')"
         :custom-class="admin.isAdmin ? 'text-emerald-300' : ''"
         @click="admin.isAdmin ? admin.signOut() : admin.openSignIn()"
-      >
-        <span class="hidden lg:inline whitespace-nowrap">{{ admin.isAdmin ? admin.login : $t('admin.short') }}</span>
-      </UiButton>
-
-      <!-- Language Switcher -->
+      />
       <UiLanguageSwitcher />
-
-      <!-- Help Button -->
       <UiIconButton
         variant="ghost"
         size="sm"
@@ -243,9 +140,9 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload, ImagePlus, X, Save, CloudUpload, Library, LogIn, LogOut
+  Home, Grid, Hash, Undo2, Redo2, History, Download, Gamepad2, HelpCircle, Plus, Upload, ImagePlus, Trash2, Save, CloudUpload, Library, LogIn, LogOut, ChevronDown
 } from 'lucide-vue-next'
-import { UiButton, UiIconButton, UiLanguageSwitcher, UiBadge } from '../ui'
+import { UiButton, UiIconButton, UiLanguageSwitcher, UiBadge, UiMenu, type MenuItem } from '../ui'
 import { getMapMode } from '../../domain/map'
 import { MAP_MODE_INFO } from '../mapModeInfo'
 import { useMapStore } from '../../stores/mapStore'
@@ -282,6 +179,25 @@ async function onCoverPicked(e: Event) {
   const file = input.files?.[0]
   input.value = ''
   if (file) setCover(await imageFileToDataUrl(file, COVER_MAX_WIDTH, COVER_MAX_HEIGHT))
+}
+
+/** The map as a whole: open another, start one, bring one in, take this one out, its picture in the map list */
+const mapMenuItems = computed<MenuItem[]>(() => [
+  { id: 'maps', label: t('library.tab'), icon: Library },
+  { id: 'new', label: t('header.newMap'), icon: Plus },
+  { id: 'import', label: t('common.import'), icon: Upload },
+  { id: 'export', label: t('common.export'), icon: Download },
+  { id: 'cover', label: t('header.coverPick'), icon: ImagePlus, divider: true },
+  ...(mapStore.project.previewImage ? [{ id: 'cover-remove', label: t('header.removeMapCover'), icon: Trash2, danger: true }] : []),
+])
+
+function onMapMenu(id: string) {
+  if (id === 'maps' || id === 'new' || id === 'import') emit('open-welcome', id, false)
+  else if (id === 'export') {
+    toolStore.isExportModalOpen = true
+    emit('open-export')
+  } else if (id === 'cover') coverInput.value?.click()
+  else if (id === 'cover-remove') setCover(undefined)
 }
 
 const mapMode = computed(() => getMapMode(mapStore.project))

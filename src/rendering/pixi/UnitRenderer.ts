@@ -2,6 +2,7 @@ import { Container, Graphics, Sprite } from 'pixi.js'
 import { MapProject, UnitVariantType } from '../../types/map'
 import { useWaveStore } from '../../stores/waveStore'
 import { useGameStore } from '../../stores/gameStore'
+import { useCharacterSettingsStore } from '../../stores/characterSettingsStore'
 import { assetManager } from '../../services/assetManager'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { getVariantTint } from '../../utils/unitVariants'
@@ -60,6 +61,7 @@ export class UnitRenderer {
 
     const waveStore = useWaveStore()
     const gameStore = useGameStore()
+    const characterSettings = useCharacterSettingsStore()
     const currentWaveCfg =
       waveStore?.currentWaveConfig ||
       waveStore?.waveConfigs?.[waveStore?.currentWaveIndex ?? 0] ||
@@ -117,8 +119,9 @@ export class UnitRenderer {
         const baseScale = (tileWidth * 1.0) / cellW
         const scaleMult = modelMeta?.scale ?? 1.0
         const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
+        // The character's own size (its settings), times the wave's scale, times the map's
         const rawUnitScale = (unit.identity ? unit.identity.scale : (unit as any).unitScale) ?? currentWaveCfg?.unitScale
-        const customUnitScale = (Number(rawUnitScale) || 1.0) * globalScale
+        const customUnitScale = characterSettings.scaleOf(effectiveModel) * (Number(rawUnitScale) || 1.0) * globalScale
 
         sprite.scale.set(baseScale * scaleMult * customUnitScale)
         sprite.anchor.set(anchorX, anchorY)
@@ -146,8 +149,9 @@ export class UnitRenderer {
       }
 
       const unitElev = Number(characterStore?.unitElevation) || 0
-      const rawOffsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? currentWaveCfg?.offsetY ?? 0
-      const unitOffsetY = rawOffsetY + unitElev
+      // Where the character sits on its cell: its own setting
+      const placement = characterSettings.offsetOf(effectiveModel)
+      const unitOffsetY = placement.y + unitElev
 
       const col = unit.movement ? unit.movement.currentCol : unit.currentCol
       const row = unit.movement ? unit.movement.currentRow : unit.currentRow
@@ -167,8 +171,8 @@ export class UnitRenderer {
       }
 
       container.position.set(finalScreenX, finalScreenY)
-      sprite.position.set(0, -unitOffsetY)
-      marker.position.set(0, -unitOffsetY)
+      sprite.position.set(placement.x, -unitOffsetY)
+      marker.position.set(placement.x, -unitOffsetY)
 
       const charDepth =
         100000 + Math.round((col + row) * 1000) + 300 + (i % 10)

@@ -57,7 +57,8 @@ export class MapSurroundRenderer {
     const { cols, rows, tileWidth, tileHeight } = project
     const groundIndex = project.layers.findIndex((layer, index) => isGroundLayer(layer, index))
     const groundTiles = groundIndex >= 0 ? project.layers[groundIndex].tiles : {}
-    const groundAt = (col: number, row: number): TileItem | undefined => groundTiles[`${col},${row}`]?.[0]
+    /** A cell's ground: one piece, or (a thin trail) several smaller ones laid side by side */
+    const groundAt = (col: number, row: number): TileItem[] => groundTiles[`${col},${row}`] ?? []
 
     // The field: the map's most common ground pieces (open ground; anything else at the edge is a road running out)
     const counts = new Map<string, number>()
@@ -76,8 +77,9 @@ export class MapSurroundRenderer {
     const trees = [...treeCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id]) => id)
 
     const edge: string[] = []
-    for (let c = 0; c < cols; c++) edge.push(groundAt(c, 0)?.assetId ?? '', groundAt(c, rows - 1)?.assetId ?? '')
-    for (let r = 0; r < rows; r++) edge.push(groundAt(0, r)?.assetId ?? '', groundAt(cols - 1, r)?.assetId ?? '')
+    const ids = (items: TileItem[]) => items.map(item => item.assetId).join('+')
+    for (let c = 0; c < cols; c++) edge.push(ids(groundAt(c, 0)), ids(groundAt(c, rows - 1)))
+    for (let r = 0; r < rows; r++) edge.push(ids(groundAt(0, r)), ids(groundAt(cols - 1, r)))
     const signature = [project.id, cols, rows, tileWidth, tileHeight, project.bgColor, depth, field, trees, edge].join('|')
     if (signature === this.signature) return
     this.clear()
@@ -95,7 +97,8 @@ export class MapSurroundRenderer {
       return smoothstep(0.3, depth - 1.5, Math.hypot(dx, dy))
     }
 
-    const place = (assetId: string, col: number, row: number, isGround: boolean, fog: number, scale = 1, flip = false, nudge = { x: 0, y: 0 }) => {
+    /** `piece`: how a ground piece sits in its cell (anchor, order), as on the map */
+    const place = (assetId: string, col: number, row: number, isGround: boolean, fog: number, scale = 1, flip = false, nudge = { x: 0, y: 0 }, piece?: TileItem) => {
       const asset = resolveAsset(assetId)
       const texture = asset ? getTexture(asset) : null
       if (!asset || !texture) {
@@ -105,7 +108,7 @@ export class MapSurroundRenderer {
       const sprite = new Sprite(texture)
       const base = (tileWidth / (asset.width || tileWidth)) * (asset.scale || 1) * scale
       const at = gridToScreen(col, row, tileWidth, tileHeight)
-      sprite.anchor.set(asset.anchorX ?? 0.5, asset.anchorY ?? 0.5)
+      sprite.anchor.set(piece?.anchorX ?? asset.anchorX ?? 0.5, piece?.anchorY ?? asset.anchorY ?? 0.5)
       sprite.position.set(at.x + nudge.x, at.y + nudge.y)
       sprite.scale.set(flip ? -base : base, base)
       // A tree further out: darker, towards the background colour, and finally gone into it (the ground under it
@@ -114,7 +117,7 @@ export class MapSurroundRenderer {
         sprite.tint = mixColor(0xffffff, background, fog * 0.85)
         sprite.alpha = 1 - smoothstep(0.6, 1, fog)
       }
-      sprite.zIndex = depthScore(isGround, col + row, col - row, isGround ? 0 : 2, 0)
+      sprite.zIndex = depthScore(isGround, col + row, col - row, isGround ? 0 : 2, piece?.zIndex ?? 0)
       sprite.eventMode = 'none'
       parent.addChild(sprite)
       this.sprites.push(sprite)
@@ -132,14 +135,14 @@ export class MapSurroundRenderer {
         const nearCol = Math.max(0, Math.min(cols - 1, col))
         const nearRow = Math.max(0, Math.min(rows - 1, row))
         const corner = nearCol !== col && nearRow !== row
-        const edgeId = groundAt(nearCol, nearRow)?.assetId
-        const open = corner || !edgeId || field.includes(edgeId)
-        const groundId = open ? field[Math.floor(hash(col, row, 7) * field.length)] : edgeId
-        place(groundId, col, row, true, fog)
+        const edgeItems = groundAt(nearCol, nearRow)
+        const open = corner || !edgeItems.length || (edgeItems.length === 1 && field.includes(edgeItems[0].assetId))
+        if (open) place(field[Math.floor(hash(col, row, 7) * field.length)], col, row, true, fog)
+        else for (const item of edgeItems) place(item.assetId, col, row, true, fog, item.scale ?? 1, item.flipX, { x: item.offsetX ?? 0, y: item.offsetY ?? 0 }, item)
 
-        // The woods: thick everywhere but on a road running out; each patch mostly one kind of tree (a wood reads
+        // The woods: everywhere but on a road running out, with room between the trees; each patch mostly one kind of tree (a wood reads
         // better that way than as a random mix), every tree a little off its cell's centre so they do not stand in rows
-        if (open && trees.length && hash(col, row, 13) < (out === 1 ? 0.45 : 0.8)) {
+        if (open && trees.length && hash(col, row, 13) < (out === 1 ? 0.25 : 0.5)) {
           const kind = Math.min(trees.length - 1, Math.floor(patchNoise(col, row, 0.18, 29) * trees.length + (hash(col, row, 17) - 0.5) * 0.8))
           const nudge = { x: (hash(col, row, 31) - 0.5) * tileWidth * 0.4, y: (hash(col, row, 37) - 0.5) * tileHeight * 0.4 }
           place(trees[Math.max(0, kind)], col, row, false, fog, 0.86 + hash(col, row, 19) * 0.3, hash(col, row, 23) < 0.5, nudge)

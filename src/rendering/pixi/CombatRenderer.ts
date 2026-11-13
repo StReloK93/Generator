@@ -3,6 +3,7 @@ import { GridCoord, MapProject } from '../../types/map'
 import { useRouteStore } from '../../stores/routeStore'
 import { useWaveStore } from '../../stores/waveStore'
 import { useGameStore } from '../../stores/gameStore'
+import { useCharacterSettingsStore } from '../../stores/characterSettingsStore'
 import { gridToScreen } from '../../utils/isometric'
 import { networkSyncBuffer } from '../../services/networkSync'
 import { combatEvents } from '../../services/combatEvents'
@@ -14,14 +15,14 @@ const SHOCKWAVE_LIFE = 0.55
 
 /**
  * Where a unit's feet are drawn, as its tile plus a screen offset — the same placement UnitRenderer uses
- * (pairs formation side step, per-unit / wave offsetY and the global elevation), so effects land on the sprite.
+ * (pairs formation side step, the character's own placement and the global elevation), so effects land on the sprite.
  */
 function unitFeet(
   unit: any,
   tileWidth: number,
   formation: string | undefined,
   elevation: number,
-  waveOffsetY: number | undefined
+  placement: { x: number; y: number }
 ): { col: number; row: number; dx: number; dy: number } | null {
   const col = unit.movement ? unit.movement.currentCol : unit.currentCol
   const row = unit.movement ? unit.movement.currentRow : unit.currentRow
@@ -35,8 +36,8 @@ function unitFeet(
     dx += Math.cos((direction * Math.PI) / 4 + Math.PI / 2) * offsetDist
     dy += Math.sin((direction * Math.PI) / 4 + Math.PI / 2) * 0.5 * offsetDist
   }
-  const offsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? waveOffsetY ?? 0
-  dy -= (Number(offsetY) || 0) + elevation
+  dx += placement.x
+  dy -= placement.y + elevation
   return { col, row, dx, dy }
 }
 
@@ -283,14 +284,12 @@ export class CombatRenderer {
     // 4. Particles, strikes, beams, impact rings and flashes; strikes stay on their unit while it walks
     const formation = useGameStore()?.formation
     const elevation = Number(characterStore?.unitElevation) || 0
-    const waveCfg = (() => {
-      const ws = useWaveStore()
-      return ws?.currentWaveConfig || ws?.waveConfigs?.[ws?.currentWaveIndex ?? 0] || null
-    })()
+    const characterSettings = useCharacterSettingsStore()
+    const modelOf = (unit: any): string => (unit.identity ? unit.identity.model : unit.characterModel) || 'male'
     this.projectileFx.endFrame(id => {
       const unit = units.find((u: any) => u.id === id)
       if (!unit || (unit.lifecycle ? unit.lifecycle.isDead : unit.isDead)) return null
-      const feet = unitFeet(unit, tileWidth, formation, elevation, waveCfg?.offsetY)
+      const feet = unitFeet(unit, tileWidth, formation, elevation, characterSettings.offsetOf(modelOf(unit)))
       if (!feet) return null
       const base = gridToScreen(feet.col, feet.row, tileWidth, tileHeight)
       return { x: base.x + feet.dx, y: base.y + feet.dy, height: tileHeight * 0.5 }
@@ -317,8 +316,8 @@ export class CombatRenderer {
         const ratio = Math.min(1, Math.max(0, currentHp / maxHp))
 
         const unitElev = Number(characterStore?.unitElevation) || 0
-        const rawOffsetY = (unit.identity ? unit.identity.offsetY : unit.offsetY) ?? currentWaveCfg?.offsetY ?? 0
-        const unitOffsetY = rawOffsetY + unitElev
+        const placement = characterSettings.offsetOf(modelOf(unit))
+        const unitOffsetY = placement.y + unitElev
 
         const col = unit.movement ? unit.movement.currentCol : unit.currentCol
         const row = unit.movement ? unit.movement.currentRow : unit.currentRow
@@ -339,11 +338,11 @@ export class CombatRenderer {
 
         const globalScale = Number(characterStore?.unitScaleMultiplier) || 1.0
         const rawUnitScale = (unit.identity ? unit.identity.scale : (unit as any).unitScale) ?? currentWaveCfg?.unitScale
-        const customUnitScale = (Number(rawUnitScale) || 1.0) * globalScale
+        const customUnitScale = characterSettings.scaleOf(modelOf(unit)) * (Number(rawUnitScale) || 1.0) * globalScale
 
         const barW = Math.round(32 * Math.min(1.5, Math.max(0.8, customUnitScale)))
         const barH = 4
-        const barX = finalScreenX - barW / 2
+        const barX = finalScreenX + placement.x - barW / 2
         const barY = finalScreenY - (tileHeight * 1.15 * customUnitScale) - unitOffsetY
 
         this.combatGraphics

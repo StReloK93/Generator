@@ -137,7 +137,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
             model,
             variant: waveCfg?.unitVariant || 'normal',
             variantTint: waveCfg?.variantTint,
-            offsetY: waveCfg?.offsetY || 0,
             scale: waveCfg?.unitScale || 1.0,
           },
           movement: {
@@ -220,9 +219,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
         if (waveCfg.unitScale !== undefined) {
           u.identity.scale = waveCfg.unitScale
         }
-        if (waveCfg.offsetY !== undefined) {
-          u.identity.offsetY = waveCfg.offsetY
-        }
       }
     }
   }
@@ -236,7 +232,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
       waveStore.currentWaveConfig?.unitScale,
       waveStore.currentWaveConfig?.unitVariant,
       waveStore.currentWaveConfig?.variantTint,
-      waveStore.currentWaveConfig?.offsetY,
     ],
     () => {
       syncLiveUnitsWithWaveConfig()

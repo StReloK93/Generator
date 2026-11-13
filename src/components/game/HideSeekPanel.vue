@@ -35,15 +35,7 @@
         <span class="text-xs font-black tabular-nums text-amber-300">{{ hideSeekStore.altarsLit }}/{{ hideSeekStore.altarsNeeded }}</span>
       </div>
 
-      <!-- Own character trait, and a seeker's momentum from this round's catches -->
-      <div
-        v-if="trait"
-        class="flex items-center gap-1 h-8 rounded-full border border-amber-500/30 px-2.5 bg-slate-950/80 backdrop-blur-md"
-        :title="$t(trait.desc)"
-      >
-        <component :is="trait.icon" class="size-3.5 text-amber-300" />
-        <span class="text-[11px] font-bold text-amber-200 hidden sm:inline">{{ $t(trait.label) }}</span>
-      </div>
+      <!-- A seeker's momentum from this round's catches (the hero itself is told about in the menu) -->
       <div
         v-if="momentum > 0"
         class="flex items-center gap-1 h-8 rounded-full border border-rose-500/50 px-2.5 bg-slate-950/80 backdrop-blur-md"
@@ -89,7 +81,6 @@ import { Search, EyeOff, Ear, Flame, Footprints, Skull, Wind, Zap } from 'lucide
 import { useHideSeekStore } from '../../stores/hideSeekStore'
 import { useMapStore } from '../../stores/mapStore'
 import { normalizeHideSeekSettings } from '../../domain/hideseek'
-import { TRAIT_INFO } from './hideSeekTraitInfo'
 
 const hideSeekStore = useHideSeekStore()
 const mapStore = useMapStore()
@@ -103,7 +94,6 @@ const roleLabel = computed(() => {
   return isSeeker.value ? 'hideseek.roleSeeker' : 'hideseek.roleHider'
 })
 const standing = computed(() => hideSeekStore.scores.filter(row => !row.jailed).length)
-const trait = computed(() => (hideSeekStore.myTrait ? TRAIT_INFO[hideSeekStore.myTrait] : null))
 /** Seeker: % faster from this round's catches */
 const momentum = computed(() => {
   if (!isSeeker.value || hideSeekStore.seekerCatches === 0) return 0

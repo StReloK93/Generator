@@ -22,7 +22,7 @@ export interface UnitIdentity {
   model: CharacterModel
   variant: UnitVariantType
   variantTint?: number | string
-  offsetY?: number
+  /** The wave's scale (the character's own scale and placement come from its settings, by model) */
   scale?: number
 }
 

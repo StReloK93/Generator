@@ -27,6 +27,11 @@ const routes = [
     component: () => import('../views/AssetEditorView.vue'),
   },
   {
+    path: '/characters',
+    name: 'characters',
+    component: () => import('../views/CharacterSettingsView.vue'),
+  },
+  {
     path: '/projectile-editor',
     name: 'projectile-editor',
     component: () => import('../views/ProjectileEditorView.vue'),

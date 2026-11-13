@@ -15,6 +15,9 @@ interface AvatarNode {
 }
 
 const AVATAR_SCALE = 0.9
+/** The ring under a character's feet: green for my side, red for anyone else */
+const FRIEND_RING_COLOR = 0x22c55e
+const FOE_RING_COLOR = 0xef4444
 /** Sneaking: the character ducks a little lower and wider, and slightly fades into the dark */
 const CROUCH_SQUASH = 0.1
 const CROUCH_WIDEN = 0.04
@@ -804,7 +807,7 @@ export class HideSeekRenderer {
       node.sprite.y = 0
     }
 
-    const color = parseInt(avatar.color.replace('#', ''), 16) || 0x38bdf8
+    const color = avatar.friendly ? FRIEND_RING_COLOR : FOE_RING_COLOR
     const rx = tileWidth * 0.22
     const ry = tileHeight * 0.22
     node.ring.clear()

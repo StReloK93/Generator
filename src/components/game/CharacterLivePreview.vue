@@ -49,6 +49,7 @@ import { getVariantDef } from '../../utils/unitVariants'
 import { renderCanvasUnitEffect } from '../../utils/unitEffectRenderer'
 import { getCharacterMeta } from '../../utils/characterUtils'
 import { assetManager } from '../../services/assetManager'
+import { useCharacterSettingsStore } from '../../stores/characterSettingsStore'
 
 const props = withDefaults(
   defineProps<{
@@ -58,8 +59,7 @@ const props = withDefaults(
     showDirectionBar?: boolean
     showActionButtons?: boolean
     heightClass?: string
-    animSpeed?: number
-    offsetY?: number
+    /** The wave's scale (a multiplier on the character's own size; speed and placement are the character's own) */
     unitScale?: number
     unitVariant?: UnitVariantType
     variantTint?: number | string
@@ -71,8 +71,6 @@ const props = withDefaults(
     showDirectionBar: true,
     showActionButtons: true,
     heightClass: 'h-40 sm:h-50',
-    animSpeed: 1.0,
-    offsetY: 0,
     unitScale: 1.0,
     unitVariant: 'normal',
   }
@@ -81,6 +79,9 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'update:modelValue', val: CharacterModel): void
 }>()
+
+/** The character's own settings: run speed, size, placement (as in the game) */
+const characterSettings = useCharacterSettingsStore()
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -259,7 +260,7 @@ function drawTintedSprite(
 
 function renderFrame(timestamp: number) {
   if (!lastTimestamp) lastTimestamp = timestamp
-  const speedMult = Math.max(0.1, props.animSpeed || 1.0)
+  const speedMult = Math.max(0.1, characterSettings.animSpeedOf(currentModel.value))
   const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000) * speedMult
   lastTimestamp = timestamp
 
@@ -393,26 +394,26 @@ function renderFrame(timestamp: number) {
   ctx.restore()
 
   const animTime = timestamp * 0.001
-  const customUnitScale = Number(props.unitScale) || 1.0
+  const customUnitScale = characterSettings.scaleOf(currentModel.value) * (Number(props.unitScale) || 1.0)
+  const placement = characterSettings.offsetOf(currentModel.value)
   const variant = props.unitVariant || 'normal'
 
   // 2. Draw Character Sprite (With smooth flicker-free cache & height elevation offset)
   const entry = getStabilizedImageForFrame(currentModel.value, currentDirection.value, currentAction.value, currentFrameIndex.value)
   const activeEntry = (entry && entry.img.complete && entry.img.naturalWidth > 0) ? entry : lastRenderedEntry
-  const heightElevation = Number(props.offsetY) || 0
+  const heightElevation = placement.y
 
   if (activeEntry && activeEntry.img.complete && activeEntry.img.naturalWidth > 0) {
     lastRenderedEntry = activeEntry
     const modelKey = String(currentModel.value || 'male').toLowerCase()
     const modelMeta = getCharacterMeta(modelKey)
-    const baseModelScale = modelMeta?.scale ?? 0.8
-    const baseDrawScale = (modelKey === 'male' ? 0.52 : baseModelScale * 0.6)
-    const drawScale = baseDrawScale * customUnitScale
+    // As UnitRenderer draws it: one tile (128 px here, as in the game at zoom 1) per sprite cell width
+    const drawScale = ((tileRadiusX * 2) / (modelMeta?.cellWidth || 256)) * (modelMeta?.scale ?? 1) * customUnitScale
 
     const drawW = activeEntry.width * drawScale
     const drawH = activeEntry.height * drawScale
 
-    const drawX = centerX - drawW * activeEntry.anchorX
+    const drawX = centerX + placement.x - drawW * activeEntry.anchorX
     const drawY = centerY - drawH * activeEntry.anchorY - heightElevation
 
     // Draw sprite with variant color tinting

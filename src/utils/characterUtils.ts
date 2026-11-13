@@ -20,6 +20,9 @@ export interface CharacterModelMeta {
 
 const manifest: Record<string, CharacterModelMeta | undefined> = characterManifest
 
+/** Every character model the game has (src/assets/characters, by npm run generate:assets) */
+export const CHARACTER_MODELS: CharacterModelMeta[] = Object.values(characterManifest)
+
 /**
  * Typed lookup of a character model in the generated manifest (case-insensitive).
  */

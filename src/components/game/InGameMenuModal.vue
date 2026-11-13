@@ -27,7 +27,17 @@
       <!-- How this genre is played, for a player who forgot mid-game -->
       <div class="flex flex-col gap-2.5">
         <UiTabs v-model="section" :items="sections" variant="segmented" size="sm" fill class="mt-1 short:mt-0" />
-        <HowToPlay v-if="section === 'howto'" :mode="getMapMode(mapStore.project)" />
+        <!-- Hide & seek: the hero I play, what it is and can do -->
+        <div v-if="section === 'hero' && hero" class="flex flex-col gap-2">
+          <div class="flex items-center gap-3">
+            <div class="size-16 shrink-0 rounded-xl bg-radial from-slate-700/50 to-transparent flex items-end justify-center overflow-hidden">
+              <img v-if="hero.portrait" :src="hero.portrait" :alt="hero.name" class="h-15 w-auto object-contain drop-shadow-lg" draggable="false" />
+            </div>
+            <span class="text-base font-black text-slate-50">{{ hero.name }}</span>
+          </div>
+          <HideSeekHeroInfo :model="hero.model" />
+        </div>
+        <HowToPlay v-else-if="section === 'howto'" :mode="getMapMode(mapStore.project)" />
         <SettingsPanel v-else />
       </div>
     </div>
@@ -35,17 +45,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Play, RotateCcw, Layers, Home } from 'lucide-vue-next'
 import { UiModal, UiButton, UiTabs } from '../ui'
 import SettingsPanel from '../SettingsPanel.vue'
 import HowToPlay from '../HowToPlay.vue'
+import HideSeekHeroInfo from './HideSeekHeroInfo.vue'
+import { useHideSeekStore } from '../../stores/hideSeekStore'
+import { HERO_MODELS } from '../../stores/heroStore'
+import { assetManager } from '../../services/assetManager'
 import { useMultiplayerStore } from '../../stores/multiplayerStore'
 import { useMapStore } from '../../stores/mapStore'
 import { useI18n } from '../../stores/i18nStore'
 import { getMapMode } from '../../domain/map'
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean
   isEditorMode?: boolean
 }>()
@@ -60,9 +74,27 @@ const multiplayerStore = useMultiplayerStore()
 const mapStore = useMapStore()
 const { t } = useI18n()
 
-const section = ref<'settings' | 'howto'>('settings')
+const hideSeekStore = useHideSeekStore()
+
+/** Hide & seek: my hero (name and a face-on portrait), once picked */
+const hero = computed(() => {
+  const model = hideSeekStore.isActive ? hideSeekStore.myModel : null
+  if (!model) return null
+  return {
+    model,
+    name: HERO_MODELS.find(m => m.id === model)?.label ?? model,
+    portrait: assetManager.getCharacterPreviewDataUrl(model, 3, 'Idle', 0),
+  }
+})
+
+const section = ref<'hero' | 'settings' | 'howto'>('settings')
 const sections = computed(() => [
+  ...(hero.value ? [{ id: 'hero', label: t('hideseek.heroTab') }] : []),
   { id: 'settings', label: t('common.settings') },
   { id: 'howto', label: t('maps.howToPlay') },
 ])
+// Opened mid-match: the hero first
+watch(() => props.isOpen, open => {
+  if (open) section.value = hero.value ? 'hero' : 'settings'
+})
 </script>

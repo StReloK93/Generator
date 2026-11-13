@@ -94,7 +94,6 @@ import {
   DOOR_REACH,
   TORCH_REACH,
   FOOTPRINT_SPACING,
-  HideSeekTrait,
   torchSpots,
   placeCandle,
   canPlaceCandle,
@@ -188,7 +187,7 @@ interface BotState {
 /**
  * Hide & seek session: local input and movement, gadgets, the network, the solo bot and the per-frame views.
  * The rules live in domain/hideseek: the host (or a solo game) runs the referee (HideSeekMatch), guests mirror it.
- */
+ */
 /** The count before a match ("2", "1"), in seconds; the gong ends it */
 const START_COUNT_SEC = 2
 /** A caught player stands in a beam of light this long before it takes them to the jail, then appears there */
@@ -235,7 +234,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const roundWins = ref<Record<HideSeekRole, number>>({ seeker: 0, hider: 0 })
   const matchWinner = ref<HideSeekRole | null>(null)
   const myRole = ref<HideSeekRole>('hider')
-  const isSneaking = ref(false)
   const heardLevel = ref(0)
   /** Hider's heartbeat: 0 = seeker far, 1 = right behind you */
   const dangerLevel = ref(0)
@@ -254,7 +252,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Bumped when this round's labyrinth replaced the map (the canvas redraws its layers) */
   const mazeRevision = ref(0)
   /** Own character's trait (kept in both roles) */
-  const myTrait = ref<HideSeekTrait | null>(null)
+  /** My hero (its model): what the in-game menu tells about */
+  const myModel = ref<string | null>(null)
   /** Hiders the seeker caught this round (each makes the seeker faster and slower to tire) */
   const seekerCatches = ref(0)
 
@@ -320,6 +319,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const pressedKeys = new Set<string>()
   const joystick = { x: 0, y: 0 }
   let sneakHeld = false
+  /** The walk to a tapped spot goes quietly (a tap); a held press runs there */
+  let clickSneak = false
   let clickPath: GridCoord[] = []
   let pending: PendingUse | null = null
   let stamina: Stamina = freshStamina(settings)
@@ -476,7 +477,11 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     // The game draws those pieces itself, so this game's copy of the map leaves them out.
     const drawn = settings.randomMaze ? null : readMapLabyrinth(mapStore.project, spawns)
     maze = drawn?.maze ?? null
-    if (drawn) Object.assign(mapStore.project, { layers: drawn.layers, collisionSubcells: drawn.collisionSubcells })
+    if (drawn) {
+      Object.assign(mapStore.project, { layers: drawn.layers, collisionSubcells: drawn.collisionSubcells })
+      // The map is drawn again without them (else its own shut doors, barrels and candles stay over the game's)
+      mazeRevision.value++
+    }
     match = createMatch([])
     rebuildGrids()
     footprints = []
@@ -734,7 +739,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     matchWinner.value = match.matchWinner
     exitsOpen.value = match.exitsOpen
     seekerCatches.value = mySeat?.catches ?? 0
-    myTrait.value = traitOf(myPlayer()?.model)
+    myModel.value = myPlayer()?.model ?? null
     isJailed.value = !!seatOf(match, myId())?.jailed
     scores.value = match.seats
       .map(seat => {
@@ -954,8 +959,10 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   }
 
   /** Click / tap: open / search / hide (walking up first), or walk there. */
-  function clickCell(col: number, row: number): void {
+  /** A click / tap on the map: walk there (or to what is there and use it). `gait`: a touch tap walks quietly, a held press and the mouse run */
+  function clickCell(col: number, row: number, gait: 'walk' | 'run' = 'run'): void {
     lookAt.value = null
+    clickSneak = gait === 'walk'
     const me = myPlayer()
     if (!me || !canMove.value) return
     const target = { col, row }
@@ -1442,8 +1449,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   let wasTunnelling = false
   function updateMe(me: HideSeekBody, deltaSec: number): void {
-    const sneaking = sneakHeld
-    isSneaking.value = sneaking
+    const sneaking = sneakHeld || (clickSneak && clickPath.length > 0)
     me.sneaking = sneaking
     const wasMoving = me.moving
     const input = canMove.value ? readInput() : { x: 0, y: 0 }
@@ -1964,7 +1970,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     roundWins,
     matchWinner,
     myRole,
-    isSneaking,
     heardLevel,
     dangerLevel,
     staminaLevel,
@@ -1979,7 +1984,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     isHunting,
     exitsOpen,
     mazeRevision,
-    myTrait,
+    myModel,
     seekerCatches,
     setCandle,
     startSoloRound,

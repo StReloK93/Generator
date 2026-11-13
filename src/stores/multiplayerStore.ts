@@ -1258,7 +1258,6 @@ export const useMultiplayerStore = defineStore('multiplayerStore', () => {
           hp: Math.round(u.combat.currentHp),
           mhp: Math.round(u.combat.maxHp || 100),
           m: u.identity.model || 'male',
-          oy: u.identity.offsetY || 0,
           as: u.animation.animSpeed || 1.0,
           us: u.identity.scale || 1.0,
           fl,

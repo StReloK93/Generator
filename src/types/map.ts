@@ -89,7 +89,7 @@ export interface WaveConfig {
   unitBonus?: number
   endWaveBonus?: number
   characterModel?: string
-  offsetY?: number
+  /** Multiplies the character's own scale (its Characters page setting): 1 shows it at exactly that */
   unitScale?: number
   unitVariant?: UnitVariantType
   variantTint?: number | string

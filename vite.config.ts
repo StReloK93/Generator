@@ -23,7 +23,7 @@ function multiplayerServerPlugin(env: Record<string, string>): Plugin {
     configureServer(server) {
       server.middlewares.use(admin.app)
       server.middlewares.use(createMapsApp({ mapsDir, auth: admin, openWrites: true }))
-      server.middlewares.use(createCharactersApp({ file: charactersFile, auth: admin, openWrites: true }))
+      server.middlewares.use(createCharactersApp({ file: charactersFile, auth: admin }))
       if (!server.httpServer) return
       server.middlewares.use(createMultiplayerApp(server.httpServer))
       createOnline(server.httpServer, { auth: admin })

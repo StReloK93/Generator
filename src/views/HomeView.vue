@@ -41,6 +41,18 @@
           {{ $t('home.assetEditor') || 'Assetlar' }}
         </UiButton>
 
+        <!-- The game's characters (set once for every map): the signed-in admin's only -->
+        <UiButton
+          v-if="isDesktopDevice && admin.isAdmin"
+          variant="secondary"
+          size="xs"
+          :leading-icon="PersonStanding"
+          custom-class="desktop-only-btn hidden! lg:inline-flex!"
+          @click="router.push('/characters')"
+        >
+          {{ $t('characters.button') }}
+        </UiButton>
+
         <!-- Projectile Editor (Desktop / Mobile) -->
         <UiButton
           v-if="isDesktopDevice"
@@ -134,6 +146,7 @@ import {
   Layers,
   Palette,
   Crosshair,
+  PersonStanding,
   Settings,
   Download
 } from 'lucide-vue-next'
@@ -143,9 +156,11 @@ import SettingsPanel from '../components/SettingsPanel.vue'
 import { canInstallPwa, promptPwaInstall } from '../utils/pwaOrientation'
 import { isTelegram } from '../services/telegram'
 import WelcomeProjectModal from '../components/WelcomeProjectModal.vue'
+import { useAdminStore } from '../stores/adminStore'
 import HomeBackdrop from '../components/home/HomeBackdrop.vue'
 
 const router = useRouter()
+const admin = useAdminStore()
 
 const editorSetupModalRef = ref<any>(null)
 const isDesktopDevice = ref(false)

@@ -34,48 +34,25 @@
       </UiCard>
     </div>
 
-    <!-- What the picked hero can do: one passive trait and three abilities, the same in both roles -->
-    <div v-if="modelValue" class="flex flex-col gap-1 rounded-xl bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 text-[11px] leading-snug">
-      <p v-if="trait" class="flex items-start gap-1.5 text-slate-300">
-        <component :is="trait.icon" class="size-3.5 shrink-0 mt-px text-amber-300" />
-        <span><b class="text-amber-200">{{ $t(trait.label) }}</b> · {{ $t('hideseek.passive') }}: {{ $t(trait.desc) }}</span>
-      </p>
-      <p v-for="(ability, slot) in abilities" :key="ability" class="flex items-start gap-1.5 text-slate-300">
-        <component :is="ABILITY_ICONS[ability]" class="size-3.5 shrink-0 mt-px text-sky-300" />
-        <span>
-          <b class="text-sky-200">{{ ABILITY_KEYS[slot] }} · {{ $t(`hideseek.ability.${ability}`) }}</b>
-          <span class="text-slate-500"> ({{ abilityCooldown(ability, settings) }}{{ $t('hideseek.secondsShort') }})</span><span class="short:hidden">:
-          {{ $t(`hideseek.abilityHint.${ability}`) }}</span>
-        </span>
-      </p>
-    </div>
+    <HideSeekHeroInfo v-if="modelValue" :model="modelValue" compact />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Check } from 'lucide-vue-next'
 import { UiCard, UiSpinner } from '../ui'
 import { HERO_MODELS } from '../../stores/heroStore'
-import { useMapStore } from '../../stores/mapStore'
 import { assetManager } from '../../services/assetManager'
-import { abilitiesOf, abilityCooldown, normalizeHideSeekSettings, traitOf } from '../../domain/hideseek'
-import { ABILITY_ICONS, ABILITY_KEYS, TRAIT_INFO } from './hideSeekTraitInfo'
+import HideSeekHeroInfo from './HideSeekHeroInfo.vue'
 
 /** Hero picker for hide & seek (solo and room games): portraits, then the picked hero's trait and abilities. */
-const props = defineProps<{ modelValue: string }>()
+defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ (e: 'update:modelValue', model: string): void }>()
 
 /** Portraits face the viewer (direction 3 = south) */
 const PORTRAIT_DIRECTION = 3
 
-const mapStore = useMapStore()
-const settings = computed(() => normalizeHideSeekSettings(mapStore.project.hideSeekSettings))
-const trait = computed(() => {
-  const id = traitOf(props.modelValue)
-  return id ? TRAIT_INFO[id] : null
-})
-const abilities = computed(() => abilitiesOf(props.modelValue))
 const portraits = ref<Record<string, string>>({})
 
 onMounted(async () => {

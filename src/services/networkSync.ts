@@ -8,6 +8,10 @@ import { UnitVariantType } from '../types/map'
 import { emitProjectileImpact, emitProjectileStrike } from './projectileImpact'
 import { getProjectile, isInstantProjectile } from '../domain/projectile'
 import { getModelActionFrameCount } from '../utils/characterUtils'
+import { useCharacterSettingsStore } from '../stores/characterSettingsStore'
+
+/** How high a unit's sprite sits over its cell: its character's own setting */
+const liftOf = (unit: { characterModel?: string }): number => useCharacterSettingsStore().offsetOf(unit.characterModel).y
 
 /**
  * Single Source of Truth configuration for multiplayer network interpolation
@@ -40,7 +44,6 @@ export interface InterpolatedUnit {
   hasReachedEnd: boolean
   deathFade: number
   characterModel?: string
-  offsetY?: number
   animSpeed?: number
   unitScale?: number
   unitVariant?: UnitVariantType
@@ -418,7 +421,6 @@ class NetworkSyncBuffer {
           isDead: (curr.fl & 4) !== 0,
           deathFade: curr.df ?? 1.0,
           characterModel: curr.m || 'male',
-          offsetY: curr.oy || 0,
           animSpeed: curr.as || 1.0,
           unitScale: curr.us || 1.0,
           unitVariant: (curr.uv as any) || 'normal',
@@ -475,7 +477,6 @@ class NetworkSyncBuffer {
 
       renderUnit.direction = curr.d
       if (curr.m) renderUnit.characterModel = curr.m
-      if (curr.oy !== undefined) renderUnit.offsetY = curr.oy
       if (curr.as !== undefined) renderUnit.animSpeed = curr.as
       renderUnit.currentHp = curr.hp
       if (curr.mhp) renderUnit.maxHp = curr.mhp
@@ -584,7 +585,7 @@ class NetworkSyncBuffer {
           const u = this.renderUnitsMap.get(proj.targetUnitId)
           if (u && !u.isDead) {
             proj.targetX = u.screenX
-            proj.targetY = u.screenY - 32 - (u.offsetY || 0)
+            proj.targetY = u.screenY - 32 - liftOf(u)
           }
         }
 
@@ -623,7 +624,7 @@ class NetworkSyncBuffer {
             const u = this.renderUnitsMap.get(event.unitId)
             if (u) {
               floaterX = u.screenX + (Math.random() * 20 - 10)
-              floaterY = u.screenY - 36 - (u.offsetY || 0)
+              floaterY = u.screenY - 36 - liftOf(u)
             }
           }
           df.id = `df-${Date.now()}-${Math.random()}`
@@ -685,7 +686,7 @@ class NetworkSyncBuffer {
         const targetUnit = this.renderUnitsMap.get(proj.targetUnitId)
         if (targetUnit && !targetUnit.isDead) {
           proj.targetX = targetUnit.screenX
-          proj.targetY = targetUnit.screenY - 32 - (targetUnit.offsetY || 0)
+          proj.targetY = targetUnit.screenY - 32 - liftOf(targetUnit)
         }
       }
 
