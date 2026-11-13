@@ -2,6 +2,8 @@ import { Container, Sprite, Texture, ImageSource } from 'pixi.js'
 import { MapProject, AssetItem } from '../../types/map'
 import { assetManager } from '../../services/assetManager'
 import { getFootprintBaseCenter } from '../../utils/isometric'
+import { depthScore, isGroundLayer } from './mapDepth'
+import { MapSurroundRenderer } from './MapSurroundRenderer'
 
 /** A wall / prop sprite (non-ground layers) and the map cell it stands on. */
 export interface EntitySprite {
@@ -18,6 +20,9 @@ export class MapRenderer {
   private textureCache = new Map<string, Texture>()
   private loadingPromises = new Map<string, Promise<Texture | null>>()
   public onTextureLoaded?: (assetId: string, texture: Texture) => void
+  /** How many cells of world are drawn around the map (MapSurroundRenderer); 0: none (the editor) */
+  public surroundDepth = 0
+  private surround = new MapSurroundRenderer()
 
   constructor() {
     this.layersContainer = new Container()
@@ -168,6 +173,12 @@ export class MapRenderer {
       }
     }
 
+    /** A tile's asset by its id, with or without the sprite- prefix */
+    const resolveAsset = (assetId: string): AssetItem | undefined => {
+      const cleanId = assetId.replace(/^sprite-/, '')
+      return assetMap.get(assetId) || assetMap.get(cleanId) || assetMap.get(`sprite-${cleanId}`)
+    }
+
     // 2. Sync each layer's sprites
     this.entitySprites = []
     for (let layerIdx = 0; layerIdx < project.layers.length; layerIdx++) {
@@ -197,11 +208,7 @@ export class MapRenderer {
         }
       }
 
-      const isGround =
-        layer.id === 'layer-ground' ||
-        layerIdx === 0 ||
-        layer.name.toLowerCase().includes('ground') ||
-        layer.name.toLowerCase().includes('yer')
+      const isGround = isGroundLayer(layer, layerIdx)
 
       for (const [cellKeyStr, items] of Object.entries(layer.tiles)) {
         const [col, row] = cellKeyStr.split(',').map(Number)
@@ -209,11 +216,7 @@ export class MapRenderer {
 
         for (const item of itemArr) {
           if (!item) continue
-          let asset = assetMap.get(item.assetId)
-          if (!asset && item.assetId) {
-            const cleanId = item.assetId.replace(/^sprite-/, '')
-            asset = assetMap.get(cleanId) || assetMap.get(`sprite-${cleanId}`)
-          }
+          const asset = item.assetId ? resolveAsset(item.assetId) : undefined
           if (!asset) continue
 
           const texture = this.getTexture(asset)
@@ -263,14 +266,7 @@ export class MapRenderer {
               const specificZ = item.cellZIndex?.[`${cx},${cy}`] ?? item.zIndex ?? 0
               const effectiveGridDepth = cx + cy + depthOffset
 
-              let cellScore: number
-              if (isGround) {
-                // Ground Base Plane (0 .. 50,000)
-                cellScore = Math.round(effectiveGridDepth * 10 + layerIdx * 2 + specificZ * 2 + (cx - cy) * 0.01)
-              } else {
-                // 3D Isometric Entity Plane (100,000+)
-                cellScore = 100000 + Math.round(effectiveGridDepth * 1000 + layerIdx * 20 + specificZ * 5 + (cx - cy) * 0.01)
-              }
+              const cellScore = depthScore(isGround, effectiveGridDepth, cx - cy, layerIdx, specificZ)
 
               if (cellScore > maxDepthScore) {
                 maxDepthScore = cellScore
@@ -283,6 +279,12 @@ export class MapRenderer {
       }
     }
 
+    if (this.surroundDepth > 0) {
+      this.surround.sync(project, this.surroundDepth, this.layersContainer, resolveAsset, asset => this.getTexture(asset))
+    } else {
+      this.surround.clear()
+    }
+
     this.layersContainer.sortChildren()
   }
 
@@ -293,6 +295,7 @@ export class MapRenderer {
 
   public clear(): void {
     this.entitySprites = []
+    this.surround.clear()
     try {
       for (const spriteMap of this.layerSpriteMaps.values()) {
         for (const sprite of spriteMap.values()) {

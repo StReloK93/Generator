@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import express from 'express'
 import { createMultiplayerApp } from './multiplayer.js'
 import { createMapsApp } from './maps.js'
+import { createCharactersApp } from './characters.js'
 import { createAdminAuth } from './admin.js'
 import { createOnline } from './online.js'
 import { startTurnServer } from './turn.js'
@@ -30,6 +31,8 @@ const admin = createAdminAuth({ login: process.env.ADMIN_LOGIN, password: proces
 const mapsDir = process.env.MAPS_DIR ? path.resolve(rootDir, process.env.MAPS_DIR) : path.join(rootDir, 'src', 'maps')
 app.use(admin.app)
 app.use(createMapsApp({ mapsDir, auth: admin }))
+// The characters' own settings (run animation speed), the same on every map
+app.use(createCharactersApp({ file: path.join(rootDir, 'src', 'assets', 'characters', 'settings.json'), auth: admin }))
 // Who is online, and the chat for all of them
 createOnline(server, { auth: admin })
 app.use(createMultiplayerApp(server))

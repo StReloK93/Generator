@@ -18,6 +18,7 @@ import { useMultiplayerStore } from './multiplayerStore'
 import { useRouteStore } from './routeStore'
 import { useWaveStore } from './waveStore'
 import { useGameStore } from './gameStore'
+import { useCharacterSettingsStore } from './characterSettingsStore'
 import { networkSyncBuffer } from '../services/networkSync'
 import { gridToScreen } from '../utils/isometric'
 import { getModelActionFrameCount } from '../utils/characterUtils'
@@ -70,6 +71,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
   const routeStore = useRouteStore()
   const waveStore = useWaveStore()
   const gameStore = useGameStore()
+  const characterSettings = useCharacterSettingsStore()
 
   // ==========================================
   // 1. REACTIVE STATE
@@ -114,6 +116,9 @@ export const useCharacterStore = defineStore('characterStore', () => {
       progressMap[rIdx] = 0
       const route = routeStore.getRouteForIndex(rIdx)
       const startPt = route[0] || { col: 2, row: 2 }
+      // Waiting at the gate, a unit already faces the way its road goes
+      const nextPt = route[1] || startPt
+      const startDirection = CrowdSimulation.calculateDirection(startPt.col, startPt.row, nextPt.col, nextPt.row, mapStore.project.tileWidth, mapStore.project.tileHeight)
       const routeItem = routeStore.routes[rIdx]
       const routeId = routeItem ? routeItem.id : `route-${rIdx}`
 
@@ -138,7 +143,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
           movement: {
             currentCol: startPt.col,
             currentRow: startPt.row,
-            direction: 2,
+            direction: startDirection,
             pathIndex: 0,
             pathInterpolation: 0,
             distanceTraveled: 0,
@@ -154,7 +159,7 @@ export const useCharacterStore = defineStore('characterStore', () => {
             action: 'Idle',
             frameIndex: (i * 2) % initialMaxFrames,
             animTimer: 0,
-            animSpeed: waveCfg?.animSpeed || 1.0,
+            animSpeed: characterSettings.animSpeedOf(model),
           },
           lifecycle: {
             isSpawned: pairIndex === 0,
@@ -218,9 +223,6 @@ export const useCharacterStore = defineStore('characterStore', () => {
         if (waveCfg.offsetY !== undefined) {
           u.identity.offsetY = waveCfg.offsetY
         }
-        if (waveCfg.animSpeed !== undefined) {
-          u.animation.animSpeed = waveCfg.animSpeed
-        }
       }
     }
   }
@@ -234,13 +236,20 @@ export const useCharacterStore = defineStore('characterStore', () => {
       waveStore.currentWaveConfig?.unitScale,
       waveStore.currentWaveConfig?.unitVariant,
       waveStore.currentWaveConfig?.variantTint,
-      waveStore.currentWaveConfig?.animSpeed,
       waveStore.currentWaveConfig?.offsetY,
     ],
     () => {
       syncLiveUnitsWithWaveConfig()
     },
     { deep: true }
+  )
+
+  // A character's run animation speed changed (its own setting): the units on the field follow at once
+  watch(
+    () => characterSettings.settings,
+    () => {
+      for (const u of units.value) u.animation.animSpeed = characterSettings.animSpeedOf(u.identity.model)
+    }
   )
 
   /**

@@ -898,7 +898,7 @@
           <!-- Live Character Animation Simulator -->
           <CharacterLivePreview 
             :model-value="selectedWave.characterModel || 'male'" 
-            :anim-speed="selectedWave.animSpeed || 1.0"
+            :anim-speed="characterSettings.animSpeedOf(selectedWave.characterModel || 'male')"
             :offset-y="selectedWave.offsetY || 0"
             :unit-scale="selectedWave.unitScale || 1.0"
             :unit-variant="selectedWave.unitVariant || 'normal'"
@@ -1046,18 +1046,42 @@
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.endWaveBonusDesc') }}</span>
             </UiCard>
 
-            <!-- 5. Animation Playback Speed -->
+            <!-- 5. The character's run animation speed: its own setting, the same on every map -->
             <UiCard variant="subtle" padding="sm">
               <UiSlider 
-                :model-value="selectedWave.animSpeed || 1.0"
+                :model-value="characterSettings.animSpeedOf(selectedWave.characterModel || 'male')"
                 :label="$t('config.animSpeed')"
-                :min="0.5"
-                :max="3.0"
+                :min="MIN_ANIM_SPEED"
+                :max="MAX_ANIM_SPEED"
                 :step="0.1"
                 unit="x"
-                @update:model-value="(val) => waveStore.setWaveAnimSpeed(val || 1.0)"
+                @update:model-value="(val) => characterSettings.setAnimSpeed(selectedWave?.characterModel || 'male', val ?? 1)"
               />
               <span class="text-[10px] text-slate-500 block mt-1">{{ $t('config.animSpeedDesc') }}</span>
+              <div v-if="characterSettings.isDirty" class="flex flex-wrap items-center gap-2 mt-2">
+                <UiButton
+                  v-if="characterSettings.needsLogin"
+                  size="xs"
+                  variant="secondary"
+                  @click="admin.openSignIn()"
+                >
+                  {{ $t('config.animSpeedLogin') }}
+                </UiButton>
+                <UiButton
+                  v-else
+                  size="xs"
+                  variant="primary"
+                  :disabled="!characterSettings.canWrite"
+                  :loading="characterSettings.isBusy"
+                  @click="characterSettings.save()"
+                >
+                  {{ $t('config.animSpeedSave') }}
+                </UiButton>
+                <UiButton size="xs" variant="ghost" @click="characterSettings.discard()">
+                  {{ $t('config.animSpeedDiscard') }}
+                </UiButton>
+              </div>
+              <span v-if="characterSettings.error" class="text-[10px] text-rose-400 block mt-1">{{ $t('config.animSpeedSaveFailed') }}</span>
             </UiCard>
 
             <!-- 6. Height / Elevation Offset -->
@@ -1707,7 +1731,7 @@
 
           <CharacterLivePreview
             :model-value="tempSelectedUnitModel"
-            :anim-speed="selectedWave?.animSpeed || 1.0"
+            :anim-speed="characterSettings.animSpeedOf(tempSelectedUnitModel)"
             :offset-y="selectedWave?.offsetY || 0"
             :unit-scale="selectedWave?.unitScale || 1.0"
             :unit-variant="tempSelectedVariant"
@@ -1859,6 +1883,8 @@ import { useWaveStore } from '../stores/waveStore'
 import { useGameStore } from '../stores/gameStore'
 import { useAssetStore } from '../stores/assetStore'
 import { useMapStore } from '../stores/mapStore'
+import { useAdminStore } from '../stores/adminStore'
+import { MAX_ANIM_SPEED, MIN_ANIM_SPEED, useCharacterSettingsStore } from '../stores/characterSettingsStore'
 import { AssetItem, UnitVariantType, TowerTraitType, TowerClan, TowerLevel } from '../types/map'
 import { UNIT_VARIANTS, getVariantDef, getVariantIcon } from '../utils/unitVariants'
 import { TOWER_TRAITS, getTraitDef } from '../utils/towerTraits'
@@ -1878,6 +1904,8 @@ const waveStore = useWaveStore()
 const gameStore = useGameStore()
 const assetStore = useAssetStore()
 const mapStore = useMapStore()
+const admin = useAdminStore()
+const characterSettings = useCharacterSettingsStore()
 const { t } = useI18n()
 
 // Clan Management state

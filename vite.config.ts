@@ -5,12 +5,14 @@ import path from 'path'
 
 import { createMultiplayerApp } from './server/multiplayer.js'
 import { createMapsApp } from './server/maps.js'
+import { createCharactersApp } from './server/characters.js'
 import { createAdminAuth } from './server/admin.js'
 import { createOnline } from './server/online.js'
 
 const mapsDir = path.resolve(__dirname, 'src/maps')
+const charactersFile = path.resolve(__dirname, 'src/assets/characters/settings.json')
 
-// Mounts the backend (admin sign-in, built-in maps, PeerJS signaling + room list) into the dev/preview server,
+// Mounts the backend (admin sign-in, built-in maps, character settings, PeerJS signaling + room list) into the dev/preview server,
 // so frontend and server run as one — same as `npm start` in production.
 // Map changes need the admin (ADMIN_LOGIN / ADMIN_PASSWORD in .env); without an admin account the dev server takes them
 // from anyone (it runs on the developer's own computer), preview from nobody.
@@ -21,6 +23,7 @@ function multiplayerServerPlugin(env: Record<string, string>): Plugin {
     configureServer(server) {
       server.middlewares.use(admin.app)
       server.middlewares.use(createMapsApp({ mapsDir, auth: admin, openWrites: true }))
+      server.middlewares.use(createCharactersApp({ file: charactersFile, auth: admin, openWrites: true }))
       if (!server.httpServer) return
       server.middlewares.use(createMultiplayerApp(server.httpServer))
       createOnline(server.httpServer, { auth: admin })
@@ -28,6 +31,7 @@ function multiplayerServerPlugin(env: Record<string, string>): Plugin {
     configurePreviewServer(server) {
       server.middlewares.use(admin.app)
       server.middlewares.use(createMapsApp({ mapsDir, auth: admin }))
+      server.middlewares.use(createCharactersApp({ file: charactersFile, auth: admin }))
       if (!server.httpServer) return
       server.middlewares.use(createMultiplayerApp(server.httpServer))
       createOnline(server.httpServer, { auth: admin })
@@ -95,7 +99,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: true, // Listen on all local IPs (LAN support)
     port: 5173,
-    // Maps saved from the editor are read through /api/maps: a saved file must not reload the open pages
-    watch: { ignored: ['**/src/maps/**'] },
+    // Maps and character settings saved from the editor are read through the API: a saved file must not reload the open pages
+    watch: { ignored: ['**/src/maps/**', '**/src/assets/characters/settings.json*'] },
   },
 }))

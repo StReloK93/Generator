@@ -18,7 +18,11 @@ export interface TouchGestureState {
   moved: boolean
 }
 
-export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
+/**
+ * The map camera: pan, zoom, pinch. `bounded` (the game) keeps it on the map: the point under the screen's centre
+ * never leaves the map, and it never zooms out further than the whole map in view.
+ */
+export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>, options: { bounded?: boolean } = {}) {
   const localZoom = ref(1.0)
   const localPanX = ref(0)
   const localPanY = ref(0)
@@ -45,6 +49,39 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     initialMidY: 0,
     moved: false
   })
+
+  /** The furthest the camera may zoom out: the whole map in view (bounded), or a fixed floor */
+  function minZoom(): number {
+    if (!options.bounded) return 0.15
+    const project = projectRef.value
+    const rect = cachedViewportRect ?? { width: window.innerWidth, height: window.innerHeight }
+    const mapWidth = (project.cols + project.rows) * (project.tileWidth / 2)
+    const mapHeight = (project.cols + project.rows) * (project.tileHeight / 2)
+    return Math.max(0.15, Math.min(4.0, Math.min(rect.width / mapWidth, rect.height / mapHeight) * 0.9))
+  }
+
+  /** Bounded: pull the point under the screen's centre back onto the map */
+  function keepOnMap(): void {
+    if (!options.bounded) return
+    const project = projectRef.value
+    const rect = cachedViewportRect ?? { width: window.innerWidth, height: window.innerHeight }
+    const halfW = project.tileWidth / 2
+    const halfH = project.tileHeight / 2
+    const zoom = localZoom.value
+    const worldX = (rect.width / 2 - localPanX.value) / zoom
+    const worldY = (rect.height / 2 - localPanY.value) / zoom
+    // Screen to cell space, clamp to the map, back to the screen
+    const col = Math.max(0, Math.min(project.cols - 1, (worldX / halfW + worldY / halfH) / 2))
+    const row = Math.max(0, Math.min(project.rows - 1, (worldY / halfH - worldX / halfW) / 2))
+    localPanX.value = rect.width / 2 - (col - row) * halfW * zoom
+    localPanY.value = rect.height / 2 - (col + row) * halfH * zoom
+  }
+
+  /** Hand the camera to the renderer (kept on the map first, when bounded) */
+  function apply(): void {
+    keepOnMap()
+    engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+  }
 
   function updateViewportRect(containerEl: HTMLElement | null) {
     if (containerEl) {
@@ -76,7 +113,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     localPanX.value = rect.width / 2 - pt.x * localZoom.value
     localPanY.value = rect.height / 2 - pt.y * localZoom.value
 
-    engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+    apply()
   }
 
   function centerMap(containerEl: HTMLElement | null) {
@@ -87,7 +124,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     const pan = engine.centerMap(project, rect.width, rect.height, localZoom.value)
     localPanX.value = pan.x
     localPanY.value = pan.y
-    engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+    apply()
   }
 
   function zoomIn(containerEl?: HTMLElement | null) {
@@ -96,7 +133,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
   }
 
   function zoomOut(containerEl?: HTMLElement | null) {
-    const nextZoom = Math.max(0.15, localZoom.value - 0.15)
+    const nextZoom = Math.max(minZoom(), localZoom.value - 0.15)
     setZoomLevel(nextZoom, containerEl)
   }
 
@@ -106,13 +143,13 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     const centerY = rect.height / 2
 
     const currentZoom = localZoom.value
-    const clampedZoom = Math.max(0.15, Math.min(4.0, Number(newZoom.toFixed(2))))
+    const clampedZoom = Math.max(minZoom(), Math.min(4.0, Number(newZoom.toFixed(2))))
 
     localPanX.value = centerX - (centerX - localPanX.value) * (clampedZoom / currentZoom)
     localPanY.value = centerY - (centerY - localPanY.value) * (clampedZoom / currentZoom)
     localZoom.value = clampedZoom
 
-    engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+    apply()
   }
 
   function handleWheel(e: WheelEvent, containerEl: HTMLElement | null) {
@@ -121,13 +158,13 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     const mouseY = e.clientY - rect.top
 
     const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89
-    const newZoom = Math.max(0.15, Math.min(4.0, localZoom.value * zoomFactor))
+    const newZoom = Math.max(minZoom(), Math.min(4.0, localZoom.value * zoomFactor))
 
     localPanX.value = mouseX - (mouseX - localPanX.value) * (newZoom / localZoom.value)
     localPanY.value = mouseY - (mouseY - localPanY.value) * (newZoom / localZoom.value)
     localZoom.value = Number(newZoom.toFixed(2))
 
-    engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+    apply()
   }
 
   function startPan(clientX: number, clientY: number) {
@@ -145,7 +182,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
     const dy = clientY - panStart.y
     localPanX.value = panOrigin.x + dx
     localPanY.value = panOrigin.y + dy
-    engine.setPan(localPanX.value, localPanY.value)
+    apply()
   }
 
   function endPan() {
@@ -218,7 +255,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
 
       if (touchState.value.initialDistance > 10) {
         const scaleChange = curDist / touchState.value.initialDistance
-        const targetZoom = Math.max(0.15, Math.min(4.0, touchState.value.startZoom * scaleChange))
+        const targetZoom = Math.max(minZoom(), Math.min(4.0, touchState.value.startZoom * scaleChange))
 
         const rect = getViewportRect(containerEl)
         const focalX = touchState.value.initialMidX - rect.left
@@ -228,7 +265,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
         localPanX.value = focalX - (focalX - touchState.value.startPanX) * (targetZoom / touchState.value.startZoom) + (curMid.x - touchState.value.initialMidX)
         localPanY.value = focalY - (focalY - touchState.value.startPanY) * (targetZoom / touchState.value.startZoom) + (curMid.y - touchState.value.initialMidY)
 
-        engine.setTransform(localZoom.value, { x: localPanX.value, y: localPanY.value })
+        apply()
       }
       return
     }
@@ -247,7 +284,7 @@ export function usePixiCamera(engine: IsoEngine, projectRef: Ref<MapProject>) {
       if (touchState.value.moved) {
         localPanX.value = touchState.value.startPanX + dx
         localPanY.value = touchState.value.startPanY + dy
-        engine.setPan(localPanX.value, localPanY.value)
+        apply()
       }
     }
   }

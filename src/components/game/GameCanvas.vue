@@ -55,7 +55,8 @@ const { t } = useI18n()
 
 const viewportContainerRef = ref<HTMLElement | null>(null)
 const engine = new IsoEngine()
-const camera = usePixiCamera(engine, toRef(mapStore, 'project'))
+// The game keeps the camera on the map
+const camera = usePixiCamera(engine, toRef(mapStore, 'project'), { bounded: true })
 const gameController = new GameController({
   engine,
   mapStore,
@@ -83,6 +84,9 @@ function getAssetMap(): Map<string, AssetItem> {
 
 function updateEngineState() {
   if (!engine.isInitialized) return
+  engine.setBackground(mapStore.project.bgColor || '#090d16')
+  // The world around the map (woods fading into the background); a maze stays in its darkness
+  engine.renderer.map.surroundDepth = isMazeMode(getMapMode(mapStore.project)) ? 0 : 10
   engine.syncLayers(mapStore.project, getAssetMap())
   engine.syncWater(mapStore.project)
   engine.renderGrid(

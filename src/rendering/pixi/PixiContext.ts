@@ -72,8 +72,9 @@ export class PixiContext {
     this.worldContainer.position.set(pan.x, pan.y)
   }
 
-  setPan(panX: number, panY: number): void {
-    this.worldContainer.position.set(panX, panY)
+  /** The colour behind the map (the map's own `bgColor`, so its surroundings fade into it) */
+  setBackground(color: string): void {
+    if (this.isInitialized) this.app.renderer.background.color = color
   }
 
   centerMap(project: MapProject, viewWidth: number, viewHeight: number, zoom = 1.0): Point2D {

@@ -67,12 +67,15 @@ import { assetManager } from './services/assetManager'
 import { useAssetStore } from './stores/assetStore'
 import { useI18nStore } from './stores/i18nStore'
 import { useSettingsStore } from './stores/settingsStore'
+import { useCharacterSettingsStore } from './stores/characterSettingsStore'
 import { backgroundMusic } from './services/backgroundMusic'
 
 const assetStore = useAssetStore()
 const i18n = useI18nStore()
 // Applies the saved sound / vibration choices before anything plays
 useSettingsStore()
+// The characters' own settings (run animation speed) from the server; the bundled ones until it answers
+void useCharacterSettingsStore().load()
 
 // The browser tab shows the game's name in the chosen language
 watchEffect(() => {

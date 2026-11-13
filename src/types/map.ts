@@ -89,7 +89,6 @@ export interface WaveConfig {
   unitBonus?: number
   endWaveBonus?: number
   characterModel?: string
-  animSpeed?: number
   offsetY?: number
   unitScale?: number
   unitVariant?: UnitVariantType

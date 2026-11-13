@@ -21,6 +21,7 @@ Bu loyiha **Vue 3 + TypeScript + Pinia + PixiJS 8 + Tailwind CSS** asosida quril
 - **`characterStore.ts`**: Faol personajlar (`units`), spawn va simulyatsiya sikli (hisob-kitob `domain/simulation/CrowdSimulation`da).
 - **`routeStore.ts`**: Marshrutlar (`routes: RouteInfo[]` - `routePoints` va `playerCameraPoint`), marshrut chizish.
 - **`waveStore.ts`**: To'lqinlar (`waveConfigs`). Normalizatsiya faqat `WaveManager.normalizeWave` orqali.
+- **`characterSettingsStore.ts`**: Personajlarning o'z sozlamalari (yugurish animatsiyasi tezligi `animSpeed`) — hamma xaritalarda, har bir to'lqinda bir xil. Yagona manba `src/assets/characters/settings.json` (`server/characters.js`, `/api/characters`); redaktorda o'zgartiriladi, admin saqlaydi. To'lqinda animatsiya tezligi yo'q.
 - **`gameStore.ts`**: O'yin rejimi (`isGameMode`, `playerLives`, `gold`, `gameState`, `gameSpeed`) va xarita TD sozlamalari (`startingGold`, `formation`, `pairDistance`, ...) — yagona manba `project.gameSettings`, defaultlar va normalizatsiya faqat `domain/simulation/GameSettings.ts` da.
 - **`towerStore.ts`**:
   - Minora blueprintlari (`blueprints`: `asset`, `projectileId`, `levels[]`). Statlar faqat `levels[]` da, rasm faqat `asset` da; normalizatsiya `TowerBlueprintManager.normalizeBlueprint`. Snaryadning barcha ko'rinishi va tezligi faqat snaryad reyestridan (`domain/projectile` — `getProjectile`) olinadi; xarita o'z minoralari ishlatadigan maxsus snaryadlarni `project.customProjectiles` da saqlaydi.

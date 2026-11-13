@@ -3,6 +3,9 @@ import { assetManager } from '../../services/assetManager'
 import { gridToScreen } from '../../utils/isometric'
 import type { TowerBlueprint } from '../../types/tower'
 
+const TOWER_SPRITE = 'tower-sprite'
+const OWNER_MARK = 'tower-owner-mark'
+
 export class TowerRenderer {
   public towerTextures = new Map<string, Texture>()
   public towerContainerMap = new Map<string, Container>()
@@ -90,34 +93,26 @@ export class TowerRenderer {
       if (!container) {
         container = new Container()
         container.sortableChildren = true
-
-        const sprite = new Sprite()
-        sprite.zIndex = 1
-
-        const selection = new Graphics()
-        selection.zIndex = 2
-
-        container.addChild(sprite)
-        container.addChild(selection)
-
         parentLayersContainer.addChild(container)
         this.towerContainerMap.set(tower.id, container)
       }
 
       container.visible = true
-      let sprite = (container.children[0] as Sprite) || null
-      let selection = (container.children[1] as Graphics) || null
+      let sprite = container.getChildByLabel(TOWER_SPRITE) as Sprite | null
+      // The owner's mark lies on the ground under the tower
+      let selection = container.getChildByLabel(OWNER_MARK) as Graphics | null
 
-      if (!sprite || (sprite as any).destroyed) {
-        sprite = new Sprite()
+      if (!sprite || sprite.destroyed) {
+        sprite = new Sprite({ label: TOWER_SPRITE })
         sprite.zIndex = 1
-        container.addChildAt(sprite, 0)
+        container.addChild(sprite)
       }
 
-      if (!selection || (selection as any).destroyed) {
-        selection = new Graphics()
-        selection.zIndex = 2
+      if (!selection || selection.destroyed) {
+        selection = new Graphics({ label: OWNER_MARK })
+        selection.zIndex = 0
         container.addChild(selection)
+        ;(container as any)._wasSelected = undefined
       }
 
       const bp = blueprints?.find((b: any) => b.id === tower.blueprintId)
@@ -157,17 +152,17 @@ export class TowerRenderer {
           selection.clear()
           const colHex = parseInt(builderColor.replace('#', '0x'), 16) || 0x38bdf8
 
-          // Base Ring under tower
+          // A soft shadow in the owner's colour on the ground under the tower (the tower stands over it, so it reads
+          // as the tower's shade, not as a ring drawn on top); brighter with a fine rim while selected
+          selection
+            .ellipse(0, 0, tileWidth * 0.36, tileHeight * 0.36)
+            .fill({ color: 0x000000, alpha: 0.28 })
+            .ellipse(0, 0, tileWidth * 0.3, tileHeight * 0.3)
+            .fill({ color: colHex, alpha: isSelected ? 0.6 : 0.38 })
           if (isSelected) {
             selection
-              .ellipse(0, 0, tileWidth * 0.4, tileHeight * 0.4)
-              .fill({ color: colHex, alpha: 0.2 })
-              .stroke({ width: 3, color: 0x38bdf8, alpha: 0.95 })
-          } else {
-            selection
-              .ellipse(0, 0, tileWidth * 0.34, tileHeight * 0.34)
-              .fill({ color: colHex, alpha: 0.12 })
-              .stroke({ width: 2.2, color: colHex, alpha: 0.85 })
+              .ellipse(0, 0, tileWidth * 0.38, tileHeight * 0.38)
+              .stroke({ width: 2, color: 0xffffff, alpha: 0.85 })
           }
         }
 

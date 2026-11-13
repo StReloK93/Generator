@@ -149,8 +149,8 @@ export class IsoEngine {
     this.renderer.setTransform(zoom, pan)
   }
 
-  setPan(panX: number, panY: number): void {
-    this.renderer.setPan(panX, panY)
+  setBackground(color: string): void {
+    this.renderer.setBackground(color)
   }
 
   centerMap(project: MapProject, viewWidth: number, viewHeight: number, zoom = 1.0): Point2D {

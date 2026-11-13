@@ -43,7 +43,7 @@
             :unit-variant="activeWave.unitVariant || 'normal'"
             :variant-tint="activeWave.variantTint"
             :unit-scale="activeWave.unitScale || 1.0"
-            :anim-speed="activeWave.animSpeed || 1.0"
+            :anim-speed="characterSettings.animSpeedOf(activeWave.characterModel || 'male')"
             :offset-y="activeWave.offsetY || 0"
             :show-model-selector="false"
             :show-direction-bar="false"
@@ -121,6 +121,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { Heart, Crown, Footprints, Users, Coins, Swords } from 'lucide-vue-next'
 import { UiModal, UiBadge, UiButton } from '../ui'
 import { useWaveStore } from '../../stores/waveStore'
+import { useCharacterSettingsStore } from '../../stores/characterSettingsStore'
 import { useI18n } from '../../stores/i18nStore'
 import { getTraitDef } from '../../utils/towerTraits'
 import { getVariantDef, getVariantIcon } from '../../utils/unitVariants'
@@ -135,6 +136,7 @@ const emit = defineEmits<{
 }>()
 
 const waveStore = useWaveStore()
+const characterSettings = useCharacterSettingsStore()
 const { t } = useI18n()
 const selectedIndex = ref(0)
 const listRef = ref<HTMLElement | null>(null)
