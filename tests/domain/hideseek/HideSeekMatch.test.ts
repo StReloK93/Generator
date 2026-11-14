@@ -31,7 +31,10 @@ const settings = normalizeHideSeekSettings({
   hideTime: 5,
   roundTime: 60,
   hideSpotCount: 0,
-  altarExtra: 2,
+  // Small numbers keep the tests short: one hider lights 2, one spare per seeker
+  altarsToWin: 2,
+  altarsPerHider: 1,
+  altarExtra: 1,
   altarLightTime: 4,
   altarKickTime: 2,
   chainRange: 5,
@@ -107,13 +110,34 @@ describe('HideSeekMatch', () => {
     expect(seatOf(match, 'h')!.jailed).toBe(true)
   })
 
-  it('puts out one altar per hider plus a few, and asks for all but one of them', () => {
+  it('asks for a set number of altars, one more per extra hider, and puts out a spare for every seeker', () => {
     const duel = createMatch(teams(['s'], ['h']))
     startRound(duel, 0, grid, spawns, settings, random)
     expect(altarProgress(duel)).toEqual({ lit: 0, needed: 2, total: 3 })
     const team = createMatch(teams(['s1', 's2'], ['h1', 'h2']))
     startRound(team, 0, grid, spawns, settings, random)
-    expect(altarProgress(team)).toEqual({ lit: 0, needed: 3, total: 4 })
+    expect(altarProgress(team)).toEqual({ lit: 0, needed: 3, total: 5 })
+  })
+
+  it('one against one with the default rules: 5 altars to light, 6 on the map', () => {
+    const duel = createMatch(teams(['s'], ['h']))
+    startRound(duel, 0, grid, spawns, normalizeHideSeekSettings({}), random)
+    expect(altarProgress(duel)).toEqual({ lit: 0, needed: 5, total: 6 })
+  })
+
+  it('keeps a spare per seeker when the maze has room for fewer altars: fewer are needed instead', () => {
+    // A corridor two cells wide: room for only a few altars apart from the starts
+    const blocked: GridCoord[] = []
+    for (let col = 0; col < 30; col++) for (let row = 0; row < 30; row++) if (row < 13 || row > 17) blocked.push({ col, row })
+    const tight = buildCollisionGrid({
+      cols: 30,
+      rows: 30,
+      collisionSubcells: blocked.flatMap(c => [[0, 0], [1, 0], [0, 1], [1, 1]].map(([dc, dr]) => `${c.col * 2 + dc},${c.row * 2 + dr}`)),
+    })
+    const match = createMatch(teams(['s1', 's2'], ['h']))
+    startRound(match, 0, tight, spawns, normalizeHideSeekSettings({ altarsToWin: 30 }), random)
+    const { needed, total } = altarProgress(match)
+    expect(total - needed).toBeGreaterThanOrEqual(2)
   })
 
   it('starts each side on its own start points', () => {

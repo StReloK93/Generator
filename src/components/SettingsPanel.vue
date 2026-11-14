@@ -35,6 +35,14 @@
       <UiTabs v-model="settings.controls" :items="controlOptions" variant="segmented" size="sm" fill class="short:flex-1 short:min-w-0" />
     </div>
 
+    <!-- Installed app on a phone: keep the screen upright, sideways, or let it follow the phone -->
+    <div v-if="canTurnScreen" class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800 short:col-span-2 short:flex-row short:items-center short:py-1.5">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-200 short:shrink-0">
+        <Smartphone class="size-4 text-emerald-300 shrink-0" /><span class="short:sr-only">{{ $t('settings.orientation') }}</span>
+      </span>
+      <UiTabs v-model="settings.orientation" :items="orientationOptions" variant="segmented" size="sm" fill class="short:flex-1 short:min-w-0" />
+    </div>
+
     <div class="flex flex-col gap-2 p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800 short:col-span-2 short:flex-row short:items-center short:py-1.5">
       <span class="flex items-center gap-2 text-xs font-semibold text-slate-200 short:shrink-0">
         <Languages class="size-4 text-emerald-300 shrink-0" /><span class="short:sr-only">{{ $t('settings.language') }}</span>
@@ -46,12 +54,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Footprints, Languages, Maximize2, Music, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
+import { Footprints, Languages, Maximize2, Music, Smartphone, Vibrate, Volume2, VolumeX } from 'lucide-vue-next'
 import { UiSwitch, UiTabs, UiSlider } from './ui'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useI18nStore, type SupportedLocale } from '../stores/i18nStore'
 import { isTelegram } from '../services/telegram'
-import { isFullscreen, isStandalone } from '../utils/pwaOrientation'
+import { canLockOrientation, isFullscreen, isStandalone } from '../utils/pwaOrientation'
 import { toggleAppFullscreen } from '../utils/fullscreen'
 
 const settings = useSettingsStore()
@@ -60,6 +68,13 @@ const i18n = useI18nStore()
 const languages = computed(() => i18n.locales.map(l => ({ id: l.code, label: l.nativeName })))
 const canFullscreen = computed(() => !isStandalone.value && document.fullscreenEnabled)
 const isTouch = window.matchMedia('(pointer: coarse)').matches
+// Only an installed app may lock the screen, and only phones turn
+const canTurnScreen = computed(() => isTouch && isStandalone.value && canLockOrientation())
+const orientationOptions = computed(() => [
+  { id: 'auto', label: i18n.t('settings.orientationAuto') },
+  { id: 'portrait', label: i18n.t('settings.orientationPortrait') },
+  { id: 'landscape', label: i18n.t('settings.orientationLandscape') },
+])
 const controlOptions = computed(() => [
   { id: 'tap', label: i18n.t('settings.controlsTap') },
   { id: 'joystick', label: i18n.t('settings.controlsJoystick') },

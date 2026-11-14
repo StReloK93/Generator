@@ -29,10 +29,12 @@
       <div
         v-if="!isCurse"
         class="flex items-center gap-1 h-8 rounded-full border border-amber-500/30 px-2.5 bg-slate-950/80 backdrop-blur-md"
-        :title="$t('hideseek.altarsHint', { n: hideSeekStore.altarsNeeded })"
+        :title="$t('hideseek.altarsHint', { n: hideSeekStore.altarsNeeded, t: hideSeekStore.altarsTotal })"
       >
         <Flame class="size-3.5 text-amber-300" />
         <span class="text-xs font-black tabular-nums text-amber-300">{{ hideSeekStore.altarsLit }}/{{ hideSeekStore.altarsNeeded }}</span>
+        <!-- How many stand on the map: the spares show the hiders they need not take the guarded one -->
+        <span class="text-[10px] font-semibold tabular-nums text-amber-200/60">· {{ hideSeekStore.altarsTotal }}</span>
       </div>
 
       <!-- A seeker's momentum from this round's catches (the hero itself is told about in the menu) -->

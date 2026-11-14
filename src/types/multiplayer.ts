@@ -264,6 +264,8 @@ export interface HideSeekMatchStatePayload {
 /** Hide & seek: a player uses a gadget / opens a barrel (sent to the host, who applies it). */
 export type HideSeekActionPayload =
   | { kind: 'trap'; c: number; r: number }
+  /** A seeker picks up the bell trap standing at (c, r) */
+  | { kind: 'pickTrap'; c: number; r: number }
   | { kind: 'search'; spot: number }
   | { kind: 'door'; index: number; open: boolean }
   | { kind: 'torch'; index: number }

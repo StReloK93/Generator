@@ -36,6 +36,31 @@ export function checkStandalone(): boolean {
   )
 }
 
+/** How the player wants the screen turned: follow the phone, or hold it upright / sideways */
+export type ScreenOrientationChoice = 'auto' | 'portrait' | 'landscape'
+
+type LockableOrientation = ScreenOrientation & {
+  lock?: (orientation: 'portrait' | 'landscape') => Promise<void>
+}
+
+/** Browsers only let an installed app (or full screen) lock the screen, and iPhones never do */
+export function canLockOrientation(): boolean {
+  return !isTelegram && typeof (window.screen?.orientation as LockableOrientation | undefined)?.lock === 'function'
+}
+
+/** Locks the screen to the player's choice; 'auto' lets it follow the phone again */
+export function applyOrientation(choice: ScreenOrientationChoice): void {
+  if (!canLockOrientation()) return
+  const orientation = window.screen.orientation as LockableOrientation
+  if (choice === 'auto') {
+    orientation.unlock()
+    return
+  }
+  orientation.lock?.(choice).catch(() => {
+    // Not installed and not full screen: the browser refuses, the screen keeps following the phone
+  })
+}
+
 /**
  * Triggers native PWA install prompt if available
  */

@@ -239,7 +239,18 @@ export function distanceToSegment(p: GridCoord, a: GridCoord, b: GridCoord): num
   return Math.hypot(p.col - (a.col + dx * t), p.row - (a.row + dy * t))
 }
 
-/** Near a scout bird of player `by`: they see you. */
-export function scoutedBy(marks: AbilityMark[], by: string, p: GridCoord, settings: HideSeekSettings): boolean {
-  return marks.some(m => m.kind === 'scout' && m.by === by && Math.hypot(m.col - p.col, m.row - p.row) <= settings.scoutRadius)
+/** Near a scout bird of team `team`: that whole team sees you. */
+export function scoutedBy(marks: AbilityMark[], team: 0 | 1, p: GridCoord, settings: HideSeekSettings): boolean {
+  return marks.some(m => m.kind === 'scout' && m.team === team && Math.hypot(m.col - p.col, m.row - p.row) <= settings.scoutRadius)
+}
+
+/** 0..1: how lit a point is by team `team`'s scout birds (full inside, fading over the last tile of their reach). */
+export function scoutLightAt(marks: AbilityMark[], team: 0 | 1, p: GridCoord, settings: HideSeekSettings): number {
+  let best = 0
+  for (const m of marks) {
+    if (m.kind !== 'scout' || m.team !== team) continue
+    const d = Math.hypot(m.col - p.col, m.row - p.row)
+    best = Math.max(best, Math.min(1, Math.max(0, settings.scoutRadius - d)))
+  }
+  return best
 }

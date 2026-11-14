@@ -90,7 +90,7 @@
     </div>
   </div>
 
-  <!-- Touch screens walking by taps (the default): a tap walks there quietly, a held press runs there (GameCanvas) -->
+  <!-- Touch screens walking by taps (the default): a tap runs there at once, a finger kept on the map sneaks and the hero follows it (GameCanvas) -->
 
   <!-- Bottom-left on desktop: key hints -->
   <div class="absolute bottom-3 left-3 z-30 pointer-events-none pb-safe pl-safe">

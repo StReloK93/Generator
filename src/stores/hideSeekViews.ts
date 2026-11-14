@@ -17,8 +17,11 @@ import {
   spottedWithin,
   TORCH_SIGHT_FACTOR,
   scoutedBy,
+  scoutLightAt,
   trailSees,
   fireWallEnds,
+  auraReady,
+  auraSees,
 } from '../domain/hideseek'
 
 /** A character as the hide & seek session tracks it. */
@@ -103,7 +106,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     ((mySeat?.effects.sense ?? 0) > 0 ||
       inSight(p, within) ||
       ((mySeat?.effects.watch ?? 0) > 0 && Math.hypot(p.col - me.col, p.row - me.row) <= settings.watchRange) ||
-      scoutedBy(match.marks, me.id, p, settings) ||
+      (!!mySeat && scoutedBy(match.marks, mySeat.team, p, settings)) ||
       match.marks.some(m => m.kind === 'trail' && m.by === me.id && trailSees(m, p, settings) && hasLineOfSight(grid, m, p)))
   /** 0 = dark .. 1 = fully lit by the player's lantern / sight or by a candle */
   const lightAt = (p: GridCoord): number => {
@@ -116,7 +119,9 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       const fadeFrom = Math.max(0, reach - LIGHT_FADE_WIDTH)
       own = d <= fadeFrom ? 1 : 1 - (d - fadeFrom) / (reach - fadeFrom)
     }
-    return Math.max(own, torchLight(p))
+    // My team's scout birds light the floor around them
+    const scouted = mySeat ? scoutLightAt(match.marks, mySeat.team, p, settings) : 0
+    return Math.max(own, torchLight(p), scouted)
   }
 
   return {
@@ -169,7 +174,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
     marks: over
       ? []
       : match.marks
-          .filter(m => m.kind === 'fireWall' || (m.kind === 'snare' && m.team === mySeat?.team) || ((m.kind === 'scout' || m.kind === 'nest' || m.kind === 'trail') && m.by === me?.id))
+          .filter(m => m.kind === 'fireWall' || (m.kind === 'snare' && m.team === mySeat?.team) || (m.kind === 'scout' && m.team === mySeat?.team) || ((m.kind === 'nest' || m.kind === 'trail') && m.by === me?.id))
           .map(m => ({
             kind: m.kind,
             col: m.col,
@@ -184,7 +189,8 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
       // Both teams know where their own players are
       const teammate = !!me && p.role === me.role
       // Vanished or underground: the other side does not see them; sensing the map: everyone sees them
-      const sensing = !!seat && seat.effects.sense > 0
+      // Sensing the map: everyone sees them; a seeker their aura stopped keeps seeing them a while
+      const sensing = !!seat && (seat.effects.sense > 0 || (!!me && auraSees(match, p.id, me.id)))
       const unseen = !!seat && (seat.effects.vanish > 0 || seat.effects.burrow > 0) && !sensing
       return {
         id: p.id,
@@ -204,6 +210,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
         stone: ctx.curse && jailed,
         hidden: p === me && (p.hidden !== -1 || unseen),
         dazed: !over && (seat?.dazed ?? 0) > 0,
+        aura: !over && !ctx.curse && match.clock.phase === 'seeking' && p.hidden === -1 && auraReady(seat, settings),
         // Inside a barrel nobody sees you; teammates and the jailed are always shown
         visible: p === me || over || jailed || (p.hidden === -1 && (teammate || sensing || (!unseen && spotted(p, spottedWithin(settings, traitOf(p.model)))))),
       }
@@ -229,6 +236,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
             stone: false,
             hidden: own,
             dazed: false,
+            aura: false,
             visible: own || spotted(m),
           }
         }),

@@ -73,6 +73,8 @@ const CHAIN_COLOR = 0xa78bfa
 const CHAIN_CORE_COLOR = 0xede9fe
 /** Stars circling over a dazed seeker's head */
 const DAZE_COLOR = 0xfde68a
+/** A hider's aura, up and waiting for a seeker to come close */
+const AURA_COLOR = 0x67e8f9
 /** A lit altar burns with this many flames */
 const ALTAR_FLAMES = 3
 /** Characters sort among walls / props like the Hero mode (100,000 + depth) */
@@ -274,6 +276,16 @@ export class HideSeekRenderer {
       const r = tileWidth * (0.2 + 0.25 * chain.left)
       g.ellipse(b.x, b.y + tileHeight * 0.9, r, (r * tileHeight) / tileWidth).stroke({ width: 3, color: CHAIN_COLOR, alpha: 0.8 })
     }
+    // Auras: a slowly breathing shield ring on the ground and a faint dome around the hider
+    for (const avatar of view.avatars) {
+      if (!avatar.aura || !avatar.visible) continue
+      const p = gridToScreen(avatar.col, avatar.row, tileWidth, tileHeight)
+      const breath = 0.75 + 0.25 * Math.sin(time * 3)
+      const rx = tileWidth * 0.55 * breath
+      const ry = (rx * tileHeight) / tileWidth
+      g.ellipse(p.x, p.y, rx, ry).fill({ color: AURA_COLOR, alpha: 0.12 }).stroke({ width: 2.5, color: AURA_COLOR, alpha: 0.75 })
+      g.ellipse(p.x, p.y - tileHeight * 0.9, tileWidth * 0.32, tileHeight * 1.05).stroke({ width: 1.5, color: AURA_COLOR, alpha: 0.25 * breath })
+    }
     for (const avatar of view.avatars) {
       if (!avatar.dazed || !avatar.visible) continue
       const p = gridToScreen(avatar.col, avatar.row, tileWidth, tileHeight)
@@ -453,6 +465,15 @@ export class HideSeekRenderer {
     for (let i = 0; i < FALLOFF_STEPS; i++) {
       const fraction = 1 - (fadeShare * i) / FALLOFF_STEPS
       hole.poly(this.toScreen(this.scaledSight(view.vision, fraction, reaches), project)).fill({ color: 0xffffff, alpha: ERASE_BAND_ALPHA })
+    }
+    // My team's scout birds light the floor around them (seen from above: walls cast no shadow)
+    for (const mark of view.marks) {
+      if (mark.kind !== 'scout') continue
+      const p = gridToScreen(mark.col, mark.row, tileWidth, tileHeight)
+      for (let i = 0; i < TORCH_FALLOFF_STEPS; i++) {
+        const r = mark.radius * (1 - (TORCH_FADE_SHARE * i) / TORCH_FALLOFF_STEPS)
+        hole.ellipse(p.x, p.y, tileWidth * r * Math.SQRT1_2, tileHeight * r * Math.SQRT1_2).fill({ color: 0xffffff, alpha: TORCH_ERASE_BAND_ALPHA })
+      }
     }
     // Burning candles light the floor around them (walls cast shadows)
     for (const torch of view.torches) {

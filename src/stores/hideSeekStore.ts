@@ -36,6 +36,7 @@ import {
   altarProgress,
   startChain,
   isFrozen,
+  auraSees,
   chainOf,
   splitSpawns,
   allSpawns,
@@ -54,6 +55,8 @@ import {
   tickMatch,
   searchSpot,
   placeTrap,
+  pickUpTrap,
+  TRAP_PICK_REACH,
   seatOf,
   spawnForSeat,
   roleForSlot,
@@ -158,7 +161,7 @@ const MOVE_KEYS: Record<string, [number, number]> = {
   KeyD: [1, 0], ArrowRight: [1, 0],
 }
 
-type PendingUse = { kind: 'search' | 'hide' | 'door' | 'torch'; index: number }
+type PendingUse = { kind: 'search' | 'hide' | 'door' | 'torch' | 'trap'; index: number }
 
 /** What a page refresh needs to continue the match where it was. */
 interface SavedHideSeekMatch {
@@ -213,6 +216,8 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Lit altars, how many the hiders need, and how many I helped light */
   const altarsLit = ref(0)
   const altarsNeeded = ref(0)
+  /** Altars on the map (the needed ones and the spares) */
+  const altarsTotal = ref(0)
   const myAltars = ref(0)
   /** Chain: seconds until I can chain again; seconds left while I hold a seeker / am held; seconds still dazed */
   const chainCooldown = ref(0)
@@ -319,8 +324,6 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   const pressedKeys = new Set<string>()
   const joystick = { x: 0, y: 0 }
   let sneakHeld = false
-  /** The walk to a tapped spot goes quietly (a tap); a held press runs there */
-  let clickSneak = false
   let clickPath: GridCoord[] = []
   let pending: PendingUse | null = null
   let stamina: Stamina = freshStamina(settings)
@@ -733,6 +736,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     const altars = altarProgress(match)
     altarsLit.value = altars.lit
     altarsNeeded.value = altars.needed
+    altarsTotal.value = altars.total
     myAltars.value = mySeat?.lit ?? 0
     applyTimerHud()
     roundWins.value = { ...match.wins }
@@ -834,6 +838,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     champion.value = null
     altarsLit.value = 0
     altarsNeeded.value = 0
+    altarsTotal.value = 0
     myAltars.value = 0
     chainCooldown.value = 0
     chainHolding.value = 0
@@ -890,7 +895,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     joystick.y = y
   }
 
-  /** Shift or the touch sneak button: slow and silent while held */
+  /** Shift, a gently pushed joystick or a finger held on the map: slow and silent while held */
   function setSneakHeld(held: boolean): void {
     sneakHeld = held
   }
@@ -911,12 +916,15 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
       if (match.torches[index] === (role === 'hider')) list.push({ use: { kind: 'torch', index }, at, reach: TORCH_REACH })
     })
     maze?.doors.forEach((door, index) => list.push({ use: { kind: 'door', index }, at: door.center, reach: DOOR_REACH }))
+    // The seeker picks a bell trap up again (to set it down somewhere else)
+    if (role === 'seeker') match.traps.forEach((at, index) => list.push({ use: { kind: 'trap', index }, at, reach: TRAP_PICK_REACH }))
     return list
   }
 
   function usePosition(use: PendingUse): GridCoord | undefined {
     if (use.kind === 'door') return maze?.doors[use.index]?.center
     if (use.kind === 'torch') return torchSpots(match, maze)[use.index]
+    if (use.kind === 'trap') return match.traps[use.index]
     return match.spots[use.index]
   }
 
@@ -958,11 +966,9 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (!isSolo()) sendMyState(me)
   }
 
-  /** Click / tap: open / search / hide (walking up first), or walk there. */
-  /** A click / tap on the map: walk there (or to what is there and use it). `gait`: a touch tap walks quietly, a held press and the mouse run */
-  function clickCell(col: number, row: number, gait: 'walk' | 'run' = 'run'): void {
+  /** A click / tap on the map: run there, or to what is there and use it (open / search / hide / door / candle) */
+  function clickCell(col: number, row: number): void {
     lookAt.value = null
-    clickSneak = gait === 'walk'
     const me = myPlayer()
     if (!me || !canMove.value) return
     const target = { col, row }
@@ -990,7 +996,24 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     if (use.kind === 'search') openSpot(use.index)
     else if (use.kind === 'hide') enterSpot(use.index)
     else if (use.kind === 'door') performAction({ kind: 'door', index: use.index, open: !match.doors[use.index] })
+    else if (use.kind === 'trap') pickTrap(use.index)
     else performAction({ kind: 'torch', index: use.index })
+  }
+
+  /** Seeker: a bell trap back in the pocket, to be set down somewhere else */
+  function pickTrap(index: number): void {
+    const trap = match.traps[index]
+    if (!trap) return
+    gadgets.traps++
+    performAction({ kind: 'pickTrap', c: trap.col, r: trap.row })
+  }
+
+  /** A finger kept on the map: the hero follows it (only walks, never opens or uses what it passes over) */
+  function steerTo(col: number, row: number): void {
+    lookAt.value = null
+    if (!myPlayer() || !canMove.value || aimingSlot.value >= 0) return
+    leaveSpot()
+    moveTo(col, row)
   }
 
   /** Walk to the cell along a path around the walls. */
@@ -1108,6 +1131,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
   /** Referee: applies a player's (or the bot's) action. */
   function applyAction(action: HideSeekActionPayload, by: string): void {
     if (action.kind === 'trap') stateDirty = placeTrap(match, { col: action.c, row: action.r }, seekersGadgets('traps')) || stateDirty
+    else if (action.kind === 'pickTrap') stateDirty = (players.get(by)?.role === 'seeker' && pickUpTrap(match, { col: action.c, row: action.r })) || stateDirty
     else if (action.kind === 'ability') useAbility(match, by, action.slot, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'chain') startChain(match, by, bodies(), grid ?? EMPTY_GRID, settings).forEach(emitEvent)
     else if (action.kind === 'candle') {
@@ -1204,6 +1228,22 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
           if (seeker && event.dazed) seeker.dazed = settings.chainDaze
         }
         gameAudio.playJail(0.5, true)
+        applyTimerHud()
+        break
+      }
+      case 'aura': {
+        // The referee already stopped the seeker; a guest stops them now (the next state confirms it)
+        if (!isReferee()) {
+          const seeker = seatOf(match, event.seeker)
+          const hider = seatOf(match, event.hider)
+          if (seeker) seeker.dazed = Math.max(seeker.dazed, event.seconds)
+          if (hider) {
+            hider.auraCooldown = settings.auraCooldown
+            hider.auraSeen = [...hider.auraSeen.filter(s => s.by !== event.seeker), { by: event.seeker, timeLeft: event.seconds + settings.auraReveal }]
+          }
+        }
+        gameAudio.playAbility(event.hider === myId() || event.seeker === myId() ? 0.8 : 0.4, 0)
+        if (event.seeker === myId()) releaseInput()
         applyTimerHud()
         break
       }
@@ -1449,7 +1489,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
 
   let wasTunnelling = false
   function updateMe(me: HideSeekBody, deltaSec: number): void {
-    const sneaking = sneakHeld || (clickSneak && clickPath.length > 0)
+    const sneaking = sneakHeld
     me.sneaking = sneaking
     const wasMoving = me.moving
     const input = canMove.value ? readInput() : { x: 0, y: 0 }
@@ -1587,7 +1627,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
             jailed: !!seatOf(match, p.id)?.jailed,
             spotted: spottedWithin(settings, traitOf(p.model)),
             quiet: (seatOf(match, p.id)?.effects.wind ?? 0) > 0 ? 0 : stepLoudness(settings, traitOf(p.model)),
-            revealed: (seatOf(match, p.id)?.effects.sense ?? 0) > 0,
+            revealed: (seatOf(match, p.id)?.effects.sense ?? 0) > 0 || auraSees(match, p.id, body.id),
           }))
           // The other side's decoys look like players to a bot
           .concat(
@@ -1611,7 +1651,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
         abilities: abilitiesOf(body.model),
         cooldowns: seat.cooldowns,
         effects: seat.effects,
-        reveals: match.marks.filter(m => m.kind === 'scout' && m.by === body.id),
+        reveals: match.marks.filter(m => m.kind === 'scout' && m.team === seat.team),
       },
       pathGrid(body),
       body.role === 'seeker' && isHunting.value ? huntSettings(rules) : rules,
@@ -1953,6 +1993,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     champion,
     altarsLit,
     altarsNeeded,
+    altarsTotal,
     myAltars,
     chainCooldown,
     myAbilities,
@@ -1999,6 +2040,7 @@ export const useHideSeekStore = defineStore('hideSeek', () => {
     setJoystick,
     setSneakHeld,
     clickCell,
+    steerTo,
     useNearest,
     dropTrap,
     releaseInput,

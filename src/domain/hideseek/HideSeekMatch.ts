@@ -40,7 +40,8 @@ import { HideSeekTrait, catchReach, lightingSpeed, rescueReach } from './HideSee
  * an altar can chain a nearby seeker: both stand still until the chain runs out (the seeker is then dazed for a moment)
  * or another seeker frees them - one hider holds a seeker while a teammate lights the next altar. Caught hiders go to
  * the jail in the seekers' base until a free teammate reaches it; nobody is caught at the hiders' home.
- * The hiders win a round with all but one altar lit (or, with exit gates, by then getting out); the seekers by jailing
+ * The hiders win a round with enough altars lit - there are spares, at least one per seeker, so standing guard at
+ * one does not shut them out - (or, with exit gates, by then getting out); the seekers by jailing
  * everyone or holding out. The side that wins most rounds wins the match.
  */
 
@@ -53,8 +54,6 @@ const ALTAR_SPACING = 9
 const ALTAR_BASE_MARGIN = 2
 /** Nobody is caught in the first seconds of seeking (everyone's position has reached the referee) */
 const START_GRACE_SEC = 3
-/** Never fewer altars than this (1 against 1: 3 altars, 2 of them needed) */
-const MIN_ALTARS = 3
 
 export type HideSeekTeam = 0 | 1
 
@@ -76,13 +75,23 @@ export interface HideSeekSeat {
   lit: number
   /** Seconds until this hider can chain a seeker again */
   chainCooldown: number
-  /** Seconds this seeker is still dazed after a chain ran out (cannot move or catch) */
+  /** Seconds this seeker is still dazed after a chain ran out or a hider's aura stopped them (cannot move or catch) */
   dazed: number
+  /** Seconds until this hider's aura is back (it shields once they lit an altar) */
+  auraCooldown: number
+  /** Seekers this hider's aura stopped, and how long each of them still sees this hider */
+  auraSeen: AuraSight[]
   /** Hiders this seeker caught this round: each one makes them faster and slower to tire */
   catches: number
   /** Seconds until each of the hero's abilities (Q, F) is ready again, and the timed ones still running */
   cooldowns: number[]
   effects: AbilityEffects
+}
+
+/** A seeker stopped by a hider's aura keeps seeing that hider for a while */
+export interface AuraSight {
+  by: string
+  timeLeft: number
 }
 
 /** A hider holding a seeker: both stand still until it runs out, the seeker is freed or the hider caught. */
@@ -164,6 +173,8 @@ export type MatchEvent =
   | { kind: 'chain'; hider: string; seeker: string }
   /** dazed: the chain ran out (the seeker stands dazed); otherwise the seeker was freed or the hider caught */
   | { kind: 'chainEnd'; hider: string; seeker: string; dazed: boolean }
+  /** A hider's aura stopped a seeker for `seconds` */
+  | { kind: 'aura'; hider: string; seeker: string; seconds: number }
   /** by: the seeker who caught (none when nobody did: the curse's fuse burnt out) */
   | { kind: 'caught'; id: string; by?: string }
   /** Curse genre: the curse jumped from one player to another */
@@ -239,6 +250,8 @@ export function createMatch(entries: { id: string; team: HideSeekTeam }[], round
       lit: 0,
       chainCooldown: 0,
       dazed: 0,
+      auraCooldown: 0,
+      auraSeen: [],
       catches: 0,
       cooldowns: Array<number>(ABILITY_SLOTS).fill(0),
       effects: noEffects(),
@@ -272,6 +285,59 @@ export function isFrozen(match: HideSeekMatch, id: string): boolean {
   return !!chainOf(match, id) || (seatOf(match, id)?.dazed ?? 0) > 0
 }
 
+/** The hider's aura is up: they lit an altar, it is off cooldown and they are free. */
+export function auraReady(seat: HideSeekSeat | undefined, settings: HideSeekSettings): boolean {
+  return !!seat && seat.role === 'hider' && !seat.jailed && seat.lit > 0 && seat.auraCooldown <= 0 && settings.auraRange > 0
+}
+
+/** Seeker `seekerId` still sees hider `hiderId` after that hider's aura stopped them. */
+export function auraSees(match: HideSeekMatch, hiderId: string, seekerId: string): boolean {
+  return !!seatOf(match, hiderId)?.auraSeen.some(sight => sight.by === seekerId)
+}
+
+/** Seconds a hider's aura stops a seeker: the base for the first altar they lit, more for each further one. */
+export function auraStunTime(seat: HideSeekSeat, settings: HideSeekSettings): number {
+  return settings.auraStun + Math.max(0, seat.lit - 1) * settings.auraStunPerAltar
+}
+
+/**
+ * Auras go off by themselves: every free seeker that comes within reach (in sight, not shielded) of a hider whose aura
+ * is up stands stopped, and keeps seeing that hider a while after; the aura then cools down.
+ */
+function fireAuras(
+  match: HideSeekMatch,
+  hiders: HideSeekSeat[],
+  seekers: HideSeekSeat[],
+  byId: Map<string, MatchBody>,
+  grid: CollisionGrid,
+  settings: HideSeekSettings
+): MatchEvent[] {
+  const events: MatchEvent[] = []
+  for (const hider of hiders) {
+    const body = byId.get(hider.id)!
+    if (!auraReady(hider, settings) || body.hidden !== -1 || isFrozen(match, hider.id)) continue
+    const stopped = seekers.filter(s => {
+      const b = byId.get(s.id)!
+      return (
+        !isFrozen(match, s.id) &&
+        s.effects.shield <= 0 &&
+        touchable(s.effects) &&
+        Math.hypot(b.col - body.col, b.row - body.row) <= settings.auraRange &&
+        hasLineOfSight(grid, body, b)
+      )
+    })
+    if (stopped.length === 0) continue
+    const seconds = auraStunTime(hider, settings)
+    hider.auraCooldown = settings.auraCooldown
+    for (const seeker of stopped) {
+      seeker.dazed = Math.max(seeker.dazed, seconds)
+      hider.auraSeen = [...hider.auraSeen.filter(sight => sight.by !== seeker.id), { by: seeker.id, timeLeft: seconds + settings.auraReveal }]
+      events.push({ kind: 'aura', hider: hider.id, seeker: seeker.id, seconds })
+    }
+  }
+  return events
+}
+
 /** Lit altars, how many the hiders need, and how many there are. */
 export function altarProgress(match: HideSeekMatch): { lit: number; needed: number; total: number } {
   return { lit: match.altars.filter(a => a.lit).length, needed: match.altarsNeeded, total: match.altars.length }
@@ -303,12 +369,15 @@ export function startRound(
     seat.lit = 0
     seat.chainCooldown = 0
     seat.dazed = 0
+    seat.auraCooldown = 0
+    seat.auraSeen = []
     seat.catches = 0
     seat.cooldowns = Array<number>(ABILITY_SLOTS).fill(0)
     seat.effects = noEffects()
   }
   match.marks = []
   const hiderCount = Math.max(1, match.seats.filter(s => s.role === 'hider').length)
+  const seekerCount = Math.max(1, match.seats.filter(s => s.role === 'seeker').length)
   const starts = allSpawns(spawns)
   const props = maze ? [...maze.spots, ...maze.torches, ...maze.doors.map(d => d.center), ...maze.exits.map(e => e.at)] : []
   // Away from both bases and every start point, so they have to be searched for (closer again if the maze is too
@@ -316,12 +385,16 @@ export function startRound(
   const zone = (margin: number) => (p: GridCoord) =>
     starts.every(s => Math.hypot(s.col - p.col, s.row - p.row) >= margin) &&
     (!maze || (!insideRect(maze.seekerBase, p, margin) && !insideRect(maze.hiderBase, p, margin)))
-  const count = Math.max(MIN_ALTARS, hiderCount + settings.altarExtra)
+  // The altars to light, and spares on top: at least one per seeker, so a seeker standing guard at an altar
+  // (one each) never makes the round impossible (one against one: 5 to light, 6 on the map)
+  const needed = altarsToLight(settings, hiderCount)
+  const spare = Math.max(seekerCount, settings.altarExtra)
+  const count = needed + spare
   let spots = pickObjectiveSpots(grid, starts, count, random, props, zone(Math.max(ALTAR_BASE_MARGIN, settings.altarBaseDistance)), ALTAR_SPACING)
   if (spots.length < count) spots = pickObjectiveSpots(grid, starts, count, random, props, zone(ALTAR_BASE_MARGIN), ALTAR_SPACING)
   match.altars = spots.map(p => ({ ...p, progress: 0, lit: false }))
-  // A share of them (0.55: 2 of 3 one against one, 3 of 5, 4 of 7 five against five)
-  match.altarsNeeded = Math.max(1, Math.ceil(match.altars.length * settings.altarsNeededShare - 1e-9))
+  // A maze too small for all of them still keeps the spares: fewer altars to light instead
+  match.altarsNeeded = Math.max(1, Math.min(needed, match.altars.length - spare))
   match.chains = []
   match.rescueProgress = 0
   match.spots = maze
@@ -339,6 +412,11 @@ export function startRound(
   match.clock = settings.hideTime > 0
     ? { phase: 'hiding', timeLeft: settings.hideTime, winner: null, reason: null }
     : { phase: 'seeking', timeLeft: settings.roundTime, winner: null, reason: null }
+}
+
+/** How many altars the hiders light to win: `altarsToWin` for one hider, `altarsPerHider` more for each further one. */
+export function altarsToLight(settings: HideSeekSettings, hiders: number): number {
+  return settings.altarsToWin + settings.altarsPerHider * Math.max(0, hiders - 1)
 }
 
 /** Anyone opens / shuts a door. */
@@ -428,6 +506,8 @@ export function tickMatch(
   for (const seat of match.seats) {
     seat.chainCooldown = Math.max(0, seat.chainCooldown - deltaSec)
     seat.dazed = Math.max(0, seat.dazed - deltaSec)
+    seat.auraCooldown = Math.max(0, seat.auraCooldown - deltaSec)
+    seat.auraSeen = seat.auraSeen.filter(sight => (sight.timeLeft -= deltaSec) > 0)
     tickAbilities(seat.cooldowns, seat.effects, deltaSec)
   }
   dropTrails(match, bodies, settings)
@@ -445,6 +525,7 @@ export function tickMatch(
     if (seeker) seeker.dazed = settings.chainDaze
     events.push({ kind: 'chainEnd', hider: chain.hider, seeker: chain.seeker, dazed: true })
   }
+  if (clock.phase === 'seeking') events.push(...fireAuras(match, hiders, seekers, byId, grid, settings))
   /** Can act this frame: not chained, not dazed */
   const active = (seat: HideSeekSeat) => !isFrozen(match, seat.id)
   const activeSeekers = seekers.filter(s => active(s) && s.effects.burrow <= 0)
@@ -541,19 +622,21 @@ export function tickMatch(
     if (catcher) jail(match, seat, catcher, settings, events)
   }
 
-  // Bell traps ring when a free hider walks by, then stop
-  match.traps = match.traps.filter(trap => {
+  // Bell traps stay for the round: one rings and slows the free hider who steps on it, then arms itself again
+  for (const trap of match.traps) {
     if (trap.ringing > 0) {
-      trap.ringing -= deltaSec
-      return trap.ringing > 0
+      trap.ringing = Math.max(0, trap.ringing - deltaSec)
+      continue
     }
     const walker = hiders.find(h => !h.jailed && byId.get(h.id)!.hidden === -1 && near(h.id, trap, TRAP_RADIUS))
-    if (walker) {
-      trap.ringing = TRAP_RING_SEC
-      events.push({ kind: 'bell', col: trap.col, row: trap.row })
+    if (!walker) continue
+    trap.ringing = TRAP_RING_SEC
+    events.push({ kind: 'bell', col: trap.col, row: trap.row })
+    if (settings.trapSlowTime > 0) {
+      walker.effects.slowed = Math.max(walker.effects.slowed, settings.trapSlowTime)
+      events.push({ kind: 'effect', id: walker.id, effect: 'slowed', seconds: settings.trapSlowTime })
     }
-    return true
-  })
+  }
 
   tickMarks(match, bodies, settings, deltaSec, events)
 
@@ -739,6 +822,18 @@ export function placeCandle(match: HideSeekMatch, at: GridCoord, limit: number, 
   if (match.candles.length >= limit || !canPlaceCandle(match, at, maze)) return false
   match.candles.push({ col: at.col, row: at.row })
   match.torches.push(true)
+  return true
+}
+
+/** A seeker can pick a bell trap up again from this close */
+export const TRAP_PICK_REACH = 1.2
+
+/** A seeker picks up the bell trap at `at` (to set it down somewhere else). */
+export function pickUpTrap(match: HideSeekMatch, at: GridCoord): boolean {
+  const index = match.traps.findIndex(t => Math.hypot(t.col - at.col, t.row - at.row) < 0.3)
+  if (match.clock.phase !== 'seeking' || index === -1) return false
+  match.traps.splice(index, 1)
+  match.trapsPlaced = Math.max(0, match.trapsPlaced - 1)
   return true
 }
 

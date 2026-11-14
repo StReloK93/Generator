@@ -3,12 +3,14 @@ import { ref, watch } from 'vue'
 import { gameAudio } from '../services/gameAudio'
 import { backgroundMusic } from '../services/backgroundMusic'
 import { setHapticsEnabled } from '../services/telegram'
+import { applyOrientation, isFullscreen, type ScreenOrientationChoice } from '../utils/pwaOrientation'
 
 const SOUND_KEY = 'isocraft_sound'
 const MUSIC_KEY = 'isocraft_music'
 const VIBRATION_KEY = 'isocraft_vibration'
 const CONTROLS_KEY = 'isocraft_controls'
 const MUSIC_VOLUME_KEY = 'isocraft_music_volume'
+const ORIENTATION_KEY = 'isocraft_orientation'
 
 function readNumber(key: string, fallback: number): number {
   try {
@@ -38,6 +40,15 @@ function readControls(): MoveControls {
   }
 }
 
+function readOrientation(): ScreenOrientationChoice {
+  try {
+    const value = localStorage.getItem(ORIENTATION_KEY)
+    return value === 'portrait' || value === 'landscape' ? value : 'auto'
+  } catch {
+    return 'auto'
+  }
+}
+
 function readFlag(key: string): boolean {
   try {
     return localStorage.getItem(key) !== 'off'
@@ -54,7 +65,7 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
-/** The player's own preferences (game sounds, music, vibration, maze controls), kept on this device. The language lives in i18nStore. */
+/** The player's own preferences (game sounds, music, vibration, maze controls, screen turn), kept on this device. The language lives in i18nStore. */
 export const useSettingsStore = defineStore('settings', () => {
   const soundOn = ref(readFlag(SOUND_KEY))
   const musicOn = ref(readFlag(MUSIC_KEY))
@@ -62,6 +73,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const controls = ref<MoveControls>(readControls())
   /** Music loudness, 0..100 */
   const musicVolume = ref(readNumber(MUSIC_VOLUME_KEY, 65))
+  /** Screen turn in the installed app: follow the phone, or keep it upright / sideways */
+  const orientation = ref<ScreenOrientationChoice>(readOrientation())
 
   watch(
     soundOn,
@@ -105,5 +118,19 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   })
 
-  return { soundOn, musicOn, musicVolume, vibrationOn, controls }
+  // A browser tab can lock only in full screen, so the lock is applied again when it goes full screen
+  watch(
+    [orientation, isFullscreen],
+    ([value]) => {
+      applyOrientation(value)
+      try {
+        localStorage.setItem(ORIENTATION_KEY, value)
+      } catch {
+        // Private mode: the choice lasts this visit only
+      }
+    },
+    { immediate: true }
+  )
+
+  return { soundOn, musicOn, musicVolume, vibrationOn, controls, orientation }
 })

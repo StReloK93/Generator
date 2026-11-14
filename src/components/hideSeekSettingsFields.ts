@@ -95,8 +95,9 @@ export const HIDE_SEEK_SECTIONS: HideSeekFieldSection[] = [
     icon: Flame,
     cards: [{
       fields: [
+        field('altarsToWin', 1, 20, 1),
+        field('altarsPerHider', 0, 5, 1),
         field('altarExtra', 0, 10, 1),
-        field('altarsNeededShare', 0.05, 1, 0.05, '×'),
         field('altarStages', 1, 10, 1),
         field('altarLightTime', 1, 60, 0.5, SEC),
         field('altarKickTime', 0.5, 60, 0.5, SEC),
@@ -106,6 +107,11 @@ export const HIDE_SEEK_SECTIONS: HideSeekFieldSection[] = [
         field('chainTime', 1, 60, 1, SEC),
         field('chainCooldown', 0, 120, 1, SEC),
         field('chainDaze', 0, 15, 0.5, SEC),
+        field('auraRange', 0, 10, 0.5),
+        field('auraStun', 0, 30, 0.5, SEC),
+        field('auraStunPerAltar', 0, 10, 0.5, SEC),
+        field('auraCooldown', 0, 300, 5, SEC),
+        field('auraReveal', 0, 60, 1, SEC),
       ],
     }],
   },
@@ -135,6 +141,7 @@ export const HIDE_SEEK_SECTIONS: HideSeekFieldSection[] = [
     cards: [{
       fields: [
         field('trapCount', 0, 10, 1),
+        field('trapSlowTime', 0, 10, 0.5, SEC),
         field('seekerCandleCount', 0, 10, 1),
         field('huntTime', 0, 300, 5, SEC),
         field('huntPingInterval', 1, 60, 1, SEC),

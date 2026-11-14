@@ -181,8 +181,7 @@ export class GameController {
     }
   }
 
-  /** `gait`: hide & seek only (a touch tap walks quietly, a held press and the mouse run) */
-  public handleCellClick(gridCoord: GridCoord, gait: 'walk' | 'run' = 'run'): void {
+  public handleCellClick(gridCoord: GridCoord): void {
     const { mapStore, towerStore, gameStore, routeStore, multiplayerStore, toolStore, notify, t } =
       this.deps
     const heroStore = useHeroStore()
@@ -191,7 +190,7 @@ export class GameController {
     // Hide & seek: click / tap walks there or lifts a chest lid (WASD and the touch joystick steer directly)
     if (isMazeMode(getMapMode(mapStore.project))) {
       gameAudio.unlock()
-      useHideSeekStore().clickCell(gridCoord.col, gridCoord.row, gait)
+      useHideSeekStore().clickCell(gridCoord.col, gridCoord.row)
       return
     }
 

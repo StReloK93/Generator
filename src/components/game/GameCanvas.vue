@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, toRef, watch } from 'vue'
+import type { GridCoord } from '../../types/map'
 import { useMapStore } from '../../stores/mapStore'
 import { useToolStore } from '../../stores/toolStore'
 import { useAssetStore } from '../../stores/assetStore'
@@ -227,6 +228,7 @@ watch(() => [assetStore.isLoaded, assetManager.atlasRevision.value, hideSeekStor
 })
 
 onUnmounted(() => {
+  releaseLead()
   try {
     if (cleanListeners) {
       cleanListeners()
@@ -313,29 +315,33 @@ function handleContextMenu() {
 
 // --- Touch Handling ---
 
-/** A touch tap: in hide & seek it walks there quietly (a held press runs, see below) */
-function cellClickAt(clientX: number, clientY: number, gait: 'walk' | 'run' = 'walk') {
+function gridAt(clientX: number, clientY: number): GridCoord {
   const rect = camera.getViewportRect(viewportContainerRef.value)
-  const { gridCoord } = engine.screenPointToGrid(clientX, clientY, rect, mapStore.project)
-  gameController.handleCellClick(gridCoord, gait)
+  return engine.screenPointToGrid(clientX, clientY, rect, mapStore.project).gridCoord
+}
+
+/** A touch tap on the map (hide & seek: the hero runs there) */
+function cellClickAt(clientX: number, clientY: number) {
+  gameController.handleCellClick(gridAt(clientX, clientY))
 }
 
 /** A tap that landed on an overlay over the map (the hide & seek joystick zone) */
 defineExpose({ tapAt: cellClickAt })
 
-// Hide & seek on a touch screen: a finger held still on the map this long runs the hero there (a quick tap walks)
-const HOLD_TO_RUN_MS = 280
-/** A finger this far from where it landed is panning / pinching, not holding */
+// Hide & seek on a touch screen: the hero runs the moment a finger lands. A finger kept still on the map this long
+// sneaks (slow and silent) until it lifts, and a finger sliding over the map leads the hero after it.
+const HOLD_TO_SNEAK_MS = 220
+/** A finger this far from where it landed is steering, not holding */
 const HOLD_SLOP_PX = 12
-let holdTimer: ReturnType<typeof setTimeout> | null = null
-let holdStart: { x: number; y: number } | null = null
-/** The held press already sent the hero running: its lift is not a tap */
-let holdFired = false
+/** The finger leading the hero (null: none, or two fingers zooming) */
+let leadFinger: { id: number; x: number; y: number; cell: GridCoord } | null = null
+let sneakTimer: ReturnType<typeof setTimeout> | null = null
 
-function cancelHold() {
-  if (holdTimer) clearTimeout(holdTimer)
-  holdTimer = null
-  holdStart = null
+function releaseLead() {
+  if (sneakTimer) clearTimeout(sneakTimer)
+  sneakTimer = null
+  if (leadFinger) hideSeekStore.setSneakHeld(false)
+  leadFinger = null
 }
 
 function handleTouchStart(e: TouchEvent) {
@@ -343,38 +349,51 @@ function handleTouchStart(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
   camera.handleTouchStart(Array.from(e.targetTouches), viewportContainerRef.value)
-  cancelHold()
-  holdFired = false
-  if (e.targetTouches.length === 1 && isMazeMode(getMapMode(mapStore.project))) {
-    const t = e.targetTouches[0]
-    holdStart = { x: t.clientX, y: t.clientY }
-    holdTimer = setTimeout(() => {
-      if (!holdStart) return
-      holdFired = true
-      cellClickAt(holdStart.x, holdStart.y, 'run')
-      holdTimer = null
-    }, HOLD_TO_RUN_MS)
-  }
+  if (!isMazeMode(getMapMode(mapStore.project))) return
+  releaseLead()
+  if (e.targetTouches.length !== 1) return
+  const t = e.targetTouches[0]
+  leadFinger = { id: t.identifier, x: t.clientX, y: t.clientY, cell: gridAt(t.clientX, t.clientY) }
+  cellClickAt(t.clientX, t.clientY)
+  sneakTimer = setTimeout(() => {
+    sneakTimer = null
+    hideSeekStore.setSneakHeld(true)
+  }, HOLD_TO_SNEAK_MS)
 }
 
 function handleTouchMove(e: TouchEvent) {
   const target = e.target as HTMLElement
   if (target && target.tagName !== 'CANVAS') return
-  const t = e.targetTouches[0]
-  if (holdStart && (e.targetTouches.length !== 1 || Math.hypot(t.clientX - holdStart.x, t.clientY - holdStart.y) > HOLD_SLOP_PX)) cancelHold()
-  camera.handleTouchMove(Array.from(e.targetTouches), viewportContainerRef.value)
+  const t = leadFinger && Array.from(e.targetTouches).find(touch => touch.identifier === leadFinger?.id)
+  if (!leadFinger || !t) {
+    camera.handleTouchMove(Array.from(e.targetTouches), viewportContainerRef.value)
+    return
+  }
+  // Slid off quickly: it steers at a run; once sneaking, it keeps sneaking while it steers
+  if (sneakTimer && Math.hypot(t.clientX - leadFinger.x, t.clientY - leadFinger.y) > HOLD_SLOP_PX) {
+    clearTimeout(sneakTimer)
+    sneakTimer = null
+  }
+  const cell = gridAt(t.clientX, t.clientY)
+  if (cell.col === leadFinger.cell.col && cell.row === leadFinger.cell.row) return
+  leadFinger.cell = cell
+  hideSeekStore.steerTo(cell.col, cell.row)
 }
 
 function handleTouchEnd(e: TouchEvent) {
   gameController.lastTouchTimestamp = Date.now()
-  cancelHold()
-  camera.handleTouchEnd(Array.from(e.targetTouches), (x, y) => {
-    if (!holdFired) cellClickAt(x, y)
-  })
+  const remaining = Array.from(e.targetTouches)
+  if (isMazeMode(getMapMode(mapStore.project))) {
+    // The hero already ran off when the finger landed: lifting it only ends the sneak
+    if (!remaining.some(touch => touch.identifier === leadFinger?.id)) releaseLead()
+    camera.handleTouchEnd(remaining)
+    return
+  }
+  camera.handleTouchEnd(remaining, cellClickAt)
 }
 
 function handleTouchCancel() {
-  cancelHold()
+  releaseLead()
   camera.touchState.value.isTouch = false
   camera.touchState.value.mode = 'none'
 }

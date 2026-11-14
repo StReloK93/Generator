@@ -48,8 +48,10 @@ export interface HideSeekAvatarView {
   jailed: boolean
   /** Own character sitting inside a barrel (drawn faint) */
   hidden: boolean
-  /** Dazed after a chain ran out (stars over the head) */
+  /** Dazed after a chain ran out or an aura stopped them (stars over the head) */
   dazed: boolean
+  /** Hider whose aura is up: a glowing shield ring around them (stops a seeker that comes close) */
+  aura: boolean
   /** Curse genre: carries the curse (a pulsing violet flame ring) */
   cursed: boolean
   /** Curse genre: turned to stone (grey, no chain ring) */

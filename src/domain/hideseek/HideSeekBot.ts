@@ -451,7 +451,10 @@ function thinkHider(
   if (senses.canChain && seen && freeTeammates.length > 0 && distance <= settings.chainRange - 0.3) {
     const unlit = altars.filter((a, i) => !a.lit && brain.altarSeen[i] >= 0)
     const lightingNear = unlit.some(a => dist(a, self) <= ALTAR_REACH || freeTeammates.some(t => dist(t, a) <= ALTAR_REACH + 0.5))
-    if (distance < CHAIN_PANIC_DISTANCE || lightingNear) {
+    // A teammate is freeing the jailed: hold the guard while they do
+    const jail = senses.jail
+    const rescueNear = !!jail && senses.teammates.some(t => t.jailed) && freeTeammates.some(t => dist(t, jail) <= ALTAR_REACH + 2)
+    if (distance < CHAIN_PANIC_DISTANCE || lightingNear || rescueNear) {
       action.chain = true
       return action
     }
@@ -501,12 +504,13 @@ function thinkHider(
     return action
   }
 
-  // Free jailed teammates: the free hider closest to the jail goes (everyone when several are in), unless it is guarded
-  const jailed = senses.teammates.filter(t => t.jailed)
-  if (senses.jail && jailed.length > 0 && brain.time - brain.jailDangerAt > JAIL_DANGER_SEC) {
+  // Free jailed teammates: never everyone. The free hider closest to the jail goes; a seeker seen guarding it sends the
+  // two closest (one holds the guard, the other frees them) or nobody. Alone, the bot keeps lighting altars.
+  if (senses.jail && senses.teammates.some(t => t.jailed) && freeTeammates.length > 0) {
     const jail = senses.jail
-    const closest = freeTeammates.every(t => dist(t, jail) >= dist(self, jail))
-    if (closest || jailed.length >= 2) {
+    const place = freeTeammates.filter(t => dist(t, jail) < dist(self, jail)).length
+    const guarded = brain.time - brain.jailDangerAt <= JAIL_DANGER_SEC
+    if (place === 0 ? !guarded || freeTeammates.length > 1 : place === 1 && guarded) {
       if (dist(self, jail) > ALTAR_REACH) setGoal(brain, grid, self, jail, 'rescue')
       else brain.path = []
       return action
