@@ -49,8 +49,7 @@ import { HideSeekTrait, catchReach, lightingSpeed, rescueReach } from './HideSee
 export const ROUND_BREAK_SEC = 6
 /** A hider this close to the spot inside an open exit gate is out */
 export const EXIT_REACH = 0.8
-/** Altars keep this far apart (one seeker cannot watch two) and from both bases */
-const ALTAR_SPACING = 9
+/** Altars keep this far from both bases (and spread as far apart as the maze allows: one seeker cannot watch two) */
 const ALTAR_BASE_MARGIN = 2
 /** Nobody is caught in the first seconds of seeking (everyone's position has reached the referee) */
 const START_GRACE_SEC = 3
@@ -390,8 +389,8 @@ export function startRound(
   const needed = altarsToLight(settings, hiderCount)
   const spare = Math.max(seekerCount, settings.altarExtra)
   const count = needed + spare
-  let spots = pickObjectiveSpots(grid, starts, count, random, props, zone(Math.max(ALTAR_BASE_MARGIN, settings.altarBaseDistance)), ALTAR_SPACING)
-  if (spots.length < count) spots = pickObjectiveSpots(grid, starts, count, random, props, zone(ALTAR_BASE_MARGIN), ALTAR_SPACING)
+  let spots = pickObjectiveSpots(grid, starts, count, random, props, zone(Math.max(ALTAR_BASE_MARGIN, settings.altarBaseDistance)))
+  if (spots.length < count) spots = pickObjectiveSpots(grid, starts, count, random, props, zone(ALTAR_BASE_MARGIN))
   match.altars = spots.map(p => ({ ...p, progress: 0, lit: false }))
   // A maze too small for all of them still keeps the spares: fewer altars to light instead
   match.altarsNeeded = Math.max(1, Math.min(needed, match.altars.length - spare))

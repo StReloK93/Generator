@@ -88,8 +88,8 @@ function spreadOut(candidates: GridCoord[], count: number, spacing: number): Gri
 const OBJECTIVE_PROP_CLEARANCE = 1.5
 
 /**
- * Random free cells inside the playable maze (and inside `zone`), away from the spawns, from `props` and from each
- * other (`spacing`, relaxed when the map is crowded).
+ * Free cells inside the playable maze (and inside `zone`), away from the spawns and from `props`, spread as far from
+ * each other as the maze allows: the first at random, each next the cell furthest from all the ones picked so far.
  */
 export function pickObjectiveSpots(
   grid: CollisionGrid,
@@ -97,13 +97,23 @@ export function pickObjectiveSpots(
   count: number,
   random: () => number,
   props: GridCoord[] = [],
-  zone: (p: GridCoord) => boolean = () => true,
-  spacing = 6
+  zone: (p: GridCoord) => boolean = () => true
 ): GridCoord[] {
   const cells = freeCells(grid, spawns, spawns, OBJECTIVE_SPAWN_CLEARANCE, random).filter(
     c => zone(c) && !props.some(p => Math.hypot(p.col - c.col, p.row - c.row) < OBJECTIVE_PROP_CLEARANCE)
   )
-  return spreadOut(cells, count, spacing)
+  if (cells.length === 0 || count <= 0) return []
+  const picked = [cells[0]]
+  // Each cell's distance to the nearest picked one
+  const gap = cells.map(c => Math.hypot(c.col - cells[0].col, c.row - cells[0].row))
+  while (picked.length < Math.min(count, cells.length)) {
+    let best = 0
+    gap.forEach((d, i) => d > gap[best] && (best = i))
+    const next = cells[best]
+    picked.push(next)
+    cells.forEach((c, i) => (gap[i] = Math.min(gap[i], Math.hypot(c.col - next.col, c.row - next.row))))
+  }
+  return picked
 }
 
 const HIDE_SPOT_CLEARANCE = 3

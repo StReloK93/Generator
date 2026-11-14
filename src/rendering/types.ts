@@ -154,6 +154,9 @@ export interface HideSeekAreaView {
 }
 
 export interface HideSeekRenderView {
+  /** Cells this player has seen (row-major over the map, 1 = seen): the rest of the maze lies in a deeper dark.
+   * null = nothing to remember (between rounds) */
+  explored: Uint8Array | null
   avatars: HideSeekAvatarView[]
   altars: HideSeekAltarView[]
   chains: HideSeekChainView[]

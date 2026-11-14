@@ -126,6 +126,7 @@ export function buildRenderView(ctx: HideSeekViewContext): HideSeekRenderView {
 
   return {
     blind,
+    explored: over ? null : ctx.explored,
     // Altars have to be found: a player knows the ones they have seen, hiders also the ones their team is lighting,
     // and everyone the lit ones (each flares up across the labyrinth)
     altars: match.altars.map(a => {

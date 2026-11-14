@@ -25,8 +25,12 @@ const CROUCH_FADE = 0.25
 const CROUCH_EASE = 10
 /** Warm dungeon night (a cold blue made the stone look grey) */
 const NIGHT_COLOR = 0x140d08
-/** The whole maze stays faintly visible; only the sight cone is really lit */
+/** The parts of the maze the player has seen stay faintly visible; only the sight cone is really lit */
 const NIGHT_ALPHA = 0.8
+/** The parts the player has not been to yet lie in a much deeper dark */
+const UNEXPLORED_ALPHA = 0.96
+/** Erasing this much of the deep dark over a seen cell leaves the faint NIGHT_ALPHA */
+const EXPLORED_ERASE_ALPHA = 1 - NIGHT_ALPHA / UNEXPLORED_ALPHA
 const BLIND_ALPHA = 0.99
 /** Nested sight shapes per light layer: many thin bands read as one smooth gradient (the blur hides the steps) */
 const FALLOFF_STEPS = 14
@@ -178,6 +182,9 @@ export class HideSeekRenderer {
   private night = new Container()
   private nightGraphics = new Graphics()
   private holeGraphics = new Graphics()
+  /** The seen cells, erased a little out of the deep dark (redrawn only when the player sees new ones) */
+  private memoryGraphics = new Graphics()
+  private memoryCount = -1
   private glowGraphics = new Graphics()
   private xray = new Sprite()
   private beaconGraphics = new Graphics()
@@ -196,8 +203,9 @@ export class HideSeekRenderer {
 
   constructor() {
     this.night.zIndex = NIGHT_Z_INDEX
-    this.night.addChild(this.nightGraphics, this.holeGraphics)
+    this.night.addChild(this.nightGraphics, this.memoryGraphics, this.holeGraphics)
     this.holeGraphics.blendMode = 'erase'
+    this.memoryGraphics.blendMode = 'erase'
     this.night.filters = [new BlurFilter({ strength: NIGHT_SOFTNESS, quality: 3 })]
     this.glowGraphics.zIndex = GLOW_Z_INDEX
     this.glowGraphics.blendMode = 'add'
@@ -457,7 +465,9 @@ export class HideSeekRenderer {
     const maxX = Math.max(...corners.map(c => c.x)) + 2000
     const minY = Math.min(...corners.map(c => c.y)) - 2000
     const maxY = Math.max(...corners.map(c => c.y)) + 2000
-    night.rect(minX, minY, maxX - minX, maxY - minY).fill({ color: NIGHT_COLOR, alpha: view.blind ? BLIND_ALPHA : NIGHT_ALPHA })
+    const remembers = !view.blind && !!view.explored
+    night.rect(minX, minY, maxX - minX, maxY - minY).fill({ color: NIGHT_COLOR, alpha: view.blind ? BLIND_ALPHA : remembers ? UNEXPLORED_ALPHA : NIGHT_ALPHA })
+    this.drawMemory(remembers ? view.explored : null, project)
     if (view.blind || !view.vision) return
 
     // Nested cones, each erasing a little more: the full cone clears the near part, its fading tail only partly
@@ -484,6 +494,27 @@ export class HideSeekRenderer {
         hole.poly(this.toScreen(this.scaledSight(torch.glow, fraction, radii), project)).fill({ color: 0xffffff, alpha: TORCH_ERASE_BAND_ALPHA })
       }
     }
+  }
+
+  /** The cells the player has seen: each one erased from the deep dark down to the faint night. */
+  private drawMemory(explored: Uint8Array | null, project: MapProject): void {
+    const g = this.memoryGraphics
+    let count = 0
+    if (explored) for (let i = 0; i < explored.length; i++) count += explored[i]
+    if (!explored) count = -1
+    if (count === this.memoryCount) return
+    this.memoryCount = count
+    g.clear()
+    if (!explored) return
+    const { cols, tileWidth, tileHeight } = project
+    const halfW = tileWidth / 2
+    const halfH = tileHeight / 2
+    explored.forEach((seen, i) => {
+      if (!seen) return
+      const c = gridToScreen(i % cols, Math.floor(i / cols), tileWidth, tileHeight)
+      g.poly([c.x, c.y - halfH, c.x + halfW, c.y, c.x, c.y + halfH, c.x - halfW, c.y])
+    })
+    g.fill({ color: 0xffffff, alpha: EXPLORED_ERASE_ALPHA })
   }
 
   /** Warm lantern light added on top of the lit floor: a soft wedge, brightest at the lantern, gently flickering. */
@@ -913,6 +944,8 @@ export class HideSeekRenderer {
     this.effectsGraphics.clear()
     this.nightGraphics.clear()
     this.holeGraphics.clear()
+    this.memoryGraphics.clear()
+    this.memoryCount = -1
     this.glowGraphics.clear()
     this.xray.visible = false
     this.beaconGraphics.clear()
